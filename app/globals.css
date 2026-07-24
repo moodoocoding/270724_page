@@ -236,6 +236,118 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .modal section p span { color: var(--muted); font-weight: 650; }
 .muted { color: var(--muted); }
 
+/* Editorial direction inspired by the reference: type, space and rules over UI decoration. */
+:root {
+  --ink: #171717;
+  --muted: #6b6b66;
+  --green: #175e46;
+  --green-dark: #171717;
+  --lime: #dfff00;
+  --paper: #f4f3ed;
+  --line: #c9c8c1;
+}
+body { letter-spacing: -.15px; }
+.topbar { height: 72px; padding: 0 34px; border-color: #171717; }
+.brand { gap: 12px; }
+.brand > span {
+  width: 38px; height: 38px; border-radius: 50%;
+  color: #171717; background: var(--lime); font-size: 13px;
+}
+.brand strong { font-size: 15px; }
+.brand small { font-size: 10px; }
+.user-chip strong { border: 1px solid #171717; border-radius: 0; background: #fff; }
+.workspace { min-height: calc(100vh - 72px); grid-template-columns: 224px minmax(0, 1fr); }
+.sidebar {
+  top: 72px; height: calc(100vh - 72px); padding: 31px 22px 20px;
+  border-color: #171717; color: var(--ink); background: #fff;
+}
+.progress-copy { color: var(--muted); }
+.progress-copy strong { color: var(--ink); }
+.progress-track { height: 2px; margin: 14px 0 28px; border-radius: 0; background: #dddcd5; }
+.progress-track i { border-radius: 0; background: #171717; }
+.sidebar nav { gap: 0; }
+.sidebar nav button {
+  min-height: 70px; padding: 11px 0; border-bottom: 1px solid var(--line);
+  border-radius: 0; color: var(--muted);
+}
+.sidebar nav button:first-child { border-top: 1px solid var(--line); }
+.sidebar nav button:hover { background: transparent; color: var(--ink); }
+.sidebar nav button > span {
+  width: 29px; height: 29px; border: 1px solid var(--line);
+  border-radius: 50%; color: var(--muted);
+}
+.sidebar nav button strong { font-size: 14px; }
+.sidebar nav button small { color: #999890; }
+.sidebar nav button.active { color: var(--ink); background: transparent; }
+.sidebar nav button.active > span { border-color: var(--ink); color: var(--ink); background: var(--lime); }
+.sidebar nav button.active strong { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.sidebar nav button.active small { color: var(--muted); }
+.logout { padding: 9px 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+.work-area { width: min(100%, 1040px); padding: 54px 52px 110px; }
+.step-heading { display: grid; grid-template-columns: 110px 1fr; column-gap: 24px; }
+.step-heading p { grid-row: 1 / span 2; margin: 9px 0 0; color: var(--ink); font-size: 11px; text-transform: uppercase; }
+.step-heading h1 {
+  max-width: 760px; margin: 0 0 12px; font-size: clamp(38px, 4vw, 62px);
+  line-height: 1.03; letter-spacing: -3px; font-weight: 700;
+}
+.step-heading > span { max-width: 620px; font-size: 14px; }
+.inner-steps {
+  margin: 42px 0 36px 134px; padding: 0; border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink); border-radius: 0; background: transparent;
+}
+.inner-steps button {
+  min-height: 50px; justify-content: flex-start; padding: 0 10px;
+  border-right: 1px solid var(--line); border-radius: 0; background: transparent;
+}
+.inner-steps button:last-child { border-right: 0; }
+.inner-steps button i { background: transparent; }
+.inner-steps button.active { color: var(--ink); background: var(--lime); box-shadow: none; }
+.inner-steps button.active i { color: var(--ink); background: transparent; }
+.lesson-activity, .preview, .form-grid { margin-left: 134px; }
+.concept-pair { gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+.concept-pair section { padding: 22px 20px; border: 0; border-right: 1px solid var(--ink); border-radius: 0; }
+.concept-pair section:last-child { border-right: 0; }
+.concept-pair strong { color: var(--ink); font-size: 18px; }
+.activity-heading { margin-top: 34px; }
+.activity-heading span { padding: 0; border-radius: 0; color: var(--ink); background: transparent; text-decoration: underline; }
+.activity-heading h2 { font-size: 20px; }
+.classification-list { border-color: var(--ink); }
+.classification-list label {
+  border-color: var(--line); border-radius: 0; color: var(--ink); background: #fff;
+}
+.classification-list label.selected { border-color: var(--ink); color: var(--ink); background: var(--lime); }
+.classification-row > p i { border: 1px solid var(--ink); border-radius: 50%; color: var(--ink); background: transparent; }
+.remember-note {
+  padding: 13px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  border-radius: 0; color: var(--ink); background: transparent;
+}
+.preview {
+  margin-top: 38px; margin-bottom: 32px; padding: 20px 0;
+  border: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  border-radius: 0; background: transparent;
+}
+.preview > span { color: var(--ink); text-transform: uppercase; }
+.preview p { font-size: 16px; line-height: 1.7; }
+.preview b { color: var(--ink); text-decoration: underline; text-decoration-color: var(--green); text-underline-offset: 4px; }
+.form-grid { gap: 24px; margin-top: 32px; }
+.form-grid label { color: var(--ink); }
+.form-grid label i { color: var(--ink); }
+input, textarea {
+  border-color: var(--line); border-radius: 0; color: var(--ink); background: #fff;
+}
+input:focus, textarea:focus { border-color: var(--ink); box-shadow: none; }
+.primary, .secondary { border-radius: 0; }
+.primary { color: #171717; background: var(--lime); }
+.primary:hover { background: #cae900; }
+.secondary { border: 1px solid var(--line); color: var(--ink); background: #fff; }
+.actionbar { left: 224px; height: 72px; border-color: var(--ink); background: rgba(255, 255, 255, .97); }
+.entry-shell { background: #fff; }
+.entry-card { border-color: var(--ink); border-radius: 0; box-shadow: none; }
+.hero-mark, .eyebrow { padding: 0; border-radius: 0; color: var(--ink); background: transparent; text-decoration: underline; }
+.entry-card h1 { font-size: clamp(42px, 5vw, 70px); line-height: .98; letter-spacing: -4px; }
+.entry-note { border-radius: 0; background: var(--lime); transform: rotate(-2deg); }
+.teacher-summary > div, .roster, .modal { border-radius: 0; box-shadow: none; }
+
 @media (max-width: 760px) {
   .entry-shell { grid-template-columns: 1fr; padding: 16px; }
   .entry-note { display: none; }
@@ -258,7 +370,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   .sidebar nav button.active { color: var(--green-dark); background: rgba(223, 240, 111, .42); }
   .logout { margin-left: 2px; }
   .work-area { padding: 26px 18px 92px; }
-  .step-heading h1 { font-size: 25px; }
+  .step-heading { display: block; }
+  .step-heading p { margin-bottom: 8px; }
+  .step-heading h1 { font-size: 38px; letter-spacing: -2px; }
+  .inner-steps, .lesson-activity, .preview, .form-grid { margin-left: 0; }
+  .inner-steps { margin-top: 28px; }
   .inner-steps button { gap: 5px; font-size: 11px; }
   .concept-pair { grid-template-columns: 1fr; }
   .classification-row { grid-template-columns: 1fr; gap: 9px; padding: 14px 0; }
