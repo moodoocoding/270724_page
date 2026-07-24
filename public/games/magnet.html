@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Magnetic Defense</title>
+    <style>
+        
+
+        /* 터치 시 파란색 하이라이트 제거 및 선택 방지 */
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #0d0d1a; overflow: hidden;
+            font-family: 'HsSantoki', sans-serif;
+            touch-action: none; 
+        }
+
+        #gameCanvas {
+            display: block; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 50% 100%, #1a2a4a 0%, #050510 100%);
+        }
+
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .survive-time-container {
+            position: absolute; top: 20px; left: 20px;
+            color: #fff; font-size: clamp(24px, 3vw, 36px); 
+            text-shadow: 0 0 10px rgba(76, 217, 100, 0.8);
+            background: rgba(0, 0, 0, 0.4); padding: 15px 30px; border-radius: 15px;
+            backdrop-filter: blur(5px); border: 2px solid #4cd964;
+        }
+        .survive-time-container span { color: #4cd964; font-family: monospace; font-weight: bold; }
+
+        .earth-energy-container {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            color: #fff; font-size: clamp(20px, 4vw, 32px);
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+            background: rgba(0, 0, 0, 0.6); padding: 10px 40px; border-radius: 30px;
+            backdrop-filter: blur(5px); border: 3px solid #ffcc00;
+            text-align: center;
+        }
+        .earth-energy-container span { color: #ffcc00; font-family: monospace; font-weight: bold; font-size: 1.2em;}
+
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 100; pointer-events: auto;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: rgba(20, 20, 40, 0.95); padding: 30px 40px; border-radius: 20px;
+            border: 3px solid #ffcc00; text-align: center; color: white; max-width: 650px;
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);
+        }
+
+        .flags-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 15px;
+        }
+        .flag-btn {
+            font-size: 24px; cursor: pointer; background: none; border: none; padding: 5px;
+            transition: transform 0.2s; opacity: 0.5; filter: grayscale(100%);
+        }
+        .flag-btn.active { opacity: 1; filter: grayscale(0%); transform: scale(1.3); }
+
+        .story-text {
+            font-size: 18px; line-height: 1.6; color: #ddd; text-align: left;
+            margin: 15px 0; padding: 20px; background: rgba(0,0,0,0.5); border-radius: 10px;
+            word-break: keep-all; font-family: -apple-system, sans-serif; min-height: 120px;
+        }
+        .story-text b { color: #ff4d4d; }
+        .story-text .highlight { color: #4cd964; font-weight: bold; }
+
+        .player-select { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .player-btn {
+            padding: 10px 20px; font-size: 20px; font-family: 'HsSantoki';
+            background: #333; color: #aaa; border: 2px solid #555; border-radius: 15px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .player-btn.active { background: rgba(255, 204, 0, 0.2); color: #ffcc00; border-color: #ffcc00; transform: scale(1.1); }
+
+        button.start-btn {
+            padding: 15px 50px; font-size: 28px; font-family: 'HsSantoki';
+            background: linear-gradient(to bottom, #ffd700, #ff8c00); border: none;
+            border-radius: 40px; cursor: pointer; color: #111; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 140, 0, 0.5); transition: transform 0.1s;
+        }
+        button.start-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="ui-layer">
+    <div class="survive-time-container">
+        Survived Time<br><span id="survive-val">0.00</span>
+    </div>
+    <div class="earth-energy-container">
+        Earth Energy : <span id="energy-val">6000</span>
+    </div>
+</div>
+
+<div id="overlay">
+    <div class="modal-content" id="start-modal">
+        <h1 style="font-size: 45px; color: #ffcc00; margin:0 0 15px 0; font-family: sans-serif; font-weight:900;">MAGNETIC DEFENSE</h1>
+        
+        <div class="flags-container" id="flag-selector">
+            </div>
+
+        <div class="story-text" id="story-display">
+            </div>
+        
+        <div style="color:#ffcc00; font-size:20px; margin-bottom:10px;">Select Players</div>
+        <div class="player-select" id="player-selector">
+            <button class="player-btn active" data-players="1">1 Player</button>
+            <button class="player-btn" data-players="2">2 Players</button>
+            <button class="player-btn" data-players="3">3 Players</button>
+            <button class="player-btn" data-players="4">4 Players</button>
+        </div>
+
+        <div style="font-size:16px; color:#aaa; margin-bottom:20px; font-family: sans-serif;">
+            ⚠️ Tip: Touch and drag your magnet to catch falling items!
+        </div>
+        <button class="start-btn" onclick="startGame()">START GAME</button>
+</div>
+    </div>
+</div>
+
+<script>
+    const translations = {
+        'KR': { flag: '🇰🇷', text: '환경오염으로 생산을 할 수 없게 된 지구.<br>우주로부터 생활용품을 받아야만 한다.<br><br>하지만 이를 아까워하는 우주인들이 지구를 파괴하려 <b>철로 된 폭탄</b>을 섞어 보내기 시작했다!<br><span class="highlight">자석 지구 방위대</span>가 되어 철폐기물을 수거하고 생필품을 지켜라!' },
+        'US': { flag: '🇺🇸', text: 'Earth can no longer produce goods due to pollution.<br>We must receive supplies from space.<br><br>However, greedy aliens have started mixing in <b>iron bombs</b> to destroy Earth!<br>Become the <span class="highlight">Magnetic Defense</span> team, collect the iron scrap, and protect the supplies!' },
+        'CN': { flag: '🇨🇳', text: '由于污染，地球无法再生产物资。<br>我们必须从太空接收生活用品。<br><br>然而，贪婪的外星人开始混入<b>铁炸弹</b>企图摧毁地球！<br>成为<span class="highlight">磁力防卫队</span>，收集废铁，保护物资！' },
+        'JP': { flag: '🇯🇵', text: '環境汚染により生産できなくなった地球。<br>宇宙から生活用品を受け取らなければならない。<br><br>しかし、それを惜しむ宇宙人たちが地球を破壊しようと<b>鉄の爆弾</b>を混ぜて送り始めた！<br><span class="highlight">マグネット防衛隊</span>になり、鉄くずを回収して必需品を守れ！' },
+        'ES': { flag: '🇪🇸', text: 'La Tierra ya no puede producir bienes debido a la contaminación.<br>Debemos recibir suministros del espacio.<br><br>Sin embargo, ¡los alienígenas han comenzado a mezclar <b>bombas de hierro</b> para destruir la Tierra!<br>¡Conviértete en el equipo de <span class="highlight">Defensa Magnética</span>, recoge la chatarra y protege los suministros!' },
+        'FR': { flag: '🇫🇷', text: 'La Terre ne peut plus produire de biens à cause de la pollution.<br>Nous devons recevoir des fournitures de l\'espace.<br><br>Cependant, les extraterrestres ont commencé à mélanger des <b>bombes en fer</b> pour détruire la Terre !<br>Devenez l\'équipe de <span class="highlight">Défense Magnética</span>, collectez la ferraille et protégez les fournitures !' },
+        'RU': { flag: '🇷🇺', text: 'Земля больше не может производить товары из-за загрязнения.<br>Мы должны получать припасы из космоса.<br><br>Однако инопланетяне начали подмешивать <b>железные бомбы</b>, чтобы уничтожить Землю!<br>Станьте командой <span class="highlight">Магнитной Защиты</span>, собирайте металлолом и защищайте припасы!' },
+        'ID': { flag: '🇮🇩', text: 'Bumi tidak bisa lagi memproduksi barang karena polusi.<br>Kita harus menerima pasokan dari luar angkasa.<br><br>Namun, alien mulai mencampurkan <b>bom besi</b> untuk menghancurkan Bumi!<br>Jadilah tim <span class="highlight">Pertahanan Magnetik</span>, kumpulkan besi tua, dan lindungi pasokan!' },
+        'VN': { flag: '🇻🇳', text: 'Trái đất không còn có thể sản xuất hàng hóa do ô nhiễm.<br>Chúng ta phải nhận nguồn cung cấp từ không gian.<br><br>Tuy nhiên, người ngoài hành tinh đã bắt đầu trộn <b>bom sắt</b> để tiêu diệt Trái đất!<br>Trở thành đội <span class="highlight">Phòng thủ Từ tính</span>, thu thập sắt vụn và bảo vệ nguồn cung cấp!' },
+        'TH': { flag: '🇹🇭', text: 'โลกไม่สามารถผลิตสินค้าได้อีกต่อไปเนื่องจากมลพิษ<br>เราต้องรับเสบียงจากอวกาศ<br><br>อย่างไรก็ตาม มนุษย์ต่างดาวเริ่มผสม <b>ระเบิดเหล็ก</b> เพื่อทำลายโลก!<br>ร่วมเป็นทีม <span class="highlight">Magnetic Defense</span> รวบรวมเศษเหล็กและปกป้องเสบียง!' },
+        'BR': { flag: '🇧🇷', text: 'A Terra não pode mais produzir bens devido à poluição.<br>Devemos receber suprimentos do espaço.<br><br>No entanto, alienígenas começaram a misturar <b>bombas de ferro</b> para destruir a Terra!<br>Torne-se a equipe de <span class="highlight">Defesa Magnética</span>, colete a sucata e proteja os suprimentos!' },
+        'IN': { flag: '🇮🇳', text: 'प्रदूषण के कारण पृथ्वी अब वस्तुओं का उत्पादन नहीं कर सकती।<br>हमें अंतरिक्ष से आपूर्ति प्राप्त करनी चाहिए।<br><br>हालाँकि, एलियंस ने पृथ्वी को नष्ट करने के लिए <b>लोहे के बम</b> मिलाना शुरू कर दिया है!<br><span class="highlight">चुंबकीय रक्षा</span> टीम बनें, लोहे के स्क्रैप को इकट्ठा करें और आपूर्ति की रक्षा करें!' },
+        'BD': { flag: '🇧🇩', text: 'দূষণের কারণে পৃথিবী আর পণ্য উৎপাদন করতে পারে ঘৃণা করে না।<br>আমাদের মহাকাশ থেকে সরবরাহ গ্রহণ করতে হবে।<br><br>যাইহোক, এলিয়েনরা পৃথিবীকে ধ্বংস করার জন্য <b>লোহার বোমা</b> মেশাতে শুরু করেছে!<br><span class="highlight">ম্যাগনেটিক ডিফেন্স</span> দল হয়ে উঠুন, লোহার স্ক্র্যাপ সংগ্রহ করুন এবং সরবরাহ রক্ষা করুন!' },
+        'TR': { flag: '🇹🇷', text: 'Dünya kirlilik nedeniyle artık mal üretemiyor.<br>Uzaydan erzak almalıyız.<br><br>Ancak uzaylılar Dünyayı yok etmek için <b>demir bombalar</b> karıştırmaya başladılar!<br><span class="highlight">Manyetik Savunma</span> ekibi olun, hurdaları toplayın ve erzakları koruyun!' },
+        'DE': { flag: '🇩🇪', text: 'Die Erde kann wegen Umweltverschmutzung keine Güter mehr produzieren.<br>Wir müssen Vorräte aus dem All erhalten.<br><br>Außerirdische haben jedoch begonnen, <b>Eisenbomben</b> beizumischen, um die Erde zu zerstören!<br>Werden Sie das <span class="highlight">Magnetische Verteidigungs</span>-Team, sammeln Sie den Schrott und schützen Sie die Vorräte!' },
+        'IT': { flag: '🇮🇹', text: 'La Terra non può più produrre beni a causa dell\'inquinamento.<br>Dobbiamo ricevere rifornimenti dallo spazio.<br><br>Tuttavia, gli alieni hanno iniziato a mescolare <b>bombe di ferro</b> per distruggere la Terra!<br>Diventa la squadra di <span class="highlight">Difesa Magnetica</span>, raccogli i rottami e proteggi i rifornimenti!' }
+    };
+
+    const flagSelector = document.getElementById('flag-selector');
+    const storyDisplay = document.getElementById('story-display');
+    let currentLang = 'KR';
+
+    Object.keys(translations).forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = `flag-btn ${key === currentLang ? 'active' : ''}`;
+        btn.innerHTML = translations[key].flag;
+        btn.title = key;
+        btn.onclick = () => {
+            document.querySelectorAll('.flag-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            storyDisplay.innerHTML = translations[key].text;
+        };
+        flagSelector.appendChild(btn);
+    });
+    storyDisplay.innerHTML = translations['KR'].text;
+
+    const AudioEngine = {
+        ctx: null,
+        init: function() {
+            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+        },
+        playTone: function(freq, type, duration, vol=0.1, slideFreq=null) {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, now);
+            if (slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, now + duration);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + duration);
+        },
+        magnetCatch: () => AudioEngine.playTone(800, 'sine', 0.1, 0.05, 1200),
+        bonus: () => {
+            AudioEngine.playTone(400, 'sine', 0.1, 0.2);
+            setTimeout(() => AudioEngine.playTone(600, 'sine', 0.1, 0.2), 100);
+            setTimeout(() => AudioEngine.playTone(800, 'sine', 0.2, 0.2), 200);
+        },
+        penaltyMsg: () => AudioEngine.playTone(150, 'sawtooth', 0.3, 0.15, 100),
+        explosion: () => AudioEngine.playTone(100, 'square', 0.4, 0.2, 40),
+        supplySafe: () => AudioEngine.playTone(1000, 'sine', 0.2, 0.05),
+        gameOver: () => {
+            AudioEngine.playTone(300, 'sawtooth', 0.3, 0.2, 200);
+            setTimeout(() => AudioEngine.playTone(250, 'sawtooth', 0.3, 0.2, 150), 300);
+            setTimeout(() => AudioEngine.playTone(200, 'sawtooth', 0.5, 0.2, 100), 600);
+        }
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let isPlaying = false;
+    let lastTime = 0;
+    
+    let earthEnergy = 6000.00; 
+    let survivedTime = 0.00; 
+    let animationId;
+    let playerCount = 1;
+
+    // DOM 캐싱 (렌더링 최적화)
+    const surviveValEl = document.getElementById('survive-val');
+    const energyValEl = document.getElementById('energy-val');
+    let lastEnergyDisplay = -1;
+    let lastSurviveDisplay = -1;
+
+    const earth = { radius: 1500, x: 0, y: 0 }; 
+    const ITEM_RADIUS = 25; 
+    const MAGNET_RADIUS = 35; 
+    
+    let magnets = [];
+    const trashStations = [
+        { label: 'Scrap Yard', x: 0, y: 0, w: 120, h: 90, emoji: '🏭' },
+        { label: 'Scrap Yard', x: 0, y: 0, w: 120, h: 90, emoji: '🏭' }
+    ];
+    let items = [];
+    let particles = [];
+
+    const lifeSupplies = ['🍎', '🥛', '🧸', '📦', '👕', '📚', '👟', '💊', '🧻', '🧼', '🧴', '🧽', '🧹', '🧺', '🔋', '🩹', '☂️'];
+    const ironScrap = ['🔩', '⚙️', '🔧', '🔨', '🗡️', '🗑️', '⛓️',  '✂️', '🗝️', '📌', '🪓', '📎'];
+
+    document.querySelectorAll('.player-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            playerCount = parseInt(e.target.dataset.players);
+        });
+    });
+
+    function initMagnets() {
+        magnets = [];
+        const auras = ['#ffffff', '#4d88ff', '#4cd964', '#b042ff']; 
+        
+        for(let i=0; i<playerCount; i++) {
+            magnets.push({
+                id: i,
+                x: canvas.width * ((i + 1) / (playerCount + 1)),
+                y: canvas.height - 250,
+                targetX: canvas.width * ((i + 1) / (playerCount + 1)),
+                targetY: canvas.height - 250,
+                pointerId: null,
+                auraColor: auras[i]
+            });
+        }
+    }
+
+    // 렉 최적화: 지구 그라데이션 객체를 전역으로 선언하고 사이즈 변경 시에만 계산
+    let cachedEarthGrad; 
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        earth.x = canvas.width / 2;
+        earth.y = canvas.height + 1350; 
+
+        trashStations[0].x = (canvas.width * 0.2) - (trashStations[0].w / 2);
+        trashStations[0].y = canvas.height - 200; 
+        
+        trashStations[1].x = (canvas.width * 0.8) - (trashStations[1].w / 2);
+        trashStations[1].y = canvas.height - 200;
+
+        // 지구 렌더링 최적화: 캔버스 크기가 바뀔 때만 그라데이션을 1회 생성해둠
+        cachedEarthGrad = ctx.createRadialGradient(earth.x, earth.y, earth.radius - 200, earth.x, earth.y, earth.radius);
+        cachedEarthGrad.addColorStop(0, '#050a15');
+        cachedEarthGrad.addColorStop(0.9, '#1a3a6a');
+        cachedEarthGrad.addColorStop(1, '#2c5a9c');
+
+        if(!isPlaying) initMagnets();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const getDistSq = (x1, y1, x2, y2) => (x2 - x1)**2 + (y2 - y1)**2;
+
+    canvas.addEventListener('pointerdown', (e) => {
+        if(!isPlaying) return;
+        for (let m of magnets) {
+            if (m.pointerId === null && getDistSq(e.clientX, e.clientY, m.x, m.y) < (MAGNET_RADIUS * 2.5)**2) {
+                m.pointerId = e.pointerId;
+                m.targetX = e.clientX;
+                m.targetY = e.clientY;
+                break;
+            }
+        }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+        if (!isPlaying) return;
+        for (let m of magnets) {
+            if (m.pointerId === e.pointerId) {
+                m.targetX = e.clientX;
+                m.targetY = e.clientY;
+            }
+        }
+    });
+
+    const releasePointer = (e) => {
+        for (let m of magnets) {
+            if (m.pointerId === e.pointerId) m.pointerId = null;
+        }
+    };
+    canvas.addEventListener('pointerup', releasePointer);
+    canvas.addEventListener('pointercancel', releasePointer);
+
+    class Particle {
+        constructor(x, y, emoji, isText=false) {
+            this.x = x; this.y = y; this.emoji = emoji; this.isText = isText;
+            this.vx = (Math.random() - 0.5) * 6;
+            this.vy = (Math.random() - 0.5) * 6;
+            if(isText) { this.vx = 0; this.vy = -3; } 
+            this.life = 1.0;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= 0.02; }
+        draw() {
+            ctx.save(); ctx.globalAlpha = Math.max(0, this.life);
+            ctx.font = this.isText ? 'bold 36px monospace' : '20px sans-serif'; 
+            if(this.isText && this.emoji.includes('-')) ctx.fillStyle = '#ff4d4d';
+            else if(this.isText && this.emoji.includes('+')) ctx.fillStyle = '#4cd964';
+            ctx.textAlign = 'center'; ctx.fillText(this.emoji, this.x, this.y);
+            ctx.restore();
+        }
+    }
+
+    class FlyingItem {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = -40; 
+            
+            // [수정] 떨어지는 속도 조절: 전반적으로 훨씬 느리게 세팅
+            const speedMultiplier = 1 + (survivedTime / 80); // 난이도 상승 곡선 완화
+            const baseSpeed = (0.8 + Math.random() * 1.2) * speedMultiplier; // 초기 속도 대폭 감소
+            this.gravity = 0.015 * speedMultiplier; // 가속도(중력) 대폭 감소
+
+            const angle = Math.atan2((canvas.height + 200) - this.y, canvas.width/2 - this.x);
+            this.vx = Math.cos(angle) * baseSpeed;
+            this.vy = Math.sin(angle) * baseSpeed;
+            
+            this.isIron = Math.random() < 0.5; 
+            this.emoji = this.isIron ? ironScrap[Math.floor(Math.random()*ironScrap.length)] : lifeSupplies[Math.floor(Math.random()*lifeSupplies.length)];
+            
+            this.radius = ITEM_RADIUS; 
+            this.attachedMagnet = null; 
+            this.attachOffsetX = 0; this.attachOffsetY = 0;
+            this.markedForDeletion = false;
+        }
+
+        update() {
+            if (this.attachedMagnet) {
+                this.x = this.attachedMagnet.x + this.attachOffsetX;
+                this.y = this.attachedMagnet.y + this.attachOffsetY;
+            } else {
+                const angleToEarth = Math.atan2((canvas.height +200) - this.y, canvas.width/2 - this.x);
+                this.vx += Math.cos(angleToEarth) * this.gravity;
+                this.vy += Math.sin(angleToEarth) * this.gravity;
+                this.x += this.vx; this.y += this.vy;
+            }
+        }
+
+        draw() {
+            ctx.save();
+            ctx.font = '42px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(this.emoji, this.x, this.y);
+            ctx.restore();
+        }
+    }
+
+    let nextSpawnTime = 0;
+
+    function gameLoop(timestamp) {
+        if (!isPlaying) return;
+
+        if (!lastTime) lastTime = timestamp;
+        const dt = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
+
+        survivedTime += dt;
+        earthEnergy -= dt * 100;
+
+        if (earthEnergy <= 0) {
+            earthEnergy = 0;
+            gameOver();
+            return;
+        }
+
+        const currentSurviveDisplay = survivedTime.toFixed(2);
+        if (currentSurviveDisplay !== lastSurviveDisplay) {
+            surviveValEl.innerText = currentSurviveDisplay;
+            lastSurviveDisplay = currentSurviveDisplay;
+        }
+        
+        const currentEnergyInt = Math.floor(earthEnergy);
+        if (currentEnergyInt !== lastEnergyDisplay) {
+            energyValEl.innerText = currentEnergyInt;
+            lastEnergyDisplay = currentEnergyInt;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        magnets.forEach(m => {
+            const attachedCount = items.filter(i => i.attachedMagnet === m).length;
+            const weightFactor = Math.max(0.03, 0.2 - (attachedCount * 0.02)); 
+            
+            if (m.pointerId !== null) {
+                m.x += (m.targetX - m.x) * weightFactor;
+                m.y += (m.targetY - m.y) * weightFactor;
+            }
+        });
+
+        // [수정] 스폰 주기(물량) 조절: 아이템이 더 자주 등장하도록 세팅
+        if (timestamp > nextSpawnTime) {
+            items.push(new FlyingItem());
+            const spawnBase = 1000 - (playerCount * 50); // 시작 스폰 간격 단축
+            const spawnInterval = Math.max(400, spawnBase - (survivedTime * 10)); // 최대 물량 제한 완화 및 가속
+            nextSpawnTime = timestamp + spawnInterval;
+        }
+
+        // 지구 그리기 (캐싱된 그라데이션 사용으로 렉 최적화)
+        ctx.beginPath(); 
+        ctx.arc(earth.x, earth.y, earth.radius, 0, Math.PI*2);
+        ctx.fillStyle = cachedEarthGrad; 
+        ctx.fill(); 
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#4cd964';
+        ctx.stroke();
+
+        trashStations.forEach(s => {
+            ctx.fillStyle = 'rgba(255, 50, 50, 0.15)'; ctx.fillRect(s.x, s.y, s.w, s.h);
+            ctx.strokeStyle = '#ff4d4d'; ctx.lineWidth = 2; ctx.strokeRect(s.x, s.y, s.w, s.h);
+            ctx.font = '55px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(s.emoji, s.x + s.w/2, s.y + s.h/2 - 5);
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; 
+            ctx.fillText(s.label, s.x + s.w/2, s.y + s.h - 15);
+        });
+
+        magnets.forEach((m, index) => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, 35, 0, Math.PI * 2);
+            ctx.fillStyle = m.auraColor;
+            ctx.globalAlpha = 0.3;
+            ctx.fill();
+            
+            ctx.globalAlpha = 1.0;
+            ctx.translate(m.x, m.y);
+            ctx.rotate(Math.PI); 
+            ctx.font = '55px sans-serif'; 
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('🧲', 0, 0);
+            ctx.restore();
+            
+            if(m.pointerId === null) {
+                ctx.save();
+                ctx.fillStyle = m.auraColor;
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`P${index+1}`, m.x, m.y - 45);
+                ctx.restore();
+            }
+        });
+
+        for (let i = items.length - 1; i >= 0; i--) {
+            let item = items[i];
+            item.update();
+            item.draw();
+
+            if (item.attachedMagnet) {
+                for (let j = 0; j < trashStations.length; j++) {
+                    const s = trashStations[j];
+                    if (item.x > s.x && item.x < s.x + s.w && item.y > s.y && item.y < s.y + s.h) {
+                        item.markedForDeletion = true;
+                        if (item.isIron) {
+                            AudioEngine.bonus();
+                            modifyEnergy(100, canvas.width/2, canvas.height - 150, '+100');
+                            for(let k=0; k<3; k++) particles.push(new Particle(item.x, item.y, '✨'));
+                        }
+                        break;
+                    }
+                }
+            } else {
+                for (let m of magnets) {
+                    if (getDistSq(item.x, item.y, m.x, m.y) < (MAGNET_RADIUS + item.radius)**2) {
+                        if (item.isIron) {
+                            AudioEngine.magnetCatch();
+                            item.attachedMagnet = m; 
+                            const angle = Math.random() * Math.PI * 2;
+                            item.attachOffsetX = Math.cos(angle) * (MAGNET_RADIUS + 5);
+                            item.attachOffsetY = Math.sin(angle) * (MAGNET_RADIUS + 5);
+                        } else {
+                            AudioEngine.penaltyMsg();
+                            modifyEnergy(-50, canvas.width/2, canvas.height - 150, '-50');
+                            item.markedForDeletion = true; 
+                        }
+                        break; 
+                    }
+                }
+
+                if (!item.markedForDeletion && getDistSq(item.x, item.y, earth.x, earth.y) < earth.radius**2) {
+                    item.markedForDeletion = true;
+                    if (item.isIron) {
+                        AudioEngine.explosion();
+                        modifyEnergy(-100, item.x, item.y - 20, '-100');
+                        for(let k=0; k<5; k++) particles.push(new Particle(item.x, item.y, '💥'));
+                    } else {
+                        AudioEngine.supplySafe();
+                        modifyEnergy(10, item.x, item.y - 20, '+10');
+                        for(let k=0; k<3; k++) particles.push(new Particle(item.x, item.y, '💖'));
+                    }
+                }
+            }
+
+            if (item.y > canvas.height + 100) item.markedForDeletion = true;
+            if (item.markedForDeletion) items.splice(i, 1);
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update(); particles[i].draw();
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function modifyEnergy(amount, x, y, textMsg) {
+        earthEnergy += amount;
+        particles.push(new Particle(x, y, textMsg, true));
+    }
+
+    function startGame() {
+        AudioEngine.init();
+        
+        document.getElementById('overlay').style.display = 'none';
+        earthEnergy = 6000.00;
+        survivedTime = 0.00;
+        items = []; particles = [];
+        lastTime = 0;
+        nextSpawnTime = 0;
+        
+        initMagnets();
+
+        isPlaying = true;
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        AudioEngine.gameOver();
+        
+        const overlay = document.getElementById('overlay');
+        overlay.style.display = 'flex';
+        
+        const modal = document.getElementById('start-modal');
+        modal.innerHTML = `
+            <h1 style="font-size: 60px; color: #ff4d4d; margin:0 0 20px 0; font-family:sans-serif;">MISSION FAILED</h1>
+            <p style="font-size: 24px; color:#ddd; margin-bottom: 20px;">Survived Time</p>
+            <div style="font-size: 80px; font-family: monospace; color: #4cd964; font-weight: bold; margin-bottom: 30px; text-shadow: 0 0 20px rgba(76,217,100,0.5);">
+                ${survivedTime.toFixed(2)}s
+            </div>
+            <button class="start-btn" onclick="location.reload()">TRY AGAIN</button>
+        `;
+    }
+</script>
+<div style="position:fixed;right:8px;bottom:6px;z-index:99999;padding:4px 7px;background:rgba(0,0,0,.72);color:#fff;font:11px system-ui;border-radius:4px">Powered by <a href="https://kingsmath.com" target="_blank" rel="noreferrer" style="color:#d9ff32">킹수학</a> · CC BY-NC</div></body>
+</html>

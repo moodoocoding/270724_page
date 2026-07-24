@@ -15,6 +15,9 @@
 
 # next.js
 /.next/
+/.next-*/
+/.next-buildcheck/
+/.next-verify/
 /.vinext/
 /out/
 
@@ -37,10 +40,13 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+*.tsbuildinfo
 /dist/
 /.wrangler/
 /outputs/
 /work/
+/public/games/math.html
+/public/games/king-math-catalog.html
 
 # local source materials and development logs
 /docs/

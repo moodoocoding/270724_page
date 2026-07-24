@@ -1,11 +1,12 @@
 import { getSupabase } from "../../../lib/supabase-server";
+import { clearParticipantSession, setParticipantSession } from "../../../lib/participant-session";
 
 export async function POST(request: Request) {
   try {
     const { school, name } = await request.json() as { school?: string; name?: string };
     const participantSchool = school?.trim();
     const participantName = name?.trim();
-    if (!participantSchool || !participantName) {
+    if (!participantSchool || !participantName || participantSchool.length > 80 || participantName.length > 40) {
       return Response.json({ error: "학교명과 이름을 입력해 주세요." }, { status: 400 });
     }
 
@@ -26,6 +27,7 @@ export async function POST(request: Request) {
       .select("id,school,name")
       .single();
     if (participantError || !participant) throw participantError ?? new Error("참여자 정보를 저장하지 못했습니다.");
+    await setParticipantSession(participant.id);
 
     return Response.json({
       session: {
@@ -40,4 +42,9 @@ export async function POST(request: Request) {
     console.error(error);
     return Response.json({ error: "입장 정보를 저장하지 못했습니다." }, { status: 500 });
   }
+}
+
+export async function DELETE() {
+  await clearParticipantSession();
+  return Response.json({ ok: true });
 }

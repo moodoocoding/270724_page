@@ -1,9 +1,17 @@
 import { getSupabase } from "../../../lib/supabase-server";
+import { getParticipantId } from "../../../lib/participant-session";
 
-export async function GET(request: Request) {
+const allowedKeys: Record<number, Set<string>> = {
+  1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"]),
+  2: new Set(["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"]),
+  3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "resultUrl"]),
+  4: new Set(["strength", "improvement", "revision", "finalUrl", "finalNote"]),
+};
+
+export async function GET() {
   try {
-    const participantId = Number(new URL(request.url).searchParams.get("participantId"));
-    if (!participantId) return Response.json({ error: "참여자 정보가 없습니다." }, { status: 400 });
+    const participantId = await getParticipantId();
+    if (!participantId) return Response.json({ error: "다시 입장해 주세요." }, { status: 401 });
 
     const { data, error } = await getSupabase()
       .from("submissions")
@@ -30,15 +38,33 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { participantId, step, status, data } = await request.json() as {
-      participantId?: number;
+    const participantId = await getParticipantId();
+    if (!participantId) return Response.json({ error: "다시 입장해 주세요." }, { status: 401 });
+    const requestOrigin = request.headers.get("origin");
+    if (requestOrigin && requestOrigin !== new URL(request.url).origin) {
+      return Response.json({ error: "허용되지 않은 요청입니다." }, { status: 403 });
+    }
+    const { step, status, data } = await request.json() as {
       step?: number;
       status?: string;
       data?: Record<string, string>;
     };
-    if (!participantId || !step || step < 1 || step > 4) {
+    if (!step || step < 1 || step > 4 || (status !== "draft" && status !== "submitted")) {
       return Response.json({ error: "저장할 차시 정보가 올바르지 않습니다." }, { status: 400 });
     }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return Response.json({ error: "저장할 내용의 형식을 확인해 주세요." }, { status: 400 });
+    }
+    const entries = Object.entries(data);
+    const permitted = allowedKeys[step];
+    if (
+      !permitted ||
+      entries.some(([, value]) => typeof value !== "string" || value.length > 4000) ||
+      JSON.stringify(data ?? {}).length > 64_000
+    ) {
+      return Response.json({ error: "저장할 내용의 형식이나 길이를 확인해 주세요." }, { status: 400 });
+    }
+    const sanitizedData = Object.fromEntries(entries.filter(([key]) => permitted.has(key)));
 
     const updatedAt = new Date().toISOString();
     const { error } = await getSupabase()
@@ -48,7 +74,7 @@ export async function POST(request: Request) {
           participant_id: participantId,
           step,
           status: status === "submitted" ? "submitted" : "draft",
-          data_json: data ?? {},
+          data_json: sanitizedData,
           updated_at: updatedAt,
         },
         { onConflict: "participant_id,step" },

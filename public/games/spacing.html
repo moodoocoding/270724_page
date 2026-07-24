@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>띄어쓰기킹</title>
+    
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --container-bg: #111218;
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #39ff14;
+            --neon-yellow: #ffea00;
+            --text-main: #ffffff;
+            --text-muted: #8892b0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            /* 미세한 그리드 배경 패턴 */
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            overflow: hidden;
+            touch-action: none; /* 브라우저 제스처 방지 */
+        }
+
+        #gameCanvas {
+            display: none; /* 시작 화면에선 숨김 */
+            width: 100%;
+            height: 100%;
+            background: transparent; /* body의 그리드 배경을 비치게 함 */
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 10;
+        }
+
+        /* 시작 화면 UI 컨테이너 */
+        #uiOverlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            background: rgba(11, 12, 16, 0.9);
+            backdrop-filter: blur(5px);
+        }
+
+        .game-container {
+            background-color: rgba(17, 18, 24, 0.85);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 243, 255, 0.2);
+            border-radius: 20px;
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 
+                0 0 20px rgba(0, 243, 255, 0.1),
+                inset 0 0 20px rgba(255, 0, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-yellow));
+        }
+
+        .title {
+            font-size: 3.8rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, var(--neon-yellow), #ff7e00, var(--neon-pink));
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 15px rgba(255, 234, 0, 0.3);
+            animation: pulse-title 2s infinite alternate;
+        }
+
+        @keyframes pulse-title {
+            0% { text-shadow: 0 0 10px rgba(255, 234, 0, 0.4); }
+            100% { text-shadow: 0 0 25px rgba(255, 0, 255, 0.6); }
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.5);
+            letter-spacing: 1px;
+        }
+
+        .desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        /* 게임 모드 버튼 (시안 색상) */
+        .mode-btn {
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: rgba(0, 243, 255, 0.8);
+            flex: 1; min-width: 140px;
+        }
+        .mode-btn:hover {
+            border-color: var(--neon-cyan); color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+        }
+        .mode-btn.active {
+            background-color: var(--neon-cyan); color: #000;
+            border-color: var(--neon-cyan); font-weight: 700;
+            box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* 인원수 버튼 (마젠타 색상) */
+        .player-group .btn { flex: 1; min-width: 70px; padding: 12px 0; }
+        .player-btn {
+            border: 1px solid rgba(255, 0, 255, 0.4);
+            color: rgba(255, 0, 255, 0.8);
+        }
+        .player-btn:hover {
+            border-color: var(--neon-pink); color: var(--neon-pink);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+        }
+        .player-btn.active {
+            background-color: var(--neon-pink); color: #fff;
+            border-color: var(--neon-pink); font-weight: 700;
+            box-shadow: 0 0 20px var(--neon-pink), inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* 게임 시작 버튼 (그린 테마) */
+        .start-btn {
+            margin: 10px auto 0;
+            width: 80%; max-width: 350px;
+            padding: 18px 30px;
+            font-size: 1.8rem; font-weight: 900;
+            background: rgba(57, 255, 20, 0.05);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            border-radius: 12px; text-transform: uppercase;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2), inset 0 0 15px rgba(57, 255, 20, 0.2);
+            animation: pulse-button 2s infinite;
+        }
+        .start-btn:hover {
+            background: var(--neon-green); color: #000;
+            box-shadow: 0 0 30px var(--neon-green), inset 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(1.02); animation: none;
+        }
+
+        @keyframes pulse-button {
+            0% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.2), inset 0 0 10px rgba(57, 255, 20, 0.1); }
+            50% { box-shadow: 0 0 25px rgba(57, 255, 20, 0.5), inset 0 0 15px rgba(57, 255, 20, 0.3); }
+            100% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.2), inset 0 0 10px rgba(57, 255, 20, 0.1); }
+        }
+
+        /* 하단 링크 */
+        .footer {
+            margin-top: 20px; padding-top: 20px;
+            border-top: 1px solid rgba(0, 243, 255, 0.3);
+            position: relative;
+        }
+        .footer::before {
+            content: ''; position: absolute;
+            top: -1px; left: 50%; transform: translateX(-50%);
+            width: 50%; height: 1px;
+            background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        .footer-link {
+            color: var(--text-muted); text-decoration: none;
+            font-size: 1.1rem; transition: color 0.3s ease;
+        }
+        .footer-link:hover { color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); }
+
+        /* 좌우 네온 이모지 버튼 (게임 중 표시) */
+        .side-btn {
+            position: absolute;
+            top: 50%; transform: translateY(-50%);
+            z-index: 150;
+            width: 60px; height: 60px;
+            background: rgba(17, 18, 24, 0.8);
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            color: #fff; font-size: 2rem;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            display: none; /* 초기 숨김 */
+            transition: all 0.2s;
+        }
+        .side-btn:hover {
+            background: var(--neon-cyan);
+            box-shadow: 0 0 25px var(--neon-cyan);
+            transform: translateY(-50%) scale(1.1);
+        }
+        #homeBtn { left: 20px; border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 255, 0.3); }
+        #homeBtn:hover { background: var(--neon-pink); box-shadow: 0 0 25px var(--neon-pink); }
+        #fullScreenBtn { right: 20px; border-color: var(--neon-yellow); box-shadow: 0 0 15px rgba(255, 234, 0, 0.3); }
+        #fullScreenBtn:hover { background: var(--neon-yellow); box-shadow: 0 0 25px var(--neon-yellow); }
+
+    </style>
+</head>
+<body>
+
+    <button id="homeBtn" class="side-btn" onclick="goHome()" title="메인화면으로">🏠</button>
+    <button id="fullScreenBtn" class="side-btn" onclick="toggleFullScreen()" title="전체화면/취소">🔲</button>
+
+    <div id="uiOverlay">
+        <div class="game-container">
+            <h1 class="title">띄어쓰기킹</h1>
+            
+            <div>
+                <h2 class="subtitle">1. 게임 모드를 선택하세요</h2>
+                <div class="button-group mode-group">
+                    <button class="btn mode-btn active" onclick="selectMode('GOLDENBELL', this)">골든벨 모드</button>
+                    <button class="btn mode-btn" onclick="selectMode('SPEED', this)">스피드 모드</button>
+                </div>
+                <div id="modeDesc" class="desc" style="margin-top:15px; font-weight:500;">
+                    [골든벨 모드] 모두가 30초 안에 같은 문제를 푸는 협동/경쟁 모드입니다! (총 10문제)
+                </div>
+            </div>
+
+            <div>
+                <h2 class="subtitle">2. 인원수를 선택하세요</h2>
+                <div class="button-group player-group">
+                    <button class="btn player-btn" onclick="selectPlayers(1, this)">1인용</button>
+                    <button class="btn player-btn" onclick="selectPlayers(2, this)">2인용</button>
+                    <button class="btn player-btn" onclick="selectPlayers(3, this)">3인용</button>
+                    <button class="btn player-btn active" onclick="selectPlayers(4, this)">4인용</button>
+                </div>
+            </div>
+
+            <button class="btn start-btn" onclick="initiateGame()">게임 시작!</button>
+
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const uiOverlay = document.getElementById('uiOverlay');
+        const homeBtn = document.getElementById('homeBtn');
+        const fullScreenBtn = document.getElementById('fullScreenBtn');
+        const modeDesc = document.getElementById('modeDesc');
+
+        // --- 사운드 엔진 ---
+        const retroAudio = {
+            ctx: null,
+            init: function() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            },
+            playTone: function(freq, type, dur, vol = 0.1) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + dur);
+            },
+            countdownBeep: function() { this.playTone(600, 'square', 0.1, 0.1); },
+            countdownGo: function() { this.playTone(1200, 'square', 0.3, 0.1); },
+            beep: function() { this.playTone(880, 'square', 0.08, 0.05); },
+            submit: function() { 
+                this.playTone(440, 'square', 0.1, 0.05); 
+                setTimeout(() => this.playTone(660, 'square', 0.15, 0.05), 100); 
+            },
+            success: function() { 
+                this.playTone(523, 'square', 0.1, 0.1);
+                setTimeout(() => this.playTone(659, 'square', 0.1, 0.1), 100);
+                setTimeout(() => this.playTone(783, 'square', 0.3, 0.1), 200);
+            },
+            fail: function() { this.playTone(150, 'sawtooth', 0.4, 0.1); },
+            warning: function() { 
+                // 띠띠띠 3번 울리도록 수정
+                this.playTone(1200, 'square', 0.05, 0.05);
+                setTimeout(() => this.playTone(1200, 'square', 0.05, 0.05), 150);
+                setTimeout(() => this.playTone(1200, 'square', 0.05, 0.05), 300);
+            },
+            start: function() {
+                this.playTone(440, 'square', 0.1, 0.05);
+                setTimeout(() => this.playTone(880, 'square', 0.2, 0.05), 150);
+            }
+        };
+
+        // --- 문제 데이터셋 ---
+    const wordData = [
+    // --- 1~30: 기본 생활/학교 주제 ---
+    { text: "아버지가방에들어가신다", correctSpaces: [3, 5] }, // 아버지가 방에 들어가신다
+    { text: "무지개같은옷을입었다", correctSpaces: [2, 4, 6] }, // 무지개 같은 옷을 입었다
+    { text: "선생님은학교에가신다", correctSpaces: [3, 6] }, // 선생님은 학교에 가신다
+    { text: "밤하늘에별이빛난다", correctSpaces: [3, 5] }, // 밤하늘에 별이 빛난다
+    { text: "나는너를좋아해", correctSpaces: [1, 3] }, // 나는 너를 좋아해
+    { text: "맛있는사과를먹었다", correctSpaces: [2, 5] }, // 맛있는 사과를 먹었다
+    { text: "형은밥을많이먹는다", correctSpaces: [1, 3, 5] }, // 형은 밥을 많이 먹는다
+    { text: "동생이랑축구를했다", correctSpaces: [3, 6] }, // 동생이랑 축구를 했다
+    { text: "우리모두다함께놀자", correctSpaces: [1, 3, 4, 6] }, // 우리 모두 다 함께 놀자
+    { text: "여름엔수박이최고다", correctSpaces: [2, 5] }, // 여름엔 수박이 최고다
+    { text: "길가에꽃이피었습니다", correctSpaces: [2, 4] }, // 길가에 꽃이 피었습니다
+    { text: "철수와영희는친구다", correctSpaces: [2, 5] }, // 철수와 영희는 친구다
+    { text: "학교앞분식집이맛있다", correctSpaces: [1, 2, 6] }, // 학교 앞 분식집이 맛있다
+    { text: "내일은비가올것같다", correctSpaces: [2, 4, 5, 6] }, // 내일은 비가 올 것 같다
+    { text: "사과나무에열매가열렸다", correctSpaces: [4, 7] }, // 사과나무에 열매가 열렸다
+    { text: "할머니댁에놀러가요", correctSpaces: [2, 4, 6] }, // 할머니 댁에 놀러 가요
+    { text: "책을많이읽어야한다", correctSpaces: [1, 3, 6] }, // 책을 많이 읽어야 한다
+    { text: "개나리가노랗게폈다", correctSpaces: [3, 6] }, // 개나리가 노랗게 폈다
+    { text: "바다에고래가살아요", correctSpaces: [2, 5] }, // 바다에 고래가 살아요
+    { text: "떡볶이가정말맵다", correctSpaces: [3, 5] }, // 떡볶이가 정말 맵다
+    { text: "바람이시원하게붑니다", correctSpaces: [2, 6] }, // 바람이 시원하게 붑니다
+    { text: "하늘에구름이떠있습니다", correctSpaces: [2, 5, 6] }, // 하늘에 구름이 떠 있습니다
+    { text: "가족과함께여행을가요", correctSpaces: [2, 4, 7] }, // 가족과 함께 여행을 가요
+    { text: "맛있는저녁을먹었습니다", correctSpaces: [2, 5] }, // 맛있는 저녁을 먹었습니다
+    { text: "내일은주말이라서좋아요", correctSpaces: [2, 7] }, // 내일은 주말이라서 좋아요
+    { text: "공원에서자전거를탔어요", correctSpaces: [3, 7] }, // 공원에서 자전거를 탔어요
+    { text: "손을깨끗하게씻어야해요", correctSpaces: [1, 5, 8] }, // 손을 깨끗하게 씻어야 해요
+    { text: "횡단보도를건널때조심해", correctSpaces: [4, 6, 7] }, // 횡단보도를 건널 때 조심해
+    { text: "매일규칙적으로운동하자", correctSpaces: [1, 6] }, // 매일 규칙적으로 운동하자
+    { text: "따뜻한우유를한잔마셨다", correctSpaces: [2, 5, 6, 7] }, // 따뜻한 우유를 한 잔 마셨다
+
+    // --- 31~80: 기존 문제 중 12글자 초과 수정 및 다듬기 ---
+    { text: "강아지가꼬리를흔든다", correctSpaces: [3, 6] }, // 강아지가 꼬리를 흔든다
+    { text: "고양이가생선을먹는다", correctSpaces: [3, 6] }, // 고양이가 생선을 먹는다
+    { text: "오늘은날씨가아주맑다", correctSpaces: [2, 5, 7] }, // 오늘은 날씨가 아주 맑다
+    { text: "나는매일일기를쓴다", correctSpaces: [1, 3, 6] }, // 나는 매일 일기를 쓴다
+    { text: "아침에일찍일어났다", correctSpaces: [2, 4] }, // 아침에 일찍 일어났다
+    { text: "친구와영화관에갔다", correctSpaces: [2, 6] }, // 친구와 영화관에 갔다
+    { text: "새로운신발을신었다", correctSpaces: [2, 5] }, // 새로운 신발을 신었다
+    { text: "정류장에서기다렸다", correctSpaces: [4] }, // 정류장에서 기다렸다 (수정)
+    { text: "시원한아이스크림을먹자", correctSpaces: [2, 8] }, // 시원한 아이스크림을 먹자
+    { text: "지하철을타고출근한다", correctSpaces: [3, 5] }, // 지하철을 타고 출근한다
+    { text: "주말에는늦잠을잔다", correctSpaces: [3, 6] }, // 주말에는 늦잠을 잔다
+    { text: "도서관에서책을빌렸다", correctSpaces: [4, 6] }, // 도서관에서 책을 빌렸다
+    { text: "비가와서우산을썼다", correctSpaces: [1, 3, 6] }, // 비가 와서 우산을 썼다
+    { text: "눈사람을예쁘게만들었다", correctSpaces: [3, 6] }, // 눈사람을 예쁘게 만들었다
+    { text: "산꼭대기에올라갔다", correctSpaces: [0, 4] }, // 산 꼭대기에 올라갔다
+    { text: "숲속에서새소리가들린다", correctSpaces: [3, 7] }, // 숲속에서 새소리가 들린다
+    { text: "엄마가맛있는간식을줬다", correctSpaces: [2, 5, 8] }, // 엄마가 맛있는 간식을 줬다 (수정)
+    { text: "아빠와캐치볼을했다", correctSpaces: [2, 6] }, // 아빠와 캐치볼을 했다
+    { text: "옛날이야기를들었다", correctSpaces: [5] }, // 옛날이야기를 들었다 (수정)
+    { text: "동물원에서원숭이를봤다", correctSpaces: [4, 8] }, // 동물원에서 원숭이를 봤다 (수정)
+    { text: "놀이공원에가고싶다", correctSpaces: [4, 6] }, // 놀이공원에 가고 싶다
+    { text: "바다에서수영을했다", correctSpaces: [3, 6] }, // 바다에서 수영을 했다
+    { text: "모래성을높게쌓았다", correctSpaces: [3, 5] }, // 모래성을 높게 쌓았다
+    { text: "가을에는단풍이아름답다", correctSpaces: [3, 6] }, // 가을에는 단풍이 아름답다
+    { text: "겨울에는눈싸움을한다", correctSpaces: [3, 7] }, // 겨울에는 눈싸움을 한다
+    { text: "봄에는꽃가루가날린다", correctSpaces: [2, 6] }, // 봄에는 꽃가루가 날린다
+    { text: "방학이빨리왔으면", correctSpaces: [2, 4] }, // 방학이 빨리 왔으면 (수정)
+    { text: "피아노학원에다닌다", correctSpaces: [2, 5] }, // 피아노 학원에 다닌다
+    { text: "태권도를열심히배운다", correctSpaces: [3, 6] }, // 태권도를 열심히 배운다
+    { text: "그림그리는것을좋아해", correctSpaces: [1, 4, 6] }, // 그림 그리는 것을 좋아해 (수정)
+    { text: "노래부르는것도재밌다", correctSpaces: [1, 4, 6] }, // 노래 부르는 것도 재밌다
+    { text: "매운음식을잘못먹는다", correctSpaces: [1, 4, 5, 6] }, // 매운 음식을 잘 못 먹는다
+    { text: "달콤한초콜릿이최고야", correctSpaces: [2, 6] }, // 달콤한 초콜릿이 최고야
+    { text: "자기전에양치질을하자", correctSpaces: [1, 3, 7] }, // 자기 전에 양치질을 하자 (수정)
+    { text: "일찍자고일찍일어나자", correctSpaces: [1, 3, 5] }, // 일찍 자고 일찍 일어나자
+    { text: "건강을위해서채소를먹자", correctSpaces: [2, 5, 8] }, // 건강을 위해서 채소를 먹자
+    { text: "물을자주마시는게좋다", correctSpaces: [1, 3, 6, 7] }, // 물을 자주 마시는 게 좋다 (수정)
+    { text: "스마트폰오래보지마", correctSpaces: [3, 5, 7] }, // 스마트폰 오래 보지 마 (수정)
+    { text: "숙제를미리미리끝내자", correctSpaces: [2, 6] }, // 숙제를 미리미리 끝내자
+    { text: "내방청소는내가한다", correctSpaces: [0, 1, 4, 6] }, // 내 방 청소는 내가 한다
+    { text: "옷장을깔끔하게정리했다", correctSpaces: [2, 6] }, // 옷장을 깔끔하게 정리했다
+    { text: "설거지를도와드렸다", correctSpaces: [3] }, // 설거지를 도와드렸다
+    { text: "부모님께안마를해드렸다", correctSpaces: [3, 6, 7] }, // 부모님께 안마를 해 드렸다
+    { text: "착한어린이가될거야", correctSpaces: [1, 5, 6] }, // 착한 어린이가 될 거야
+    { text: "꿈을크게가져야한다", correctSpaces: [1, 3, 6] }, // 꿈을 크게 가져야 한다
+    { text: "실패를두려워하지말자", correctSpaces: [2, 8] }, // 실패를 두려워하지 말자
+    { text: "항상긍정적으로생각하자", correctSpaces: [1, 6] }, // 항상 긍정적으로 생각하자
+    { text: "친구를배려하고양보하자", correctSpaces: [2, 6] }, // 친구를 배려하고 양보하자 (수정)
+    { text: "거짓말을하면안된다", correctSpaces: [3, 5, 6] }, // 거짓말을 하면 안 된다
+    { text: "약속시간을잘지키자", correctSpaces: [1, 4, 5] }, // 약속 시간을 잘 지키자
+
+    // --- 81~100: 신규 (틀리기 쉬운 띄어쓰기 집중 공략 / 12글자 이하) ---
+    { text: "사과한개를먹었다", correctSpaces: [1, 2, 4] }, // 사과 한 개를 먹었다
+    { text: "나도할수있어", correctSpaces: [1, 2, 3] }, // 나도 할 수 있어
+    { text: "비가올것만같다", correctSpaces: [1, 2, 4] }, // 비가 올 것만 같다
+    { text: "책을다읽어간다", correctSpaces: [1, 2, 4] }, // 책을 다 읽어 간다
+    { text: "아는것이힘이다", correctSpaces: [1, 3] }, // 아는 것이 힘이다
+    { text: "먹을만큼먹어라", correctSpaces: [1, 3] }, // 먹을 만큼 먹어라
+    { text: "밥을잘먹겠습니다", correctSpaces: [1, 2] }, // 밥을 잘 먹겠습니다
+    { text: "우리모두다같이", correctSpaces: [1, 3, 4] }, // 우리 모두 다 같이
+    { text: "연필두자루를샀다", correctSpaces: [1, 2, 5] }, // 연필 두 자루를 샀다
+    { text: "참잘했어요", correctSpaces: [0] }, // 참 잘했어요
+    { text: "나도모르는사이에", correctSpaces: [1, 4] }, // 나도 모르는 사이에
+    { text: "그럴리가없다", correctSpaces: [1, 3] }, // 그럴 리가 없다
+    { text: "떠난지오래됐다", correctSpaces: [1, 2] }, // 떠난 지 오래됐다
+    { text: "한번만봐주세요", correctSpaces: [0, 2, 3] }, // 한 번만 봐 주세요
+    { text: "큰것이가장좋아", correctSpaces: [0, 2, 4] }, // 큰 것이 가장 좋아
+    { text: "눈이올듯하다", correctSpaces: [1, 2] }, // 눈이 올 듯하다
+    { text: "밥먹은후에가자", correctSpaces: [0, 2, 4] }, // 밥 먹은 후에 가자
+    { text: "내가할테니까", correctSpaces: [1, 2] }, // 내가 할 테니까
+    { text: "조금만더기다려", correctSpaces: [2, 3] }, // 조금만 더 기다려
+    { text: "잘할수있을거야", correctSpaces: [1, 2, 4] } // 잘할 수 있을 거야
+];
+        // --- 게임 설정 ---
+        let gameMode = 'GOLDENBELL'; 
+        let numLanes = 4;
+        let globalState = 'START'; // START, COUNTDOWN, PLAYING, RESULT, FINAL_RESULT
+        let currentRound = 1;
+        const TOTAL_ROUNDS = 10;
+        let roundTimer = 30.0;
+        let countdownTimer = 3.99;
+        let lastBeepTime = -1;
+        let headerHeight;
+        let roundSubmitRank = 1; // 골든벨 순위 트래킹
+        
+        // 캐릭터(동물 이모지) 및 네온 테마 컬러
+        const playerLabels = ['🐶 강아지', '🐱 고양이', '🐰 토끼', '🐹 햄스터'];
+        const playerColors = ['#ff00ff', '#39ff14', '#00f3ff', '#ffea00']; // Pink, Green, Cyan, Yellow
+
+        let lanes = [];
+        let globalWordData = null; // 골든벨용 공통 문제
+        let lastTime = 0;
+        let animationId;
+
+        // --- UI 제어 (시작 화면) ---
+        function selectMode(mode, btn) {
+            gameMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (mode === 'GOLDENBELL') {
+                modeDesc.innerHTML = "[골든벨 모드] 모두가 30초 안에 같은 문제를 푸는 모드입니다! (총 10문제)";
+            } else {
+                modeDesc.innerHTML = "[스피드 모드] 60초 동안 각자 랜덤으로 주어지는 문제를 최대한 많이 푸세요!";
+            }
+        }
+
+        function selectPlayers(p, btn) {
+            numLanes = p;
+            document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function initiateGame() {
+            retroAudio.init();
+            canvas.style.display = 'block';
+            resize();
+            lanes = [];
+            for(let i=0; i<numLanes; i++) lanes.push(new LaneManager(i));
+            
+            uiOverlay.style.display = 'none';
+            homeBtn.style.display = 'flex';
+            fullScreenBtn.style.display = 'flex';
+            
+            globalState = 'COUNTDOWN';
+            countdownTimer = 3.99;
+            currentRound = 1;
+            lastBeepTime = -1;
+            
+            if (gameMode === 'SPEED') roundTimer = 60.0;
+            else roundTimer = 30.0;
+
+            lastTime = performance.now();
+            if (animationId) cancelAnimationFrame(animationId);
+            gameLoop(lastTime);
+        }
+
+        function goHome() {
+            globalState = 'START';
+            uiOverlay.style.display = 'flex';
+            canvas.style.display = 'none';
+            homeBtn.style.display = 'none';
+            fullScreenBtn.style.display = 'none';
+            if (animationId) cancelAnimationFrame(animationId);
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {});
+                fullScreenBtn.innerText = '❌';
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                fullScreenBtn.innerText = '🔲';
+            }
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            headerHeight = canvas.height * 0.3; // 헤더 부분 30% 할당
+        }
+        window.addEventListener('resize', resize);
+
+        function getRandomWord() {
+            return wordData[Math.floor(Math.random() * wordData.length)];
+        }
+
+        // --- 게임 핵심 클래스 ---
+        class LaneManager {
+            constructor(index) {
+                this.index = index;
+                this.score = 0;
+                this.solvedCount = 0; // 스피드 모드 해결 횟수
+                
+                // 스피드 모드용 개별 상태
+                this.state = 'PLAYING'; 
+                this.resultTimer = 0;
+                
+                this.isSubmitted = false;
+                this.submitTimeLeft = 0;
+                this.submitRank = 0;
+                this.resultText = "";
+                this.resultColor = "";
+                this.sentence = null;
+                
+                // 점수 내역 표시용 추가 (백그라운드 연산용)
+                this.lastBaseScore = 0;
+                this.lastSpeedScore = 0;
+                this.lastTotalScore = 0;
+            }
+
+            resetForRound(wordData) {
+                this.state = 'PLAYING';
+                this.isSubmitted = false;
+                this.submitTimeLeft = 0;
+                this.submitRank = 0;
+                this.resultText = "";
+                this.sentence = new SentenceBlock(this, wordData.text, wordData.correctSpaces);
+            }
+
+            // 스피드 모드 개별 평가
+            evaluateSpeedMode() {
+                this.isSubmitted = true;
+                const isCorrect = [...this.sentence.toggledSpaces].sort().join(',') === [...this.sentence.correctSpaces].sort().join(',');
+                if (isCorrect) {
+                    this.resultText = "정답!"; 
+                    this.resultColor = "#39ff14"; // 네온 그린
+                    this.lastBaseScore = 100;
+                    this.lastSpeedScore = 0;
+                    this.lastTotalScore = 100;
+                    this.score += 100;
+                    this.solvedCount++;
+                } else {
+                    this.resultText = "오답!"; 
+                    this.resultColor = "#ff0055"; // 네온 레드
+                }
+                this.state = 'RESULT';
+                this.resultTimer = 1.5; // 정답을 확인할 수 있도록 1.5초로 연장
+            }
+
+            update(dt) {
+                if (gameMode === 'SPEED' && this.state === 'RESULT') {
+                    this.resultTimer -= dt;
+                    if (this.resultTimer <= 0) {
+                        this.resetForRound(getRandomWord());
+                    }
+                }
+            }
+
+            draw(ctx) {
+                const laneWidth = canvas.width / numLanes;
+                const lx = this.index * laneWidth;
+                
+                // 레인 구분선 (네온)
+                ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(lx, headerHeight);
+                ctx.lineTo(lx, canvas.height);
+                ctx.stroke();
+
+                // 닉네임 및 이모지
+                ctx.fillStyle = playerColors[this.index];
+                ctx.textAlign = 'center';
+                ctx.font = "bold 26px 'Noto Sans KR'";
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = playerColors[this.index];
+                ctx.fillText(playerLabels[this.index], lx + laneWidth / 2, headerHeight + 40);
+                
+                // 점수 표시
+                ctx.shadowBlur = 0;
+                ctx.font = "bold 22px 'Noto Sans KR'";
+                ctx.fillStyle = '#fff';
+                let scoreText = gameMode === 'SPEED' ? `점수: ${this.score}` : `점수: ${this.score}`;
+                ctx.fillText(scoreText, lx + laneWidth / 2, headerHeight + 80);
+
+                // 현재 상태별 렌더링 (플레이 중 or 결과 확인 중)
+                let renderState = gameMode === 'SPEED' ? this.state : globalState;
+
+                if (renderState === 'PLAYING' || renderState === 'RESULT') {
+                    if (this.sentence) this.sentence.draw(ctx);
+                    this.drawSubmitButton(ctx);
+                }
+                
+                if (renderState === 'RESULT') {
+                    ctx.fillStyle = this.resultColor;
+                    ctx.font = "bold 44px 'Noto Sans KR'";
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.resultColor;
+                    ctx.fillText(this.resultText, lx + laneWidth / 2, canvas.height - 160);
+                    ctx.shadowBlur = 0;
+
+                    // 골든벨 스피드 점수 효과 노출
+                    if (gameMode === 'GOLDENBELL' && this.lastSpeedScore > 0 && this.resultText === "정답!") {
+                        ctx.fillStyle = '#ffea00';
+                        ctx.font = "bold 20px 'Noto Sans KR'";
+                        ctx.fillText(`스피드 점수 +${this.lastSpeedScore}!`, lx + laneWidth / 2, headerHeight + 115);
+                    }
+
+                    // 오답일 때 정답을 입력칸(V표시) 위쪽에 노란색으로 노출
+                    if (this.resultText === "오답!") {
+                        let ans = "";
+                        for(let i=0; i<this.sentence.text.length; i++){
+                            ans += this.sentence.text[i];
+                            if(this.sentence.correctSpaces.includes(i)) ans += "  ";
+                        }
+                        ctx.fillStyle = '#ffea00'; // 네온 옐로우
+                        ctx.font = "bold 22px 'Noto Sans KR'";
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = '#ffea00';
+                        ctx.fillText(ans, lx + laneWidth / 2, this.sentence.baseY - 70); // 입력칸 위쪽으로 이동
+                        ctx.shadowBlur = 0;
+                    }
+
+                } else if (globalState === 'FINAL_RESULT') {
+                    // 점수에 따른 순위 계산 로직
+                    let rank = lanes.filter(l => l.score > this.score).length + 1;
+                    
+                    ctx.fillStyle = playerColors[this.index];
+                    ctx.font = "bold 64px 'Noto Sans KR'";
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = playerColors[this.index];
+                    ctx.fillText(`${rank}위`, lx + laneWidth / 2, canvas.height / 2 + 50);
+                    ctx.font = "bold 24px 'Noto Sans KR'";
+                    ctx.fillStyle = '#8892b0';
+                    ctx.shadowBlur = 0;
+                    ctx.fillText("최종 순위", lx + laneWidth / 2, canvas.height / 2 - 20);
+                }
+            }
+
+            drawSubmitButton(ctx) {
+                const laneWidth = canvas.width / numLanes;
+                const btnW = Math.min(laneWidth * 0.7, 180);
+                const btnH = 55;
+                const btnX = (this.index * laneWidth) + (laneWidth - btnW) / 2;
+                const btnY = canvas.height - 90;
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = "bold 22px 'Noto Sans KR'";
+                
+                if (this.isSubmitted) {
+                    ctx.fillStyle = '#444';
+                    ctx.fillText("[제출완료]", btnX + btnW/2, btnY + btnH/2);
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText("[제출하기]", btnX + btnW/2, btnY + btnH/2);
+                    
+                    // 네온 버튼 박스
+                    ctx.strokeStyle = playerColors[this.index];
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = playerColors[this.index];
+                    ctx.strokeRect(btnX, btnY, btnW, btnH);
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            checkClick(x, y) {
+                let currentState = gameMode === 'SPEED' ? this.state : globalState;
+                if (this.isSubmitted || currentState !== 'PLAYING') return false;
+                
+                const laneWidth = canvas.width / numLanes;
+                const btnW = Math.min(laneWidth * 0.7, 180);
+                const btnH = 55;
+                const btnX = (this.index * laneWidth) + (laneWidth - btnW) / 2;
+                const btnY = canvas.height - 90;
+
+                // 제출 버튼 터치 판정
+                if (x >= btnX && x <= btnX + btnW && y >= btnY && y <= btnY + btnH) {
+                    retroAudio.submit();
+                    
+                    if (gameMode === 'SPEED') {
+                        this.evaluateSpeedMode();
+                    } else {
+                        this.isSubmitted = true;
+                        this.submitTimeLeft = roundTimer;
+                        this.submitRank = roundSubmitRank++; // 스피드 점수를 위한 순위 저장
+                        checkGoldenBellEnd();
+                    }
+                    return true;
+                }
+                return this.sentence.handleClick(x, y);
+            }
+        }
+
+        class SentenceBlock {
+            constructor(lane, text, correctSpaces) {
+                this.lane = lane;
+                this.text = text;
+                this.correctSpaces = correctSpaces;
+                this.toggledSpaces = [];
+                this.buttons = [];
+                // 화면의 세로 중앙보다 살짝 아래 배치 (헤더가 30%를 차지하므로)
+                this.baseY = headerHeight + (canvas.height - headerHeight) / 2 - 20;
+                
+                const laneWidth = canvas.width / numLanes;
+                // 문장 길이에 상관없이 고정된 비율을 사용하여 모든 문제의 글자 크기를 통일
+                let maxCharW = (laneWidth * 0.85) / 14; 
+                this.charWidth = Math.min(maxCharW, 45); 
+                this.fontSize = this.charWidth; 
+                this.spaceWidth = this.charWidth * 0.85;
+            }
+
+            draw(ctx) {
+                this.buttons = [];
+                const laneWidth = canvas.width / numLanes;
+                let totalDrawWidth = (this.text.length * this.charWidth) + (this.toggledSpaces.length * this.spaceWidth);
+                let currentX = (this.lane.index * laneWidth) + (laneWidth / 2) - (totalDrawWidth / 2);
+
+                ctx.font = `bold ${this.fontSize}px 'Noto Sans KR'`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                for (let i = 0; i < this.text.length; i++) {
+                    ctx.fillStyle = '#FFF';
+                    ctx.fillText(this.text[i], currentX + (this.charWidth / 2), this.baseY);
+                    currentX += this.charWidth;
+
+                    // 온점(.) 바로 앞에는 띄어쓰기 V 마크가 그려지지 않도록 예외 처리
+                    if (i < this.text.length - 1 && this.text[i + 1] !== '.') {
+                        let isToggled = this.toggledSpaces.includes(i);
+                        if (isToggled) currentX += this.spaceWidth;
+
+                        let currentState = gameMode === 'SPEED' ? this.lane.state : globalState;
+
+                        if (currentState === 'PLAYING' && !this.lane.isSubmitted) {
+                            let vX = isToggled ? currentX - (this.spaceWidth / 2) : currentX;
+                            let vY = this.baseY - this.fontSize * 0.85; // 글자에 가깝게 V 배치
+                            
+                            // 터치 판정용 V 마크
+                            ctx.fillStyle = isToggled ? '#00f3ff' : '#444';
+                            ctx.shadowBlur = isToggled ? 10 : 0;
+                            ctx.shadowColor = '#00f3ff';
+                            ctx.font = `bold ${this.fontSize * 0.7}px 'Noto Sans KR'`;
+                            ctx.fillText('V', vX, vY);
+                            ctx.shadowBlur = 0;
+                            
+                            this.buttons.push({ id: i, cx: vX, cy: vY });
+                        }
+                    }
+                }
+            }
+
+            handleClick(x, y) {
+                let closest = null, minDist = 50; // 터치 반경 넉넉하게
+                for (let btn of this.buttons) {
+                    let d = Math.hypot(x - btn.cx, (y - btn.cy) * 0.5);
+                    if (d < minDist) { minDist = d; closest = btn; }
+                }
+                if (closest) {
+                    retroAudio.beep();
+                    let idx = this.toggledSpaces.indexOf(closest.id);
+                    if (idx > -1) this.toggledSpaces.splice(idx, 1);
+                    else this.toggledSpaces.push(closest.id);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // --- 라운드 및 평가 ---
+        function startNewRound() {
+            lastBeepTime = -1;
+            roundSubmitRank = 1;
+            
+            if (gameMode === 'GOLDENBELL') {
+                roundTimer = 30.0;
+                globalWordData = getRandomWord();
+                lanes.forEach(l => l.resetForRound(globalWordData));
+            } else {
+                // 스피드 모드는 각자 개별 문제 배정 (시간은 타이머에서 쭉 깎임)
+                lanes.forEach(l => l.resetForRound(getRandomWord()));
+            }
+            retroAudio.start();
+        }
+
+        function checkGoldenBellEnd() {
+            if (gameMode === 'GOLDENBELL' && lanes.every(l => l.isSubmitted)) {
+                evaluateGoldenBell();
+            }
+        }
+
+        function evaluateGoldenBell() {
+            globalState = 'RESULT';
+            let hasWinner = false;
+            lanes.forEach(l => {
+                if (!l.isSubmitted) { l.isSubmitted = true; l.submitTimeLeft = 0; }
+                const isCorrect = [...l.sentence.toggledSpaces].sort().join(',') === [...globalWordData.correctSpaces].sort().join(',');
+                if (isCorrect) {
+                    l.resultText = "정답!"; l.resultColor = "#39ff14";
+                    l.lastBaseScore = 50;
+                    
+                    // 스피드 점수 강화: 등수에 따라 추가 보너스 점수 지급
+                    let rankBonus = 0;
+                    if (l.submitRank === 1) rankBonus = 500;
+                    else if (l.submitRank === 2) rankBonus = 300;
+                    else if (l.submitRank === 3) rankBonus = 100;
+                    else rankBonus = 50;
+
+                    l.lastSpeedScore = Math.floor(Math.max(0, l.submitTimeLeft)) * 10 + rankBonus;
+                    l.lastTotalScore = l.lastBaseScore + l.lastSpeedScore;
+                    l.score += l.lastTotalScore;
+                    hasWinner = true;
+                } else {
+                    l.resultText = "오답!"; l.resultColor = "#ff0055";
+                    l.lastSpeedScore = 0;
+                }
+            });
+            if (hasWinner) retroAudio.success(); else retroAudio.fail();
+
+            // 2초 후 다음 라운드로
+            setTimeout(() => {
+                if (globalState === 'START') return;
+                if (currentRound < TOTAL_ROUNDS) { 
+                    currentRound++; 
+                    globalState = 'PLAYING'; 
+                    startNewRound(); 
+                } else { 
+                    globalState = 'FINAL_RESULT'; 
+                }
+            }, 2000);
+        }
+
+        function gameLoop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            if (globalState === 'START') return;
+
+            // 캔버스 배경 클리어 (css 배경이 보이도록 투명 처리)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // --- 시작 전 카운트다운 ---
+            if (globalState === 'COUNTDOWN') {
+                countdownTimer -= dt;
+                let currentSec = Math.floor(countdownTimer); // Math.ceil에서 Math.floor로 수정
+                
+                if (currentSec !== lastBeepTime && currentSec >= 0) {
+                    if (currentSec > 0) retroAudio.countdownBeep();
+                    else if (currentSec === 0) retroAudio.countdownGo();
+                    lastBeepTime = currentSec;
+                }
+
+                ctx.fillStyle = '#ffea00';
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffea00';
+                ctx.font = "bold 120px 'Noto Sans KR'";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let text = currentSec > 0 ? currentSec : "시작!";
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+                ctx.shadowBlur = 0;
+
+                if (countdownTimer < 0) { // <= 0에서 < 0으로 변경하여 '시작!'이 1초간 유지되도록 처리
+                    globalState = 'PLAYING';
+                    startNewRound();
+                }
+                animationId = requestAnimationFrame(gameLoop);
+                return;
+            }
+
+            // 레인 개별 업데이트 (스피드 모드 딜레이 처리용)
+            lanes.forEach(l => l.update(dt));
+
+            if (globalState === 'PLAYING') {
+                roundTimer -= dt;
+                
+                // 5초 경고음 (띠띠띠 3번 울림)
+                if (roundTimer <= 5.1 && roundTimer > 0) {
+                    let second = Math.floor(roundTimer);
+                    if (second !== lastBeepTime) {
+                        retroAudio.warning();
+                        lastBeepTime = second;
+                    }
+                }
+                
+                if (roundTimer <= 0) { 
+                    roundTimer = 0; 
+                    if (gameMode === 'GOLDENBELL') {
+                        evaluateGoldenBell(); 
+                    } else {
+                        globalState = 'FINAL_RESULT';
+                        retroAudio.fail();
+                    }
+                }
+            }
+
+            // --- 상단 헤더 렌더링 (30%) ---
+            ctx.fillStyle = 'rgba(17, 18, 24, 0.9)'; // 반투명 짙은 배경
+            ctx.fillRect(0, 0, canvas.width, headerHeight);
+            
+            // 헤더 하단 네온 라인
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00f3ff';
+            ctx.beginPath();
+            ctx.moveTo(0, headerHeight);
+            ctx.lineTo(canvas.width, headerHeight);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            if (globalState === 'PLAYING' || globalState === 'RESULT') {
+                // 상단 타이틀 및 타이머
+                let isTimeLow = (roundTimer <= 5 && globalState === 'PLAYING');
+                ctx.fillStyle = isTimeLow ? '#ff0055' : '#8892b0';
+                ctx.font = "bold 26px 'Noto Sans KR'";
+                
+                let titleStr = gameMode === 'GOLDENBELL' ? `[골든벨 모드] 문제 ${currentRound} / 10` : `[스피드 모드] 개별 무한 플레이`;
+                ctx.fillText(`${titleStr}  |  남은 시간: ${roundTimer.toFixed(1)}초`, canvas.width/2, 40);
+                
+                // 골든벨 모드일 때만 공통 문제를 크게 표시
+                if (gameMode === 'GOLDENBELL') {
+                    if (globalState === 'PLAYING') {
+                        ctx.fillStyle = '#ffea00';
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#ffea00';
+                        ctx.font = "bold 56px 'Noto Sans KR'";
+                        ctx.fillText(globalWordData.text, canvas.width/2, headerHeight / 2 + 15);
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // 결과 화면에서 정답 크게 표시
+                        let ans = "";
+                        for(let i=0; i<globalWordData.text.length; i++){
+                            ans += globalWordData.text[i];
+                            if(globalWordData.correctSpaces.includes(i)) ans += "  ";
+                        }
+                        ctx.fillStyle = '#39ff14';
+                        ctx.shadowBlur = 15; ctx.shadowColor = '#39ff14';
+                        ctx.font = "bold 56px 'Noto Sans KR'";
+                        ctx.fillText(ans, canvas.width/2, headerHeight / 2 + 15);
+                        ctx.shadowBlur = 0;
+                    }
+                } else {
+                    // 스피드 모드는 각자 문제를 푸므로 안내 문구 표시
+                    ctx.fillStyle = '#00f3ff';
+                    ctx.font = "bold 32px 'Noto Sans KR'";
+                    ctx.fillText("각자의 화면에 나타난 문제를 빠르게 풀어보세요!", canvas.width/2, headerHeight / 2 + 15);
+                }
+            } else if (globalState === 'FINAL_RESULT') {
+                ctx.fillStyle = '#ffea00';
+                ctx.shadowBlur = 20; ctx.shadowColor = '#ffea00';
+                ctx.font = "bold 56px 'Noto Sans KR'";
+                ctx.fillText("최 종 결 과", canvas.width/2, headerHeight / 2);
+                ctx.shadowBlur = 0;
+            }
+
+            // --- 레인 렌더링 ---
+            lanes.forEach(l => l.draw(ctx));
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- 입력(터치/마우스) 제어 ---
+        function handleInput(clientX, clientY) {
+            if (globalState !== 'PLAYING') return;
+            const laneWidth = canvas.width / numLanes;
+            const laneIndex = Math.floor(clientX / laneWidth);
+            if (lanes[laneIndex]) lanes[laneIndex].checkClick(clientX, clientY);
+        }
+
+        canvas.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                handleInput(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            }
+        }, { passive: false });
+
+    </script>
+<div style="position:fixed;right:8px;bottom:6px;z-index:99999;padding:4px 7px;background:rgba(0,0,0,.72);color:#fff;font:11px system-ui;border-radius:4px">Powered by <a href="https://kingsmath.com" target="_blank" rel="noreferrer" style="color:#d9ff32">킹수학</a> · CC BY-NC</div></body>
+</html>

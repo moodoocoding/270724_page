@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 type Step = 1 | 2 | 3 | 4;
-type LessonOneStep = 1 | 2 | 3;
 type Submission = {
   step: Step;
   status: "draft" | "submitted";
@@ -31,10 +31,10 @@ type Session = {
 };
 
 const stepMeta = {
-  1: { short: "문제 정의", title: "판단을 수업 조건으로 바꾸기", hint: "학생에 대한 판단을 다시 보고, 다음 수업에서 바꿀 조건을 정합니다." },
-  2: { short: "방법 탐색", title: "수업 방법 탐색", hint: "AI에 전달할 요청을 만들고 우리 수업에 맞는 방법을 고릅니다." },
-  3: { short: "콘텐츠 제작", title: "수업 콘텐츠 제작", hint: "제작 조건을 정리하고 완성한 결과물 링크를 남깁니다." },
-  4: { short: "검토·수정", title: "동료 검토와 최종 제출", hint: "받은 의견을 바탕으로 실제 수업에서 쓸 수 있게 다듬습니다." },
+  1: { short: "문제 정의", title: "사실에서 수업 문제까지", hint: "분류하고, 확인하고, 한 문장으로 정리합니다." },
+  2: { short: "Gem 실습", title: "나의 수업 설계 Gem 만들기", hint: "Gem을 만든 뒤 직접 실습하고 결과를 남깁니다." },
+  3: { short: "게임 경험", title: "교육용 웹게임 플레이 랩", hint: "직접 해 보고, 내 수업에 맞게 바꿀 점을 찾습니다." },
+  4: { short: "검토·수정", title: "동료 검토와 최종 수정", hint: "직접 사용한 장면을 근거로 가장 중요한 한 가지를 고칩니다." },
 } as const;
 
 const fields: Record<Step, { key: string; label: string; placeholder: string; long?: boolean }[]> = {
@@ -45,20 +45,17 @@ const fields: Record<Step, { key: string; label: string; placeholder: string; lo
     { key: "change", label: "바꿔 볼 수업 조건", placeholder: "예: 핵심 어휘를 쉬운 말과 사례로 설명한다." },
   ],
   2: [
-    { key: "gradeSubject", label: "학년과 교과", placeholder: "예: 초등학교 5학년 사회" },
-    { key: "difficulty", label: "학생의 어려움", placeholder: "1차시 결과를 바탕으로 구체적으로 적어 주세요." },
-    { key: "desiredActivity", label: "학생이 하기를 바라는 활동", placeholder: "예: 핵심 어휘를 자신의 말로 설명하고 활용하기" },
-    { key: "conditions", label: "수업 조건", placeholder: "시간, 인원, 기기 환경, 피하고 싶은 방식 등을 적어 주세요.", long: true },
-    { key: "candidates", label: "AI가 제안한 방법 후보", placeholder: "후보 1, 후보 2, 후보 3과 간단한 장단점을 적어 주세요.", long: true },
-    { key: "selectedMethod", label: "선택한 방법", placeholder: "우리 반에서 실행할 방법 하나를 적어 주세요." },
+    { key: "gemPracticeRequest", label: "Gem에 입력한 실습 요청", placeholder: "예: 5학년 사회 핵심 어휘 활동을 만들고 싶다.", long: true },
+    { key: "generatedPrompt", label: "Gem이 완성한 프롬프트", placeholder: "Gem이 만들어 준 완성형 프롬프트를 붙여 넣으세요.", long: true },
+    { key: "aiResult", label: "프롬프트 실행 결과", placeholder: "새 대화에서 실행한 AI의 제안 중 중요한 내용을 붙여 넣으세요.", long: true },
+    { key: "selectedMethod", label: "우리 수업에서 선택할 방법", placeholder: "실제로 적용할 방법 하나와 선택 이유를 적으세요.", long: true },
   ],
   3: [
-    { key: "contentType", label: "만들 콘텐츠", placeholder: "예: 전자칠판용 단어 맞추기 게임" },
-    { key: "tool", label: "사용할 도구", placeholder: "예: Gemini Canvas" },
-    { key: "environment", label: "사용 환경", placeholder: "예: 교실 전자칠판, 2~4명 참여" },
-    { key: "features", label: "꼭 필요한 기능", placeholder: "학생이 실제로 사용할 핵심 기능만 적어 주세요.", long: true },
-    { key: "resultUrl", label: "결과물 링크", placeholder: "공유 가능한 URL을 붙여 넣어 주세요." },
-    { key: "usage", label: "수업에서 사용하는 방법", placeholder: "언제, 누가, 무엇을 하는지 한두 문장으로 적어 주세요.", long: true },
+    { key: "gameTitle", label: "체험한 게임", placeholder: "게임을 선택하면 자동으로 기록됩니다." },
+    { key: "studentAction", label: "내가 해 본 결과", placeholder: "예: 3단계까지 진행했고 740점을 얻었다.", long: true },
+    { key: "feedbackMechanism", label: "어떤 피드백을 바로 받나요?", placeholder: "예: 정답 여부, 점수, 다시 시도할 기회를 받는다.", long: true },
+    { key: "changePlan", label: "내 수업에 맞게 무엇을 바꿀까요?", placeholder: "학년, 내용, 난이도, 규칙 중 바꿀 것만 적으세요.", long: true },
+    { key: "resultUrl", label: "내가 만든 결과 링크", placeholder: "Gemini Canvas 등에서 만든 결과의 공유 URL" },
   ],
   4: [
     { key: "strength", label: "동료가 말한 살릴 점", placeholder: "구체적으로 도움이 된 부분을 적어 주세요.", long: true },
@@ -75,6 +72,13 @@ const emptySubmissions = (): Record<Step, Submission> => ({
   3: { step: 3, status: "draft", data: {} },
   4: { step: 4, status: "draft", data: {} },
 });
+
+const requiredKeys: Record<Step, string[]> = {
+  1: ["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"],
+  2: ["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"],
+  3: ["gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "resultUrl"],
+  4: ["strength", "improvement", "revision", "finalUrl", "finalNote"],
+};
 
 export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
@@ -93,7 +97,6 @@ export default function Home() {
   const [name, setName] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<Step>(1);
-  const [lessonOneStep, setLessonOneStep] = useState<LessonOneStep>(1);
   const [submissions, setSubmissions] = useState(emptySubmissions);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -106,21 +109,35 @@ export default function Home() {
   );
 
   useEffect(() => {
-    if (session) void loadSubmissions(session.participantId);
-  }, [session]);
-
-  async function loadSubmissions(participantId: number) {
-    const res = await fetch(`/api/submissions?participantId=${participantId}`);
-    if (!res.ok) return;
-    const body = await res.json();
-    setSubmissions((prev) => {
-      const next = { ...prev };
-      for (const item of body.submissions as Submission[]) {
-        next[item.step] = { ...item, data: JSON.parse(item.dataJson || "{}") };
+    async function loadSubmissions(activeSession: Session) {
+      let res = await fetch("/api/submissions", { cache: "no-store" });
+      if (res.status === 401) {
+        const renewed = await fetch("/api/session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ school: activeSession.school, name: activeSession.participantName }),
+        });
+        if (!renewed.ok) {
+          window.localStorage.removeItem("oneday-session");
+          setSession(null);
+          return;
+        }
+        const renewedBody = await renewed.json();
+        window.localStorage.setItem("oneday-session", JSON.stringify(renewedBody.session));
+        res = await fetch("/api/submissions", { cache: "no-store" });
       }
-      return next;
-    });
-  }
+      if (!res.ok) return;
+      const body = await res.json();
+      setSubmissions((prev) => {
+        const next = { ...prev };
+        for (const item of body.submissions as Submission[]) {
+          next[item.step] = { ...item, data: JSON.parse(item.dataJson || "{}") };
+        }
+        return next;
+      });
+    }
+    if (session) void loadSubmissions(session);
+  }, [session]);
 
   async function enterClass(event: React.FormEvent) {
     event.preventDefault();
@@ -137,7 +154,6 @@ export default function Home() {
     if (!res.ok) return setMessage(body.error || "입장할 수 없습니다.");
     setSession(body.session);
     window.localStorage.setItem("oneday-session", JSON.stringify(body.session));
-    await loadSubmissions(body.session.participantId);
   }
 
   function updateField(key: string, value: string) {
@@ -149,18 +165,31 @@ export default function Home() {
 
   async function save(status: "draft" | "submitted") {
     if (!session) return;
+    if (status === "submitted") {
+      const missing = requiredKeys[step].filter((key) => !current.data[key]?.trim());
+      if (missing.length) {
+        setMessage(`아직 ${missing.length}개 항목이 비어 있어요. 활동을 마친 뒤 제출해 주세요.`);
+        return;
+      }
+    }
     setBusy(true);
     setMessage("");
     const res = await fetch("/api/submissions", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ participantId: session.participantId, step, status, data: current.data }),
+      body: JSON.stringify({ step, status, data: current.data }),
     });
     const body = await res.json();
     setBusy(false);
     if (!res.ok) return setMessage(body.error || "저장하지 못했습니다.");
     setSubmissions((prev) => ({ ...prev, [step]: { ...prev[step], status, updatedAt: body.updatedAt } }));
     setMessage(status === "submitted" ? "제출했습니다. 언제든 수정해 다시 제출할 수 있어요." : "임시 저장했습니다.");
+  }
+
+  function leaveClass() {
+    void fetch("/api/session", { method: "DELETE" });
+    window.localStorage.removeItem("oneday-session");
+    setSession(null);
   }
 
   async function openTeacher(event: React.FormEvent) {
@@ -237,24 +266,21 @@ export default function Home() {
               </button>
             ))}
           </nav>
-          <button className="logout" onClick={() => { window.localStorage.removeItem("oneday-session"); setSession(null); }}>나가기</button>
+          <button className="logout" onClick={leaveClass}>나가기</button>
         </aside>
 
         <section className="work-area">
           <div className="step-heading">
-            <p>{step}차시 {step === 1 ? `· ${lessonOneStep}/3단계` : "결과물"}</p>
-            <h1>{step === 1 && lessonOneStep === 1 ? "사실과 해석 구분하기" : step === 1 && lessonOneStep === 2 ? "해석을 확인할 정보 찾기" : stepMeta[step].title}</h1>
-            <span>{step === 1 && lessonOneStep === 1 ? "눈이나 귀로 확인한 사실과 그 이유에 대한 해석을 구분해 봅니다." : step === 1 && lessonOneStep === 2 ? "내 해석이 맞는지 확인하려면 무엇을 더 알아야 할지 생각해 봅니다." : stepMeta[step].hint}</span>
+            <p>{step}차시</p>
+            <h1>{stepMeta[step].title}</h1>
+            <span>{stepMeta[step].hint}</span>
           </div>
 
-          {step === 1 && <LessonOneProgress current={lessonOneStep} onSelect={setLessonOneStep} />}
-          {step === 1 && lessonOneStep === 1 && <FactOrInterpretation data={current.data} onChange={updateField} />}
-          {step === 1 && lessonOneStep === 2 && <MoreInformation data={current.data} onChange={updateField} />}
-          {step === 1 && lessonOneStep === 3 && <SentencePreview data={current.data} />}
-          {step === 2 && <PromptPreview data={current.data} fromStep1={submissions[1].data} />}
-          {step === 3 && <PlanPreview data={current.data} fromStep2={submissions[2].data} />}
+          {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} />}
+          {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
+          {step === 3 && <GameLab data={current.data} onChange={updateField} />}
 
-          {(step !== 1 || lessonOneStep === 3) && <div className="form-grid">
+          {step === 4 && <div className="form-grid">
             {fields[step].map((field, index) => (
               <label key={field.key} className={field.long ? "wide" : ""}>
                 <span><i>{index + 1}</i>{field.label}</span>
@@ -270,11 +296,8 @@ export default function Home() {
           <footer className="actionbar">
             <p role="status" aria-live="polite">{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
             <div>
-              {step === 1 && lessonOneStep > 1 && <button className="secondary" onClick={() => setLessonOneStep((lessonOneStep - 1) as LessonOneStep)}>이전</button>}
               <button className="secondary" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
-              {step === 1 && lessonOneStep < 3
-                ? <button className="primary compact" onClick={() => { setLessonOneStep((lessonOneStep + 1) as LessonOneStep); setMessage(""); }}>다음 단계</button>
-                : <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>}
+              <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
             </div>
           </footer>
         </section>
@@ -293,6 +316,7 @@ const factQuestions = [
   "학생이 활동 중 교과서의 앞뒤 쪽을 계속 넘겼다.",
   "쓸데없는 짓을 하며 집중하지 않는다.",
 ] as const;
+const factAnswers = ["사실", "해석", "사실", "해석"] as const;
 
 const lessonOneExtraLabels: Record<string, string> = {
   factChoice1: "문장 1 분류",
@@ -301,56 +325,297 @@ const lessonOneExtraLabels: Record<string, string> = {
   factChoice4: "문장 4 분류",
   infoToKnow: "추가로 알고 싶은 학생의 행동이나 말",
   infoToObserve: "다음 수업에서 확인해 볼 정보",
+  gemPracticeRequest: "Gem에 입력한 실습 요청",
+  generatedPrompt: "Gem이 완성한 프롬프트",
+  aiResult: "프롬프트 실행 결과",
+  gameTitle: "체험한 게임",
+  studentAction: "내가 해 본 결과",
+  feedbackMechanism: "즉시 받는 피드백",
+  changePlan: "수업 적용 변경 계획",
+  playedAt: "게임 체험 완료",
 };
 
-function LessonOneProgress({ current, onSelect }: { current: LessonOneStep; onSelect: (step: LessonOneStep) => void }) {
-  const labels = ["사실과 해석", "추가 정보", "문제 정의"];
-  return <nav className="inner-steps" aria-label="1차시 활동 단계">{labels.map((label, index) => {
-    const item = (index + 1) as LessonOneStep;
-    return <button key={label} className={current === item ? "active" : ""} aria-current={current === item ? "step" : undefined} onClick={() => onSelect(item)}><i>{item}</i><span>{label}</span></button>;
-  })}</nav>;
-}
-
-function FactOrInterpretation({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
-  return <div className="lesson-activity">
+function LessonOneActivity({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  return <div className="lesson-one-grid">
+    <section className="activity-panel">
+      <header className="panel-title"><b>1</b><div><h2>사실과 해석</h2><p>읽고 선택하세요.</p></div></header>
     <div className="concept-pair">
       <section><strong>사실</strong><p>눈이나 귀로 확인할 수 있는 행동이나 말</p></section>
       <section><strong>해석</strong><p>행동의 이유에 대해 교사가 붙인 설명</p></section>
     </div>
-    <div className="activity-heading"><span>활동</span><h2>각 문장은 사실일까요, 해석일까요?</h2></div>
     <div className="classification-list">
       {factQuestions.map((question, index) => {
         const key = `factChoice${index + 1}`;
-        return <div className="classification-row" key={key}><p id={`${key}-label`}><i>{index + 1}</i>{question}</p><div role="radiogroup" aria-labelledby={`${key}-label`}>
-          {(["사실", "해석"] as const).map((choice) => <label key={choice} className={data[key] === choice ? "selected" : ""}><input type="radio" name={key} value={choice} checked={data[key] === choice} onChange={() => onChange(key, choice)} /><span>{choice}</span></label>)}
-        </div></div>;
+        return <div className="classification-row" key={key}>
+          <p id={`${key}-label`}><i>{index + 1}</i>{question}</p>
+          <div role="radiogroup" aria-labelledby={`${key}-label`}>
+            {(["사실", "해석"] as const).map((choice) => <label key={choice} className={data[key] === choice ? "selected" : ""}><input type="radio" name={key} value={choice} checked={data[key] === choice} onChange={() => onChange(key, choice)} /><span>{choice}</span></label>)}
+          </div>
+          {data[key] && <em aria-live="polite" className={data[key] === factAnswers[index] ? "correct" : "retry"}>{data[key] === factAnswers[index] ? "맞아요" : "다시 확인"}</em>}
+        </div>;
       })}
     </div>
-    <p className="remember-note">학생의 행동은 사실이지만, 그 이유에 대한 판단은 해석일 수 있습니다.</p>
-  </div>;
-}
-
-function MoreInformation({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
-  return <div className="lesson-activity">
-    <div className="form-grid information-grid">
-      <label className="wide"><span><i>1</i>추가로 알고 싶은 학생의 행동이나 말</span><textarea value={data.infoToKnow || ""} onChange={(e) => onChange("infoToKnow", e.target.value)} placeholder="예: 어떤 질문에서 멈췄는지, 친구의 설명에는 어떻게 반응했는지" /></label>
-      <label className="wide"><span><i>2</i>다음 수업에서 확인해 볼 정보</span><textarea value={data.infoToObserve || ""} onChange={(e) => onChange("infoToObserve", e.target.value)} placeholder="예: 핵심 어휘를 설명한 뒤 학생이 과제를 시작하는지 관찰한다." /></label>
-    </div>
-    <p className="remember-note">추측을 더하는 대신, 판단을 확인할 수 있는 행동과 말을 찾아보세요.</p>
+      <p className="remember-note">행동은 사실, 행동의 이유에 대한 판단은 해석입니다.</p>
+    </section>
+    <section className="activity-panel">
+      <header className="panel-title"><b>2</b><div><h2>내 수업에 적용</h2><p>확인할 정보와 바꿀 조건만 적으세요.</p></div></header>
+      <SentencePreview data={data} />
+      <div className="compact-form">
+        <label><span>처음 한 판단</span><input value={data.firstJudgment || ""} onChange={(e) => onChange("firstJudgment", e.target.value)} placeholder="학습 의욕이 낮다고 생각했다." /></label>
+        <label><span>새롭게 확인한 정보</span><textarea value={data.additionalInfo || ""} onChange={(e) => onChange("additionalInfo", e.target.value)} placeholder="학생의 행동·말·조건 변화를 적으세요." /></label>
+        <label><span>배움을 막았을 가능성이 있는 요인</span><input value={data.blockPoint || ""} onChange={(e) => onChange("blockPoint", e.target.value)} placeholder="핵심 어휘와 작성 방법을 이해하지 못했다." /></label>
+        <label><span>바꿔 볼 수업 조건</span><input value={data.change || ""} onChange={(e) => onChange("change", e.target.value)} placeholder="쉬운 설명과 짧은 예시를 먼저 제시한다." /></label>
+      </div>
+    </section>
   </div>;
 }
 
 function SentencePreview({ data }: { data: Record<string, string> }) {
-  return <div className="preview"><span>작성 중인 문제 정의</span><p>처음에는 <b>{data.firstJudgment || "______"}</b>고 판단했다. 그러나 <b>{data.additionalInfo || "______"}</b>을 확인한 뒤, <b>{data.blockPoint || "______"}</b>이 배움을 막았을 가능성이 있다고 보았다. 따라서 수업에서 <b>{data.change || "______"}</b>을 해 볼 필요가 있다.</p></div>;
+  return <div className="result-strip"><span>완성 문장</span><p>처음에는 <b>{data.firstJudgment || "______"}</b>고 판단했다. 그러나 <b>{data.additionalInfo || "______"}</b>을 확인한 뒤, <b>{data.blockPoint || "______"}</b>이 배움을 막았을 가능성이 있다고 보았다. 따라서 수업에서 <b>{data.change || "______"}</b>을 해 볼 필요가 있다.</p></div>;
 }
 
-function PromptPreview({ data, fromStep1 }: { data: Record<string, string>; fromStep1: Record<string, string> }) {
-  const prompt = `나는 ${data.gradeSubject || "___ 학년 ___ 교과"}를 가르칩니다. 학생들은 ${data.difficulty || fromStep1.blockPoint || "___"} 때문에 어려움을 겪습니다. 수업에서 학생이 ${data.desiredActivity || "___"}하도록 돕고 싶습니다. ${data.conditions || "우리 수업에서 실행 가능한"} 서로 다른 방법을 제안해 주세요.`;
-  return <div className="preview prompt"><span>AI에 복사할 요청문</span><p>{prompt}</p><button onClick={() => navigator.clipboard.writeText(prompt)}>복사하기</button></div>;
+function GemsLab({ data, fromStep1, onChange }: { data: Record<string, string>; fromStep1: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  const [copyToast, setCopyToast] = useState<string | null>(null);
+  const [showMetaModal, setShowMetaModal] = useState(false);
+  const [metaText, setMetaText] = useState("");
+
+  useEffect(() => {
+    fetch("/meta-prompt.md")
+      .then((res) => res.text())
+      .then((text) => setMetaText(text))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!showMetaModal) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowMetaModal(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [showMetaModal]);
+
+  const copyMetaPrompt = async () => {
+    try {
+      const textToCopy = metaText || (await (await fetch("/meta-prompt.md")).text());
+      await navigator.clipboard.writeText(textToCopy);
+      setCopyToast("메타 프롬프트 전체를 복사했습니다.");
+      setTimeout(() => setCopyToast(null), 3500);
+    } catch {
+      setCopyToast("복사에 실패했습니다.");
+    }
+  };
+
+  const openMetaModal = async () => {
+    if (!metaText) {
+      try {
+        const text = await (await fetch("/meta-prompt.md")).text();
+        setMetaText(text);
+      } catch {}
+    }
+    setShowMetaModal(true);
+  };
+
+  const practiceStarter = `초등학교 5학년 수업에서 ${fromStep1.change || "학생의 배움을 돕는 활동"}을 찾고 싶습니다. 학생이 직접 생각하고 말하는 활동이면 좋겠습니다.`;
+
+  return (
+    <div className="gems-layout">
+      {copyToast && (
+        <div className="copy-toast" role="status" aria-live="polite">
+          {copyToast}
+        </div>
+      )}
+
+      <section className="gems-guide">
+        <div className="guide-head">
+          <h2>Gem 만들기</h2>
+          <div className="guide-actions">
+            <button className="secondary small-button" onClick={openMetaModal}>메타 프롬프트 크게 보기</button>
+            <a className="primary small-button" href="https://gemini.google.com/gems" target="_blank" rel="noreferrer">Gemini 열기 ↗</a>
+          </div>
+        </div>
+
+        <ol className="guide-steps">
+          <li>
+            <a className="guide-image" href="/gems/step-1.png" target="_blank" rel="noreferrer" aria-label="1단계 안내 이미지 크게 보기">
+              <Image src="/gems/step-1.png" width={640} height={390} alt="Gem 관리자에서 새 Gem 버튼 위치" />
+            </a>
+            <div>
+              <b>01</b>
+              <strong>새 Gem을 여세요</strong>
+              <p>Gem 관리자에서 ‘새 Gem’을 누릅니다.</p>
+            </div>
+          </li>
+          <li>
+            <a className="guide-image" href="/gems/step-2.png" target="_blank" rel="noreferrer" aria-label="2단계 안내 이미지 크게 보기">
+              <Image src="/gems/step-2.png" width={640} height={390} alt="Gem 요청 사항에 메타 프롬프트를 붙여 넣는 위치" />
+            </a>
+            <div>
+              <b>02</b>
+              <strong>메타 프롬프트를 넣으세요</strong>
+              <p>요청 사항에 붙여 넣고 저장합니다.</p>
+              <button className="inline-action" onClick={copyMetaPrompt}>메타 프롬프트 복사</button>
+            </div>
+          </li>
+          <li>
+            <a className="guide-image" href="/gems/step-3.png" target="_blank" rel="noreferrer" aria-label="3단계 안내 이미지 크게 보기">
+              <Image src="/gems/step-3.png" width={640} height={390} alt="저장된 Gem에서 채팅 시작 버튼 위치" />
+            </a>
+            <div>
+              <b>03</b>
+              <strong>채팅을 시작하세요</strong>
+              <p>짧은 요청을 입력해 완성형 프롬프트를 받습니다.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+      <section className="practice-panel">
+        <header className="panel-title">
+          <b>실습</b>
+          <div>
+            <h2>결과 남기기</h2>
+            <p>Gem에서 만든 결과물이나 작성 프롬프트를 붙여 넣으세요.</p>
+          </div>
+        </header>
+        <div className="starter-box">
+          <span>1차시에서 이어가기</span>
+          <p>{practiceStarter}</p>
+          <button onClick={() => {
+            navigator.clipboard.writeText(practiceStarter);
+            setCopyToast("1차시 내용을 복사했습니다.");
+            setTimeout(() => setCopyToast(null), 3000);
+          }}>복사</button>
+        </div>
+        <div className="compact-form">
+          {fields[2].map((field) => (
+            <label key={field.key}>
+              <span>{field.label}</span>
+              <textarea
+                value={data[field.key] || ""}
+                onChange={(e) => onChange(field.key, e.target.value)}
+                placeholder={field.placeholder}
+              />
+            </label>
+          ))}
+        </div>
+      </section>
+
+      {showMetaModal && (
+        <div className="meta-backdrop" onClick={() => setShowMetaModal(false)}>
+          <div className="meta-modal" role="dialog" aria-modal="true" aria-labelledby="meta-prompt-title" onClick={(event) => event.stopPropagation()}>
+            <div className="meta-modal-head">
+              <h2 id="meta-prompt-title">메타 프롬프트</h2>
+              <div className="guide-actions">
+                <button className="primary small-button" onClick={copyMetaPrompt}>전체 복사</button>
+                <button className="secondary small-button" onClick={() => setShowMetaModal(false)}>닫기</button>
+              </div>
+            </div>
+            <pre>{metaText}</pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
-function PlanPreview({ data, fromStep2 }: { data: Record<string, string>; fromStep2: Record<string, string> }) {
-  return <div className="preview"><span>콘텐츠 개발 계획</span><p>나는 수업에서 학생이 <b>{fromStep2.desiredActivity || "______"}</b>하도록 <b>{data.contentType || fromStep2.selectedMethod || "______"}</b>을 만들겠다.</p></div>;
+const gameCatalog = [
+  { id: "spacing", title: "띄어쓰기 킹", tag: "국어 · 맞춤법", task: "문장을 보고 띄어쓰기 고치기", src: "/games/spacing.html" },
+  { id: "alphabet", title: "알파벳 매칭 킹", tag: "영어 · 기초", task: "대문자와 소문자 연결하기", src: "/games/alphabet.html" },
+  { id: "kind-words", title: "예쁜 말 킹", tag: "인성 · 언어", task: "상황에 맞는 따뜻한 말 고르기", src: "/games/kind-words.html" },
+  { id: "magnet", title: "자석 디펜스 킹", tag: "과학 · 자석", task: "자석의 성질로 목표 지키기", src: "/games/magnet.html" },
+] as const;
+
+function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  const [selected, setSelected] = useState(data.gameId || "spacing");
+
+  const chooseGame = (id: string, title: string) => {
+    setSelected(id);
+    onChange("gameId", id);
+    onChange("gameTitle", title);
+  };
+
+  const activeGame = gameCatalog.find((game) => game.id === selected) || gameCatalog[0];
+  const step1Fields = fields[3].filter((f) => ["gameTitle", "studentAction", "feedbackMechanism", "changePlan", "resultUrl"].includes(f.key));
+
+  return (
+    <div className="game-layout">
+          <section className="game-browser">
+            <div className="guide-head">
+              <div>
+                <h2>추천 게임 4개</h2>
+                <p>하나를 골라 3분만 해 보세요.</p>
+              </div>
+              <span className="source-note">270725_webgame 원본</span>
+            </div>
+            <div className="game-cards">
+              {gameCatalog.map((game) => (
+                <button
+                  key={game.id}
+                  aria-pressed={selected === game.id}
+                  className={selected === game.id ? "selected" : ""}
+                  onClick={() => chooseGame(game.id, game.title)}
+                >
+                  <span>{game.tag}</span>
+                  <strong>{game.title}</strong>
+                  <small>{game.task}</small>
+                </button>
+              ))}
+            </div>
+            <iframe
+              key={activeGame.id}
+              className="game-frame"
+              src={activeGame.src}
+              title={`${activeGame.title} 체험`}
+              sandbox="allow-scripts"
+              loading="lazy"
+            />
+            <button
+              className={`experience-done ${data.playedAt ? "done" : ""}`}
+              onClick={() => {
+                onChange("playedAt", new Date().toISOString());
+                onChange("gameId", activeGame.id);
+                onChange("gameTitle", activeGame.title);
+              }}
+            >
+              {data.playedAt ? "체험 완료" : "게임을 해 봤어요"}
+            </button>
+            <p className="license-note">
+              추적 코드와 외부 폰트만 제거한 연수용 사본 · Powered by <a href="https://kingsmath.com" target="_blank" rel="noreferrer">킹수학</a> · CC BY-NC 4.0
+            </p>
+          </section>
+
+          <section className="reflection-panel">
+            <header className="panel-title">
+              <b>기록</b>
+              <div>
+                <h2>해 보고 적기</h2>
+                <p>결과와 바꿀 점만 짧게 남기세요.</p>
+              </div>
+            </header>
+            <div className="compact-form">
+              {step1Fields.map((field) => (
+                <label key={field.key}>
+                  <span>{field.label}</span>
+                  {field.long ? (
+                    <textarea
+                      value={data[field.key] || ""}
+                      onChange={(e) => onChange(field.key, e.target.value)}
+                      placeholder={field.placeholder}
+                    />
+                  ) : (
+                    <input
+                      value={data[field.key] || ""}
+                      onChange={(e) => onChange(field.key, e.target.value)}
+                      placeholder={field.placeholder}
+                      readOnly={field.key === "gameTitle"}
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+          </section>
+    </div>
+  );
 }
 
 function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => void }) {
