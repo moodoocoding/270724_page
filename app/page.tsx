@@ -624,6 +624,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => {
+                  onChange("playedAt", new Date().toISOString());
                   onChange("gameId", activeGame.id);
                   onChange("gameTitle", activeGame.title);
                 }}
@@ -631,16 +632,6 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                 새 창에서 게임 시작 ↗
               </a>
             </div>
-            <button
-              className={`experience-done ${data.playedAt ? "done" : ""}`}
-              onClick={() => {
-                onChange("playedAt", new Date().toISOString());
-                onChange("gameId", activeGame.id);
-                onChange("gameTitle", activeGame.title);
-              }}
-            >
-              {data.playedAt ? "체험 완료" : "게임 체험을 마쳤어요"}
-            </button>
             <p className="license-note">
               추적 코드와 외부 폰트만 제거한 연수용 사본 · Powered by <a href="https://kingsmath.com" target="_blank" rel="noreferrer">킹수학</a> · CC BY-NC 4.0
             </p>
