@@ -1,25 +1,63 @@
-import { and, eq } from "drizzle-orm";
-import { ensureDb, getDb } from "../../../db";
-import { submissions } from "../../../db/schema";
+import { getSupabase } from "../../../lib/supabase-server";
 
 export async function GET(request: Request) {
-  const participantId = Number(new URL(request.url).searchParams.get("participantId"));
-  if (!participantId) return Response.json({ error: "참여자 정보가 없습니다." }, { status: 400 });
-  await ensureDb();
-  const rows = await getDb().select().from(submissions).where(eq(submissions.participantId, participantId));
-  return Response.json({ submissions: rows });
+  try {
+    const participantId = Number(new URL(request.url).searchParams.get("participantId"));
+    if (!participantId) return Response.json({ error: "참여자 정보가 없습니다." }, { status: 400 });
+
+    const { data, error } = await getSupabase()
+      .from("submissions")
+      .select("id,participant_id,step,status,data_json,updated_at")
+      .eq("participant_id", participantId)
+      .order("step");
+    if (error) throw error;
+
+    return Response.json({
+      submissions: (data ?? []).map((row) => ({
+        id: row.id,
+        participantId: row.participant_id,
+        step: row.step,
+        status: row.status,
+        dataJson: JSON.stringify(row.data_json ?? {}),
+        updatedAt: row.updated_at,
+      })),
+    });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "작성 내용을 불러오지 못했습니다." }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const { participantId, step, status, data } = await request.json() as { participantId?: number; step?: number; status?: string; data?: Record<string, string> };
-  if (!participantId || !step || step < 1 || step > 4) return Response.json({ error: "저장할 차시 정보가 올바르지 않습니다." }, { status: 400 });
-  const safeStatus = status === "submitted" ? "submitted" : "draft";
-  const dataJson = JSON.stringify(data || {});
-  const updatedAt = new Date().toISOString();
-  await ensureDb();
-  const db = getDb();
-  const [existing] = await db.select().from(submissions).where(and(eq(submissions.participantId, participantId), eq(submissions.step, step))).limit(1);
-  if (existing) await db.update(submissions).set({ status: safeStatus, dataJson, updatedAt }).where(eq(submissions.id, existing.id));
-  else await db.insert(submissions).values({ participantId, step, status: safeStatus, dataJson, updatedAt });
-  return Response.json({ ok: true, updatedAt });
+  try {
+    const { participantId, step, status, data } = await request.json() as {
+      participantId?: number;
+      step?: number;
+      status?: string;
+      data?: Record<string, string>;
+    };
+    if (!participantId || !step || step < 1 || step > 4) {
+      return Response.json({ error: "저장할 차시 정보가 올바르지 않습니다." }, { status: 400 });
+    }
+
+    const updatedAt = new Date().toISOString();
+    const { error } = await getSupabase()
+      .from("submissions")
+      .upsert(
+        {
+          participant_id: participantId,
+          step,
+          status: status === "submitted" ? "submitted" : "draft",
+          data_json: data ?? {},
+          updated_at: updatedAt,
+        },
+        { onConflict: "participant_id,step" },
+      );
+    if (error) throw error;
+
+    return Response.json({ ok: true, updatedAt });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "작성 내용을 저장하지 못했습니다." }, { status: 500 });
+  }
 }

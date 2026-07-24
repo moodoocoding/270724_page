@@ -187,6 +187,29 @@ ________을 만들겠다.
 - 결과물 PDF 또는 문서 내보내기
 - 계정, 클래스, 팀 단위 관리
 
+## 데이터베이스
+
+운영 데이터는 Supabase PostgreSQL에 저장합니다. 브라우저가 데이터베이스에 직접 접근하지 않고, 웹서비스의 서버 API가 Supabase와 통신합니다.
+
+저장 대상:
+
+- 클래스와 강사 관리 정보
+- 참여자의 학교명과 이름
+- 차시별 작성 내용
+- 임시 저장 및 제출 상태
+- 마지막 수정 시각
+
+초기 스키마는 `supabase/schema.sql`에 있습니다. Supabase 프로젝트의 SQL Editor에서 한 번 실행하면 기본 클래스도 함께 생성됩니다.
+
+서버 환경변수:
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+`SUPABASE_SERVICE_ROLE_KEY`는 브라우저 코드나 공개 저장소에 넣지 않습니다.
+
 ## 자료 구조
 
 ```text
