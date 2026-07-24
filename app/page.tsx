@@ -360,7 +360,7 @@ function LessonOneActivity({ data, onChange }: { data: Record<string, string>; o
     <section className="activity-panel">
       <header className="panel-title"><b>2</b><div><h2>내 수업에 적용</h2><p>확인할 정보와 바꿀 조건만 적으세요.</p></div></header>
       <SentencePreview data={data} />
-      <div className="compact-form">
+      <div className="compact-form lesson-one-form">
         <label><span>처음 한 판단</span><input value={data.firstJudgment || ""} onChange={(e) => onChange("firstJudgment", e.target.value)} placeholder="학습 의욕이 낮다고 생각했다." /></label>
         <label><span>새롭게 확인한 정보</span><textarea value={data.additionalInfo || ""} onChange={(e) => onChange("additionalInfo", e.target.value)} placeholder="학생의 행동·말·조건 변화를 적으세요." /></label>
         <label><span>배움을 막았을 가능성이 있는 요인</span><input value={data.blockPoint || ""} onChange={(e) => onChange("blockPoint", e.target.value)} placeholder="핵심 어휘와 작성 방법을 이해하지 못했다." /></label>
