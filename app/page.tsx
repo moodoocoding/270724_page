@@ -575,14 +575,23 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                 </button>
               ))}
             </div>
-            <iframe
-              key={activeGame.id}
-              className="game-frame"
-              src={activeGame.src}
-              title={`${activeGame.title} 체험`}
-              sandbox="allow-scripts"
-              loading="lazy"
-            />
+            <div className="game-launcher">
+              <span>선택한 게임 · TOP {activeGame.rank}</span>
+              <h3>{activeGame.title}</h3>
+              <p>{activeGame.task}</p>
+              <a
+                className="game-start"
+                href={activeGame.src}
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => {
+                  onChange("gameId", activeGame.id);
+                  onChange("gameTitle", activeGame.title);
+                }}
+              >
+                새 창에서 게임 시작 ↗
+              </a>
+            </div>
             <button
               className={`experience-done ${data.playedAt ? "done" : ""}`}
               onClick={() => {
@@ -591,7 +600,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                 onChange("gameTitle", activeGame.title);
               }}
             >
-              {data.playedAt ? "체험 완료" : "게임을 해 봤어요"}
+              {data.playedAt ? "체험 완료" : "게임 체험을 마쳤어요"}
             </button>
             <p className="license-note">
               추적 코드와 외부 폰트만 제거한 연수용 사본 · Powered by <a href="https://kingsmath.com" target="_blank" rel="noreferrer">킹수학</a> · CC BY-NC 4.0
