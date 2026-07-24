@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f59e0b">
+
+<title id="pageTitle">움직임 킹 (Wiggle King)</title>
+<meta id="pageDesc" name="description" content="영상을 보고 어떤 움직임인지 맞춰보세요! 움직임 킹 골든벨.">
+<meta id="pageKeywords" name="keywords" content="움직임, 퀴즈, 골든벨, 교육게임, 초등교육, wigglemakers">
+<link rel="canonical" href="/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+body { font-family: 'Jua', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: normal; }
+
+i[class^="fa-"], i[class*=" fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+:root {
+    --bg: #18181b;
+    --panel-bg: #27272a;
+    --dark: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --border-color: #3f3f46;
+    --accent: #f59e0b;
+
+    --dog-color: #332b00;
+    --cat-color: #1e1b2e;
+    --rabbit-color: #2e151a;
+    --hamster-color: #2e1e0f;
+    --panda-color: #0f2e26;
+    --monkey-color: #221826;
+
+    --correct: #10b981;
+    --wrong: #ef4444;
+}
+
+body {
+    margin: 0; background: var(--bg); color: var(--dark); overflow: hidden;
+    user-select: none; -webkit-user-select: none; 
+    touch-action: none; 
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+}
+
+#langModal, #langModal *, #langTriggerContainer, #langTriggerContainer *, #toastNotification, #toastNotification * {
+    box-sizing: border-box !important;
+}
+
+.lang-ui-text { font-family: 'Noto Sans KR', sans-serif !important; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+
+.modal-overlay {
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content {
+    transform: scale(0.95) translateY(-10px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+.toast-anim { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+.toast-anim.show { transform: translateY(0); opacity: 1; }
+
+.dynamic-text-container { display: inline-block; white-space: nowrap; transition: transform 0.2s; transform-origin: left center; }
+
+/* --- Game UI Components --- */
+#overlay {
+    position: fixed; inset: 0; background: var(--bg); opacity: 0.98;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; backdrop-filter: blur(15px); text-align: center; overflow-y: auto; padding-bottom: 50px;
+}
+
+.title-area { margin: 30px 0 20px 0; }
+#msgTitle { font-size: 4rem; color: var(--accent); margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.5); font-weight: normal; line-height: 1.2; padding: 0 10px; }
+.subtitle { color: var(--text-muted); font-size: 1.5rem; margin-top: 10px; font-weight: normal; }
+.top-link { color: #60a5fa; text-decoration: none; font-weight: normal; font-size: 1.2rem; }
+
+#setupArea { width: 500px; max-width: 95vw; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.setup-group { text-align: left; }
+.setup-label { font-size: 1.3rem; color: var(--dark); margin-bottom: 8px; display: block; font-weight: normal; }
+
+.custom-select {
+    width: 100%; font-family: inherit; font-size: 1.2rem; padding: 15px;
+    border-radius: 15px; border: 2px solid var(--border-color);
+    background: var(--panel-bg); color: var(--dark); outline: none;
+    cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-weight: normal;
+}
+
+.btn-large {
+    font-size: 2rem; padding: 15px 0; border-radius: 50px; border: none;
+    background: var(--accent); color: #000; cursor: pointer;
+    box-shadow: 0 6px 0 #d97706; transition: 0.1s; font-family: inherit;
+    width: 100%; margin-top: 20px; font-weight: normal; overflow: hidden;
+}
+.btn-large:active { transform: translateY(4px); box-shadow: 0 2px 0 #d97706; }
+#otherGameLink { display: block; margin-top: 20px; color: var(--text-muted); text-decoration: underline; font-size: 1.1rem; }
+
+.side-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    font-size: 2.1rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9999; color: #fff; text-decoration: none; transition: 0.2s;
+}
+.side-btn:active { transform: translateY(-50%) scale(0.9); background: rgba(0,0,0,0.8); }
+.left-btn { left: 20px; } 
+.right-btn { right: 20px; } 
+
+/* --- Game Screen Structure --- */
+#topZone { position: relative; display: flex; flex-direction: column; z-index: 10; }
+#header { height: 100px; background: var(--panel-bg); display: flex; align-items: center; justify-content: center; padding: 0 20px; border-bottom: 2px solid var(--border-color); position: relative; }
+.header-title { font-size: 2rem; color: var(--accent); display: flex; align-items: center; gap: 10px; position: absolute; left: 90px; font-weight: normal; }
+.timer-box { font-size: 4rem; font-weight: normal; color: #ef4444; background: rgba(0,0,0,0.3); padding: 5px 30px; border-radius: 20px; min-width: 120px; text-align: center; }
+.timer-urgent { color: #fff; background: #ef4444; animation: pulse 0.5s infinite; }
+
+#mainQuestionBoard { background: var(--panel-bg); padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; flex-grow: 1; position: relative; }
+#qNumber { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 5px; font-weight: normal; }
+
+/* Video Wrapper Styles */
+#videoWrapper {
+    width: 100%;
+    max-width: 500px;
+    aspect-ratio: 16/9;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.3);
+    margin: 5px auto;
+}
+#ytPlayer {
+    position: absolute; top: -12.5%; left: -12.5%;
+    width: 125%; height: 125%; pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+}
+
+/* Result Popup */
+#resultPopup { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(24, 24, 27, 0.98); backdrop-filter: blur(10px); z-index: 100; flex-direction: column; align-items: center; justify-content: center; border-bottom: 4px solid var(--border-color); }
+#resultTitle { font-size: 3rem; margin: 0 0 20px 0; color: var(--accent); font-weight: normal; text-align: center; white-space: pre-line; }
+.result-list { list-style: none; padding: 0; margin: 0; width: 80%; max-width: 600px; max-height: 60%; overflow-y: auto; }
+.result-item { display: flex; justify-content: space-between; padding: 15px; background: rgba(255,255,255,0.05); margin-bottom: 8px; border-radius: 12px; font-size: 1.5rem; color: var(--dark); border: 1px solid var(--border-color); font-weight: normal; }
+.rank-1 { background: var(--accent); color: #000; font-weight: normal; border: none; }
+
+/* Player Arena */
+#arena { display: flex; flex: 1; width: 100vw; overflow: hidden; background: var(--bg); }
+.player-col { flex: 1; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 10px 5px; position: relative; transition: opacity 0.3s; }
+.player-col:last-child { border-right: none; }
+.player-col.eliminated { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+
+.p-header { text-align: center; margin-bottom: 2px; width: 100%; flex-shrink: 0;}
+.p-emoji { font-size: 2rem; display: block; }
+.p-name { font-size: 1.2rem; white-space: nowrap; font-weight: normal; margin-top: 2px; }
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 100%; max-width: 260px; flex: 1; align-content: center; padding-bottom: 3px; }
+.choice-btn { background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 12px; color: var(--dark); font-size: 0.8rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 rgba(0,0,0,0.3); transition: 0.1s; word-break: keep-all; padding: 5px; min-height: 40px; font-weight: bold; overflow: hidden; text-align: center; }
+.choice-btn:active { transform: translateY(2px); box-shadow: none; }
+.choice-btn.selected { background: #60a5fa; color: white; border-color: #3b82f6; }
+.choice-btn.correct { background: var(--correct); color: #fff; border-color: #059669; animation: bounce 0.5s; }
+.choice-btn.wrong { background: var(--wrong); color: #fff; border-color: #b91c1c; opacity: 0.5; }
+
+/* Feedback Overlay */
+.feedback-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; flex-direction: column; font-size: 5rem; z-index: 20; border-radius: 0; }
+.feedback-overlay.secret { background: #000000 !important; opacity: 1; display: flex; color: white; transition: none; animation: none; }
+.feedback-overlay.show-result { display: flex; animation: none; }
+.submitted-text { font-size: 1.5rem; margin-top: 15px; color: #fff; text-align: center; line-height: 1.5; font-weight: normal; }
+.final-status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; box-sizing: border-box; background: rgba(0,0,0,0.85); padding: 15px 10px; border-radius: 15px; text-align: center; z-index: 50; border: 2px solid #fff; display: none; animation: popIn 0.5s; word-break: keep-all; overflow-wrap: break-word; }
+.final-status h3 { margin: 0; font-size: 1.2rem; color: #fff; font-weight: normal; }
+.final-status p { margin: 5px 0 0 0; font-size: 1.8rem; color: var(--accent); font-weight: normal; line-height: 1.2;}
+
+/* Countdown */
+#countdownLayer { position: fixed; inset: 0; background: #000000; z-index: 2000; display: none; align-items: center; justify-content: center; }
+#countdownText { font-size: 25rem; color: var(--accent); text-shadow: 0 0 50px rgba(245, 158, 11, 0.8); font-weight: normal; opacity: 0; }
+@keyframes countPop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1.0); opacity: 0; } }
+.count-animate { animation: countPop 0.8s ease-in-out forwards; }
+
+@media (min-width: 1600px) {
+    #header { height: 100px; } .header-title { font-size: 3rem; left: 110px; } .timer-box { font-size: 6rem; padding: 10px 50px; } 
+    #mainQuestionBoard { min-height: 280px; padding: 20px; } #qNumber { font-size: 2rem; margin-bottom: 15px; } 
+    #videoWrapper { max-width: 700px; }
+    .p-emoji { font-size: 4rem; } .p-name { font-size: 2.2rem; } .choice-grid { max-width: 350px; gap: 15px; } 
+    .choice-btn { font-size: 1.3rem; min-height: 50px; border-radius: 20px; border-width: 3px; } 
+    #resultTitle { font-size: 4rem; margin-bottom: 40px; } .result-item { font-size: 1.5rem; padding: 9px; } 
+    .btn-large { font-size: 2.5rem; padding: 20px 0; } #msgTitle { font-size: 5rem; } .setup-label { font-size: 1.8rem; } .custom-select { font-size: 1.5rem; padding: 20px; }
+}
+@media (max-width: 768px) {
+    .choice-btn { font-size: 0.8rem; min-height: 50px; padding: 5px; } .header-title span:last-child { display: none; } .p-name { display: none; }
+}
+
+.bg-dog { background: var(--dog-color); } .bg-cat { background: var(--cat-color); } .bg-rabbit { background: var(--rabbit-color); } .bg-hamster { background: var(--hamster-color); } .bg-panda { background: var(--panda-color); } .bg-monkey { background: var(--monkey-color); }
+</style>
+</head>
+
+<body>
+
+    <div id="langTriggerContainer" class="absolute right-4 sm:right-6 top-[25px] sm:top-[25px] z-[99999]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-[rgba(0,0,0,0.5)] hover:bg-[rgba(0,0,0,0.8)] border-2 border-[rgba(255,255,255,0.2)] rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg lang-ui-text" style="height: 56px;">
+            <i class="fa-solid fa-globe text-white"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-6 h-auto rounded-[2px] shadow-sm ml-1">
+            <span id="currentLangName" class="hidden sm:inline-block text-white text-lg ml-1">한국어</span>
+            <i class="fa-solid fa-chevron-down text-white ml-2 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content lang-ui-text bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span id="ui-title">언어 / Language</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500 lang-ui-text">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast-anim fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999] lang-ui-text">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div id="btn-home" class="side-btn left-btn" title="Home" style="cursor:pointer;">🏠</div>
+    <button id="fullscreenBtn" class="side-btn right-btn" title="Full Screen" style="top: calc(50% + 70px);">⛶</button>
+
+    <div id="overlay">
+        <div class="title-area">
+            <a href="https://wigglemakers.com" target="_blank" id="domainLink" class="top-link dynamic-font-target">wigglemakers.com</a><br>
+            <span style="font-size: 1.2rem; color: #60a5fa; margin-top:10px; display:inline-block;" class="dynamic-font-target">
+                <span data-lang-key="intro">영상을 보고 어떤 움직임인지 맞춰보세요!</span> 
+            </span><br>
+            <h1 id="msgTitle" data-lang-key="title" class="dynamic-font-target">🕺 움직임 킹</h1>
+            <div class="subtitle dynamic-font-target" data-lang-key="slogan">small wiggle, big giggle</div>
+        </div>
+
+        <div id="setupArea">
+            <div class="setup-group">
+                <label class="setup-label dynamic-font-target" data-lang-key="label_mode">🏆 게임 모드</label>
+                <select id="gameMode" class="custom-select dynamic-font-target"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label dynamic-font-target" data-lang-key="label_player">👥 인원</label> 
+                <select id="playerCount" class="custom-select dynamic-font-target"></select>
+            </div>
+            <button id="startBtn" class="btn-large">
+                <div class="dynamic-text-container" data-lang-key="btn_start">시작하기</div>
+            </button>
+            <a id="otherGameLink" href="/" target="_self" class="dynamic-font-target" data-lang-key="link_other">🎮 다른 게임 고르기</a>
+        </div>
+    </div>
+
+    <div id="countdownLayer">
+        <div id="countdownText">3</div>
+    </div>
+
+    <div id="topZone">
+        <header id="header">
+            <div class="header-title dynamic-font-target">
+                <span style="font-size:2rem;">🕺</span>
+                <span data-lang-key="header_title">움직임 킹</span>
+            </div>
+            <div id="mainTimer" class="timer-box">30</div>
+        </header>
+
+        <div id="mainQuestionBoard">
+            <div id="qNumber" class="dynamic-font-target">문제 1 / 10</div>
+            
+            <div id="videoWrapper">
+                <div id="ytPlayer"></div>
+            </div>
+
+        </div>
+
+        <div id="resultPopup">
+            <h2 id="resultTitle" data-lang-key="result_title" class="dynamic-font-target">결과 발표</h2>
+            <ul id="finalResultList" class="result-list"></ul>
+            <button id="restartBtn" class="btn-large" style="margin-top:20px; font-size:1.5rem; width: auto; padding: 10px 40px; background:var(--accent);">
+                <div class="dynamic-text-container" data-lang-key="btn_restart" style="color:black">처음으로 돌아가기</div>
+            </button>
+        </div>
+    </div>
+
+    <div id="arena"></div>
+
+<script>
+/* =========================================
+   Wiggle Database
+   ========================================= */
+const LANG_CODES = ['ko', 'en', 'zh', 'ja', 'es', 'fr', 'ru', 'id', 'vi', 'th', 'pt-br', 'hi', 'bn', 'tr', 'de', 'it'];
+
+const wiggleRawData = [
+    ["QQJFzBf1RrE", "기쁨", "Joy", "喜悦", "喜び", "Alegría", "Joie", "Радость", "Kegembiraan", "Niềm vui", "ความสุข", "Alegria", "खुशी", "আনন্দ", "Sevinç", "Freude", "Gioia"],
+    ["VxOaQRyhC7c", "지루함", "Boredom", "无聊", "退屈", "Aburrimiento", "Ennui", "Скука", "Kebosanan", "Chán nản", "ความเบื่อ", "Tédio", "उदासी", "বিরক্তি", "Can sıkıntısı", "Langeweile", "Noia"],
+    ["BxhI0zPHn1w", "슬픔", "Sadness", "悲伤", "悲しみ", "Tristeza", "Tristesse", "Грусть", "Kesedihan", "Nỗi buồn", "ความเศร้า", "Tristeza", "दुख", "দুঃখ", "Üzüntü", "Traurigkeit", "Tristezza"],
+    ["VuShWzt6q68", "호기심", "Curiosity", "好奇心", "好奇心", "Curiosidad", "Curiosité", "Любопытство", "Rasa Ingin Tahu", "Tò mò", "ความอยากรู้อยากเห็น", "Curiosidade", "जिज्ञासा", "কৌতূহল", "Merak", "Neugier", "Curiosità"],
+    ["hSJ_a-OlyA4", "외로움", "Loneliness", "孤独", "孤独", "Soledad", "Solitude", "Одиночество", "Kesepian", "Sự cô đơn", "ความเหงา", "Solidão", "अकेलापन", "একাকীত্ব", "Yalnızlık", "Einsamkeit", "Solitudine"],
+    ["uRou_onlgUY", "나무늘보", "Sloth", "树懒", "ナマケモノ", "Perezoso", "Paresseux", "Ленивец", "Kungkang", "Con lười", "สลอธ", "Bicho-preguiça", "स्लॉथ", "স্লথ", "Tembel Hayvan", "Faultier", "Bradipo"],
+    ["C-nde0oHHVo", "원숭이", "Monkey", "猴子", "猿", "Mono", "Singe", "Обезьяна", "Monyet", "Con khỉ", "ลิง", "Macaco", "बंदर", "বানর", "Maymun", "Affe", "Scimmia"],
+    ["tnOTTFua47Q", "곰", "Bear", "熊", "クマ", "Oso", "Ours", "Медведь", "Beruang", "Con gấu", "หมี", "Urso", "भालू", "ভাল্লুক", "Ayı", "Bär", "Orso"],
+    ["3HcUFLCHxZU", "사자", "Lion", "狮子", "ライオン", "León", "Lion", "Лев", "Singa", "Sư tử", "สิงโต", "Leão", "शेर", "সিংহ", "Aslan", "Löwe", "Leone"],
+    ["zhBqt1eaeGY", "악어", "Crocodile", "鳄鱼", "ワニ", "Cocodrilo", "Crocodile", "Крокодил", "Buaya", "Cá sấu", "จระเข้", "Crocodilo", "मगरमच्छ", "কুমির", "Timsah", "Krokodil", "Coccodrillo"],
+    ["L6nIpDMKHfM", "벌", "Bee", "蜜蜂", "ハチ", "Abeja", "Abeille", "Пчела", "Lebah", "Con ong", "ผึ้ง", "Abelha", "मधुमक्खी", "মৌমাছি", "Arı", "Biene", "Ape"],
+    ["yzTIu-7Oymc", "개구리", "Frog", "青蛙", "カエル", "Rana", "Grenouille", "Лягушка", "Katak", "Con ếch", "กบ", "Sapo", "मेंढक", "ব্যাঙ", "Kurbağa", "Frosch", "Rana"],
+    ["tkNT6LCGraY", "나비", "Butterfly", "蝴蝶", "蝶", "Mariposa", "Papillon", "Бабочка", "Kupu-kupu", "Con bướm", "ผีเสื้อ", "Borboleta", "तितली", "প্রজাপতি", "Kelebek", "Schmetterling", "Farfalla"],
+    ["yw4IU4scTPo", "강아지", "Puppy", "小狗", "子犬", "Cachorro", "Chiot", "Щенок", "Anak Anjing", "Chó con", "ลูกสุนัข", "Cachorrinho", "पिल्ला", "কুকুরছানা", "Yavru Köpek", "Welpe", "Cucciolo"],
+    ["0seZy7npRDs", "뱀", "Snake", "蛇", "ヘビ", "Serpiente", "Serpent", "Змея", "Ular", "Con rắn", "งู", "Cobra", "सांप", "সাপ", "Yılan", "Schlange", "Serpente"],
+    ["jOgjST9pQHM", "농구", "Basketball", "篮球", "バスケットボール", "Baloncesto", "Basket", "Баскетбол", "Bola Basket", "Bóng rổ", "บาสเกตบอล", "Basquete", "बास्केटबॉल", "বাস্কেটবল", "Basketbol", "Basketball", "Pallacanestro"],
+    ["wXlsb-GgQIE", "야구", "Baseball", "棒球", "野球", "Béisbol", "Baseball", "Бейсбол", "Bisbol", "Bóng chày", "เบสบอล", "Beisebol", "बेसबॉल", "বেসবল", "Beyzbol", "Baseball", "Baseball"],
+    ["pK686galWAs", "배구", "Volleyball", "排球", "バレーボール", "Voleibol", "Volley", "Волейбол", "Bola Voli", "Bóng chuyền", "วอลเลย์บอล", "Vôlei", "वॉलीबॉल", "ভলিবল", "Voleybol", "Volleyball", "Pallavolo"],
+    ["CcaHaPZR5D0", "축구", "Soccer", "足球", "サッカー", "Fútbol", "Football", "Футбол", "Sepak Bola", "Bóng đá", "ฟุตบอล", "Futebol", "फ़ुटबॉल", "ফুটবল", "Futbol", "Fußball", "Calcio"],
+    ["A3vzeR0b-mU", "탁구", "Table Tennis", "乒乓球", "卓球", "Tenis de mesa", "Tennis de table", "Настольный теннис", "Tenis Meja", "Bóng bàn", "ปิงปอง", "Tênis de mesa", "टेबल टेनिस", "টেবিল টেনিস", "Masa Tenisi", "Tischtennis", "Ping Pong"],
+    ["VvEQq_s6PAY", "수영", "Swimming", "游泳", "水泳", "Natación", "Natation", "Плавание", "Berenang", "Bơi lội", "ว่ายน้ำ", "Natação", "तैरना", "সাঁতার", "Yüzme", "Schwimmen", "Nuoto"],
+    ["geQ8Sfk0mq0", "스케이트", "Skating", "溜冰", "スケート", "Patinaje", "Patinage", "Катание на коньках", "Seluncur", "Trượt băng", "สเก็ต", "Patinação", "स्केटिंग", "স্কেটিং", "Paten", "Skaten", "Pattinaggio"],
+    ["lRaFGmAyo44", "양궁", "Archery", "射箭", "アーチェリー", "Tiro con arco", "Tir à l'arc", "Стрельба из лука", "Panahan", "Bắn cung", "ยิงธนู", "Tiro com arco", "तीरंदाजी", "তীরন্দাজ", "Okçuluk", "Bogenschießen", "Tiro con l'arco"],
+    ["Ado-Ox6Xbdg", "역도", "Weightlifting", "举重", "ウエイトリフティング", "Halterofilia", "Haltérophilie", "Тяжелая атлетика", "Angkat Besi", "Cử tạ", "ยกน้ำหนัก", "Halterofilismo", "भारोत्तोलन", "ভারোত্তোলন", "Halter", "Gewichtheben", "Sollevamento pesi"],
+    ["ARgeAbgfpgw", "서핑", "Surfing", "冲浪", "サーフィン", "Surf", "Surf", "Серфинг", "Selancar", "Lướt sóng", "โต้คลื่น", "Surfe", "सर्फिंग", "সার্ফিং", "Sörf", "Surfen", "Surf"],
+    ["I3ZEp2C2lvQ", "살금살금", "Tiptoeing", "蹑手蹑脚", "こっそり", "De puntillas", "À pas de loup", "На цыпочках", "Berjinjit", "Đi rón rén", "ย่อง", "Na ponta dos pés", "चुपके-चुपके", "পায়ের আঙুলে ভর দিয়ে", "Parmak ucunda", "Auf Zehenspitzen", "In punta di piedi"],
+    ["QF8GO2ww018", "허둥지둥", "Hurrying", "匆匆忙忙", "慌てて", "Apresurado", "Précipité", "В спешке", "Terburu-buru", "Hớt hải", "รีบร้อน", "Com pressa", "जल्दी-जल्दी", "তাড়াহুড়ো", "Aceleyle", "Hastig", "Di fretta"],
+    ["ca8K8uLmuwg", "흔들흔들", "Swaying", "摇摇晃晃", "ゆらゆら", "Tambaleante", "Oscillant", "Раскачиваясь", "Bergoyang", "Đung đưa", "แกว่ง", "Balançando", "लहराते हुए", "দোলানো", "Sallanarak", "Schwankend", "Ondeggiante"],
+    ["mYNR1biVflk", "삐걱삐걱", "Creaking", "嘎吱作响", "ギシギシ", "Crujiente", "Grinçant", "Скрипучий", "Berderit", "Kẽo kẹt", "เสียงดังเอี๊ยด", "Rangendo", "चरमराते हुए", "ক্যাঁচক্যাঁচ", "Gıcırdayarak", "Knarrend", "Scricchiolante"],
+    ["Hzt1lzE4tvo", "철썩", "Slapping", "啪嗒", "ピシャッ", "Bofetada", "Claque", "Шлепок", "Menampar", "Cái tát", "ตบ", "Tapa", "थप्पड़", "থাপ্পড়", "Tokat", "Klatschen", "Schiaffo"],
+    ["yIdnTj7fOFM", "지진", "Earthquake", "地震", "地震", "Terremoto", "Tremblement de terre", "Землетрясение", "Gempa bumi", "Động đất", "แผ่นดินไหว", "Terremoto", "भूकंप", "ভূমিকম্প", "Deprem", "Erdbeben", "Terremoto"],
+    ["2J-r5IYnzP0", "번개", "Lightning", "闪电", "雷", "Rayo", "Éclair", "Молния", "Petir", "Sét", "ฟ้าผ่า", "Raio", "बिजली", "বজ্রপাত", "Yıldırım", "Blitz", "Fulmine"],
+    ["bvm4UR5Kk-c", "꽃피움","Blooming", "开花", "開花", "Floreciendo", "Floraison", "Цветение", "Mekar", "Nở hoa", "เบ่งบาน", "Florescendo", "खिलना", "ফোটা", "Çiçek açma", "Blühend", "Fioritura"],
+    ["vTjfhBcBfR8", "봄", "Spring", "春天", "春", "Primavera", "Printemps", "Весна", "Musim semi", "Mùa xuân", "ฤดูใบไม้ผลิ", "Primavera", "वसंत", "বসন্ত", "İlkbahar", "Frühling", "Primavera"],
+    ["kcwOyi2_RW8", "겨울", "Winter", "冬天", "冬", "Invierno", "Hiver", "Зима", "Musim dingin", "Mùa đông", "ฤดูหนาว", "Inverno", "सर्दी", "শীতকাল", "Kış", "Winter", "Inverno"],
+    ["5PD7nd9eEAg", "마트", "Supermarket", "超市", "スーパー", "Supermercado", "Supermarché", "Супермаркет", "Supermarket", "Siêu thị", "ซูเปอร์มาร์เก็ต", "Supermercado", "सुपरमार्केट", "সুপারমার্কেট", "Süpermarket", "Supermarkt", "Supermercato"],
+    ["cXMlp-zbxY8", "빨래", "Laundry", "洗衣服", "洗濯", "Lavandería", "Lessive", "Стирка", "Cucian", "Giặt giũ", "ซักผ้า", "Lavanderia", "कपड़े धोना", "লন্ড্রি", "Çamaşır", "Wäsche", "Bucato"],
+    ["2ddZ0-eZe7c", "버스", "Bus", "公交车", "バス", "Autobús", "Bus", "Автобус", "Bus", "Xe buýt", "รถบัส", "Ônibus", "बस", "বাস", "Otobüs", "Bus", "Autobus"],
+    ["E-W1QsXjbOo", "헬스장", "Gym", "健身房", "ジム", "Gimnasio", "Salle de sport", "Тренажерный зал", "Pusat Kebugaran", "Phòng gym", "ยิม", "Academia", "जिम", "জিম", "Spor Salonu", "Fitnessstudio", "Palestra"],
+    ["TtaQykI1LNI", "청소", "Cleaning", "打扫", "掃除", "Limpieza", "Nettoyage", "Уборка", "Membersihkan", "Dọn dẹp", "ทำความสะอาด", "Limpeza", "सफाई", "পরিষ্কার", "Temizlik", "Reinigung", "Pulizia"],
+    ["8FvBu2UoC-0", "비행장", "Airfield", "飞机场", "飛行場", "Aeródromo", "Aérodrome", "Аэродром", "Lapangan Terbang", "Sân bay", "สนามบิน", "Aeródromo", "हवाई क्षेत्र", "বিমানবন্দর", "Havaalanı", "Flugplatz", "Aeroporto"],
+    ["Wi8ZiCxsAFk", "사막", "Desert", "沙漠", "砂漠", "Desierto", "Désert", "Пустыня", "Gurun", "Sa mạc", "ทะเลทราย", "Deserto", "रेगिस्तान", "মরুভূমি", "Çöl", "Wüste", "Deserto"],
+    ["oqOiKg4urzE", "정글", "Jungle", "丛林", "ジャングル", "Jungla", "Jungle", "Джунгли", "Hutan", "Rừng nhiệt đới", "ป่า", "Selva", "जंगल", "জঙ্গল", "Orman", "Dschungel", "Giungla"],
+    ["i5nc1vFqjJI", "초능력", "Superpower", "超能力", "超能力", "Superpoder", "Super-pouvoir", "Суперсила", "Kekuatan Super", "Siêu năng lực", "พลังพิเศษ", "Superpoder", "महाशक्ति", "সুপারপাওয়ার", "Süper Güç", "Superkraft", "Superpotere"],
+    ["g89RqiLRE1M", "콘서트", "Concert", "演唱会", "コンサート", "Concierto", "Concert", "Концерт", "Konser", "Buổi hòa nhạc", "คอนเสิร์ต", "Concerto", "संगीत कार्यक्रम", "কনসার্ট", "Konser", "Konzert", "Concerto"],
+    ["I5yeL_Gl18U", "의사", "Doctor", "医生", "医者", "Doctor", "Médecin", "Врач", "Dokter", "Bác sĩ", "หมอ", "Médico", "डॉक्टर", "ডাক্তার", "Doktor", "Arzt", "Medico"],
+    ["jxxlcDupuDc", "유튜버", "YouTuber", "YouTuber", "ユーチューバー", "YouTuber", "Youtubeur", "Ютубер", "YouTuber", "YouTuber", "ยูทูบเบอร์", "YouTuber", "यूट्यूबर", "ইউটিউবার", "YouTuber", "YouTuber", "YouTuber"],
+    ["FGxJUoq6hlw", "요리사", "Chef", "厨师", "シェフ", "Chef", "Chef", "Повар", "Koki", "Đầu bếp", "เชếp", "Chef", "शेफ", "শেফ", "Şef", "Koch", "Cuoco"],
+    ["xHZ71YsWCRY", "경찰", "Police", "警察", "警察", "Policía", "Police", "Полиция", "Polisi", "Cảnh sát", "ตำรวจ", "Polícia", "पुलिस", "পুলিশ", "Polis", "Polizei", "Polizia"],
+    ["uH0GHFZv-no", "선생님", "Teacher", "老师", "先生", "Profesor", "Professeur", "Учитель", "Guru", "Giáo viên", "คุณครู", "Professor", "शिक्षक", "শিক্ষক", "Öğretmen", "Lehrer", "Insegnante"]
+];
+
+const extraVocabRaw = [
+    ["끓는 물", "Boiling water", "沸水", "沸騰したお湯", "Agua hirviendo", "Eau bouillante", "Кипяток", "Air mendidih", "Nước sôi", "น้ำเดือด", "Água fervendo", "उबलता पानी", "ফুটন্ত পানি", "Kaynar Su", "Kochendes Wasser", "Acqua bollente"],
+    ["낙엽", "Fallen leaves", "落叶", "落ち葉", "Hojas caídas", "Feuilles mortes", "Опавшие листья", "Daun gugur", "Lá rụng", "ใบไม้ร่วง", "Folhas caídas", "सूखे पत्ते", "ঝরা পাতা", "Dökülen yapraklar", "Gefallene Blätter", "Foglie cadute"],
+    ["행사장 풍선", "Event balloon", "活动气球", "イベントバルーン", "Globo de evento", "Ballon d'événement", "Воздушный шар", "Balon acara", "Bong bóng sự kiện", "ลูกโป่งงาน", "Balão de evento", "इवेंट बैलून", "ইভেন্ট বেলুন", "Etkinlik balonu", "Event-Ballon", "Palloncino"],
+    ["문", "Door", "门", "ドア", "Puerta", "Porte", "Дверь", "Pintu", "Cửa", "ประตู", "Porta", "दरवाजा", "দরজা", "Kapı", "Tür", "Porta"],
+    ["좀비", "Zombie", "丧尸", "ゾンビ", "Zombi", "Zombie", "Зомби", "Zombi", "Thây ma", "ซอมบี้", "Zumbi", "ज़ोंबी", "জম্বি", "Zombi", "Zombie", "Zombie"],
+    ["가을", "Autumn", "秋天", "秋", "Otoño", "Automne", "Осень", "Musim gugur", "Mùa thu", "ฤดูใบไม้ร่วง", "Outono", "पतझड़", "শরৎকাল", "Sonbahar", "Herbst", "Autunno"],
+    ["여름", "Summer", "夏天", "夏", "Verano", "Été", "Лето", "Musim panas", "Mùa hè", "ฤดูร้อน", "Verão", "गर्मी", "গ্রীষ্মকাল", "Yaz", "Sommer", "Estate"],
+    ["펑", "Pop", "砰", "ポン", "Pop", "Pop", "Хлоп", "Pop", "Bốp", "ป๊อป", "Pop", "पॉप", "পপ", "Pat", "Knall", "Pop"],
+    ["쨍쨍", "Blazing sun", "烈日", "ギラギラ", "Sol abrasador", "Soleil de plomb", "Палящее солнце", "Matahari terik", "Nắng gắt", "แดดเปรี้ยง", "Sol escaldante", "कड़ी धूप", "প্রখর রোদ", "Kavurucu güneş", "Prallende Sonne", "Sole cocente"],
+    ["엉금엉금", "Crawling", "爬行", "のろのろ", "Gateando", "Rampant", "Ползком", "Merangkak", "Bò lê", "คลาน", "Rastejando", "रेंगना", "হামাগুড়ি", "Sürünme", "Kriechen", "Strisciante"],
+    ["덩실덩실", "Dancing merrily", "翩翩起舞", "陽気に踊る", "Bailando alegremente", "Dansant joyeusement", "Весело танцуя", "Menari riang", "Nhảy múa vui vẻ", "เต้นรำอย่างสนุกสนาน", "Dançando alegremente", "खुशी से नाचना", "আনন্দে নাচা", "Neşeyle dans etmek", "Fröhlich tanzen", "Ballando allegramente"],
+    ["덜덜", "Shivering", "瑟瑟发抖", "ガクガク", "Temblando", "Frissonnant", "Дрожа", "Gemetar", "Run rẩy", "ตัวสั่น", "Tremendo", "कांपना", "কাঁপানো", "Titreme", "Zittern", "Tremante"],
+    ["냉장고", "Refrigerator", "冰箱", "冷蔵庫", "Refrigerador", "Réfrigérateur", "Холодильник", "Kulkas", "Tủ lạnh", "ตู้เย็น", "Geladeira", "फ्रिज", "ফ্রিজ", "Buzdolabı", "Kühlschrank", "Frigorifero"],
+    ["바람", "Wind", "风", "風", "Viento", "Vent", "Ветер", "Angin", "Gió", "ลม", "Vento", "हवा", "বাতাস", "Rüzgar", "Wind", "Vento"],
+    ["시계", "Clock", "时钟", "時計", "Reloj", "Horloge", "Часы", "Jam", "Đồng hồ", "นาฬิกา", "Relógio", "घड़ी", "ঘড়ি", "Saat", "Uhr", "Orologio"],
+    ["영화관", "Movie theater", "电影院", "映画館", "Cine", "Cinéma", "Кинотеатр", "Bioskop", "Rạp chiếu phim", "โรงภาพยนตร์", "Cinema", "सिनेमाघर", "সিনেমা হল", "Sinema", "Kino", "Cinema"],
+    ["자전거", "Bicycle", "自行车", "自転車", "Bicicleta", "Vélo", "Велосипед", "Sepeda", "Xe đạp", "จักรยาน", "Bicicleta", "साइकिल", "সাইকেল", "Bisiklet", "Fahrrad", "Bicicletta"],
+    ["해수욕장", "Beach", "海滩", "海水浴場", "Playa", "Plage", "Пляж", "Pantai", "Bãi biển", "ชายหาด", "Praia", "समुद्र तट", "সৈকত", "Plaj", "Strand", "Spiaggia"],
+    ["나무", "Tree", "树木", "木", "Árbol", "Arbre", "Дерево", "Pohon", "Cây", "ต้นไม้", "Árvore", "पेड़", "গাছ", "Ağaç", "Baum", "Albero"],
+    ["우주비행사", "Astronaut", "宇航员", "宇宙飛行士", "Astronauta", "Astronaute", "Астронавт", "Astronot", "Phi hành gia", "นักบินอวกาศ", "Astronauta", "अंतरिक्ष यात्री", "মহাকাশচারী", "Astronot", "Astronaut", "Astronauta"],
+    ["폭풍", "Storm", "风暴", "嵐", "Tormenta", "Tempête", "Шторм", "Badai", "Cơn bão", "พายุ", "Tempestade", "तूफान", "ঝড়", "Fırtına", "Sturm", "Tempesta"],
+    ["괴물", "Monster", "怪物", "怪物", "Monstruo", "Monstre", "Монстр", "Monster", "Quái vật", "สัตว์ประหลาด", "Monstro", "राक्षस", "দানব", "Canavar", "Monster", "Mostro"],
+    ["펜싱", "Fencing", "击剑", "フェンシング", "Esgrima", "Escrime", "Фехтование", "Anggar", "Đấu kiếm", "ฟันดาบ", "Esgrima", "तलवारबाजी", "ফেন্সিং", "Eskrim", "Fechten", "Scherma"],
+    ["테니스", "Tennis", "网球", "テニス", "Tenis", "Tennis", "Теннис", "Tenis", "Quần vợt", "เทนนิส", "Tênis", "टेनिस", "টেনিস", "Tenis", "Tennis", "Tennis"],
+    ["암벽 등반", "Rock climbing", "攀岩", "ロッククライミング", "Escalada", "Escalade", "Скалолазание", "Panjat tebing", "Leo núi", "ปีนผา", "Escalada", "रॉक क्लाइंबिंग", "রক ক্লাইম্বিং", "Kaya tırmanışı", "Felsklettern", "Arrampicata"],
+    ["태권도", "Taekwondo", "跆拳道", "テコンドー", "Taekwondo", "Taekwondo", "Тхэквондо", "Taekwondo", "Taekwondo", "เทควันโด", "Taekwondo", "ताइक्वांडो", "তায়কোয়ান্দো", "Tekvando", "Taekwondo", "Taekwondo"],
+    ["설상스포츠", "Snow sports", "雪上运动", "スノースポーツ", "Deportes de nieve", "Sports de neige", "Зимние виды спорта", "Olahraga salju", "Thể thao trên tuyết", "กีฬาหิมะ", "Esportes de neve", "स्नो स्पोर्ट्स", "স্নো স্পোর্টস", "Kar sporları", "Schneesport", "Sport invernali"],
+    ["화가", "Painter", "画家", "画家", "Pintor", "Peintre", "Художник", "Pelukis", "Họa sĩ", "จิตรกร", "Pintor", "चित्रकार", "চিত্রশিল্পী", "Ressam", "Maler", "Pittore"],
+    ["화재 현장", "Fire scene", "火灾现场", "火災現場", "Escena de incendio", "Scène d'incendie", "Сцена пожара", "Lokasi kebakaran", "Hiện trường vụ cháy", "สถานที่เกิดเหตุไฟไหม้", "Cena de incêndio", "आग लगने की जगह", "অগ্নিকাণ্ডের দৃশ্য", "Yangın yeri", "Brandort", "Scena dell'incendio"],
+    ["재판", "Trial", "审判", "裁判", "Juicio", "Procès", "Суд", "Pengadilan", "Phiên tòa", "การพิจารณาคดี", "Julgamento", "मुकदमा", "বিচার", "Duruşma", "Prozess", "Processo"],
+    ["마술사", "Magician", "魔术师", "マジシャン", "Mago", "Magicien", "Фокусник", "Pesulap", "Ảo thuật gia", "นักมายากล", "Mágico", "जादूगर", "জাদুকর", "Sihirbaz", "Magier", "Mago"],
+    ["농부", "Farmer", "农民", "農家", "Granjero", "Fermier", "Фермер", "Petani", "Nông dân", "ชาวนา", "Fazendeiro", "किसान", "কৃষক", "Çiftçi", "Bauer", "Contadino"],
+    ["군인", "Soldier", "士兵", "軍人", "Soldado", "Soldat", "Солдат", "Tentara", "Người lính", "ทหาร", "Soldado", "सैनिक", "সৈনিক", "Asker", "Soldat", "Soldato"],
+    ["영화 촬영", "Movie filming", "电影拍摄", "映画撮影", "Filmación", "Tournage de film", "Съемки фильма", "Syuting film", "Quay phim", "ถ่ายหนัง", "Filmagem", "फिल्म की शूटिंग", "চলচ্চিত্র শুটিং", "Film çekimi", "Filmdreh", "Riprese"],
+    ["화남", "Angry", "生气", "怒り", "Enojado", "En colère", "Злой", "Marah", "Tức giận", "โกรธ", "Irritado", "गुस्सा", "রাগান্বিত", "Kızgın", "Wütend", "Arrabbiato"],
+    ["짜증", "Annoyed", "烦躁", "イライラ", "Molesto", "Agaçé", "Раздраженный", "Kesal", "Khó chịu", "หงุดหงิด", "Aborrecido", "नाराज", "বিরক্ত", "Sinirli", "Genervt", "Infastidito"],
+    ["안도", "Relieved", "欣慰", "安堵", "Aliviado", "Soulagé", "Облегчение", "Lega", "Nhẹ nhõm", "โล่งอก", "Aliviado", "राहत", "স্বস্তি", "Rahatlamış", "Erleichtert", "Sollevato"],
+    ["안심", "Reassured", "安心", "安心", "Tranquilizado", "Rassuré", "Успокоенный", "Meyakinkan", "An tâm", "มั่นใจ", "Tranquilo", "आश्वस्त", "আশ্বস্ত", "Güvende", "Beruhigt", "Rassicurato"],
+    ["두려움", "Fear", "恐惧", "恐れ", "Miedo", "Peur", "Страх", "Ketakutan", "Sợ hãi", "ความกลัว", "Medo", "डर", "ভয়", "Korku", "Angst", "Paura"],
+    ["깜짝놀람", "Surprise", "惊讶", "驚き", "Sorpresa", "Surprise", "Удивление", "Terkejut", "Ngạc nhiên", "ประหลาดใจ", "Surpresa", "आश्चर्य", "বিস্ময়", "Sürpriz", "Überraschung", "Sorpresa"],
+    ["토끼", "Rabbit", "兔子", "ウサギ", "Conejo", "Lapin", "Кролик", "Kelinci", "Thỏ", "กระต่าย", "Coelho", "खरगोश", "খরগোশ", "Tavşan", "Kaninchen", "Coniglio"],
+    ["펭귄", "Penguin", "企鹅", "ペンギン", "Pingüino", "Pingouin", "Пингвин", "Penguin", "Chim cánh cụt", "เพนกวิน", "Pinguim", "पेंगुइन", "পেঙ্গুইน", "Penguen", "Pinguin", "Pinguino"],
+    ["캥거루", "Kangaroo", "袋鼠", "カンガ루", "Canguro", "Kangourou", "Кенгуру", "Kangguru", "Kangaroo", "จิงโจ้", "Canguru", "कंगारू", "ক্যাঙ্গারু", "Kanguru", "Känguru", "Canguro"],
+    ["물고기", "Fish", "鱼", "魚", "Pez", "Poisson", "Рыба", "Ikan", "Cá", "ปลา", "Peixe", "मछली", "মাছ", "Balık", "Fisch", "Pesce"],
+    ["독수리", "Eagle", "老鹰", "ワシ", "Águila", "Aigle", "Орел", "Elang", "Đại bàng", "นกอินทรี", "Águia", "चील", "ঈগল", "Kartal", "Adler", "Aquila"],
+    ["닭", "Chicken", "鸡", "ニワトリ", "Pollo", "Poulet", "Курица", "Ayam", "Gà", "ไก่", "Galinha", "मुर्गी", "মুরগি", "Tavuk", "Huhn", "Pollo"],
+    ["고양이", "Cat", "猫", "猫", "Gato", "Chat", "Кот", "Kucing", "Mèo", "แมว", "Gato", "बिल्ली", "বিড়াল", "Kedi", "Katze", "Gatto"],
+    ["거북이", "Turtle", "乌龟", "カメ", "Tortuga", "Tortue", "Черепаха", "Kura-kura", "Rùa", "เต่า", "Tartaruga", "कछुआ", "কচ্ছপ", "Kaplumbağa", "Schildkröte", "Tartaruga"],
+    ["대박", "Jackpot", "大发", "ヤバい", "Genial", "Génial", "Супер", "Luar biasa", "Tuyệt đỉnh", "สุดยอด", "Demais", "जबरदस्त", "দুর্দান্ত", "Harika", "Jackpot", "Fantastico"]
+];
+
+/* =========================================
+   다국어 번역 데이터 (16개국)
+   ========================================= */
+const STRINGS = {
+    ko: {
+        title: "🕺 움직임 킹", pageTitle: "움직임 킹 - 골든벨", desc: "영상을 보고 움직임을 맞춰보세요!", keywords: "움직임, 골든벨",
+        intro: "영상을 보고 어떤 움직임인지 맞춰보세요!", slogan: "small wiggle, big giggle", label_mode: "🏆 게임 모드", label_player: "👥 인원", 
+        btn_start: "시작하기", btn_restart: "처음으로 돌아가기", link_other: "🎮 다른 게임 고르기", header_title: "움직임 킹", result_title: "결과 발표",
+        q_num: "문제", ready: "준비...", submitted: "답안 제출 완료", score_pt: "점", survived_count: "문제 통과", eliminated: "탈락", winner: "우승!", rank: "위", final_score: "최종 점수", record: "기록",
+        mode_chall: "🏅 챌린지 (10문제 대결)", mode_surv: "☠️ 골든벨 서바이벌 (최대 30문제)", p_1: "1인 연습", p_n: "인 플레이",
+        team_dog: "강아지", team_cat: "고양이", team_rabbit: "토끼", team_hamster: "햄스터", team_panda: "판다", team_monkey: "원숭이",
+        ui_title: '언어 및 지역 선택', ui_search: '언어 검색', ui_empty: '검색 결과가 없습니다.', ui_toast: '언어가 변경되었습니다.', domain_txt: "wigglemakers.com"
+    },
+    en: {
+        title: "🕺 Wiggle King", pageTitle: "Wiggle King - Golden Bell", desc: "Watch the video and guess the movement!", keywords: "wiggle, movement, golden bell",
+        intro: "Watch the video and guess the movement!", slogan: "small wiggle, big giggle", label_mode: "🏆 Game Mode", label_player: "👥 Players", 
+        btn_start: "Start Game", btn_restart: "Go Back to Start", link_other: "🎮 Choose Another Game", header_title: "Wiggle King", result_title: "Results",
+        q_num: "Question", ready: "Ready...", submitted: "Answer Submitted", score_pt: "pts", survived_count: "Passed", eliminated: "Eliminated", winner: "Winner!", rank: "st/nd/rd/th", final_score: "Final Score", record: "Record",
+        mode_chall: "🏅 Challenge (10 Qs)", mode_surv: "☠️ Survival (Max 30 Qs)", p_1: "1 Player", p_n: " Players",
+        team_dog: "Dog", team_cat: "Cat", team_rabbit: "Rabbit", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monkey",
+        ui_title: 'Select Language', ui_search: 'Search Language...', ui_empty: 'No results found.', ui_toast: 'Language changed.', domain_txt: "wigglemakers.com"
+    },
+    zh: {
+        title: "🕺 动作之王", pageTitle: "动作之王", desc: "猜猜这是什么动作！", keywords: "动作, 金钟奖",
+        intro: "看视频，猜动作！", slogan: "small wiggle, big giggle", label_mode: "🏆 游戏模式", label_player: "👥 玩家人数", 
+        btn_start: "开始", btn_restart: "返回首页", link_other: "🎮 选择其他游戏", header_title: "动作之王", result_title: "结果公布",
+        q_num: "问题", ready: "准备...", submitted: "提交答案", score_pt: "分", survived_count: "通过", eliminated: "淘汰", winner: "冠军！", rank: "名", final_score: "最终得分", record: "记录",
+        mode_chall: "🏅 挑战 (10题)", mode_surv: "☠️ 生存 (最多30题)", p_1: "单人练习", p_n: "人游戏",
+        team_dog: "小狗", team_cat: "小猫", team_rabbit: "兔子", team_hamster: "仓鼠", team_panda: "熊猫", team_monkey: "猴子",
+        ui_title: '选择语言', ui_search: '搜索语言...', ui_empty: '未找到结果。', ui_toast: '语言已更改。', domain_txt: "wigglemakers.com"
+    },
+    ja: {
+        title: "🕺 動きキング", pageTitle: "動きキング", desc: "動画を見て動きを当てよう！", keywords: "動き, クイズ",
+        intro: "動画を見てどんな動きか当ててね！", slogan: "small wiggle, big giggle", label_mode: "🏆 ゲームモード", label_player: "👥 プレイ人数", 
+        btn_start: "ゲーム開始", btn_restart: "最初に戻る", link_other: "🎮 他のゲームを選ぶ", header_title: "動きキング", result_title: "結果発表",
+        q_num: "問題", ready: "準備...", submitted: "提出完了", score_pt: "点", survived_count: "クリア", eliminated: "脱落", winner: "優勝！", rank: "位", final_score: "最終スコア", record: "記録",
+        mode_chall: "🏅 チャレンジ (10問)", mode_surv: "☠️ サバイバル (最大30問)", p_1: "1人練習", p_n: "人プレイ",
+        team_dog: "犬", team_cat: "猫", team_rabbit: "うさぎ", team_hamster: "ハムスター", team_panda: "パンダ", team_monkey: "猿",
+        ui_title: '言語の選択', ui_search: '言語を検索...', ui_empty: '結果が見つかりません。', ui_toast: '言語が変更されました。', domain_txt: "wigglemakers.com"
+    },
+    es: { title: "🕺 Rey del Movimiento", pageTitle: "Rey del Movimiento", desc: "¡Adivina el movimiento!", keywords: "movimiento", intro: "¡Mira el video y adivina el movimiento!", slogan: "small wiggle, big giggle", label_mode: "🏆 Modo", label_player: "👥 Jugadores", btn_start: "Comenzar", btn_restart: "Volver", link_other: "🎮 Otro Juego", header_title: "Rey del Movimiento", result_title: "Resultados", q_num: "Pregunta", ready: "Listo...", submitted: "Enviada", score_pt: "pts", survived_count: "Pasado", eliminated: "Eliminado", winner: "¡Ganador!", rank: "°", final_score: "Puntaje Final", record: "Récord", mode_chall: "🏅 Desafío (10)", mode_surv: "☠️ Supervivencia (30)", p_1: "1 Jugador", p_n: " Jugadores", team_dog: "Perro", team_cat: "Gato", team_rabbit: "Conejo", team_hamster: "Hámster", team_panda: "Panda", team_monkey: "Mono", ui_title: 'Idioma', ui_search: 'Buscar...', ui_empty: 'Vacío.', ui_toast: 'Idioma cambiado.', domain_txt: "wigglemakers.com" },
+    fr: { title: "🕺 Roi du Mouvement", pageTitle: "Roi du Mouvement", desc: "Devinez le mouvement!", keywords: "mouvement", intro: "Regardez la vidéo et devinez le mouvement!", slogan: "small wiggle, big giggle", label_mode: "🏆 Mode", label_player: "👥 Joueurs", btn_start: "Commencer", btn_restart: "Retour", link_other: "🎮 Autre Jeu", header_title: "Roi du Mouvement", result_title: "Résultats", q_num: "Question", ready: "Prêt...", submitted: "Soumise", score_pt: "pts", survived_count: "Passé", eliminated: "Éliminé", winner: "Gagnant!", rank: "e", final_score: "Score Final", record: "Record", mode_chall: "🏅 Défi (10)", mode_surv: "☠️ Survie (30)", p_1: "1 Joueur", p_n: " Joueurs", team_dog: "Chien", team_cat: "Chat", team_rabbit: "Lapin", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Singe", ui_title: 'Langue', ui_search: 'Chercher...', ui_empty: 'Aucun.', ui_toast: 'Langue modifiée.', domain_txt: "wigglemakers.com" },
+    ru: { title: "🕺 Король Движений", pageTitle: "Король Движений", desc: "Угадай движение!", keywords: "движение", intro: "Смотри видео и угадывай движение!", slogan: "small wiggle, big giggle", label_mode: "🏆 Режим", label_player: "👥 Игроки", btn_start: "Начать", btn_restart: "В Начало", link_other: "🎮 Другая Игра", header_title: "Король Движений", result_title: "Результаты", q_num: "Вопрос", ready: "Готов...", submitted: "Принят", score_pt: "оч.", survived_count: "Пройдено", eliminated: "Выбыл", winner: "Победитель!", rank: ".", final_score: "Счет", record: "Рекорд", mode_chall: "🏅 Вызов (10)", mode_surv: "☠️ Выживание (30)", p_1: "1 Игрок", p_n: " Игроков", team_dog: "Собака", team_cat: "Кошка", team_rabbit: "Кролик", team_hamster: "Хомяк", team_panda: "Панда", team_monkey: "Обезьяна", ui_title: 'Язык', ui_search: 'Поиск...', ui_empty: 'Нет.', ui_toast: 'Язык изменен.', domain_txt: "wigglemakers.com" },
+    id: { title: "🕺 Raja Gerakan", pageTitle: "Raja Gerakan", desc: "Tebak gerakan!", keywords: "gerakan", intro: "Tonton video dan tebak gerakannya!", slogan: "small wiggle, big giggle", label_mode: "🏆 Mode", label_player: "👥 Pemain", btn_start: "Mulai", btn_restart: "Kembali", link_other: "🎮 Game Lain", header_title: "Raja Gerakan", result_title: "Hasil", q_num: "Pertanyaan", ready: "Siap...", submitted: "Terkirim", score_pt: "poin", survived_count: "Lulus", eliminated: "Tereliminasi", winner: "Pemenang!", rank: "Ke-", final_score: "Skor Akhir", record: "Rekor", mode_chall: "🏅 Tantangan (10)", mode_surv: "☠️ Bertahan Hidup (30)", p_1: "1 Pemain", p_n: " Pemain", team_dog: "Anjing", team_cat: "Kucing", team_rabbit: "Kelinci", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monyet", ui_title: 'Bahasa', ui_search: 'Cari...', ui_empty: 'Kosong.', ui_toast: 'Bahasa diubah.', domain_txt: "wigglemakers.com" },
+    vi: { title: "🕺 Vua Chuyển Động", pageTitle: "Vua Chuyển Động", desc: "Đoán chuyển động!", keywords: "chuyển động", intro: "Xem video và đoán chuyển động!", slogan: "small wiggle, big giggle", label_mode: "🏆 Chế Độ", label_player: "👥 Người Chơi", btn_start: "Bắt Đầu", btn_restart: "Quay Lại", link_other: "🎮 Trò Chơi Khác", header_title: "Vua Chuyển Động", result_title: "Kết Quả", q_num: "Câu Hỏi", ready: "Sẵn sàng...", submitted: "Đã Nộp", score_pt: "điểm", survived_count: "Vượt qua", eliminated: "Bị Loại", winner: "Chiến Thắng!", rank: "Hạng", final_score: "Điểm", record: "Kỷ Lục", mode_chall: "🏅 Thử Thách (10)", mode_surv: "☠️ Sinh Tồn (30)", p_1: "1 Người", p_n: " Người", team_dog: "Chó", team_cat: "Mèo", team_rabbit: "Thỏ", team_hamster: "Chuột", team_panda: "Gấu Trúc", team_monkey: "Khỉ", ui_title: 'Ngôn Ngữ', ui_search: 'Tìm...', ui_empty: 'Không có.', ui_toast: 'Đã đổi ngôn ngữ.', domain_txt: "wigglemakers.com" },
+    th: { title: "🕺 ราชาแห่งการเคลื่อนไหว", pageTitle: "ราชาแห่งการเคลื่อนไหว", desc: "ทายการเคลื่อนไหว!", keywords: "การเคลื่อนไหว", intro: "ดูวิดีโอและทายการเคลื่อนไหว!", slogan: "small wiggle, big giggle", label_mode: "🏆 โหมด", label_player: "👥 ผู้เล่น", btn_start: "เริ่มเกม", btn_restart: "กลับไป", link_other: "🎮 เกมอื่น", header_title: "ราชาแห่งการเคลื่อนไหว", result_title: "ผลลัพธ์", q_num: "คำถาม", ready: "พร้อม...", submitted: "ส่งคำตอบแล้ว", score_pt: "คะแนน", survived_count: "ผ่าน", eliminated: "คัดออก", winner: "ชนะ!", rank: "อันดับ", final_score: "คะแนนรวม", record: "สถิติ", mode_chall: "🏅 ความท้าทาย (10)", mode_surv: "☠️ เอาชีวิตรอด (30)", p_1: "1 คน", p_n: " คน", team_dog: "สุนัข", team_cat: "แมว", team_rabbit: "กระต่าย", team_hamster: "แฮมสเตอร์", team_panda: "แพนด้า", team_monkey: "ลิง", ui_title: 'ภาษา', ui_search: 'ค้นหา...', ui_empty: 'ไม่พบ', ui_toast: 'เปลี่ยนภาษาแล้ว', domain_txt: "wigglemakers.com" },
+    "pt-br": { title: "🕺 Rei do Movimento", pageTitle: "Rei do Movimento", desc: "Adivinhe o movimento!", keywords: "movimento", intro: "Assista ao vídeo e adivinhe o movimento!", slogan: "small wiggle, big giggle", label_mode: "🏆 Modo", label_player: "👥 Jogadores", btn_start: "Começar", btn_restart: "Voltar", link_other: "🎮 Outro Jogo", header_title: "Rei do Movimento", result_title: "Resultados", q_num: "Pergunta", ready: "Pronto...", submitted: "Enviada", score_pt: "pts", survived_count: "Passou", eliminated: "Eliminado", winner: "Vencedor!", rank: "°", final_score: "Pontuação Final", record: "Recorde", mode_chall: "🏅 Desafio (10)", mode_surv: "☠️ Sobrevivência (30)", p_1: "1 Jogador", p_n: " Jogadores", team_dog: "Cachorro", team_cat: "Gato", team_rabbit: "Coelho", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Macaco", ui_title: 'Idioma', ui_search: 'Pesquisar...', ui_empty: 'Vazio.', ui_toast: 'Idioma alterado.', domain_txt: "wigglemakers.com" },
+    hi: { title: "🕺 गति का राजा", pageTitle: "गति का राजा", desc: "गति का अनुमान लगाएं!", keywords: "गति", intro: "वीडियो देखें और गति का अनुमान लगाएं!", slogan: "small wiggle, big giggle", label_mode: "🏆 मोड", label_player: "👥 खिलाड़ी", btn_start: "शुरू करें", btn_restart: "वापस", link_other: "🎮 दूसरा गेम", header_title: "गति का राजा", result_title: "परिणाम", q_num: "प्रश्न", ready: "तैयार...", submitted: "जमा किया", score_pt: "अंक", survived_count: "पार किया", eliminated: "बाहर", winner: "विजेता!", rank: "स्थान", final_score: "अंतिम स्कोर", record: "रिकॉर्ड", mode_chall: "🏅 चुनौती (10)", mode_surv: "☠️ जीवन रक्षा (30)", p_1: "1 खिलाड़ी", p_n: " खिलाड़ी", team_dog: "कुत्ता", team_cat: "बिल्ली", team_rabbit: "खरगोश", team_hamster: "हम्सटर", team_panda: "पांडा", team_monkey: "बंदर", ui_title: 'भाषा', ui_search: 'खोजें...', ui_empty: 'खाली', ui_toast: 'भाषा बदल दी गई है।', domain_txt: "wigglemakers.com" },
+    bn: { title: "🕺 নড়াচড়ার রাজা", pageTitle: "নড়াচড়ার রাজা", desc: "নড়াচড়া অনুমান করুন!", keywords: "নড়াচড়া", intro: "ভিডিও দেখুন এবং নড়াচড়া অনুমান করুন!", slogan: "small wiggle, big giggle", label_mode: "🏆 মোড", label_player: "👥 খেলোয়াড়", btn_start: "শুরু করুন", btn_restart: "ফিরে যান", link_other: "🎮 অন্য গেম", header_title: "নড়াচড়ার রাজা", result_title: "ফলাফল", q_num: "প্রশ্ন", ready: "প্রস্তুত...", submitted: "জমা দেওয়া হয়েছে", score_pt: "পয়েন্ট", survived_count: "উত্তীর্ণ", eliminated: "বাদ", winner: "বিজয়ী!", rank: "ম", final_score: "চূড়ান্ত স্কোর", record: "রেকর্ড", mode_chall: "🏅 চ্যালেঞ্জ (১০)", mode_surv: "☠️ সারভাইভাল (৩০)", p_1: "১ জন", p_n: " জন", team_dog: "কুকুর", team_cat: "বিড়াল", team_rabbit: "খরগোশ", team_hamster: "হ্যামস্টার", team_panda: "পান্ডা", team_monkey: "বানর", ui_title: 'ভাষা', ui_search: 'খুঁজুন...', ui_empty: 'খালি', ui_toast: 'ভাষা পরিবর্তন করা হয়েছে।', domain_txt: "wigglemakers.com" },
+    tr: { title: "🕺 Hareket Kralı", pageTitle: "Hareket Kralı", desc: "Hareketi tahmin et!", keywords: "hareket", intro: "Videoyu izle ve hareketi tahmin et!", slogan: "small wiggle, big giggle", label_mode: "🏆 Mod", label_player: "👥 Oyuncular", btn_start: "Başla", btn_restart: "Başa Dön", link_other: "🎮 Başka Oyun", header_title: "Hareket Kralı", result_title: "Sonuçlar", q_num: "Soru", ready: "Hazır...", submitted: "Gönderildi", score_pt: "puan", survived_count: "Geçti", eliminated: "Elendi", winner: "Kazanan!", rank: ".", final_score: "Final Skoru", record: "Rekor", mode_chall: "🏅 Meydan Okuma (10)", mode_surv: "☠️ Hayatta Kalma (30)", p_1: "1 Oyuncu", p_n: " Oyuncu", team_dog: "Köpek", team_cat: "Kedi", team_rabbit: "Tavşan", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Maymun", ui_title: 'Dil', ui_search: 'Ara...', ui_empty: 'Yok.', ui_toast: 'Dil değiştirildi.', domain_txt: "wigglemakers.com" },
+    de: { title: "🕺 König der Bewegung", pageTitle: "König der Bewegung", desc: "Errate die Bewegung!", keywords: "bewegung", intro: "Schau dir das Video an und errate die Bewegung!", slogan: "small wiggle, big giggle", label_mode: "🏆 Modus", label_player: "👥 Spieler", btn_start: "Starten", btn_restart: "Zurück", link_other: "🎮 Anderes Spiel", header_title: "König der Bewegung", result_title: "Ergebnisse", q_num: "Frage", ready: "Bereit...", submitted: "Eingereicht", score_pt: "Pkt", survived_count: "Bestanden", eliminated: "Ausgeschieden", winner: "Gewinner!", rank: ".", final_score: "Endstand", record: "Rekord", mode_chall: "🏅 Herausforderung (10)", mode_surv: "☠️ Überleben (30)", p_1: "1 Spieler", p_n: " Spieler", team_dog: "Hund", team_cat: "Katze", team_rabbit: "Hase", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Affe", ui_title: 'Sprache', ui_search: 'Suchen...', ui_empty: 'Leer.', ui_toast: 'Sprache geändert.', domain_txt: "wigglemakers.com" },
+    it: { title: "🕺 Re del Movimento", pageTitle: "Re del Movimento", desc: "Indovina il movimento!", keywords: "movimento", intro: "Guarda il video e indovina il movimento!", slogan: "small wiggle, big giggle", label_mode: "🏆 Modalità", label_player: "👥 Giocatori", btn_start: "Inizia", btn_restart: "Torna Indietro", link_other: "🎮 Altro Gioco", header_title: "Re del Movimento", result_title: "Risultati", q_num: "Domanda", ready: "Pronto...", submitted: "Inviata", score_pt: "pti", survived_count: "Passato", eliminated: "Eliminato", winner: "Vincitore!", rank: "°", final_score: "Punteggio Finale", record: "Record", mode_chall: "🏅 Sfida (10)", mode_surv: "☠️ Sopravvivenza (30)", p_1: "1 Giocatore", p_n: " Giocatori", team_dog: "Cane", team_cat: "Gatto", team_rabbit: "Coniglio", team_hamster: "Criceto", team_panda: "Panda", team_monkey: "Scimmia", ui_title: 'Lingua', ui_search: 'Cerca...', ui_empty: 'Nessuno.', ui_toast: 'Lingua cambiata.', domain_txt: "wigglemakers.com" }
+};
+
+const languagesList = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+];
+
+/* =========================================
+   YouTube API 및 언어 설정 로직
+   ========================================= */
+let currentLang = 'ko'; 
+let ytPlayer;
+let isYtReady = false;
+
+function onYouTubeIframeAPIReady() {
+    ytPlayer = new YT.Player('ytPlayer', {
+        playerVars: { 'autoplay': 0, 'controls': 0, 'disablekb': 1, 'modestbranding': 1, 'rel': 0, 'playsinline': 1 },
+        events: {
+            'onReady': () => { isYtReady = true; }
+        }
+    });
+}
+
+function initLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    const savedLang = localStorage.getItem('kingsmath_lang');
+    const browserLang = navigator.language.slice(0, 2);
+
+    if (urlLang && languagesList.find(l => l.code === urlLang)) currentLang = urlLang;
+    else if (savedLang && languagesList.find(l => l.code === savedLang)) currentLang = savedLang;
+    else if (browserLang && languagesList.find(l => l.code === browserLang)) currentLang = browserLang;
+    else currentLang = 'ko';
+    
+    updateUIText(currentLang);
+}
+
+function updateUIText(langCode) {
+    const txt = STRINGS[langCode];
+    if (!txt) return;
+
+    document.getElementById('pageTitle').innerText = txt.pageTitle;
+    document.getElementById('pageDesc').setAttribute('content', txt.desc);
+    document.getElementById('pageKeywords').setAttribute('content', txt.keywords);
+    document.getElementById('domainLink').innerText = txt.domain_txt;
+    
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.getAttribute('data-lang-key');
+        if (txt[key]) el.innerHTML = txt[key];
+    });
+
+    const langObj = languagesList.find(l => l.code === langCode);
+    if(langObj) {
+        document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+        document.getElementById('currentLangName').innerText = langObj.name;
+    }
+
+    document.getElementById('ui-title').innerText = txt.ui_title;
+    document.getElementById('searchInput').placeholder = txt.ui_search;
+    document.getElementById('ui-empty').innerText = txt.ui_empty;
+
+    updateSelectOptions();
+    resizeDynamicTexts(); 
+}
+
+function resizeDynamicTexts() {
+    document.querySelectorAll('.dynamic-text-container').forEach(el => {
+        el.style.transform = 'scale(1)'; 
+        const parent = el.parentElement;
+        if (parent && el.scrollWidth > parent.clientWidth) {
+            const scale = (parent.clientWidth - 20) / el.scrollWidth;
+            el.style.transform = `scale(${Math.max(scale, 0.5)})`;
+        }
+    });
+}
+window.addEventListener('resize', resizeDynamicTexts);
+
+const TEAM_DATA = [
+    { id: 'dog', icon: '🐶', color: 'bg-dog', key: 'team_dog' },
+    { id: 'cat', icon: '🐱', color: 'bg-cat', key: 'team_cat' },
+    { id: 'rabbit', icon: '🐰', color: 'bg-rabbit', key: 'team_rabbit' },
+    { id: 'hamster', icon: '🐹', color: 'bg-hamster', key: 'team_hamster' },
+    { id: 'panda', icon: '🐼', color: 'bg-panda', key: 'team_panda' },
+    { id: 'monkey', icon: '🐵', color: 'bg-monkey', key: 'team_monkey' }
+];
+
+const state = {
+    players: [], mode: 'challenge', currentQ: 0, maxQ: 10, timer: 30, timerInterval: null,
+    phase: 'setup', problem: null, availableQuestions: [], currentOrder: 0
+};
+
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const t = audioCtx.currentTime;
+    if (type === 'start') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.5);
+    } else if (type === 'count') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+    } else if (type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(1200, t);
+        gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.05);
+    } else if (type === 'correct') {
+        const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain();
+        osc.frequency.setValueAtTime(523.25, t); osc2.frequency.setValueAtTime(659.25, t + 0.1);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.4);
+        gain2.gain.setValueAtTime(0, t); gain2.gain.linearRampToValueAtTime(0.3, t + 0.1); gain2.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc2.connect(gain2); gain2.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.4); osc2.start(t); osc2.stop(t + 0.5);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.3);
+    } else if (type === 'end') {
+        const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = f;
+            g.gain.setValueAtTime(0.2, t + i*0.1); g.gain.linearRampToValueAtTime(0, t + i*0.1 + 0.5);
+            o.connect(g); g.connect(audioCtx.destination); o.start(t + i*0.1); o.stop(t + i*0.1 + 0.5);
+        });
+    }
+}
+
+function updateSelectOptions() {
+    const txt = STRINGS[currentLang];
+    const modeVal = document.getElementById('gameMode').value;
+    const playerVal = document.getElementById('playerCount').value;
+
+    document.getElementById('gameMode').innerHTML = `
+        <option value="challenge">${txt.mode_chall}</option>
+        <option value="survival">${txt.mode_surv}</option>
+    `;
+    const playerSelect = document.getElementById('playerCount');
+    playerSelect.innerHTML = '';
+    for(let i=1; i<=6; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.innerText = i === 1 ? txt.p_1 : `${i}${txt.p_n}`;
+        playerSelect.appendChild(opt);
+    }
+
+    if(modeVal) document.getElementById('gameMode').value = modeVal;
+    if(playerVal) document.getElementById('playerCount').value = playerVal;
+    else document.getElementById('playerCount').value = '6'; 
+}
+
+function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+function generateWiggleProblem() {
+    if (state.availableQuestions.length === 0) {
+        state.availableQuestions = shuffle([...wiggleRawData]);
+    }
+    const targetData = state.availableQuestions.pop();
+    const langIndex = LANG_CODES.indexOf(currentLang) + 1;
+    
+    const targetId = targetData[0];
+    const correctName = targetData[langIndex];
+
+    let allNames = wiggleRawData.map(d => d[langIndex]).concat(extraVocabRaw.map(v => v[langIndex-1]));
+    let wrongAnswers = shuffle(allNames.filter(n => n !== correctName)).slice(0, 3);
+    
+    let options = shuffle([correctName, ...wrongAnswers]).map(val => ({ label: val, value: val }));
+
+    return { videoId: targetId, aVal: correctName, options: options };
+}
+
+/* =========================================
+   Game Lifecycle
+   ========================================= */
+function initGame() {
+    initAudio();
+    const pCount = parseInt(document.getElementById('playerCount').value);
+    state.mode = document.getElementById('gameMode').value;
+    state.currentQ = 0;
+    state.players = [];
+    state.availableQuestions = shuffle([...wiggleRawData]);
+
+    const arena = document.getElementById('arena');
+    arena.innerHTML = '';
+    
+    const txt = STRINGS[currentLang];
+
+    for(let i=0; i<pCount; i++) {
+        let teamInfo = TEAM_DATA[i];
+        let localizedName = txt[teamInfo.key];
+        state.players.push({ id: teamInfo.id, icon: teamInfo.icon, color: teamInfo.color, name: localizedName, score: 0, survived: 0, alive: true, answered: false, selected: null, isGoldenBellWinner: false, rank: 0 });
+        
+        const col = document.createElement('div');
+        col.className = `player-col ${state.players[i].color}`;
+        col.id = `p-${i}`;
+        col.innerHTML = `
+            <div class="p-header">
+                <span class="p-emoji">${state.players[i].icon}</span>
+                <span class="p-name dynamic-font-target">${state.players[i].name}</span>
+                <div id="p-score-${i}" style="font-size: 1.2rem; color: #f59e0b; margin-top: 5px; ${state.mode === 'challenge' ? '' : 'display: none;'}">0 ${txt.score_pt}</div>
+            </div>
+            <div class="choice-grid" id="p-choices-${i}"></div>
+            <div class="feedback-overlay" id="p-fb-${i}"></div>
+            <div class="final-status" id="p-final-${i}"></div>
+        `;
+        arena.appendChild(col);
+    }
+
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('resultPopup').style.display = 'none';
+    document.getElementById('langTriggerContainer').style.display = 'none';
+
+    playSound('start');
+    nextTurn();
+}
+
+async function nextTurn() {
+    const aliveCount = state.players.filter(p=>p.alive).length;
+
+    if (state.mode === 'survival' && aliveCount <= 1 && state.players.length > 1) { endGame(); return; }
+    if (state.mode === 'survival' && aliveCount === 0) { endGame(); return; }
+    if (state.mode === 'challenge' && state.currentQ >= 10) { endGame(); return; }
+    if (state.mode === 'survival' && state.currentQ >= 30 && aliveCount > 0) { triggerGoldenBellWin(); return; }
+
+    state.currentQ++;
+    state.phase = 'counting';
+    state.currentOrder = 0; 
+    state.players.forEach((p, idx) => {
+        if(p.alive) {
+            p.answered = false; p.selected = null;
+            const fb = document.getElementById(`p-fb-${idx}`);
+            fb.className = 'feedback-overlay'; fb.innerHTML = '';
+        }
+    });
+
+    state.problem = generateWiggleProblem();
+    const maxQText = state.mode === 'challenge' ? '10' : '30';
+    const txt = STRINGS[currentLang];
+    
+    document.getElementById('qNumber').innerText = `${txt.q_num} ${state.currentQ} / ${maxQText}`;
+    
+    document.getElementById('ytPlayer').style.opacity = '0';
+    if(isYtReady && ytPlayer) {
+        if(ytPlayer.mute) ytPlayer.mute();
+        ytPlayer.loadVideoById({ videoId: state.problem.videoId, startSeconds: 0 });
+    }
+
+    await runCountdown();
+
+    state.phase = 'playing';
+    document.getElementById('ytPlayer').style.opacity = '1';
+    if(isYtReady && ytPlayer && ytPlayer.unMute) {
+        ytPlayer.unMute();
+    }
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const grid = document.getElementById(`p-choices-${idx}`);
+        grid.innerHTML = '';
+        
+        state.problem.options.forEach(optObj => {
+            const btn = document.createElement('div');
+            btn.className = 'choice-btn';
+            btn.innerHTML = `<span style="font-family: 'Noto Sans KR', sans-serif;">${optObj.label}</span>`;
+            btn.dataset.val = optObj.value;
+            btn.onpointerdown = (e) => { e.preventDefault(); handleAnswer(idx, optObj.value, btn); };
+            grid.appendChild(btn);
+        });
+    });
+    startTimer();
+}
+
+async function runCountdown() {
+    const layer = document.getElementById('countdownLayer');
+    const txt = document.getElementById('countdownText');
+    layer.style.display = 'flex';
+    for(let i=3; i>0; i--) {
+        txt.innerText = i; 
+        txt.classList.remove('count-animate');
+        void txt.offsetWidth; 
+        txt.classList.add('count-animate');
+        playSound('count'); 
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none';
+}
+
+function startTimer() {
+    state.timer = 30;
+    const tBox = document.getElementById('mainTimer');
+    tBox.innerText = 30; tBox.classList.remove('timer-urgent');
+    if(state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+        state.timer--; tBox.innerText = state.timer;
+        if(state.timer <= 5) { tBox.classList.add('timer-urgent'); playSound('count'); }
+        if(state.timer <= 0) finishRound();
+    }, 1000);
+}
+
+function handleAnswer(pIdx, val, btnElem) {
+    if(state.phase !== 'playing') return;
+    const p = state.players[pIdx];
+    if(p.answered || !p.alive) return;
+
+    playSound('click');
+    p.answered = true; p.selected = val;
+    p.answerOrder = ++state.currentOrder; 
+    
+    const allBtns = document.getElementById(`p-choices-${pIdx}`).children;
+    for(let b of allBtns) b.style.opacity = '0.5';
+    btnElem.style.opacity = '1'; btnElem.classList.add('selected');
+
+    const fb = document.getElementById(`p-fb-${pIdx}`);
+    const txt = STRINGS[currentLang];
+    fb.innerHTML = `
+        <div style="font-size:3rem; margin-bottom:10px;">🔒</div>
+        <div class="submitted-text">${txt.submitted}</div>
+    `;
+    fb.classList.add('secret'); 
+    
+    const living = state.players.filter(pl => pl.alive);
+    if(living.every(pl => pl.answered)) finishRound();
+}
+
+function finishRound() {
+    clearInterval(state.timerInterval);
+    state.phase = 'result';
+    const correctAns = state.problem.aVal;
+    let someoneWrong = false;
+
+    if(isYtReady && ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const fb = document.getElementById(`p-fb-${idx}`);
+        const choices = document.getElementById(`p-choices-${idx}`).children;
+
+        fb.classList.remove('secret'); fb.innerHTML = '';
+        
+        for(let btn of choices) {
+            let bVal = btn.dataset.val;
+            if(bVal === correctAns) btn.classList.add('correct');
+            else if(p.selected === bVal) btn.classList.add('wrong');
+        }
+
+        if(p.selected === correctAns) {
+            fb.innerHTML = '<span style="color:#10b981">⭕</span>'; fb.classList.add('show-result');
+            p.survived++;
+            if(state.mode === 'challenge') {
+                p.score += (state.timer * 10) + Math.max(10, (100 - p.answerOrder * 10));
+                document.getElementById(`p-score-${idx}`).innerText = `${p.score} ${STRINGS[currentLang].score_pt}`;
+            }
+        } else {
+            someoneWrong = true;
+            fb.innerHTML = '<span style="color:#ef4444">❌</span>'; fb.classList.add('show-result');
+            if(state.mode === 'survival') {
+                p.alive = false;
+                setTimeout(() => { document.getElementById(`p-${idx}`).classList.add('eliminated'); }, 1500);
+            }
+        }
+    });
+    if(!someoneWrong) playSound('correct'); else playSound('wrong');
+    setTimeout(() => nextTurn(), 3000);
+}
+
+function assignRanks() {
+    let ranked = [...state.players];
+    if(state.mode === 'challenge') {
+        ranked.sort((a,b) => b.score - a.score);
+    } else {
+        ranked.sort((a,b) => {
+            if (a.alive && !b.alive) return -1;
+            if (!a.alive && b.alive) return 1;
+            return b.survived - a.survived;
+        });
+    }
+    
+    let currentRank = 1;
+    ranked.forEach((p, i) => {
+        if (i > 0) {
+            const prev = ranked[i-1];
+            let isTie = false;
+            if (state.mode === 'challenge') {
+                if (p.score === prev.score) isTie = true;
+            } else {
+                if (p.alive && prev.alive) isTie = true;
+                else if (!p.alive && !prev.alive && p.survived === prev.survived) isTie = true;
+            }
+            if (!isTie) currentRank = i + 1;
+        } else {
+            currentRank = 1;
+        }
+        const originalPlayer = state.players.find(pl => pl.id === p.id);
+        originalPlayer.rank = currentRank;
+    });
+}
+
+function getRankEmojiHtml(rank) {
+    let rankEmoji = '';
+    if (rank === 1) rankEmoji = '🥇';
+    else if (rank === 2) rankEmoji = '🥈';
+    else if (rank === 3) rankEmoji = '🥉';
+    else if (rank === 4) rankEmoji = '<span style="font-size: 70%;">4️⃣</span>';
+    else if (rank === 5) rankEmoji = '<span style="font-size: 70%;">5️⃣</span>';
+    else if (rank === 6) rankEmoji = '<span style="font-size: 70%;">6️⃣</span>';
+    return `<div style="font-size: 3rem; margin-bottom: 5px;">${rankEmoji}</div>`;
+}
+
+function triggerGoldenBellWin() {
+    clearInterval(state.timerInterval);
+    state.phase = 'gameover';
+    playSound('end');
+
+    state.players.forEach(p => { if(p.alive) p.isGoldenBellWinner = true; });
+    assignRanks();
+
+    const popup = document.getElementById('resultPopup');
+    const list = document.getElementById('finalResultList');
+    const txt = STRINGS[currentLang];
+    
+    document.getElementById('resultTitle').innerHTML = "🎉 골든벨 달성! 🎉<br><span style='font-size: 2rem; color: #f59e0b;'>생존자 전원 승리!</span>";
+    popup.style.display = 'flex'; list.innerHTML = '';
+    
+    state.players.forEach((p, idx) => {
+        const finalDiv = document.getElementById(`p-final-${idx}`);
+        finalDiv.style.display = 'block';
+        const rankHtml = getRankEmojiHtml(p.rank);
+
+        if (p.isGoldenBellWinner) {
+            finalDiv.innerHTML = `${rankHtml}<h3>영광의 우승</h3><p>🔔 골든벨 🔔</p>`;
+            finalDiv.style.border = "4px solid #f59e0b";
+            finalDiv.style.background = "rgba(245, 158, 11, 0.2)";
+        } else {
+            finalDiv.innerHTML = `${rankHtml}<h3>${txt.record}</h3><p>${p.survived} ${txt.survived_count}</p>`;
+        }
+    });
+    renderResultList(true);
+}
+
+function endGame() {
+    clearInterval(state.timerInterval);
+    state.phase = 'gameover';
+    playSound('end');
+    
+    assignRanks();
+
+    const popup = document.getElementById('resultPopup');
+    const txt = STRINGS[currentLang];
+    document.getElementById('resultTitle').innerText = txt.result_title;
+    popup.style.display = 'flex';
+    
+    state.players.forEach((p, idx) => {
+        const finalDiv = document.getElementById(`p-final-${idx}`);
+        finalDiv.style.display = 'block';
+        const rankHtml = getRankEmojiHtml(p.rank);
+
+        if (state.mode === 'challenge') { 
+            finalDiv.innerHTML = `${rankHtml}<h3>${txt.final_score}</h3><p>${p.score} ${txt.score_pt}</p>`; 
+        } else { 
+            finalDiv.innerHTML = p.alive ? `${rankHtml}<h3>${txt.record}</h3><p>${txt.winner}</p>` : `${rankHtml}<h3>${txt.record}</h3><p>${p.survived} ${txt.survived_count}</p>`; 
+            if(p.alive) finalDiv.style.border = "4px solid #f59e0b"; 
+        }
+    });
+    renderResultList(false);
+}
+
+function renderResultList(isGoldenBell) {
+    const list = document.getElementById('finalResultList');
+    list.innerHTML = '';
+    const txt = STRINGS[currentLang];
+    let ranked = [...state.players].sort((a,b) => a.rank - b.rank);
+
+    ranked.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.className = `result-item ${p.rank === 1 ? 'rank-1' : ''}`;
+        
+        let status;
+        if (isGoldenBell && p.isGoldenBellWinner) status = "🔔 골든벨 우승!";
+        else if (state.mode === 'challenge') status = `${p.score} ${txt.score_pt}`;
+        else status = p.alive ? txt.winner : `${p.survived} ${txt.survived_count}`;
+
+        li.innerHTML = `<span>${p.rank}${txt.rank} ${p.icon} ${p.name}</span><span>${status}</span>`;
+        list.appendChild(li);
+    });
+}
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(err.message); }); } 
+    else { document.exitFullscreen(); }
+});
+
+document.getElementById('startBtn').addEventListener('click', initGame);
+document.getElementById('restartBtn').addEventListener('click', () => { 
+    if(isYtReady && ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+    document.getElementById('langTriggerContainer').style.display = 'block';
+    document.getElementById('overlay').style.display = 'flex'; 
+    document.getElementById('resultPopup').style.display = 'none'; 
+});
+
+document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('dragstart', event => event.preventDefault());
+
+document.getElementById('btn-home').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        clearInterval(state.timerInterval);
+        state.phase = 'setup';
+        if(isYtReady && ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+        document.getElementById('langTriggerContainer').style.display = 'block';
+        document.getElementById('resultPopup').style.display = 'none';
+        document.getElementById('countdownLayer').style.display = 'none';
+        document.getElementById('arena').innerHTML = '';
+        document.getElementById('mainTimer').innerText = '30';
+        document.getElementById('mainTimer').classList.remove('timer-urgent');
+        document.getElementById('overlay').style.display = 'flex';
+        if(window.playSound) window.playSound('click');
+    } else {
+        location.reload();
+    }
+});
+
+/* =========================================
+   언어 선택기 모달 이벤트
+   ========================================= */
+const triggerBtn = document.getElementById('langTriggerBtn');
+const modal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const toast = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+let toastTimeout;
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filteredLangs = languagesList.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden');
+        noResult.classList.remove('hidden');
+        noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        noResult.classList.add('hidden');
+        noResult.classList.remove('flex');
+
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLang;
+            const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden lang-ui-text";
+            const stateClasses = isSelected 
+                ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+            const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+            const btn = document.createElement('div');
+            btn.className = `${baseClasses} ${stateClasses}`;
+
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+            btn.addEventListener('click', () => selectLanguage(lang));
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function selectLanguage(lang) {
+    currentLang = lang.code;
+    localStorage.setItem('kingsmath_lang', currentLang);
+    const url = new URL(window.location);
+    url.searchParams.set('lang', currentLang);
+    window.history.pushState({}, '', url);
+
+    updateUIText(currentLang);
+    closeModal();
+    
+    document.getElementById('ui-toast').textContent = STRINGS[currentLang].ui_toast;
+    toastLangName.textContent = lang.name;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    renderLanguages(searchInput.value);
+}
+
+function openModal() { modal.classList.add('active'); setTimeout(() => searchInput.focus(), 100); }
+function closeModal() { modal.classList.remove('active'); }
+
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguage();      
+    renderLanguages();   
+    setTimeout(resizeDynamicTexts, 100); 
+});
+
+</script>
+</body>
+</html>

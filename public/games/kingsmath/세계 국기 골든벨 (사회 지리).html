@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F4C3A">
+
+<title id="pageTitle">국기 골든벨</title>
+<meta id="pageDesc" name="description" content="전 세계 국기를 맞춰보세요! 국기 골든벨.">
+<meta id="pageKeywords" name="keywords" content="국기, 세계지리, 골든벨, 교육게임, 초등교육">
+<link rel="canonical" href="/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+/* 기존 게임 기본 폰트 설정 (유지) */
+body { font-family: 'Jua', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: normal; }
+
+/* 폰트어썸 아이콘 깨짐 방지용 예외 처리 (모달 및 게임 전체 적용) */
+i[class^="fa-"], i[class*=" fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+:root {
+    --bg: #121212;
+    --panel-bg: #1e1e2e;
+    --dark: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-color: #333333;
+
+    --dog-color: #332b00;
+    --cat-color: #1e1b2e;
+    --rabbit-color: #2e151a;
+    --hamster-color: #2e1e0f;
+    --panda-color: #0f2e26;
+    --monkey-color: #221826;
+
+    --correct: #69db7c;
+    --wrong: #ff6b6b;
+    --eliminated: #333333;
+}
+
+body {
+    margin: 0; background: var(--bg); color: var(--dark); overflow: hidden;
+    user-select: none; -webkit-user-select: none; 
+    touch-action: none; 
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* =========================================
+   UI 모달 및 언어 선택 전용 CSS (독립적 스코핑)
+   ========================================= */
+#langModal, #langModal *, #langTriggerContainer, #langTriggerContainer *, #toastNotification, #toastNotification * {
+    box-sizing: border-box !important;
+}
+
+/* 모달 내부 텍스트 폰트는 Jua를 덮어쓰고 가장 무난한 Noto Sans 및 기본 폰트를 사용 */
+.lang-ui-text {
+    font-family: 'Noto Sans KR', sans-serif !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+.modal-overlay {
+    opacity: 0; visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content {
+    transform: scale(0.95) translateY(-10px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+.toast-anim {
+    transform: translateY(100%); opacity: 0;
+    transition: all 0.3s ease;
+}
+.toast-anim.show { transform: translateY(0); opacity: 1; }
+
+/* 글자 크기 동적 조절용 클래스 */
+.dynamic-text-container {
+    display: inline-block;
+    white-space: nowrap;
+    transition: transform 0.2s;
+    transform-origin: left center;
+}
+
+/* --- Game UI Components --- */
+#overlay {
+    position: fixed; inset: 0; background: var(--bg); opacity: 0.98;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; backdrop-filter: blur(15px);
+    text-align: center; overflow-y: auto; padding-bottom: 50px;
+}
+
+.title-area { margin: 30px 0 20px 0; }
+#msgTitle { font-size: 3.5rem; color: var(--dark); margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: normal; line-height: 1.2; padding: 0 10px; transition: font-size 0.3s;}
+.subtitle { color: var(--text-muted); font-size: 1.2rem; margin-top: 10px; font-weight: normal; }
+.top-link { color: #339af0; text-decoration: none; font-weight: normal; }
+
+#setupArea { width: 500px; max-width: 95vw; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.setup-group { text-align: left; }
+.setup-label { font-size: 1.3rem; color: var(--dark); margin-bottom: 8px; display: block; font-weight: normal; }
+
+.custom-select {
+    width: 100%; font-family: inherit; font-size: 1.2rem; padding: 15px;
+    border-radius: 15px; border: 2px solid var(--border-color);
+    background: var(--panel-bg); color: var(--dark); outline: none;
+    cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: normal;
+}
+
+.btn-large {
+    font-size: 2rem; padding: 15px 0; border-radius: 50px; border: none;
+    background: #339af0; color: white; cursor: pointer;
+    box-shadow: 0 6px 0 #1c7ed6; transition: 0.1s; font-family: inherit;
+    width: 100%; margin-top: 20px; font-weight: normal; overflow: hidden;
+}
+.btn-large:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c7ed6; }
+#otherGameLink { display: block; margin-top: 20px; color: var(--text-muted); text-decoration: underline; font-size: 1.1rem; }
+
+.side-btn {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    font-size: 2.1rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9999; color: #fff; text-decoration: none;
+    transition: 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.side-btn:active { transform: translateY(-50%) scale(0.9); background: rgba(0,0,0,0.8); }
+.left-btn { left: 20px; } 
+.right-btn { right: 20px; } 
+
+@media (max-width: 768px) {
+    .side-btn { width: 45px; height: 45px; font-size: 1.5rem; }
+    .left-btn { left: 10px; }
+    .right-btn { right: 10px; }
+}
+
+/* --- Game Screen Structure --- */
+#topZone { position: relative; display: flex; flex-direction: column; z-index: 10; }
+#header { height: 100px; background: var(--panel-bg); display: flex; align-items: center; justify-content: center; padding: 0 20px; border-bottom: 2px solid var(--border-color); position: relative; }
+.header-title { font-size: 2rem; color: var(--dark); display: flex; align-items: center; gap: 10px; position: absolute; left: 90px; font-weight: normal; }
+.timer-box { font-size: 4rem; font-weight: normal; color: #ff6b6b; background: rgba(0,0,0,0.1); padding: 5px 30px; border-radius: 20px; min-width: 120px; text-align: center; }
+.timer-urgent { color: #fff; background: #ff6b6b; animation: pulse 0.5s infinite; }
+
+#mainQuestionBoard { background: var(--panel-bg); padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; flex-grow: 1; position: relative; }
+#qNumber { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 5px; font-weight: normal; }
+#bigQuestion { font-size: clamp(2.5rem, 6vw, 4rem); color: var(--dark); line-height: 1.2; font-family: inherit; font-weight: normal; }
+
+/* Result Popup */
+#resultPopup { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(30, 30, 46, 0.98); backdrop-filter: blur(10px); z-index: 100; flex-direction: column; align-items: center; justify-content: center; border-bottom: 4px solid var(--border-color); }
+#resultTitle { font-size: 3rem; margin: 0 0 20px 0; color: var(--dark); font-weight: normal; text-align: center; white-space: pre-line; }
+.result-list { list-style: none; padding: 0; margin: 0; width: 80%; max-width: 600px; max-height: 60%; overflow-y: auto; }
+.result-item { display: flex; justify-content: space-between; padding: 15px; background: rgba(128,128,128,0.1); margin-bottom: 8px; border-radius: 12px; font-size: 1.5rem; color: var(--dark); border: 1px solid var(--border-color); font-weight: normal; }
+.rank-1 { background: #ffd43b; color: #000; font-weight: normal; border: none; }
+
+/* Player Arena */
+#arena { display: flex; flex: 1; width: 100vw; overflow: hidden; background: var(--bg); }
+.player-col { flex: 1; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 10px 5px; position: relative; transition: opacity 0.3s; }
+.player-col:last-child { border-right: none; }
+.player-col.eliminated { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+
+.p-header { text-align: center; margin-bottom: 5px; width: 100%; flex-shrink: 0;}
+.p-emoji { font-size: 3rem; display: block; }
+.p-name { font-size: 1.8rem; white-space: nowrap; font-weight: normal; margin-top: 5px; }
+.p-info { display: none; } 
+.mini-question { display: none; } 
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 260px; flex: 1; align-content: center; padding-bottom: 10px; }
+.choice-btn { background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 12px; color: var(--dark); font-size: 0.75rem; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 rgba(0,0,0,0.1); transition: 0.1s; word-break: break-all; padding: 10px; min-height: 70px; font-weight: normal; overflow: hidden; text-align: center; flex-direction: column; }
+.choice-btn:active { transform: translateY(2px); box-shadow: none; }
+.choice-btn.selected { background: #339af0; color: white; border-color: #1c7ed6; }
+.choice-btn.correct { background: var(--correct); color: #fff; border-color: #40c057; animation: bounce 0.5s; }
+.choice-btn.wrong { background: var(--wrong); color: #fff; border-color: #fa5252; opacity: 0.5; }
+
+/* Flag Images Styles */
+.big-flag { max-height: 180px; width: auto; height: auto; max-width: 90%; object-fit: contain; border-radius: 8px; border: 4px solid var(--border-color); background: transparent; margin: 0 auto 15px auto; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.small-flag { max-height: 50px; max-width: 100%; object-fit: contain; border-radius: 4px; display: inline-block; background: transparent; }
+.ox-name { font-size: 2.5rem; color: #ffd43b; font-weight: normal; margin-top: 5px; }
+
+/* Feedback Overlay */
+.feedback-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; flex-direction: column; font-size: 5rem; z-index: 20; border-radius: 0; }
+.feedback-overlay.secret { background: #000000 !important; opacity: 1; display: flex; color: white; transition: none; animation: none; }
+.feedback-overlay.show-result { display: flex; animation: none; }
+.submitted-text { font-size: 1.5rem; margin-top: 15px; color: #fff; text-align: center; line-height: 1.5; font-weight: normal; }
+.final-status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; box-sizing: border-box; background: rgba(0,0,0,0.85); padding: 15px 10px; border-radius: 15px; text-align: center; z-index: 50; border: 2px solid #fff; display: none; animation: popIn 0.5s; word-break: keep-all; overflow-wrap: break-word; }
+.final-status h3 { margin: 0; font-size: 1.2rem; color: #fff; font-weight: normal; }
+.final-status p { margin: 5px 0 0 0; font-size: 1.8rem; color: #ffd43b; font-weight: normal; line-height: 1.2;}
+
+/* Countdown */
+#countdownLayer { position: fixed; inset: 0; background: #000000; z-index: 2000; display: none; align-items: center; justify-content: center; }
+#countdownText { font-size: 25rem; color: #ffec99; text-shadow: 0 0 50px rgba(255, 212, 59, 0.8); font-weight: normal; opacity: 0; }
+@keyframes countPop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1.0); opacity: 0; } }
+.count-animate { animation: countPop 0.8s ease-in-out forwards; }
+
+/* 1920x1080 & Large Screen Optimization */
+@media (min-width: 1600px) {
+    #header { height: 140px; } .header-title { font-size: 3rem; left: 110px; } .timer-box { font-size: 6rem; padding: 10px 50px; } #mainQuestionBoard { min-height: 350px; padding: 20px; } #qNumber { font-size: 2rem; margin-bottom: 15px; } #bigQuestion { font-size: 5rem; } .p-emoji { font-size: 4rem; } .p-name { font-size: 2.2rem; } .choice-grid { max-width: 350px; gap: 15px; } .choice-btn { font-size: 1.1rem; min-height: 90px; border-radius: 20px; border-width: 3px; } #resultTitle { font-size: 4rem; margin-bottom: 40px; } .result-item { font-size: 1.5rem; padding: 9px; } .btn-large { font-size: 2.5rem; padding: 20px 0; } #msgTitle { font-size: 5rem; } .setup-label { font-size: 1.8rem; } .custom-select { font-size: 1.5rem; padding: 20px; }
+    .big-flag { max-height: 280px; border-width: 6px; } .small-flag { max-height: 80px; } .ox-name { font-size: 4rem; margin-top: 15px; }
+}
+@media (max-width: 768px) {
+    #bigQuestion { font-size: 2rem; } .choice-btn { font-size: 0.55rem; min-height: 50px; padding: 5px; } .header-title span:last-child { display: none; } .p-name { display: none; } .small-text-mobile { font-size: 0.9rem !important; }
+    .big-flag { max-height: 120px; } .small-flag { max-height: 35px; }
+}
+
+.bg-dog { background: var(--dog-color); } .bg-cat { background: var(--cat-color); } .bg-rabbit { background: var(--rabbit-color); } .bg-hamster { background: var(--hamster-color); } .bg-panda { background: var(--panda-color); } .bg-monkey { background: var(--monkey-color); }
+</style>
+</head>
+
+<body>
+
+    <div id="langTriggerContainer" class="absolute right-4 sm:right-6 top-[25px] sm:top-[25px] z-[99999]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-[rgba(0,0,0,0.5)] hover:bg-[rgba(0,0,0,0.8)] border-2 border-[rgba(255,255,255,0.2)] rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg lang-ui-text" style="height: 56px;">
+            <i class="fa-solid fa-globe text-white"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-6 h-auto rounded-[2px] shadow-sm ml-1">
+            <span id="currentLangName" class="hidden sm:inline-block text-white text-lg ml-1">한국어</span>
+            <i class="fa-solid fa-chevron-down text-white ml-2 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content lang-ui-text bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span id="ui-title">언어 / Language</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500 lang-ui-text">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast-anim fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999] lang-ui-text">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+    <div id="btn-home" class="side-btn left-btn" title="Home" style="cursor:pointer;">🏠</div>
+    <button id="fullscreenBtn" class="side-btn right-btn" title="Full Screen" style="top: calc(50% + 70px);">⛶</button>
+
+    <div id="overlay">
+        <div class="title-area">
+            <a href="/" target="_self" id="domainLink" class="top-link dynamic-font-target"></a><br>
+            <span style="font-size: 1.2rem; color: #339af0; margin-top:10px; display:inline-block;" class="dynamic-font-target">
+                <span data-lang-key="intro">전 세계 국기를 모두 맞춰보세요.</span> 
+            </span><br>
+            <h1 id="msgTitle" data-lang-key="title" class="dynamic-font-target">🌍 국기 골든벨</h1>
+            <div class="subtitle dynamic-font-target" data-lang-key="slogan">당신의 지리 실력은 어디까지인가요?</div>
+        </div>
+
+        <div id="setupArea">
+            <div class="setup-group">
+                <label class="setup-label dynamic-font-target" data-lang-key="label_diff">📚 난이도 선택</label>
+                <select id="difficulty" class="custom-select dynamic-font-target"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label dynamic-font-target" data-lang-key="label_mode">🏆 게임 모드</label>
+                <select id="gameMode" class="custom-select dynamic-font-target"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label dynamic-font-target" data-lang-key="label_player">👥 인원</label> 
+                <select id="playerCount" class="custom-select dynamic-font-target"></select>
+            </div>
+            <button id="startBtn" class="btn-large">
+                <div class="dynamic-text-container" data-lang-key="btn_start">골든벨 시작하기</div>
+            </button>
+            <a id="otherGameLink" href="/" target="_self" class="dynamic-font-target" data-lang-key="link_other">🎮 다른 게임 고르기</a>
+        </div>
+    </div>
+
+    <div id="countdownLayer">
+        <div id="countdownText">3</div>
+    </div>
+
+    <div id="topZone">
+        <header id="header">
+            <div class="header-title dynamic-font-target">
+                <span style="font-size:2rem;">🌍</span>
+                <span data-lang-key="header_title">국기 골든벨</span>
+            </div>
+            <div id="mainTimer" class="timer-box">30</div>
+        </header>
+
+        <div id="mainQuestionBoard">
+            <div id="qNumber" class="dynamic-font-target">문제 1 / 10</div>
+            <div id="bigQuestion" class="dynamic-font-target">준비...</div>
+        </div>
+
+        <div id="resultPopup">
+            <h2 id="resultTitle" data-lang-key="result_title" class="dynamic-font-target">결과 발표</h2>
+            <ul id="finalResultList" class="result-list"></ul>
+            <button id="restartBtn" class="btn-large" style="margin-top:20px; font-size:1.5rem; width: auto; padding: 10px 40px;">
+                <div class="dynamic-text-container" data-lang-key="btn_restart">처음으로 돌아가기</div>
+            </button>
+        </div>
+    </div>
+
+    <div id="arena"></div>
+
+<script>
+/* =========================================
+   Flag Database
+   ========================================= */
+const flagData = {
+  easy: [
+    { name: "대한민국", code: "kr" }, { name: "미국", code: "us" }, { name: "일본", code: "jp" },
+    { name: "중국", code: "cn" }, { name: "영국", code: "gb" }, { name: "프랑스", code: "fr" },
+    { name: "독일", code: "de" }, { name: "이탈리아", code: "it" }, { name: "캐나다", code: "ca" },
+    { name: "호주", code: "au" }, { name: "브라질", code: "br" }, { name: "스페인", code: "es" },
+    { name: "멕시코", code: "mx" }, { name: "러시아", code: "ru" }, { name: "인도", code: "in" },
+    { name: "베트남", code: "vn" }, { name: "태국", code: "th" }, { name: "필리핀", code: "ph" },
+    { name: "아르헨티나", code: "ar" }, { name: "튀르키예", code: "tr" }, { name: "이집트", code: "eg" },
+    { name: "남아프리카 공화국", code: "za" }, { name: "사우디아라비아", code: "sa" }, { name: "스위스", code: "ch" },
+    { name: "스웨덴", code: "se" }, { name: "네덜란드", code: "nl" }, { name: "뉴질랜드", code: "nz" },
+    { name: "싱가포르", code: "sg" }, { name: "말레이시아", code: "my" }, { name: "인도네시아", code: "id" },
+    { name: "그리스", code: "gr" }, { name: "포르투갈", code: "pt" }, { name: "오스트리아", code: "at" },
+    { name: "덴마크", code: "dk" }, { name: "노르웨이", code: "no" }, { name: "핀란드", code: "fi" },
+    { name: "아일랜드", code: "ie" }, { name: "폴란드", code: "pl" }, { name: "체코", code: "cz" },
+    { name: "헝가리", code: "hu" }, { name: "칠레", code: "cl" }, { name: "페루", code: "pe" },
+    { name: "콜롬비아", code: "co" }, { name: "쿠바", code: "cu" }, { name: "케냐", code: "ke" },
+    { name: "나이지리아", code: "ng" }, { name: "이란", code: "ir" }, { name: "이라크", code: "iq" },
+    { name: "이스라엘", code: "il" }, { name: "대만", code: "tw" }
+  ],
+  medium: [
+    { name: "우크라이나", code: "ua" }, { name: "루마니아", code: "ro" }, { name: "불가리아", code: "bg" },
+    { name: "크로아티아", code: "hr" }, { name: "세르비아", code: "rs" }, { name: "슬로바키아", code: "sk" },
+    { name: "모로코", code: "ma" }, { name: "알제리", code: "dz" }, { name: "튀니지", code: "tn" },
+    { name: "에티오피아", code: "et" }, { name: "탄자니아", code: "tz" }, { name: "가나", code: "gh" },
+    { name: "세네갈", code: "sn" }, { name: "코트디부아르", code: "ci" }, { name: "카메룬", code: "cm" },
+    { name: "파키스탄", code: "pk" }, { name: "방글라데시", code: "bd" }, { name: "스리랑카", code: "lk" },
+    { name: "네팔", code: "np" }, { name: "미얀마", code: "mm" }, { name: "캄보디아", code: "kh" },
+    { name: "라오스", code: "la" }, { name: "몽골", code: "mn" }, { name: "카자흐스탄", code: "kz" },
+    { name: "우즈베키스탄", code: "uz" }, { name: "아프가니스탄", code: "af" }, { name: "우루과이", code: "uy" },
+    { name: "파라과이", code: "py" }, { name: "볼리비아", code: "bo" }, { name: "에콰도르", code: "ec" },
+    { name: "베네수엘라", code: "ve" }, { name: "코스타리카", code: "cr" }, { name: "파나마", code: "pa" },
+    { name: "과테말라", code: "gt" }, { name: "온두라스", code: "hn" }, { name: "엘살바도르", code: "sv" },
+    { name: "니카라과", code: "ni" }, { name: "도미니카 공화국", code: "do" }, { name: "자메이카", code: "jm" },
+    { name: "아이티", code: "ht" }, { name: "아이슬란드", code: "is" }, { name: "에스토니아", code: "ee" },
+    { name: "라트비아", code: "lv" }, { name: "리투아니아", code: "lt" }, { name: "벨라루스", code: "by" },
+    { name: "아제르바이잔", code: "az" }, { name: "조지아", code: "ge" }, { name: "아르메니아", code: "am" },
+    { name: "요르단", code: "jo" }, { name: "레바논", code: "lb" }
+  ],
+  hard: [
+    { name: "안도라", code: "ad" }, { name: "리히텐슈타인", code: "li" }, { name: "모나코", code: "mc" },
+    { name: "산마리노", code: "sm" }, { name: "바티칸 시국", code: "va" }, { name: "몰타", code: "mt" },
+    { name: "키프로스", code: "cy" }, { name: "룩셈부르크", code: "lu" }, { name: "바레인", code: "bh" },
+    { name: "카타르", code: "qa" }, { name: "쿠웨이트", code: "kw" }, { name: "오만", code: "om" },
+    { name: "예멘", code: "ye" }, { name: "부탄", code: "bt" }, { name: "몰디브", code: "mv" },
+    { name: "브루나이", code: "bn" }, { name: "타지키스탄", code: "tj" }, { name: "키르기스스탄", code: "kg" },
+    { name: "투르크메니스탄", code: "tm" }, { name: "지부티", code: "dj" }, { name: "에리트레아", code: "er" },
+    { name: "소말리아", code: "so" }, { name: "르완다", code: "rw" }, { name: "부룬디", code: "bi" },
+    { name: "말라위", code: "mw" }, { name: "잠비아", code: "zm" }, { name: "짐바브웨", code: "zw" },
+    { name: "보츠와나", code: "bw" }, { name: "나미비아", code: "na" }, { name: "레소토", code: "ls" },
+    { name: "에스와티니", code: "sz" }, { name: "마다가스카르", code: "mg" }, { name: "모리셔스", code: "mu" },
+    { name: "세이셸", code: "sc" }, { name: "모잠비크", code: "mz" }, { name: "앙골라", code: "ao" },
+    { name: "말리", code: "ml" }, { name: "니제르", code: "ne" }, { name: "차드", code: "td" },
+    { name: "수단", code: "sd" }, { name: "모리타니", code: "mr" }, { name: "기니", code: "gn" },
+    { name: "토고", code: "tg" }, { name: "베냉", code: "bj" }, { name: "피지", code: "fj" },
+    { name: "사모아", code: "ws" }, { name: "통가", code: "to" }, { name: "바누아투", code: "vu" },
+    { name: "키리바시", code: "ki" }, { name: "투발루", code: "tv" }
+  ]
+};
+
+const COUNTRY_NAMES = {
+  "kr": { ko: "대한민국", en: "South Korea", zh: "韩国", ja: "韓国", es: "Corea del Sur", fr: "Corée du Sud", ru: "Южная Корея", id: "Korea Selatan", vi: "Hàn Quốc", th: "เกาหลีใต้", "pt-br": "Coreia do Sul", hi: "दक्षिण कोरिया", bn: "দক্ষিণ কোরিয়া", tr: "Güney Kore", de: "Südkorea", it: "Corea del Sud" },
+  "us": { ko: "미국", en: "United States", zh: "美国", ja: "アメリカ", es: "Estados Unidos", fr: "États-Unis", ru: "США", id: "Amerika Serikat", vi: "Hoa Kỳ", th: "สหรัฐอเมริกา", "pt-br": "Estados Unidos", hi: "संयुक्त राज्य", bn: "যুক্তরাষ্ট্র", tr: "ABD", de: "USA", it: "Stati Uniti" },
+  "jp": { ko: "일본", en: "Japan", zh: "日本", ja: "日本", es: "Japón", fr: "Japon", ru: "Япония", id: "Jepang", vi: "Nhật Bản", th: "ญี่ปุ่น", "pt-br": "Japão", hi: "जापान", bn: "জাপান", tr: "Japonya", de: "Japan", it: "Giappone" },
+  "cn": { ko: "중국", en: "China", zh: "中国", ja: "中国", es: "China", fr: "Chine", ru: "Китай", id: "Tiongkok", vi: "Trung Quốc", th: "จีน", "pt-br": "China", hi: "चीन", bn: "চীন", tr: "Çin", de: "China", it: "Cina" },
+  "gb": { ko: "영국", en: "United Kingdom", zh: "英国", ja: "イギリス", es: "Reino Unido", fr: "Royaume-Uni", ru: "Великобритания", id: "Inggris", vi: "Vương quốc Anh", th: "สหราชอาณาจักร", "pt-br": "Reino Unido", hi: "यूनाइटेड किंगडम", bn: "যুক্তরাজ্য", tr: "Birleşik Krallık", de: "Vereinigtes Königreich", it: "Regno Unito" },
+  "fr": { ko: "프랑스", en: "France", zh: "法国", ja: "フランス", es: "Francia", fr: "France", ru: "Франция", id: "Prancis", vi: "Pháp", th: "ฝรั่งเศส", "pt-br": "França", hi: "फ्रांस", bn: "ফ্রান্স", tr: "Fransa", de: "Frankreich", it: "Francia" },
+  "de": { ko: "독일", en: "Germany", zh: "德国", ja: "ドイツ", es: "Alemania", fr: "Allemagne", ru: "Германия", id: "Jerman", vi: "Đức", th: "เยอรมนี", "pt-br": "Alemanha", hi: "जर्मनी", bn: "জার্মানি", tr: "Almanya", de: "Deutschland", it: "Germania" },
+  "it": { ko: "이탈리아", en: "Italy", zh: "意大利", ja: "イタリア", es: "Italia", fr: "Italie", ru: "Италия", id: "Italia", vi: "Ý", th: "อิตาลี", "pt-br": "Itália", hi: "इटली", bn: "ইতালি", tr: "İtalya", de: "Italien", it: "Italia" },
+  "ca": { ko: "캐나다", en: "Canada", zh: "加拿大", ja: "カナダ", es: "Canadá", fr: "Canada", ru: "Канада", id: "Kanada", vi: "Canada", th: "แคนาดา", "pt-br": "Canadá", hi: "कनाडा", bn: "কানাডা", tr: "Kanada", de: "Kanada", it: "Canada" },
+  "au": { ko: "호주", en: "Australia", zh: "澳大利亚", ja: "オーストラリア", es: "Australia", fr: "Australie", ru: "Австралия", id: "Australia", vi: "Úc", th: "ออสเตรเลีย", "pt-br": "Austrália", hi: "ऑस्ट्रेलिया", bn: "অস্ট্রেলিয়া", tr: "Avustralya", de: "Australien", it: "Australia" },
+  "br": { ko: "브라질", en: "Brazil", zh: "巴西", ja: "ブラジル", es: "Brasil", fr: "Brésil", ru: "Бразилия", id: "Brasil", vi: "Brazil", th: "บราซิล", "pt-br": "Brasil", hi: "ब्राज़ील", bn: "ব্রাজিল", tr: "Brezilya", de: "Brasilien", it: "Brasile" },
+  "es": { ko: "스페인", en: "Spain", zh: "西班牙", ja: "スペイン", es: "España", fr: "Espagne", ru: "Испания", id: "Spanyol", vi: "Tây Ban Nha", th: "สเปน", "pt-br": "Espanha", hi: "स्पेन", bn: "স্পেন", tr: "İspanya", de: "Spanien", it: "Spagna" },
+  "mx": { ko: "멕시코", en: "Mexico", zh: "墨西哥", ja: "メキシコ", es: "México", fr: "Mexique", ru: "Мексика", id: "Meksiko", vi: "Mexico", th: "เม็กซิโก", "pt-br": "México", hi: "मेक्सिको", bn: "मेক্সিকো", tr: "Meksika", de: "Mexiko", it: "Messico" },
+  "ru": { ko: "러시아", en: "Russia", zh: "俄罗斯", ja: "ロシア", es: "Rusia", fr: "Russie", ru: "Россия", id: "Rusia", vi: "Nga", th: "รัสเซีย", "pt-br": "Rússia", hi: "रूस", bn: "রাশিয়া", tr: "Rusya", de: "Russland", it: "Russia" },
+  "in": { ko: "인도", en: "India", zh: "印度", ja: "インド", es: "India", fr: "Inde", ru: "Индия", id: "India", vi: "Ấn Độ", th: "อินเดีย", "pt-br": "Índia", hi: "भारत", bn: "ভারত", tr: "Hindistan", de: "Indien", it: "India" },
+  "vn": { ko: "베트남", en: "Vietnam", zh: "越南", ja: "ベトナム", es: "Vietnam", fr: "Vietnam", ru: "Вьетнам", id: "Vietnam", vi: "Việt Nam", th: "เวียดนาม", "pt-br": "Vietnã", hi: "वियतनाम", bn: "ভিয়েতনাম", tr: "Vietnam", de: "Vietnam", it: "Vietnam" },
+  "th": { ko: "태국", en: "Thailand", zh: "泰国", ja: "タイ", es: "Tailandia", fr: "Thaïlande", ru: "Таиланд", id: "Thailand", vi: "Thái Lan", th: "ไทย", "pt-br": "Tailândia", hi: "थाईलैंड", bn: "থাইল্যান্ড", tr: "Tayland", de: "Thailand", it: "Tailandia" },
+  "ph": { ko: "필리핀", en: "Philippines", zh: "菲律宾", ja: "フィリピン", es: "Filipinas", fr: "Philippines", ru: "Филиппины", id: "Filipina", vi: "Philippines", th: "ฟิลิปปินส์", "pt-br": "Filipinas", hi: "फ़िलीपींस", bn: "ফিলিপাইন", tr: "Filipinler", de: "Philippinen", it: "Filippine" },
+  "ar": { ko: "아르헨티나", en: "Argentina", zh: "阿根廷", ja: "アルゼンチン", es: "Argentina", fr: "Argentine", ru: "Аргентина", id: "Argentina", vi: "Argentina", th: "อาร์เจนตินา", "pt-br": "Argentina", hi: "अर्जेंटीना", bn: "আর্জেন্টিনা", tr: "Arjantin", de: "Argentinien", it: "Argentina" },
+  "tr": { ko: "튀르키예", en: "Turkey", zh: "土耳其", ja: "トルコ", es: "Turquía", fr: "Turquie", ru: "Турция", id: "Turki", vi: "Thổ Nhĩ Kỳ", th: "ตุรกี", "pt-br": "Turquia", hi: "तुर्की", bn: "তুরস্ক", tr: "Türkiye", de: "Türkei", it: "Turchia" },
+  "eg": { ko: "이집트", en: "Egypt", zh: "埃及", ja: "エジプト", es: "Egipto", fr: "Égypte", ru: "Египет", id: "Mesir", vi: "Ai Cập", th: "อียิปต์", "pt-br": "Egito", hi: "मिस्र", bn: "মিশর", tr: "Mısır", de: "Ägypten", it: "Egitto" },
+  "za": { ko: "남아프리카 공화국", en: "South Africa", zh: "南非", ja: "南アフリカ", es: "Sudáfrica", fr: "Afrique du Sud", ru: "ЮАР", id: "Afrika Selatan", vi: "Nam Phi", th: "แอฟริกาใต้", "pt-br": "África do Sul", hi: "दक्षिण अफ्रीका", bn: "দক্ষিণ আফ্রিকা", tr: "Güney Afrika", de: "Südafrika", it: "Sudafrica" },
+  "sa": { ko: "사우디아라비아", en: "Saudi Arabia", zh: "沙特阿拉伯", ja: "サウジアラビア", es: "Arabia Saudita", fr: "Arabie Saoudite", ru: "Саудовская Аравия", id: "Arab Saudi", vi: "Ả Rập Xê Út", th: "ซาอุดีอาระเบีย", "pt-br": "Arábia Saudita", hi: "सऊदी अरब", bn: "সৌদি আরব", tr: "Suudi Arabistan", de: "Saudi-Arabien", it: "Arabia Saudita" },
+  "ch": { ko: "스위스", en: "Switzerland", zh: "瑞士", ja: "スイス", es: "Suiza", fr: "Suisse", ru: "Швейцария", id: "Swiss", vi: "Thụy Sĩ", th: "สวิตเซอร์แลนด์", "pt-br": "Suíça", hi: "स्विट्जरलैंड", bn: "সুইজারল্যান্ড", tr: "İsviçre", de: "Schweiz", it: "Svizzera" },
+  "se": { ko: "스웨덴", en: "Sweden", zh: "瑞典", ja: "スウェーデン", es: "Suecia", fr: "Suède", ru: "Швеция", id: "Swedia", vi: "Thụy Điển", th: "สวีเดน", "pt-br": "Suécia", hi: "स्वीडन", bn: "সুইডেন", tr: "İsveç", de: "Schweden", it: "Svezia" },
+  "nl": { ko: "네덜란드", en: "Netherlands", zh: "荷兰", ja: "オランダ", es: "Países Bajos", fr: "Pays-Bas", ru: "Нидерланды", id: "Belanda", vi: "Hà Lan", th: "เนเธอร์แลนด์", "pt-br": "Holanda", hi: "नीदरलैंड", bn: "নেদারল্যান্ডস", tr: "Hollanda", de: "Niederlande", it: "Paesi Bassi" },
+  "nz": { ko: "뉴질랜드", en: "New Zealand", zh: "新西兰", ja: "ニュージーランド", es: "Nueva Zelanda", fr: "Nouvelle-Zélande", ru: "Новая Зеландия", id: "Selandia Baru", vi: "New Zealand", th: "นิวซีแลนด์", "pt-br": "Nova Zelândia", hi: "न्यूजीलैंड", bn: "নিউজিল্যান্ড", tr: "Yeni Zelanda", de: "Neuseeland", it: "Nuova Zelanda" },
+  "sg": { ko: "싱가포르", en: "Singapore", zh: "新加坡", ja: "シンガポール", es: "Singapur", fr: "Singapour", ru: "Сингапур", id: "Singapura", vi: "Singapore", th: "สิงคโปร์", "pt-br": "Singapura", hi: "सिंगापुर", bn: "সিঙ্গাপুর", tr: "Singapur", de: "Singapur", it: "Singapore" },
+  "my": { ko: "말레이시아", en: "Malaysia", zh: "马来西亚", ja: "マレーシア", es: "Malasia", fr: "Malaisie", ru: "Малайзия", id: "Malaysia", vi: "Malaysia", th: "มาเลเซีย", "pt-br": "Malásia", hi: "मलेशिया", bn: "মালয়েশিয়া", tr: "Malezya", de: "Malaysia", it: "Malesia" },
+  "id": { ko: "인도네시아", en: "Indonesia", zh: "印度尼西亚", ja: "インドネシア", es: "Indonesia", fr: "Indonésie", ru: "Индонезия", id: "Indonesia", vi: "Indonesia", th: "อินโดนีเซีย", "pt-br": "Indonésia", hi: "इंडोनेशिया", bn: "ইন্দোনেশিয়া", tr: "Endonezya", de: "Indonesien", it: "Indonesia" },
+  "gr": { ko: "그리스", en: "Greece", zh: "希腊", ja: "ギリシャ", es: "Grecia", fr: "Grèce", ru: "Греция", id: "Yunani", vi: "Hy Lạp", th: "กรีซ", "pt-br": "Grécia", hi: "यूनान", bn: "গ্রীস", tr: "Yunanistan", de: "Griechenland", it: "Grecia" },
+  "pt": { ko: "포르투갈", en: "Portugal", zh: "葡萄牙", ja: "ポルトガル", es: "Portugal", fr: "Portugal", ru: "Португалия", id: "Portugal", vi: "Bồ Đào Nha", th: "โปรตุเกส", "pt-br": "Portugal", hi: "पुर्तगाल", bn: "পর্তুগাল", tr: "Portekiz", de: "Portugal", it: "Portogallo" },
+  "at": { ko: "오스트리아", en: "Austria", zh: "奥地利", ja: "オーストリア", es: "Austria", fr: "Autriche", ru: "Австрия", id: "Austria", vi: "Áo", th: "ออสเตรีย", "pt-br": "Áustria", hi: "ऑस्ट्रिया", bn: "অস্ট্রিয়া", tr: "Avusturya", de: "Österreich", it: "Austria" },
+  "dk": { ko: "덴마크", en: "Denmark", zh: "丹麦", ja: "デンマーク", es: "Dinamarca", fr: "Danemark", ru: "Дания", id: "Denmark", vi: "Đan Mạch", th: "เดนมาร์ก", "pt-br": "Dinamarca", hi: "डेनमार्क", bn: "ডেনমার্ক", tr: "Danimarka", de: "Dänemark", it: "Danimarca" },
+  "no": { ko: "노르웨이", en: "Norway", zh: "挪威", ja: "ノルウェー", es: "Noruega", fr: "Norvège", ru: "Норвегия", id: "Norwegia", vi: "Na Uy", th: "นอร์เวย์", "pt-br": "Noruega", hi: "नॉर्वे", bn: "নরওয়ে", tr: "Norveç", de: "Norwegen", it: "Norvegia" },
+  "fi": { ko: "핀란드", en: "Finland", zh: "芬兰", ja: "フィンランド", es: "Finlandia", fr: "Finlande", ru: "Финляндия", id: "Finlandia", vi: "Phần Lan", th: "ฟินแลนด์", "pt-br": "Finlândia", hi: "फिनलैंड", bn: "ফিনল্যান্ড", tr: "Finlandiya", de: "Finnland", it: "Finlandia" },
+  "ie": { ko: "아일랜드", en: "Ireland", zh: "爱尔兰", ja: "アイルランド", es: "Irlanda", fr: "Irlande", ru: "Ирландия", id: "Irlandia", vi: "Ireland", th: "ไอร์แลนด์", "pt-br": "Irlanda", hi: "आयरलैंड", bn: "আয়ারল্যান্ড", tr: "İrlanda", de: "Irland", it: "Irlanda" },
+  "pl": { ko: "폴란드", en: "Poland", zh: "波兰", ja: "ポーランド", es: "Polonia", fr: "Pologne", ru: "Польша", id: "Polandia", vi: "Ba Lan", th: "โปแลนด์", "pt-br": "Polônia", hi: "पोलैंड", bn: "পোল্যান্ড", tr: "Polonya", de: "Polen", it: "Polonia" },
+  "cz": { ko: "체코", en: "Czech Republic", zh: "捷克", ja: "チェコ", es: "República Checa", fr: "République Tchèque", ru: "Чехия", id: "Ceko", vi: "Cộng hòa Séc", th: "เช็กเกีย", "pt-br": "República Tcheca", hi: "चेक गणराज्य", bn: "চেক প্রজাতন্ত্র", tr: "Çekya", de: "Tschechien", it: "Repubblica Ceca" },
+  "hu": { ko: "헝가리", en: "Hungary", zh: "匈牙利", ja: "ハンガリー", es: "Hungría", fr: "Hongrie", ru: "Венгрия", id: "Hungaria", vi: "Hungary", th: "ฮังการี", "pt-br": "Hungria", hi: "हंगरी", bn: "হাঙ্গেরি", tr: "Macaristan", de: "Ungarn", it: "Ungheria" },
+  "cl": { ko: "칠레", en: "Chile", zh: "智利", ja: "チリ", es: "Chile", fr: "Chili", ru: "Чили", id: "Chili", vi: "Chile", th: "ชิลี", "pt-br": "Chile", hi: "चिली", bn: "চিলি", tr: "Şili", de: "Chile", it: "Cile" },
+  "pe": { ko: "페루", en: "Peru", zh: "秘鲁", ja: "ペルー", es: "Perú", fr: "Pérou", ru: "Перу", id: "Peru", vi: "Peru", th: "เปรู", "pt-br": "Peru", hi: "पेरू", bn: "পেরু", tr: "Peru", de: "Peru", it: "Perù" },
+  "co": { ko: "콜롬비아", en: "Colombia", zh: "哥伦比亚", ja: "コロンビア", es: "Colombia", fr: "Colombie", ru: "Колумбия", id: "Kolombia", vi: "Colombia", th: "โคลอมเบีย", "pt-br": "Colômbia", hi: "कोलंबिया", bn: "কলম্বিয়া", tr: "Kolombiya", de: "Kolumbien", it: "Colombia" },
+  "cu": { ko: "쿠바", en: "Cuba", zh: "古巴", ja: "キューバ", es: "Cuba", fr: "Cuba", ru: "Куба", id: "Kuba", vi: "Cuba", th: "คิวบา", "pt-br": "Cuba", hi: "क्यूबा", bn: "কিউবা", tr: "Küba", de: "Kuba", it: "Cuba" },
+  "ke": { ko: "케냐", en: "Kenya", zh: "肯尼亚", ja: "ケニア", es: "Kenia", fr: "Kenya", ru: "Кения", id: "Kenya", vi: "Kenya", th: "เคนยา", "pt-br": "Quênia", hi: "केन्या", bn: "কেনিয়া", tr: "Kenya", de: "Kenia", it: "Kenya" },
+  "ng": { ko: "나이지리아", en: "Nigeria", zh: "尼日利亚", ja: "ナイジェリア", es: "Nigeria", fr: "Nigéria", ru: "Нигерия", id: "Nigeria", vi: "Nigeria", th: "ไนจีเรีย", "pt-br": "Nigéria", hi: "नाइजीरिया", bn: "নাইজেরিয়া", tr: "Nijerya", de: "Nigeria", it: "Nigeria" },
+  "ir": { ko: "이란", en: "Iran", zh: "伊朗", ja: "イラン", es: "Irán", fr: "Iran", ru: "Иран", id: "Iran", vi: "Iran", th: "อิหร่าน", "pt-br": "Irã", hi: "ईरान", bn: "ইরান", tr: "İran", de: "Iran", it: "Iran" },
+  "iq": { ko: "이라크", en: "Iraq", zh: "伊拉克", ja: "イラク", es: "Irak", fr: "Irak", ru: "Ирак", id: "Irak", vi: "Iraq", th: "อิรัก", "pt-br": "Iraque", hi: "इराक", bn: "ইরাক", tr: "Irak", de: "Irak", it: "Iraq" },
+  "il": { ko: "이스라엘", en: "Israel", zh: "以色列", ja: "イスラエル", es: "Israel", fr: "Israël", ru: "Израиль", id: "Israel", vi: "Israel", th: "อิสราเอล", "pt-br": "Israel", hi: "इज़राइल", bn: "ইসরায়েল", tr: "İsrail", de: "Israel", it: "Israele" },
+  "tw": { ko: "대만", en: "Taiwan", zh: "台湾", ja: "台湾", es: "Taiwán", fr: "Taïwan", ru: "Тайвань", id: "Taiwan", vi: "Đài Loan", th: "ไต้หวัน", "pt-br": "Taiwan", hi: "ताइवान", bn: "তাইওয়ান", tr: "Tayvan", de: "Taiwan", it: "Taiwan" },
+  
+  "ua": { ko: "우크라이나", en: "Ukraine", zh: "乌克兰", ja: "ウクライナ", es: "Ucrania", fr: "Ukraine", ru: "Украина", id: "Ukraina", vi: "Ukraine", th: "ยูเครน", "pt-br": "Ucrânia", hi: "युक्रेन", bn: "ইউক্রেন", tr: "Ukrayna", de: "Ukraine", it: "Ucraina" },
+  "ro": { ko: "루마니아", en: "Romania", zh: "罗马尼亚", ja: "ルーマニア", es: "Rumania", fr: "Roumanie", ru: "Румыния", id: "Rumania", vi: "Romania", th: "โรมาเนีย", "pt-br": "Romênia", hi: "रोमानिया", bn: "রোমানিয়া", tr: "Romanya", de: "Rumänien", it: "Romania" },
+  "bg": { ko: "불가리아", en: "Bulgaria", zh: "保加利亚", ja: "ブルガリア", es: "Bulgaria", fr: "Bulgarie", ru: "Болгария", id: "Bulgaria", vi: "Bulgaria", th: "บัลแกเรีย", "pt-br": "Bulgária", hi: "बुल्गारिया", bn: "বুলগেরিয়া", tr: "Bulgaristan", de: "Bulgarien", it: "Bulgaria" },
+  "hr": { ko: "크로아티아", en: "Croatia", zh: "克罗地亚", ja: "クロアチア", es: "Croacia", fr: "Croatie", ru: "Хорватия", id: "Kroasia", vi: "Croatia", th: "โครเอเชีย", "pt-br": "Croácia", hi: "क्रोएशिया", bn: "ক্রোয়েশিয়া", tr: "Hırvatistan", de: "Kroatien", it: "Croazia" },
+  "rs": { ko: "세르비아", en: "Serbia", zh: "塞尔维亚", ja: "セルビア", es: "Serbia", fr: "Serbie", ru: "Сербия", id: "Serbia", vi: "Serbia", th: "เซอร์เบีย", "pt-br": "Sérvia", hi: "सर्बिया", bn: "সার্বিয়া", tr: "Sırbistan", de: "Serbien", it: "Serbia" },
+  "sk": { ko: "슬로바키아", en: "Slovakia", zh: "斯洛伐克", ja: "スロバキア", es: "Eslovaquia", fr: "Slovaquie", ru: "Словакия", id: "Slowakia", vi: "Slovakia", th: "สโลวาเกีย", "pt-br": "Eslováquia", hi: "स्लोवाकिया", bn: "স্লোভাকিয়া", tr: "Slovakya", de: "Slowakei", it: "Slovacchia" },
+  "ma": { ko: "모로코", en: "Morocco", zh: "摩洛哥", ja: "モロッコ", es: "Marruecos", fr: "Maroc", ru: "Марокко", id: "Maroko", vi: "Morocco", th: "โมร็อกโก", "pt-br": "Marrocos", hi: "मोरक्को", bn: "মরক্কো", tr: "Fas", de: "Marokko", it: "Marocco" },
+  "dz": { ko: "알제리", en: "Algeria", zh: "阿尔及利亚", ja: "アルジェリア", es: "Argelia", fr: "Algérie", ru: "Алжир", id: "Aljazair", vi: "Algeria", th: "แอลจีเรีย", "pt-br": "Argélia", hi: "अल्जीरिया", bn: "আলজেরিয়া", tr: "Cezayir", de: "Algerien", it: "Algeria" },
+  "tn": { ko: "튀니지", en: "Tunisia", zh: "突尼斯", ja: "チュニジア", es: "Túnez", fr: "Tunisie", ru: "Тунис", id: "Tunisia", vi: "Tunisia", th: "ตูนิเซีย", "pt-br": "Tunísia", hi: "ट्यूनीशिया", bn: "তিউনিসিয়া", tr: "Tunus", de: "Tunesien", it: "Tunisia" },
+  "et": { ko: "에티오피아", en: "Ethiopia", zh: "埃塞俄比亚", ja: "エチオピア", es: "Etiopía", fr: "Éthiopie", ru: "Эфиопия", id: "Etiopia", vi: "Ethiopia", th: "เอธิโอเปีย", "pt-br": "Etiópia", hi: "इथियोपिया", bn: "ইথিওপিয়া", tr: "Etiyopya", de: "Äthiopien", it: "Etiopia" },
+  "tz": { ko: "탄자니아", en: "Tanzania", zh: "坦桑尼亚", ja: "タンザニア", es: "Tanzania", fr: "Tanzanie", ru: "Танзания", id: "Tanzania", vi: "Tanzania", th: "แทนซาเนีย", "pt-br": "Tanzânia", hi: "तंजानिया", bn: "তাঞ্জানিয়া", tr: "Tanzanya", de: "Tansania", it: "Tanzania" },
+  "gh": { ko: "가나", en: "Ghana", zh: "加纳", ja: "ガーナ", es: "Ghana", fr: "Ghana", ru: "Гана", id: "Ghana", vi: "Ghana", th: "กานา", "pt-br": "Gana", hi: "घाना", bn: "ঘানা", tr: "Gana", de: "Ghana", it: "Ghana" },
+  "sn": { ko: "세네갈", en: "Senegal", zh: "塞内加尔", ja: "セネガル", es: "Senegal", fr: "Sénégal", ru: "Сенегал", id: "Senegal", vi: "Senegal", th: "เซเนกัล", "pt-br": "Senegal", hi: "सेनेगल", bn: "সেনেগাল", tr: "Senegal", de: "Senegal", it: "Senegal" },
+  "ci": { ko: "코트디부아르", en: "Ivory Coast", zh: "科特迪瓦", ja: "コートジボワール", es: "Costa de Marfil", fr: "Côte d'Ivoire", ru: "Кот-д'Ивуар", id: "Pantai Gading", vi: "Bờ Biển Ngà", th: "โกตดิวัวร์", "pt-br": "Costa do Marfim", hi: "आइवरी कोस्ट", bn: "আইভরি কোস্ট", tr: "Fildişi Sahili", de: "Elfenbeinküste", it: "Costa d'Avorio" },
+  "cm": { ko: "카메룬", en: "Cameroon", zh: "喀麦隆", ja: "カメルーン", es: "Camerún", fr: "Cameroun", ru: "Камерун", id: "Kamerun", vi: "Cameroon", th: "แคเมอรูน", "pt-br": "Camarões", hi: "कैमरून", bn: "ক্যামেরুন", tr: "Kamerun", de: "Kamerun", it: "Camerun" },
+  "pk": { ko: "파키스탄", en: "Pakistan", zh: "巴基斯坦", ja: "パキスタン", es: "Pakistán", fr: "Pakistan", ru: "Пакистан", id: "Pakistan", vi: "Pakistan", th: "ปากีสถาน", "pt-br": "Paquistão", hi: "पाकिस्तान", bn: "পাকিস্তান", tr: "Pakistan", de: "Pakistan", it: "Pakistan" },
+  "bd": { ko: "방글라데시", en: "Bangladesh", zh: "孟加拉国", ja: "バングラデシュ", es: "Bangladesh", fr: "Bangladesh", ru: "Бангладеш", id: "Bangladesh", vi: "Bangladesh", th: "บังกลาเทศ", "pt-br": "Bangladesh", hi: "बांग्लादेश", bn: "বাংলাদেশ", tr: "Bangladeş", de: "Bangladesch", it: "Bangladesh" },
+  "lk": { ko: "스리랑카", en: "Sri Lanka", zh: "斯里兰卡", ja: "スリランカ", es: "Sri Lanka", fr: "Sri Lanka", ru: "Шри-Ланка", id: "Sri Lanka", vi: "Sri Lanka", th: "ศรีลังกา", "pt-br": "Sri Lanka", hi: "श्रीलंका", bn: "শ্রীলঙ্কা", tr: "Sri Lanka", de: "Sri Lanka", it: "Sri Lanka" },
+  "np": { ko: "네팔", en: "Nepal", zh: "尼泊尔", ja: "ネパール", es: "Nepal", fr: "Népal", ru: "Непал", id: "Nepal", vi: "Nepal", th: "เนปาล", "pt-br": "Nepal", hi: "नेपाल", bn: "নেপাল", tr: "Nepal", de: "Nepal", it: "Nepal" },
+  "mm": { ko: "미얀마", en: "Myanmar", zh: "缅甸", ja: "ミャンマー", es: "Myanmar", fr: "Myanmar", ru: "Мьянма", id: "Myanmar", vi: "Myanmar", th: "เมียนมา", "pt-br": "Mianmar", hi: "म्यांमार", bn: "মিয়ানমার", tr: "Myanmar", de: "Myanmar", it: "Myanmar" },
+  "kh": { ko: "캄보디아", en: "Cambodia", zh: "柬埔寨", ja: "カンボジア", es: "Camboya", fr: "Cambodge", ru: "Камбоджа", id: "Kamboja", vi: "Campuchia", th: "กัมพูชา", "pt-br": "Camboja", hi: "कंबोडिया", bn: "কম্বোডিয়া", tr: "Kamboçya", de: "Kambodscha", it: "Cambogia" },
+  "la": { ko: "라오스", en: "Laos", zh: "老挝", ja: "ラオス", es: "Laos", fr: "Laos", ru: "Лаос", id: "Laos", vi: "Lào", th: "ลาว", "pt-br": "Laos", hi: "लाओस", bn: "লাওস", tr: "Laos", de: "Laos", it: "Laos" },
+  "mn": { ko: "몽골", en: "Mongolia", zh: "蒙古", ja: "モンゴル", es: "Mongolia", fr: "Mongolie", ru: "Монголия", id: "Mongolia", vi: "Mông Cổ", th: "มองโกเลีย", "pt-br": "Mongólia", hi: "मंगोलिया", bn: "মঙ্গোলিয়া", tr: "Moğolistan", de: "Mongolei", it: "Mongolia" },
+  "kz": { ko: "카자흐스탄", en: "Kazakhstan", zh: "哈萨克斯坦", ja: "カザフスタン", es: "Kazajistán", fr: "Kazakhstan", ru: "Казахстан", id: "Kazakhstan", vi: "Kazakhstan", th: "คาซัคสถาน", "pt-br": "Cazaquistão", hi: "कजाखस्तान", bn: "কাজাখস্তান", tr: "Kazakistan", de: "Kasachstan", it: "Kazakistan" },
+  "uz": { ko: "우즈베키스탄", en: "Uzbekistan", zh: "乌兹别克斯坦", ja: "ウズベキスタン", es: "Uzbekistán", fr: "Ouzbékistan", ru: "Узбекистан", id: "Uzbekistan", vi: "Uzbekistan", th: "อุซเบกิสถาน", "pt-br": "Uzbequistão", hi: "उज्बेकिस्तान", bn: "উজবেকিस्तान", tr: "Özbekistan", de: "Usbekistan", it: "Uzbekistan" },
+  "af": { ko: "아프가니스탄", en: "Afghanistan", zh: "阿富汗", ja: "アフガニスタン", es: "Afganistán", fr: "Afghanistan", ru: "Афганистан", id: "Afganistan", vi: "Afghanistan", th: "อัฟกานิสถาน", "pt-br": "Afeganistão", hi: "अफगानिस्तान", bn: "আফগানিস্তান", tr: "Afganistan", de: "Afghanistan", it: "Afghanistan" },
+  "uy": { ko: "우루과이", en: "Uruguay", zh: "乌拉圭", ja: "ウルグアイ", es: "Uruguay", fr: "Uruguay", ru: "Уругвай", id: "Uruguay", vi: "Uruguay", th: "อุรุกวัย", "pt-br": "Uruguai", hi: "उरुग्वे", bn: "উরুগুয়ে", tr: "Uruguay", de: "Uruguay", it: "Uruguay" },
+  "py": { ko: "파라과이", en: "Paraguay", zh: "巴拉圭", ja: "パラグアイ", es: "Paraguay", fr: "Paraguay", ru: "Парагвай", id: "Paraguay", vi: "Paraguay", th: "ปารากวัย", "pt-br": "Paraguai", hi: "पैराग्वे", bn: "প্যারাগুয়ে", tr: "Paraguay", de: "Paraguay", it: "Paraguay" },
+  "bo": { ko: "볼리비아", en: "Bolivia", zh: "玻利维亚", ja: "ボリビア", es: "Bolivia", fr: "Bolivie", ru: "Боливия", id: "Bolivia", vi: "Bolivia", th: "โบลิเวีย", "pt-br": "Bolívia", hi: "बोलीविया", bn: "বলিভিয়া", tr: "Bolivya", de: "Bolivien", it: "Bolivia" },
+  "ec": { ko: "에콰도르", en: "Ecuador", zh: "厄瓜多尔", ja: "エクアドル", es: "Ecuador", fr: "Équateur", ru: "Эквадор", id: "Ekuador", vi: "Ecuador", th: "เอกวาดอร์", "pt-br": "Equador", hi: "इक्वाडोर", bn: "ইকুয়েডর", tr: "Ekvador", de: "Ecuador", it: "Ecuador" },
+  "ve": { ko: "베네수엘라", en: "Venezuela", zh: "委内瑞拉", ja: "ベネズエラ", es: "Venezuela", fr: "Venezuela", ru: "Венесуэла", id: "Venezuela", vi: "Venezuela", th: "เวเนซุเอลา", "pt-br": "Venezuela", hi: "वेनेजुएला", bn: "ভেনেজুয়েলা", tr: "Venezuela", de: "Venezuela", it: "Venezuela" },
+  "cr": { ko: "코스타리카", en: "Costa Rica", zh: "哥斯达黎加", ja: "コスタリカ", es: "Costa Rica", fr: "Costa Rica", ru: "Коста-Рика", id: "Kosta Rika", vi: "Costa Rica", th: "คอสตาริกา", "pt-br": "Costa Rica", hi: "कोस्टा रिका", bn: "কোস্টা রিকা", tr: "Kosta Rika", de: "Costa Rica", it: "Costa Rica" },
+  "pa": { ko: "파나마", en: "Panama", zh: "巴拿马", ja: "パナマ", es: "Panamá", fr: "Panama", ru: "Панама", id: "Panama", vi: "Panama", th: "ปานามา", "pt-br": "Panamá", hi: "पनामा", bn: "পানামা", tr: "Panama", de: "Panama", it: "Panama" },
+  "gt": { ko: "과테말라", en: "Guatemala", zh: "危地马拉", ja: "グアテマラ", es: "Guatemala", fr: "Guatemala", ru: "Гватемала", id: "Guatemala", vi: "Guatemala", th: "กัวเตมาลา", "pt-br": "Guatemala", hi: "ग्वाटेमाला", bn: "গুয়াতেমালা", tr: "Guatemala", de: "Guatemala", it: "Guatemala" },
+  "hn": { ko: "온두라스", en: "Honduras", zh: "洪都拉斯", ja: "ホンジュラス", es: "Honduras", fr: "Honduras", ru: "Гондурас", id: "Honduras", vi: "Honduras", th: "ฮอนดูรัส", "pt-br": "Honduras", hi: "होंडुरास", bn: "হন্ডুরাস", tr: "Honduras", de: "Honduras", it: "Honduras" },
+  "sv": { ko: "엘살바도르", en: "El Salvador", zh: "萨尔瓦多", ja: "エルサルバドル", es: "El Salvador", fr: "Le Salvador", ru: "Сальвадор", id: "El Salvador", vi: "El Salvador", th: "เอลซัลวาดอร์", "pt-br": "El Salvador", hi: "अल साल्वाडोर", bn: "এল সালভাদর", tr: "El Salvador", de: "El Salvador", it: "El Salvador" },
+  "ni": { ko: "니카라과", en: "Nicaragua", zh: "尼加拉瓜", ja: "ニカラグア", es: "Nicaragua", fr: "Nicaragua", ru: "Никарагуа", id: "Nikaragua", vi: "Nicaragua", th: "นิการากัว", "pt-br": "Nicarágua", hi: "निकारागुआ", bn: "নিকারাগুয়া", tr: "Nikaragua", de: "Nicaragua", it: "Nicaragua" },
+  "do": { ko: "도미니카 공화국", en: "Dominican Republic", zh: "多米尼加共和国", ja: "ドミニカ共和国", es: "República Dominicana", fr: "République Dominicaine", ru: "Доминиканская Республика", id: "Republik Dominika", vi: "Cộng hòa Dominica", th: "สาธารณรัฐโดมินิกัน", "pt-br": "República Dominicana", hi: "डोमिनिकन गणराज्य", bn: "ডোমিনিকান প্রজাতন্ত্র", tr: "Dominik Cumhuriyeti", de: "Dominikanische Republik", it: "Repubblica Dominicana" },
+  "jm": { ko: "자메이카", en: "Jamaica", zh: "牙买加", ja: "ジャマイカ", es: "Jamaica", fr: "Jamaïque", ru: "Ямайка", id: "Jamaika", vi: "Jamaica", th: "จาเมกา", "pt-br": "Jamaica", hi: "जमैका", bn: "জ্যামাইকা", tr: "Jamaika", de: "Jamaika", it: "Giamaica" },
+  "ht": { ko: "아이티", en: "Haiti", zh: "海地", ja: "ハイチ", es: "Haití", fr: "Haïti", ru: "Гаити", id: "Haiti", vi: "Haiti", th: "เฮติ", "pt-br": "Haiti", hi: "हैती", bn: "হাইতি", tr: "Haiti", de: "Haiti", it: "Haiti" },
+  "is": { ko: "아이슬란드", en: "Iceland", zh: "冰岛", ja: "アイスランド", es: "Islandia", fr: "Islande", ru: "Исландия", id: "Islandia", vi: "Iceland", th: "ไอซ์แลนด์", "pt-br": "Islândia", hi: "आइसलैंड", bn: "আইসল্যান্ড", tr: "İzlanda", de: "Island", it: "Islanda" },
+  "ee": { ko: "에스토니아", en: "Estonia", zh: "爱沙尼亚", ja: "エストニア", es: "Estonia", fr: "Estonie", ru: "Эстония", id: "Estonia", vi: "Estonia", th: "เอสโตเนีย", "pt-br": "Estônia", hi: "एस्टोनिया", bn: "এস্তোনিয়া", tr: "Estonya", de: "Estland", it: "Estonia" },
+  "lv": { ko: "라트비아", en: "Latvia", zh: "拉脱维亚", ja: "ラトビア", es: "Letonia", fr: "Lettonie", ru: "Латвия", id: "Latvia", vi: "Latvia", th: "ลัตเวีย", "pt-br": "Letônia", hi: "लातविया", bn: "লাতভিয়া", tr: "Letonya", de: "Lettland", it: "Lettonia" },
+  "lt": { ko: "리투아니아", en: "Lithuania", zh: "立陶宛", ja: "リトアニア", es: "Lituania", fr: "Lituanie", ru: "Литва", id: "Lituania", vi: "Lithuania", th: "ลิทัวเนีย", "pt-br": "Lituânia", hi: "लिथुआनिया", bn: "লিথুয়ানিয়া", tr: "Litvanya", de: "Litauen", it: "Lituania" },
+  "by": { ko: "벨라루스", en: "Belarus", zh: "白俄罗斯", ja: "ベラルーシ", es: "Bielorrusia", fr: "Biélorussie", ru: "Беларусь", id: "Belarus", vi: "Belarus", th: "เบลารุส", "pt-br": "Bielorrússia", hi: "बेलारूस", bn: "বেলারুশ", tr: "Belarus", de: "Belarus", it: "Bielorussia" },
+  "az": { ko: "아제르바이잔", en: "Azerbaijan", zh: "阿塞拜疆", ja: "アゼルバイジャン", es: "Azerbaiyán", fr: "Azerbaïdjan", ru: "Азербайджан", id: "Azerbaijan", vi: "Azerbaijan", th: "อาเซอร์ไบจาน", "pt-br": "Azerbaijão", hi: "अज़रबैजान", bn: "আজারবাইজান", tr: "Azerbaycan", de: "Aserbaidschan", it: "Azerbaigian" },
+  "ge": { ko: "조지아", en: "Georgia", zh: "格鲁吉亚", ja: "ジョージア", es: "Georgia", fr: "Géorgie", ru: "Грузия", id: "Georgia", vi: "Georgia", th: "จอร์เจีย", "pt-br": "Geórgia", hi: "जॉर्जिया", bn: "জর্জিয়া", tr: "Gürcistan", de: "Georgien", it: "Georgia" },
+  "am": { ko: "아르메니아", en: "Armenia", zh: "亚美尼亚", ja: "アルメニア", es: "Armenia", fr: "Arménie", ru: "Армения", id: "Armenia", vi: "Armenia", th: "อาร์เมเนีย", "pt-br": "Armênia", hi: "आर्मीनिया", bn: "আর্মেনিয়া", tr: "Ermenistan", de: "Armenien", it: "Armenia" },
+  "jo": { ko: "요르단", en: "Jordan", zh: "约旦", ja: "ヨルダン", es: "Jordania", fr: "Jordanie", ru: "Иордания", id: "Yordania", vi: "Jordan", th: "จอร์แดน", "pt-br": "Jordânia", hi: "जॉर्डन", bn: "জর্ডান", tr: "Ürdün", de: "Jordanien", it: "Giordania" },
+  "lb": { ko: "레바논", en: "Lebanon", zh: "黎巴嫩", ja: "レバノン", es: "Líbano", fr: "Liban", ru: "Ливан", id: "Lebanon", vi: "Lebanon", th: "เลบานอน", "pt-br": "Líbano", hi: "लेबनान", bn: "লেবানন", tr: "Lübnan", de: "Libanon", it: "Libano" },
+
+  "ad": { ko: "안도라", en: "Andorra", zh: "安道尔", ja: "アンドラ", es: "Andorra", fr: "Andorre", ru: "Андорра", id: "Andorra", vi: "Andorra", th: "อันดอร์รา", "pt-br": "Andorra", hi: "अंडोरा", bn: "অ্যান্ডোরা", tr: "Andorra", de: "Andorra", it: "Andorra" },
+  "li": { ko: "리히텐슈타인", en: "Liechtenstein", zh: "列支敦士登", ja: "リヒテンシュタイン", es: "Liechtenstein", fr: "Liechtenstein", ru: "Лихтенштейн", id: "Liechtenstein", vi: "Liechtenstein", th: "ลิกเตนสไตน์", "pt-br": "Liechtenstein", hi: "लिकटेंस्टीन", bn: "লিচেনস্টাইন", tr: "Lihtenştayn", de: "Liechtenstein", it: "Liechtenstein" },
+  "mc": { ko: "모나코", en: "Monaco", zh: "摩纳哥", ja: "モナコ", es: "Mónaco", fr: "Monaco", ru: "Монако", id: "Monako", vi: "Monaco", th: "โมนาโก", "pt-br": "Mônaco", hi: "मोनाको", bn: "মোনাকো", tr: "Monako", de: "Monaco", it: "Monaco" },
+  "sm": { ko: "산마리노", en: "San Marino", zh: "圣马力诺", ja: "サンマリノ", es: "San Marino", fr: "Saint-Marin", ru: "Сан-Марино", id: "San Marino", vi: "San Marino", th: "ซานมารีโน", "pt-br": "San Marino", hi: "सैन मैरिनो", bn: "সান মারিনो", tr: "San Marino", de: "San Marino", it: "San Marino" },
+  "va": { ko: "바티칸 시국", en: "Vatican City", zh: "梵蒂冈", ja: "バチカン", es: "Ciudad del Vaticano", fr: "Vatican", ru: "Ватикан", id: "Vatikan", vi: "Thành Vatican", th: "นครรัฐวาติกัน", "pt-br": "Vaticano", hi: "वेटिकन सिटी", bn: "ভ্যাটিকান সিটি", tr: "Vatikan", de: "Vatikan", it: "Città del Vaticano" },
+  "mt": { ko: "몰타", en: "Malta", zh: "马耳他", ja: "マルタ", es: "Malta", fr: "Malte", ru: "Мальта", id: "Malta", vi: "Malta", th: "มอลตา", "pt-br": "Malta", hi: "माल्टा", bn: "মাল্টা", tr: "Malta", de: "Malta", it: "Malta" },
+  "cy": { ko: "키프로스", en: "Cyprus", zh: "塞浦路斯", ja: "キプロス", es: "Chipre", fr: "Chypre", ru: "Кипр", id: "Siprus", vi: "Đảo Síp", th: "ไซปรัส", "pt-br": "Chipre", hi: "साइप्रस", bn: "সাইপ্রাস", tr: "Güney Kıbrıs", de: "Zypern", it: "Cipro" },
+  "lu": { ko: "룩셈부르크", en: "Luxembourg", zh: "卢森堡", ja: "ルクセンブルク", es: "Luxemburgo", fr: "Luxembourg", ru: "Люксембург", id: "Luksemburg", vi: "Luxembourg", th: "ลักเซมเบิร์ก", "pt-br": "Luxemburgo", hi: "लक्ज़मबर्ग", bn: "লুক্সেমবুর্গ", tr: "Lüksemburg", de: "Luxemburg", it: "Lussemburgo" },
+  "bh": { ko: "바레인", en: "Bahrain", zh: "巴林", ja: "バーレーン", es: "Bahréin", fr: "Bahreïn", ru: "Бахрейн", id: "Bahrain", vi: "Bahrain", th: "บาห์เรน", "pt-br": "Bahrein", hi: "बहरीन", bn: "বাহরাইন", tr: "Bahreyn", de: "Bahrain", it: "Bahrein" },
+  "qa": { ko: "카타르", en: "Qatar", zh: "卡塔尔", ja: "カタール", es: "Catar", fr: "Qatar", ru: "Катар", id: "Qatar", vi: "Qatar", th: "กาตาร์", "pt-br": "Catar", hi: "कतर", bn: "কাতার", tr: "Katar", de: "Katar", it: "Qatar" },
+  "kw": { ko: "쿠웨이트", en: "Kuwait", zh: "科威特", ja: "クウェート", es: "Kuwait", fr: "Koweït", ru: "Кувейт", id: "Kuwait", vi: "Kuwait", th: "คูเวต", "pt-br": "Kuwait", hi: "कुवैत", bn: "কুয়েত", tr: "Kuveyt", de: "Kuwait", it: "Kuwait" },
+  "om": { ko: "오만", en: "Oman", zh: "阿曼", ja: "オマーン", es: "Omán", fr: "Oman", ru: "Оман", id: "Oman", vi: "Oman", th: "โอมาน", "pt-br": "Omã", hi: "ओमान", bn: "ওমান", tr: "Umman", de: "Oman", it: "Oman" },
+  "ye": { ko: "예멘", en: "Yemen", zh: "也门", ja: "イエメン", es: "Yemen", fr: "Yémen", ru: "Йемен", id: "Yaman", vi: "Yemen", th: "เยเมน", "pt-br": "Iêmen", hi: "यमन", bn: "ইয়েমেন", tr: "Yemen", de: "Jemen", it: "Yemen" },
+  "bt": { ko: "부탄", en: "Bhutan", zh: "不丹", ja: "ブータン", es: "Bután", fr: "Bhoutan", ru: "Бутан", id: "Bhutan", vi: "Bhutan", th: "ภูฏาน", "pt-br": "Butão", hi: "भूटान", bn: "ভুটান", tr: "Butan", de: "Bhutan", it: "Bhutan" },
+  "mv": { ko: "몰디브", en: "Maldives", zh: "马尔代夫", ja: "モルディブ", es: "Maldivas", fr: "Maldives", ru: "Мальдивы", id: "Maladewa", vi: "Maldives", th: "มัลดีฟส์", "pt-br": "Maldivas", hi: "मालदीव", bn: "মালদ্বীপ", tr: "Maldivler", de: "Malediven", it: "Maldive" },
+  "bn": { ko: "브루나이", en: "Brunei", zh: "文莱", ja: "ブルネイ", es: "Brunéi", fr: "Brunei", ru: "Бруней", id: "Brunei", vi: "Brunei", th: "บรูไน", "pt-br": "Brunei", hi: "ब्रूनेई", bn: "ব্রুনাই", tr: "Brunei", de: "Brunei", it: "Brunei" },
+  "tj": { ko: "타지키스탄", en: "Tajikistan", zh: "塔吉克斯坦", ja: "タジキスタン", es: "Tayikistán", fr: "Tadjikistan", ru: "Таджикистан", id: "Tajikistan", vi: "Tajikistan", th: "ทาจิกิสถาน", "pt-br": "Tajiquistão", hi: "तजाकिस्तान", bn: "তাজিকিস্তান", tr: "Tacikistan", de: "Tadschikistan", it: "Tagikistan" },
+  "kg": { ko: "키르기스스탄", en: "Kyrgyzstan", zh: "吉尔吉斯斯坦", ja: "キルギス", es: "Kirguistán", fr: "Kirghizistan", ru: "Кыргызстан", id: "Kirgistan", vi: "Kyrgyzstan", th: "คีร์กีซสถาน", "pt-br": "Quirguistão", hi: "किर्गिस्तान", bn: "কিরগিজস্তান", tr: "Kırgızistan", de: "Kirgisistan", it: "Kirghizistan" },
+  "tm": { ko: "투르크메니스탄", en: "Turkmenistan", zh: "土库曼斯坦", ja: "トルクメニスタン", es: "Turkmenistán", fr: "Turkménistan", ru: "Туркменистан", id: "Turkmenistan", vi: "Turkmenistan", th: "เติร์กเมนิสถาน", "pt-br": "Turcomenistão", hi: "तुर्कमेनिस्तान", bn: "তুর্কমেনিস্তান", tr: "Türkmenistan", de: "Turkmenistan", it: "Turkmenistan" },
+  "dj": { ko: "지부티", en: "Djibouti", zh: "吉布提", ja: "ジブチ", es: "Yibuti", fr: "Djibouti", ru: "Джибути", id: "Djibouti", vi: "Djibouti", th: "จิบูตี", "pt-br": "Djibouti", hi: "जिबूती", bn: "জিবুতি", tr: "Cibuti", de: "Dschibuti", it: "Gibuti" },
+  "er": { ko: "에리트레아", en: "Eritrea", zh: "厄立特里亚", ja: "エリトリア", es: "Eritrea", fr: "Érythrée", ru: "Эритрея", id: "Eritrea", vi: "Eritrea", th: "เอริเทรีย", "pt-br": "Eritreia", hi: "इरिट्रिया", bn: "ইরিত্রিয়া", tr: "Eritre", de: "Eritrea", it: "Eritrea" },
+  "so": { ko: "소말리아", en: "Somalia", zh: "索马里", ja: "ソマリア", es: "Somalia", fr: "Somalie", ru: "Сомали", id: "Somalia", vi: "Somalia", th: "โซมาเลีย", "pt-br": "Somália", hi: "सोमालिया", bn: "সোমালिया", tr: "Somali", de: "Somalia", it: "Somalia" },
+  "rw": { ko: "르완다", en: "Rwanda", zh: "卢旺达", ja: "ルワンダ", es: "Ruanda", fr: "Rwanda", ru: "Руанда", id: "Rwanda", vi: "Rwanda", th: "รวันดา", "pt-br": "Ruanda", hi: "रवांडा", bn: "রুয়ান্ডা", tr: "Ruanda", de: "Ruanda", it: "Ruanda" },
+  "bi": { ko: "부룬디", en: "Burundi", zh: "布隆迪", ja: "ブルンジ", es: "Burundi", fr: "Burundi", ru: "Бурунди", id: "Burundi", vi: "Burundi", th: "บุรุนดี", "pt-br": "Burundi", hi: "बुरुंडी", bn: "বুরুন্ডি", tr: "Burundi", de: "Burundi", it: "Burundi" },
+  "mw": { ko: "말라위", en: "Malawi", zh: "马拉维", ja: "マラウイ", es: "Malaui", fr: "Malawi", ru: "Малави", id: "Malawi", vi: "Malawi", th: "มาลาวี", "pt-br": "Malawi", hi: "मलावी", bn: "মালাউই", tr: "Malavi", de: "Malawi", it: "Malawi" },
+  "zm": { ko: "잠비아", en: "Zambia", zh: "赞比亚", ja: "ザンビア", es: "Zambia", fr: "Zambie", ru: "Замбия", id: "Zambia", vi: "Zambia", th: "แซมเบีย", "pt-br": "Zâmbia", hi: "जाम्बिया", bn: "জাম্বিয়া", tr: "Zambiya", de: "Sambia", it: "Zambia" },
+  "zw": { ko: "짐바브웨", en: "Zimbabwe", zh: "津巴布韦", ja: "ジンバブエ", es: "Zimbabue", fr: "Zimbabwe", ru: "Зимбабве", id: "Zimbabwe", vi: "Zimbabwe", th: "ซิมบับเว", "pt-br": "Zimbábue", hi: "जिम्बाब्वे", bn: "জিম্বাবুয়ে", tr: "Zimbabve", de: "Simbabwe", it: "Zimbabwe" },
+  "bw": { ko: "보츠와나", en: "Botswana", zh: "博茨瓦纳", ja: "ボツワナ", es: "Botsuana", fr: "Botswana", ru: "Ботсвана", id: "Botswana", vi: "Botswana", th: "บอตสวานา", "pt-br": "Botsuana", hi: "बोत्सवाना", bn: "বতসোয়ানা", tr: "Botsvana", de: "Botswana", it: "Botswana" },
+  "na": { ko: "나미비아", en: "Namibia", zh: "纳米比亚", ja: "ナミビア", es: "Namibia", fr: "Namibie", ru: "Намибия", id: "Namibia", vi: "Namibia", th: "นามิเบีย", "pt-br": "Namíbia", hi: "नामीबिया", bn: "নামিবিয়া", tr: "Namibya", de: "Namibia", it: "Namibia" },
+  "ls": { ko: "레소토", en: "Lesotho", zh: "莱索托", ja: "レソト", es: "Lesoto", fr: "Lesotho", ru: "Лесото", id: "Lesotho", vi: "Lesotho", th: "เลโซโท", "pt-br": "Lesoto", hi: "लेसोथो", bn: "লেসোথো", tr: "Lesotho", de: "Lesotho", it: "Lesotho" },
+  "sz": { ko: "에스와티니", en: "Eswatini", zh: "斯威士兰", ja: "エスワティニ", es: "Esuatini", fr: "Eswatini", ru: "Эсватини", id: "Eswatini", vi: "Eswatini", th: "เอสวาตินี", "pt-br": "Eswatini", hi: "इस्वातिनी", bn: "এসওয়াতিনি", tr: "Esvatini", de: "Eswatini", it: "Eswatini" },
+  "mg": { ko: "마다가스카르", en: "Madagascar", zh: "马达加斯加", ja: "マダガスカル", es: "Madagascar", fr: "Madagascar", ru: "Мадагаскар", id: "Madagaskar", vi: "Madagascar", th: "มาดากัสการ์", "pt-br": "Madagascar", hi: "मेडागास्कर", bn: "মাদাগাস্কার", tr: "Madagaskar", de: "Madagaskar", it: "Madagascar" },
+  "mu": { ko: "모리셔스", en: "Mauritius", zh: "毛里求斯", ja: "モーリシャス", es: "Mauricio", fr: "Maurice", ru: "Маврикий", id: "Mauritius", vi: "Mauritius", th: "มอริเชียส", "pt-br": "Ilhas Maurício", hi: "मॉरीशस", bn: "মরিশাস", tr: "Mauritius", de: "Mauritius", it: "Mauritius" },
+  "sc": { ko: "세이셸", en: "Seychelles", zh: "塞舌尔", ja: "セーシェル", es: "Seychelles", fr: "Seychelles", ru: "Сейшельские Острова", id: "Seychelles", vi: "Seychelles", th: "เซเชลส์", "pt-br": "Seicheles", hi: "सेशेल्स", bn: "সেশেলস", tr: "Seyşeller", de: "Seychellen", it: "Seychelles" },
+  "mz": { ko: "모잠비크", en: "Mozambique", zh: "莫桑比克", ja: "モザンビーク", es: "Mozambique", fr: "Mozambique", ru: "Мозамбик", id: "Mozambik", vi: "Mozambique", th: "โมซัมบิก", "pt-br": "Moçambique", hi: "मोजाम्बिक", bn: "মোজাম্বিক", tr: "Mozambik", de: "Mosambik", it: "Mozambico" },
+  "ao": { ko: "앙골라", en: "Angola", zh: "安哥拉", ja: "アンゴラ", es: "Angola", fr: "Angola", ru: "Ангола", id: "Angola", vi: "Angola", th: "แองโกลา", "pt-br": "Angola", hi: "अंगोला", bn: "অ্যাঙ্গোলা", tr: "Angola", de: "Angola", it: "Angola" },
+  "ml": { ko: "말리", en: "Mali", zh: "马里", ja: "マリ", es: "Malí", fr: "Mali", ru: "Мали", id: "Mali", vi: "Mali", th: "มาลี", "pt-br": "Mali", hi: "माली", bn: "মালি", tr: "Mali", de: "Mali", it: "Mali" },
+  "ne": { ko: "니제르", en: "Niger", zh: "尼日尔", ja: "ニジェール", es: "Níger", fr: "Niger", ru: "Нигер", id: "Niger", vi: "Niger", th: "ไนเจอร์", "pt-br": "Níger", hi: "नाइजर", bn: "নাইজার", tr: "Nijer", de: "Niger", it: "Niger" },
+  "td": { ko: "차드", en: "Chad", zh: "乍得", ja: "チャド", es: "Chad", fr: "Tchad", ru: "Чад", id: "Chad", vi: "Chad", th: "ชาด", "pt-br": "Chade", hi: "चाड", bn: "চাদ", tr: "Çad", de: "Tschad", it: "Ciad" },
+  "sd": { ko: "수단", en: "Sudan", zh: "苏丹", ja: "スーダン", es: "Sudán", fr: "Soudan", ru: "Судан", id: "Sudan", vi: "Sudan", th: "ซูดาน", "pt-br": "Sudão", hi: "सूडान", bn: "সুদান", tr: "Sudan", de: "Sudan", it: "Sudan" },
+  "mr": { ko: "모리타니", en: "Mauritania", zh: "毛里塔尼亚", ja: "モーリタニア", es: "Mauritania", fr: "Mauritanie", ru: "Мавритания", id: "Mauritania", vi: "Mauritania", th: "มอริเตเนีย", "pt-br": "Mauritânia", hi: "मॉरिटानिया", bn: "মৌরিতানিয়া", tr: "Moritanya", de: "Mauretanien", it: "Mauritania" },
+  "gn": { ko: "기니", en: "Guinea", zh: "几内亚", ja: "ギニア", es: "Guinea", fr: "Guinée", ru: "Гвинея", id: "Guinea", vi: "Guinea", th: "กินี", "pt-br": "Guiné", hi: "गिनी", bn: "গিনি", tr: "Gine", de: "Guinea", it: "Guinea" },
+  "tg": { ko: "토고", en: "Togo", zh: "多哥", ja: "トーゴ", es: "Togo", fr: "Togo", ru: "Того", id: "Togo", vi: "Togo", th: "โตโก", "pt-br": "Togo", hi: "टोगो", bn: "টোগো", tr: "Togo", de: "Togo", it: "Togo" },
+  "bj": { ko: "베냉", en: "Benin", zh: "贝宁", ja: "ベナン", es: "Benín", fr: "Bénin", ru: "Бенин", id: "Benin", vi: "Benin", th: "เบนิน", "pt-br": "Benim", hi: "बेनिन", bn: "বেনিন", tr: "Benin", de: "Benin", it: "Benin" },
+  "fj": { ko: "피지", en: "Fiji", zh: "斐济", ja: "フィジー", es: "Fiyi", fr: "Fidji", ru: "Фиджи", id: "Fiji", vi: "Fiji", th: "ฟิจิ", "pt-br": "Fiji", hi: "फ़िजी", bn: "ফিজি", tr: "Fiji", de: "Fidschi", it: "Figi" },
+  "ws": { ko: "사모아", en: "Samoa", zh: "萨摩亚", ja: "サモア", es: "Samoa", fr: "Samoa", ru: "Самоа", id: "Samoa", vi: "Samoa", th: "ซามัว", "pt-br": "Samoa", hi: "समोआ", bn: "সামোয়া", tr: "Samoa", de: "Samoa", it: "Samoa" },
+  "to": { ko: "통가", en: "Tonga", zh: "汤加", ja: "トンガ", es: "Tonga", fr: "Tonga", ru: "Тонга", id: "Tonga", vi: "Tonga", th: "ตองกา", "pt-br": "Tonga", hi: "टोंगा", bn: "টোঙ্গা", tr: "Tonga", de: "Tonga", it: "Tonga" },
+  "vu": { ko: "바누아투", en: "Vanuatu", zh: "瓦努阿图", ja: "バヌアツ", es: "Vanuatu", fr: "Vanuatu", ru: "Вануату", id: "Vanuatu", vi: "Vanuatu", th: "วานูอาตู", "pt-br": "Vanuatu", hi: "वानूआतू", bn: "ভানুয়াতু", tr: "Vanuatu", de: "Vanuatu", it: "Vanuatu" },
+  "ki": { ko: "키리바시", en: "Kiribati", zh: "基里巴斯", ja: "キリバス", es: "Kiribati", fr: "Kiribati", ru: "Кирибати", id: "Kiribati", vi: "Kiribati", th: "คิริบาส", "pt-br": "Kiribati", hi: "किरिबाती", bn: "কিরিবাতি", tr: "Kiribati", de: "Kiribati", it: "Kiribati" },
+  "tv": { ko: "투발루", en: "Tuvalu", zh: "图瓦卢", ja: "ツバル", es: "Tuvalu", fr: "Tuvalu", ru: "Тувалу", id: "Tuvalu", vi: "Tuvalu", th: "ตูวาลู", "pt-br": "Tuvalu", hi: "तुवालु", bn: "টুভালু", tr: "Tuvalu", de: "Tuvalu", it: "Tuvalu" }
+};
+
+/* =========================================
+   다국어 번역 데이터 (16개국)
+   ========================================= */
+const STRINGS = {
+    ko: {
+        title: "🌍 국기 골든벨", pageTitle: "국기 골든벨 - 세상을 향해 울려라", desc: "전 세계 국기를 맞춰보세요! 국기 골든벨.", keywords: "국기, 세계지리, 골든벨",
+        intro: "전 세계 국기를 모두 맞춰보세요.", slogan: "당신의 지리 실력은 어디까지인가요?", label_diff: "📚 난이도 선택", label_mode: "🏆 게임 모드", label_player: "👥 인원", 
+        btn_start: "골든벨 시작하기", btn_restart: "처음으로 돌아가기", link_other: "🎮 다른 게임 고르기", header_title: "국기 골든벨", result_title: "결과 발표",
+        q_num: "문제", ready: "준비...", submitted: "답안 제출 완료", score_pt: "점", survived_count: "문제 통과", eliminated: "탈락", winner: "우승!", rank: "위", final_score: "최종 점수", record: "기록",
+        diff_easy: "쉬움 (주요 50개국)", diff_normal: "중간 (확장 50개국)", diff_hard: "어려움 (도전 50개국)", diff_mix: "모두 랜덤 출제",
+        mode_chall: "🏅 챌린지 (10문제 대결)", mode_surv: "☠️ 골든벨 서바이벌 (최대 70문제)", p_1: "1인 연습", p_n: "인 플레이",
+        team_dog: "강아지", team_cat: "고양이", team_rabbit: "토끼", team_hamster: "햄스터", team_panda: "판다", team_monkey: "원숭이",
+        ui_title: '언어 및 지역 선택', ui_desc: '선호하는 언어와 지역을 선택하세요.', ui_search: '언어 검색', ui_empty: '검색 결과가 없습니다.', ui_toast: '언어가 변경되었습니다.', domain_txt: ""
+    },
+    en: {
+        title: "🌍 King of Flags", pageTitle: "King of Flags - Golden Bell", desc: "Guess the flags of the world! Flag Golden Bell.", keywords: "flag, geography, golden bell, kids math",
+        intro: "Guess all the flags of the world.", slogan: "How good are your geography skills?", label_diff: "📚 Difficulty", label_mode: "🏆 Game Mode", label_player: "👥 Players", 
+        btn_start: "Start Golden Bell", btn_restart: "Go Back to Start", link_other: "🎮 Choose Another Game", header_title: "King of Flags", result_title: "Results",
+        q_num: "Question", ready: "Ready...", submitted: "Answer Submitted", score_pt: "pts", survived_count: "Passed", eliminated: "Eliminated", winner: "Winner!", rank: "st/nd/rd/th", final_score: "Final Score", record: "Record",
+        diff_easy: "Easy (50 Major)", diff_normal: "Medium (50 Expanded)", diff_hard: "Hard (50 Challenge)", diff_mix: "Random Mix",
+        mode_chall: "🏅 Challenge (10 Qs)", mode_surv: "☠️ Survival (Max 70 Qs)", p_1: "1 Player", p_n: " Players",
+        team_dog: "Dog", team_cat: "Cat", team_rabbit: "Rabbit", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monkey",
+        ui_title: 'Select Language', ui_search: 'Search Language...', ui_empty: 'No results found.', ui_toast: 'Language changed.', domain_txt: "KingsMath.com"
+    },
+    zh: {
+        title: "🌍 国旗之王", pageTitle: "国旗之王 - 金钟奖", desc: "猜猜世界各地的国旗！", keywords: "国旗, 地理, 金钟奖",
+        intro: "猜出世界所有的国旗。", slogan: "你的地理知识有多好？", label_diff: "📚 难度选择", label_mode: "🏆 游戏模式", label_player: "👥 玩家人数", 
+        btn_start: "开始金钟奖", btn_restart: "返回首页", link_other: "🎮 选择其他游戏", header_title: "国旗之王", result_title: "结果公布",
+        q_num: "问题", ready: "准备...", submitted: "提交答案", score_pt: "分", survived_count: "通过", eliminated: "淘汰", winner: "冠军！", rank: "名", final_score: "最终得分", record: "记录",
+        diff_easy: "简单 (50个主要国家)", diff_normal: "中等 (50个扩展国家)", diff_hard: "困难 (50个挑战)", diff_mix: "全部随机",
+        mode_chall: "🏅 挑战 (10题)", mode_surv: "☠️ 生存 (最多70题)", p_1: "单人练习", p_n: "人游戏",
+        team_dog: "小狗", team_cat: "小猫", team_rabbit: "兔子", team_hamster: "仓鼠", team_panda: "熊猫", team_monkey: "猴子",
+        ui_title: '选择语言', ui_search: '搜索语言...', ui_empty: '未找到结果。', ui_toast: '语言已更改。', domain_txt: "KingsMath.com"
+    },
+    ja: {
+        title: "🌍 国旗キング", pageTitle: "国旗キング - ゴールデンベル", desc: "世界中の国旗を当てよう！", keywords: "国旗, 地理, ゴールデンベル",
+        intro: "世界中の国旗をすべて当ててください。", slogan: "あなたの地理のスキルは？", label_diff: "📚 難易度", label_mode: "🏆 ゲームモード", label_player: "👥 プレイ人数", 
+        btn_start: "ゲーム開始", btn_restart: "最初に戻る", link_other: "🎮 他のゲームを選ぶ", header_title: "国旗キング", result_title: "結果発表",
+        q_num: "問題", ready: "準備...", submitted: "提出完了", score_pt: "点", survived_count: "クリア", eliminated: "脱落", winner: "優勝！", rank: "位", final_score: "最終スコア", record: "記録",
+        diff_easy: "簡単 (主要50カ国)", diff_normal: "普通 (拡張50カ国)", diff_hard: "難しい (挑戦50カ国)", diff_mix: "すべてランダム",
+        mode_chall: "🏅 チャレンジ (10問)", mode_surv: "☠️ サバイバル (最大70問)", p_1: "1人練習", p_n: "人プレイ",
+        team_dog: "犬", team_cat: "猫", team_rabbit: "うさぎ", team_hamster: "ハムスター", team_panda: "パンダ", team_monkey: "猿",
+        ui_title: '言語の選択', ui_search: '言語を検索...', ui_empty: '結果が見つかりません。', ui_toast: '言語が変更されました。', domain_txt: "KingsMath.com"
+    },
+    es: {
+        title: "🌍 Rey de las Banderas", pageTitle: "Rey de las Banderas", desc: "¡Adivina las banderas del mundo!", keywords: "bandera, geografía",
+        intro: "Adivina todas las banderas del mundo.", slogan: "¿Qué tan buena es tu geografía?", label_diff: "📚 Dificultad", label_mode: "🏆 Modo de Juego", label_player: "👥 Jugadores", 
+        btn_start: "Comenzar Juego", btn_restart: "Volver al Inicio", link_other: "🎮 Elegir Otro Juego", header_title: "Rey de las Banderas", result_title: "Resultados",
+        q_num: "Pregunta", ready: "Listo...", submitted: "Respuesta Enviada", score_pt: "pts", survived_count: "Pasado", eliminated: "Eliminado", winner: "¡Ganador!", rank: "°", final_score: "Puntaje Final", record: "Récord",
+        diff_easy: "Fácil (50 Principales)", diff_normal: "Medio (50 Extra)", diff_hard: "Difícil (50 Reto)", diff_mix: "Mezcla Aleatoria",
+        mode_chall: "🏅 Desafío (10 P.)", mode_surv: "☠️ Supervivencia (70 P.)", p_1: "1 Jugador", p_n: " Jugadores",
+        team_dog: "Perro", team_cat: "Gato", team_rabbit: "Conejo", team_hamster: "Hámster", team_panda: "Panda", team_monkey: "Mono",
+        ui_title: 'Seleccionar Idioma', ui_search: 'Buscar Idioma...', ui_empty: 'No se encontraron resultados.', ui_toast: 'Idioma cambiado.', domain_txt: "KingsMath.com"
+    },
+    fr: {
+        title: "🌍 Roi des Drapeaux", pageTitle: "Roi des Drapeaux", desc: "Devinez les drapeaux du monde!", keywords: "drapeau, géographie",
+        intro: "Devinez tous les drapeaux du monde.", slogan: "Quel est ton niveau en géographie?", label_diff: "📚 Difficulté", label_mode: "🏆 Mode de Jeu", label_player: "👥 Joueurs", 
+        btn_start: "Commencer", btn_restart: "Retour au Début", link_other: "🎮 Choisir un Autre Jeu", header_title: "Roi des Drapeaux", result_title: "Résultats",
+        q_num: "Question", ready: "Prêt...", submitted: "Réponse Soumise", score_pt: "pts", survived_count: "Passé", eliminated: "Éliminé", winner: "Gagnant!", rank: "e", final_score: "Score Final", record: "Record",
+        diff_easy: "Facile (50 Pays)", diff_normal: "Moyen (50 Extra)", diff_hard: "Difficile (50 Défi)", diff_mix: "Aléatoire",
+        mode_chall: "🏅 Défi (10 Q.)", mode_surv: "☠️ Survie (Max 70 Q.)", p_1: "1 Joueur", p_n: " Joueurs",
+        team_dog: "Chien", team_cat: "Chat", team_rabbit: "Lapin", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Singe",
+        ui_title: 'Choisir la Langue', ui_search: 'Rechercher une Langue...', ui_empty: 'Aucun résultat.', ui_toast: 'Langue modifiée.', domain_txt: "KingsMath.com"
+    },
+    ru: {
+        title: "🌍 Король Флагов", pageTitle: "Король Флагов", desc: "Угадай флаги мира!", keywords: "флаг, география",
+        intro: "Угадай все флаги мира.", slogan: "Насколько хороша твоя география?", label_diff: "📚 Сложность", label_mode: "🏆 Режим Игры", label_player: "👥 Игроки", 
+        btn_start: "Начать", btn_restart: "В Начало", link_other: "🎮 Выбрать Другую Игру", header_title: "Король Флагов", result_title: "Результаты",
+        q_num: "Вопрос", ready: "Готов...", submitted: "Ответ Принят", score_pt: "оч.", survived_count: "Пройдено", eliminated: "Выбыл", winner: "Победитель!", rank: "место", final_score: "Итоговый Счет", record: "Рекорд",
+        diff_easy: "Легко (50 Основных)", diff_normal: "Средне (50 Доп.)", diff_hard: "Сложно (50 Вызов)", diff_mix: "Случайно",
+        mode_chall: "🏅 Вызов (10 В.)", mode_surv: "☠️ Выживание (Макс 70 В.)", p_1: "1 Игрок", p_n: " Игрока(ов)",
+        team_dog: "Собака", team_cat: "Кошка", team_rabbit: "Кролик", team_hamster: "Хомяк", team_panda: "Панда", team_monkey: "Обезьяна",
+        ui_title: 'Выбрать Язык', ui_search: 'Поиск Языка...', ui_empty: 'Нет результатов.', ui_toast: 'Язык изменен.', domain_txt: "KingsMath.com"
+    },
+    id: {
+        title: "🌍 Raja Bendera", pageTitle: "Raja Bendera", desc: "Tebak bendera dunia!", keywords: "bendera, geografi",
+        intro: "Tebak semua bendera dunia.", slogan: "Seberapa hebat geografimu?", label_diff: "📚 Kesulitan", label_mode: "🏆 Mode Permainan", label_player: "👥 Pemain", 
+        btn_start: "Mulai Bermain", btn_restart: "Kembali ke Awal", link_other: "🎮 Pilih Game Lain", header_title: "Raja Bendera", result_title: "Hasil",
+        q_num: "Pertanyaan", ready: "Siap...", submitted: "Jawaban Terkirim", score_pt: "poin", survived_count: "Lulus", eliminated: "Tereliminasi", winner: "Pemenang!", rank: "Ke-", final_score: "Skor Akhir", record: "Rekor",
+        diff_easy: "Mudah (50 Utama)", diff_normal: "Sedang (50 Ekstra)", diff_hard: "Sulit (50 Tantangan)", diff_mix: "Campak Acak",
+        mode_chall: "🏅 Tantangan (10 S.)", mode_surv: "☠️ Bertahan Hidup (70 S.)", p_1: "1 Pemain", p_n: " Pemain",
+        team_dog: "Anjing", team_cat: "Kucing", team_rabbit: "Kelinci", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monyet",
+        ui_title: 'Pilih Bahasa', ui_search: 'Cari Bahasa...', ui_empty: 'Tidak ada hasil.', ui_toast: 'Bahasa telah diubah.', domain_txt: "KingsMath.com"
+    },
+    vi: {
+        title: "🌍 Vua Quốc Kỳ", pageTitle: "Vua Quốc Kỳ", desc: "Đoán quốc kỳ các nước trên thế giới!", keywords: "quốc kỳ, địa lý",
+        intro: "Đoán tất cả các quốc kỳ trên thế giới.", slogan: "Kỹ năng địa lý của bạn tốt đến đâu?", label_diff: "📚 Độ Khó", label_mode: "🏆 Chế Độ", label_player: "👥 Người Chơi", 
+        btn_start: "Bắt Đầu", btn_restart: "Quay Lại Từ Đầu", link_other: "🎮 Chọn Trò Chơi Khác", header_title: "Vua Quốc Kỳ", result_title: "Kết Quả",
+        q_num: "Câu Hỏi", ready: "Sẵn sàng...", submitted: "Đã Nộp", score_pt: "điểm", survived_count: "Vượt qua", eliminated: "Bị Loại", winner: "Chiến Thắng!", rank: "Hạng", final_score: "Điểm Cuối Cùng", record: "Kỷ Lục",
+        diff_easy: "Dễ (50 Quốc Gia)", diff_normal: "Trung Bình (50 Thêm)", diff_hard: "Khó (50 Thử Thách)", diff_mix: "Ngẫu Nhiên Tất Cả",
+        mode_chall: "🏅 Thử Thách (10 C.)", mode_surv: "☠️ Sinh Tồn (Tối Đa 70 C.)", p_1: "1 Người Chơi", p_n: " Người Chơi",
+        team_dog: "Chó", team_cat: "Mèo", team_rabbit: "Thỏ", team_hamster: "Chuột Hamster", team_panda: "Gấu Trúc", team_monkey: "Khỉ",
+        ui_title: 'Chọn Ngôn Ngữ', ui_search: 'Tìm Kiếm Ngôn Ngữ...', ui_empty: 'Không có kết quả.', ui_toast: 'Ngôn ngữ đã được thay đổi.', domain_txt: "KingsMath.com"
+    },
+    th: {
+        title: "🌍 ราชาแห่งธง", pageTitle: "ราชาแห่งธง", desc: "ทายธงชาติต่างๆ ทั่วโลก!", keywords: "ธง, ภูมิศาสตร์",
+        intro: "ทายธงชาติต่างๆ ทั่วโลกให้ถูกทั้งหมด", slogan: "ทักษะภูมิศาสตร์ของคุณดีแค่ไหน?", label_diff: "📚 ระดับความยาก", label_mode: "🏆 โหมดเกม", label_player: "👥 ผู้เล่น", 
+        btn_start: "เริ่มเกม", btn_restart: "กลับไปจุดเริ่มต้น", link_other: "🎮 เลือกเกมอื่น", header_title: "ราชาแห่งธง", result_title: "ผลลัพธ์",
+        q_num: "คำถาม", ready: "พร้อม...", submitted: "ส่งคำตอบแล้ว", score_pt: "คะแนน", survived_count: "ผ่าน", eliminated: "ถูกคัดออก", winner: "ผู้ชนะ!", rank: "อันดับ", final_score: "คะแนนรวม", record: "สถิติ",
+        diff_easy: "ง่าย (50 ประเทศหลัก)", diff_normal: "ปานกลาง (50 ประเทศเสริม)", diff_hard: "ยาก (50 ความท้าทาย)", diff_mix: "สุ่มทั้งหมด",
+        mode_chall: "🏅 ความท้าทาย (10 ข.)", mode_surv: "☠️ เอาชีวิตรอด (สูงสุด 70 ข.)", p_1: "1 คน", p_n: " คน",
+        team_dog: "สุนัข", team_cat: "แมว", team_rabbit: "กระต่าย", team_hamster: "แฮมสเตอร์", team_panda: "แพนด้า", team_monkey: "ลิง",
+        ui_title: 'เลือกภาษา', ui_search: 'ค้นหาภาษา...', ui_empty: 'ไม่พบผลลัพธ์', ui_toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว.', domain_txt: "KingsMath.com"
+    },
+    "pt-br": {
+        title: "🌍 Rei das Bandeiras", pageTitle: "Rei das Bandeiras", desc: "Adivinhe as bandeiras do mundo!", keywords: "bandeira, geografia",
+        intro: "Adivinhe todas as bandeiras do mundo.", slogan: "Quão boa é sua geografia?", label_diff: "📚 Dificuldade", label_mode: "🏆 Modo de Jogo", label_player: "👥 Jogadores", 
+        btn_start: "Começar Jogo", btn_restart: "Voltar ao Início", link_other: "🎮 Escolher Outro Jogo", header_title: "Rei das Bandeiras", result_title: "Resultados",
+        q_num: "Pergunta", ready: "Pronto...", submitted: "Resposta Enviada", score_pt: "pts", survived_count: "Passou", eliminated: "Eliminado", winner: "Vencedor!", rank: "°", final_score: "Pontuação Final", record: "Recorde",
+        diff_easy: "Fácil (50 Principais)", diff_normal: "Médio (50 Extra)", diff_hard: "Difícil (50 Desafio)", diff_mix: "Mistura Aleatória",
+        mode_chall: "🏅 Desafio (10 P.)", mode_surv: "☠️ Sobrevivência (Máx 70 P.)", p_1: "1 Jogador", p_n: " Jogadores",
+        team_dog: "Cachorro", team_cat: "Gato", team_rabbit: "Coelho", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Macaco",
+        ui_title: 'Selecionar Idioma', ui_search: 'Pesquisar Idioma...', ui_empty: 'Nenhum resultado.', ui_toast: 'Idioma alterado.', domain_txt: "KingsMath.com"
+    },
+    hi: {
+        title: "🌍 झंडों का राजा", pageTitle: "झंडों का राजा", desc: "दुनिया के झंडों का अनुमान लगाएं!", keywords: "झंडा, भूगोल",
+        intro: "दुनिया के सभी झंडों का अनुमान लगाएं।", slogan: "आपका भूगोल कैसा है?", label_diff: "📚 कठिनाई", label_mode: "🏆 गेम मोड", label_player: "👥 खिलाड़ी", 
+        btn_start: "गेम शुरू करें", btn_restart: "शुरुआत पर लौटें", link_other: "🎮 दूसरा गेम चुनें", header_title: "झंडों का राजा", result_title: "परिणाम",
+        q_num: "प्रश्न", ready: "तैयार...", submitted: "उत्तर जमा किया", score_pt: "अंक", survived_count: "पार किया", eliminated: "बाहर", winner: "विजेता!", rank: "स्थान", final_score: "अंतिम स्कोर", record: "रिकॉर्ड",
+        diff_easy: "आसान (50 मुख्य)", diff_normal: "मध्यम (50 अतिरिक्त)", diff_hard: "कठिन (50 चुनौती)", diff_mix: "यादृच्छिक",
+        mode_chall: "🏅 चुनौती (10 प्र.)", mode_surv: "☠️ जीवन रक्षा (अधिकतम 70 प्र.)", p_1: "1 खिलाड़ी", p_n: " खिलाड़ी",
+        team_dog: "कुत्ता", team_cat: "बिल्ली", team_rabbit: "खरगोश", team_हम्सटर: "हम्सटर", team_panda: "पांडा", team_monkey: "बंदर",
+        ui_title: 'भाषा चुनें', ui_search: 'भाषा खोजें...', ui_empty: 'कोई परिणाम नहीं।', ui_toast: 'भाषा बदल दी गई है।', domain_txt: "KingsMath.com"
+    },
+    bn: {
+        title: "🌍 পতাকার রাজা", pageTitle: "পতাকার রাজা", desc: "বিশ্বের পতাকাগুলো অনুমান করুন!", keywords: "পতাকা, ভূগোল",
+        intro: "বিশ্বের সব পতাকা অনুমান করুন।", slogan: "আপনার ভূগোল জ্ঞান কতটা ভালো?", label_diff: "📚 কাঠিন্য", label_mode: "🏆 গেম মোড", label_player: "👥 খেলোয়াড়", 
+        btn_start: "গেম শুরু করুন", btn_restart: "শুরুতে ফিরে যান", link_other: "🎮 অন্য গেম বাছুন", header_title: "পতাকার রাজা", result_title: "ফলাফল",
+        q_num: "প্রশ্ন", ready: "প্রস্তুত...", submitted: "উত্তর জমা দেওয়া হয়েছে", score_pt: "পয়েন্ট", survived_count: "উত্তীর্ণ", eliminated: "বাদ", winner: "বিজয়ী!", rank: "ম", final_score: "চূড়ান্ত স্কোর", record: "রেকর্ড",
+        diff_easy: "সহজ (৫০ প্রধান)", diff_normal: "মাঝারি (৫০ অতিরিক্ত)", diff_hard: "কঠিন (৫০ চ্যালেঞ্জ)", diff_mix: "র‍্যান্ডম",
+        mode_chall: "🏅 চ্যালেঞ্জ (১০ প্র.)", mode_surv: "☠️ সারভাইভাল (সর্বোচ্চ ৭০ প্র.)", p_1: "১ জন", p_n: " জন",
+        team_dog: "কুকুর", team_cat: "বিড়াল", team_rabbit: "খরগোশ", team_hamster: "হ্যামস্টার", team_panda: "পান্ডা", team_monkey: "বানর",
+        ui_title: 'ভাষা নির্বাচন', ui_search: 'ভাষা খুঁজুন...', ui_empty: 'কোনো ফলাফল নেই।', ui_toast: 'ভাষা পরিবর্তন করা হয়েছে।', domain_txt: "KingsMath.com"
+    },
+    tr: {
+        title: "🌍 Bayrak Kralı", pageTitle: "Bayrak Kralı", desc: "Dünya bayraklarını tahmin edin!", keywords: "bayrak, coğrafya",
+        intro: "Tüm dünya bayraklarını tahmin et.", slogan: "Coğrafyan ne kadar iyi?", label_diff: "📚 Zorluk", label_mode: "🏆 Oyun Modu", label_player: "👥 Oyuncular", 
+        btn_start: "Oyuna Başla", btn_restart: "Başa Dön", link_other: "🎮 Başka Oyun Seç", header_title: "Bayrak Kralı", result_title: "Sonuçlar",
+        q_num: "Soru", ready: "Hazır...", submitted: "Cevap Gönderildi", score_pt: "puan", survived_count: "Geçti", eliminated: "Elendi", winner: "Kazanan!", rank: ".", final_score: "Final Skoru", record: "Rekor",
+        diff_easy: "Kolay (50 Ülke)", diff_normal: "Orta (50 Ekstra)", diff_hard: "Zor (50 Meydan Okuma)", diff_mix: "Rastgele Karışık",
+        mode_chall: "🏅 Meydan Okuma (10 S.)", mode_surv: "☠️ Hayatta Kalma (Maks 70 S.)", p_1: "1 Oyuncu", p_n: " Oyuncu",
+        team_dog: "Köpek", team_cat: "Kedi", team_rabbit: "Tavşan", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Maymun",
+        ui_title: 'Dil Seç', ui_search: 'Dil Ara...', ui_empty: 'Sonuç bulunamadı.', ui_toast: 'Dil değiştirildi.', domain_txt: "KingsMath.com"
+    },
+    de: {
+        title: "🌍 König der Flaggen", pageTitle: "König der Flaggen", desc: "Errate die Flaggen der Welt!", keywords: "flagge, geographie",
+        intro: "Errate alle Flaggen der Welt.", slogan: "Wie gut sind deine Geografiekenntnisse?", label_diff: "📚 Schwierigkeit", label_mode: "🏆 Spielmodus", label_player: "👥 Spieler", 
+        btn_start: "Spiel Starten", btn_restart: "Zurück zum Start", link_other: "🎮 Anderes Spiel wählen", header_title: "König der Flaggen", result_title: "Ergebnisse",
+        q_num: "Frage", ready: "Bereit...", submitted: "Antwort Eingereicht", score_pt: "Pkt", survived_count: "Bestanden", eliminated: "Ausgeschieden", winner: "Gewinner!", rank: ".", final_score: "Endstand", record: "Rekord",
+        diff_easy: "Leicht (50 Hauptl.)", diff_normal: "Mittel (50 Extra)", diff_hard: "Schwer (50 Herausforderung)", diff_mix: "Zufällig Gemischt",
+        mode_chall: "🏅 Herausforderung (10 F.)", mode_surv: "☠️ Überleben (Max 70 F.)", p_1: "1 Spieler", p_n: " Spieler",
+        team_dog: "Hund", team_cat: "Katze", team_rabbit: "Hase", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Affe",
+        ui_title: 'Sprache Auswählen', ui_search: 'Sprache Suchen...', ui_empty: 'Keine Ergebnisse.', ui_toast: 'Sprache geändert.', domain_txt: "KingsMath.com"
+    },
+    it: {
+        title: "🌍 Re delle Bandiere", pageTitle: "Re delle Bandiere", desc: "Indovina le bandiere del mondo!", keywords: "bandiera, geografia",
+        intro: "Indovina tutte le bandiere del mondo.", slogan: "Quanto è brava la tua geografia?", label_diff: "📚 Difficoltà", label_mode: "🏆 Modalità di Gioco", label_player: "👥 Giocatori", 
+        btn_start: "Inizia Gioco", btn_restart: "Torna all'Inizio", link_other: "🎮 Scegli Altro Gioco", header_title: "Re delle Bandiere", result_title: "Risultati",
+        q_num: "Domanda", ready: "Pronto...", submitted: "Risposta Inviata", score_pt: "pti", survived_count: "Passato", eliminated: "Eliminato", winner: "Vincitore!", rank: "°", final_score: "Punteggio Finale", record: "Record",
+        diff_easy: "Facile (50 Principali)", diff_normal: "Medio (50 Extra)", diff_hard: "Difficile (50 Sfida)", diff_mix: "Misto Casuale",
+        mode_chall: "🏅 Sfida (10 D.)", mode_surv: "☠️ Sopravvivenza (Max 70 D.)", p_1: "1 Giocatore", p_n: " Giocatori",
+        team_dog: "Cane", team_cat: "Gatto", team_rabbit: "Coniglio", team_hamster: "Criceto", team_panda: "Panda", team_monkey: "Scimmia",
+        ui_title: 'Seleziona Lingua', ui_search: 'Cerca Lingua...', ui_empty: 'Nessun risultato.', ui_toast: 'Lingua cambiata.', domain_txt: "KingsMath.com"
+    }
+};
+
+const languagesList = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+];
+
+/* =========================================
+   언어 설정 및 UI 초기화
+   ========================================= */
+let currentLang = 'en'; // 기본값 안전 보장
+function initLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    const savedLang = localStorage.getItem('kingsmath_lang');
+    const browserLang = navigator.language.slice(0, 2);
+
+    if (urlLang && languagesList.find(l => l.code === urlLang)) {
+        currentLang = urlLang;
+    } else if (savedLang && languagesList.find(l => l.code === savedLang)) {
+        currentLang = savedLang;
+    } else if (browserLang && languagesList.find(l => l.code === browserLang)) {
+        currentLang = browserLang;
+    } else {
+        currentLang = 'en'; // 최종 기본값
+    }
+    
+    updateUIText(currentLang);
+}
+
+function updateUIText(langCode) {
+    const txt = STRINGS[langCode];
+    if (!txt) return;
+
+    // SEO Update
+    document.getElementById('pageTitle').innerText = txt.pageTitle;
+    document.getElementById('pageDesc').setAttribute('content', txt.desc);
+    document.getElementById('pageKeywords').setAttribute('content', txt.keywords);
+    document.getElementById('domainLink').innerText = txt.domain_txt;
+    
+    // HTML Text binding
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.getAttribute('data-lang-key');
+        if (txt[key]) el.innerHTML = txt[key];
+    });
+
+    // 베트남어 전용 폰트 깨짐 방지 클래스 적용
+    if (langCode === 'vi') document.body.classList.add('lang-vi');
+    else document.body.classList.remove('lang-vi');
+
+    // Button Updates
+    const langObj = languagesList.find(l => l.code === langCode);
+    if(langObj) {
+        document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+        document.getElementById('currentLangName').innerText = langObj.name;
+    }
+
+    // Modal UI Translate
+    document.getElementById('ui-title').innerText = txt.ui_title;
+    document.getElementById('searchInput').placeholder = txt.ui_search;
+    document.getElementById('ui-empty').innerText = txt.ui_empty;
+
+    updateSelectOptions();
+    resizeDynamicTexts(); // 글자 길어질 때 리사이징 적용
+}
+
+function resizeDynamicTexts() {
+    document.querySelectorAll('.dynamic-text-container').forEach(el => {
+        el.style.transform = 'scale(1)'; // Reset
+        const parent = el.parentElement;
+        if (parent && el.scrollWidth > parent.clientWidth) {
+            const scale = (parent.clientWidth - 20) / el.scrollWidth;
+            el.style.transform = `scale(${Math.max(scale, 0.5)})`;
+        }
+    });
+}
+window.addEventListener('resize', resizeDynamicTexts);
+
+const TEAM_DATA = [
+    { id: 'dog', icon: '🐶', color: 'bg-dog', key: 'team_dog' },
+    { id: 'cat', icon: '🐱', color: 'bg-cat', key: 'team_cat' },
+    { id: 'rabbit', icon: '🐰', color: 'bg-rabbit', key: 'team_rabbit' },
+    { id: 'hamster', icon: '🐹', color: 'bg-hamster', key: 'team_hamster' },
+    { id: 'panda', icon: '🐼', color: 'bg-panda', key: 'team_panda' },
+    { id: 'monkey', icon: '🐵', color: 'bg-monkey', key: 'team_monkey' }
+];
+
+const state = {
+    players: [], mode: 'challenge', difficulty: 'normal',
+    currentQ: 0, maxQ: 10, timer: 30, timerInterval: null,
+    phase: 'setup', problem: null, availableFlags: { easy: [], medium: [], hard: [] },
+    currentOrder: 0
+};
+
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const t = audioCtx.currentTime;
+    if (type === 'start') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.5);
+    } else if (type === 'count') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+    } else if (type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(1200, t);
+        gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.05);
+    } else if (type === 'correct') {
+        const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain();
+        osc.frequency.setValueAtTime(523.25, t); osc2.frequency.setValueAtTime(659.25, t + 0.1);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.4);
+        gain2.gain.setValueAtTime(0, t); gain2.gain.linearRampToValueAtTime(0.3, t + 0.1); gain2.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc2.connect(gain2); gain2.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.4); osc2.start(t); osc2.stop(t + 0.5);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.3);
+    } else if (type === 'end') {
+        const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+        freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = f;
+            g.gain.setValueAtTime(0.2, t + i*0.1); g.gain.linearRampToValueAtTime(0, t + i*0.1 + 0.5);
+            o.connect(g); g.connect(audioCtx.destination); o.start(t + i*0.1); o.stop(t + i*0.1 + 0.5);
+        });
+    }
+}
+
+function updateSelectOptions() {
+    const txt = STRINGS[currentLang];
+    
+    // 이전에 선택된 값 보존
+    const diffVal = document.getElementById('difficulty').value;
+    const modeVal = document.getElementById('gameMode').value;
+    const playerVal = document.getElementById('playerCount').value;
+
+    document.getElementById('difficulty').innerHTML = `
+        <option value="easy">${txt.diff_easy}</option>
+        <option value="normal">${txt.diff_normal}</option>
+        <option value="hard">${txt.diff_hard}</option>
+        <option value="mix">${txt.diff_mix}</option>
+    `;
+    document.getElementById('gameMode').innerHTML = `
+        <option value="challenge">${txt.mode_chall}</option>
+        <option value="survival">${txt.mode_surv}</option>
+    `;
+    const playerSelect = document.getElementById('playerCount');
+    playerSelect.innerHTML = '';
+    for(let i=1; i<=6; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.innerText = i === 1 ? txt.p_1 : `${i}${txt.p_n}`;
+        playerSelect.appendChild(opt);
+    }
+
+    // 값 복원 (기존에 선택한 값이 없으면 기본 설정)
+    if(diffVal) document.getElementById('difficulty').value = diffVal;
+    if(modeVal) document.getElementById('gameMode').value = modeVal;
+    if(playerVal) document.getElementById('playerCount').value = playerVal;
+    else document.getElementById('playerCount').value = '6'; 
+}
+
+/* =========================================
+   Flag Problem Generator
+   ========================================= */
+
+// 국가 이름을 번역된 데이터에서 가져오는 헬퍼 함수
+function getCountryName(code, defaultName) {
+    if (COUNTRY_NAMES[code] && COUNTRY_NAMES[code][currentLang]) {
+        return COUNTRY_NAMES[code][currentLang];
+    }
+    return defaultName;
+}
+
+function generateFlagProblem(qNum) {
+    let poolType = state.difficulty;
+    let target;
+
+    if (state.mode === 'survival') {
+        if (qNum <= 10) poolType = 'easy';
+        else if (qNum <= 20) poolType = 'medium';
+        else poolType = 'hard';
+    } else if (poolType === 'mix') {
+        const types = ['easy', 'medium', 'hard'];
+        poolType = types[Math.floor(Math.random() * types.length)];
+    } else if (poolType === 'normal') {
+        poolType = 'medium'; 
+    }
+
+    let pool = state.availableFlags[poolType];
+    if (!pool || pool.length === 0) {
+        pool = [...flagData[poolType]];
+        state.availableFlags[poolType] = pool;
+    }
+
+    let randIdx = Math.floor(Math.random() * pool.length);
+    target = pool.splice(randIdx, 1)[0];
+
+    let distractorPool = [...flagData[poolType]];
+    let distractors = [];
+    while(distractors.length < 3) {
+        let d = distractorPool[Math.floor(Math.random() * distractorPool.length)];
+        if (d.code !== target.code && !distractors.find(x => x.code === d.code)) {
+            distractors.push(d);
+        }
+    }
+
+    let qType = Math.floor(Math.random() * 3);
+    let qStr, aVal, options = [];
+
+    // 타겟 국가 이름 번역
+    let targetName = getCountryName(target.code, target.name);
+
+    if (qType === 0) {
+        qStr = `<img src="https://flagcdn.com/w320/${target.code}.png" class="big-flag" alt="Flag Image">`;
+        aVal = targetName;
+        options = [target, ...distractors].map(x => {
+            let translatedName = getCountryName(x.code, x.name);
+            return { label: translatedName, value: translatedName };
+        });
+    } else if (qType === 1) {
+        qStr = `<div class="text-5xl sm:text-7xl text-white mb-4" style="line-height:1.5; font-family: 'Noto Sans KR', sans-serif;">${targetName}</div>`;
+        aVal = target.code;
+        options = [target, ...distractors].map(x => ({
+            label: `<img src="https://flagcdn.com/w160/${x.code}.png" class="small-flag">`,
+            value: x.code
+        }));
+    } else {
+        let isTrue = Math.random() < 0.5;
+        let displayTarget = isTrue ? target : distractors[0];
+        let displayTargetName = getCountryName(displayTarget.code, displayTarget.name);
+        
+        qStr = `<img src="https://flagcdn.com/w320/${target.code}.png" class="big-flag" alt="Flag Image">
+                <div class="ox-name" style="font-family: 'Noto Sans KR', sans-serif;">${displayTargetName}</div>`;
+        aVal = isTrue ? "O" : "X";
+        // O는 무조건 앞, X는 뒤로 고정
+        options = [
+            { label: "<span class='text-blue-500 text-3xl font-bold'>O</span>", value: "O" },
+            { label: "<span class='text-red-500 text-3xl font-bold'>X</span>", value: "X" }
+        ];
+    }
+    
+    return { q: qStr, aVal: aVal, options: options, type: qType, target: target };
+}
+
+/* =========================================
+   Game Lifecycle
+   ========================================= */
+function initGame() {
+    initAudio();
+    const pCount = parseInt(document.getElementById('playerCount').value);
+    state.difficulty = document.getElementById('difficulty').value;
+    state.mode = document.getElementById('gameMode').value;
+    state.currentQ = 0;
+    state.players = [];
+
+    state.availableFlags.easy = [...flagData.easy];
+    state.availableFlags.medium = [...flagData.medium];
+    state.availableFlags.hard = [...flagData.hard];
+
+    const arena = document.getElementById('arena');
+    arena.innerHTML = '';
+    
+    const txt = STRINGS[currentLang];
+
+    for(let i=0; i<pCount; i++) {
+        let teamInfo = TEAM_DATA[i];
+        let localizedName = txt[teamInfo.key]; // 다국어 이름 가져오기
+        state.players.push({ id: teamInfo.id, icon: teamInfo.icon, color: teamInfo.color, name: localizedName, score: 0, survived: 0, alive: true, answered: false, selected: null, isGoldenBellWinner: false, rank: 0 });
+        
+        const col = document.createElement('div');
+        col.className = `player-col ${state.players[i].color}`;
+        col.id = `p-${i}`;
+        col.innerHTML = `
+            <div class="p-header">
+                <span class="p-emoji">${state.players[i].icon}</span>
+                <span class="p-name dynamic-font-target">${state.players[i].name}</span>
+                <div id="p-score-${i}" style="font-size: 1.2rem; color: #ffd43b; margin-top: 5px; ${state.mode === 'challenge' ? '' : 'display: none;'}">0 ${txt.score_pt}</div>
+                <div class="p-info" id="p-info-${i}"></div>
+            </div>
+            <div class="mini-question" id="p-q-${i}">...</div>
+            <div class="choice-grid" id="p-choices-${i}"></div>
+            <div class="feedback-overlay" id="p-fb-${i}"></div>
+            <div class="final-status" id="p-final-${i}"></div>
+        `;
+        arena.appendChild(col);
+    }
+
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('resultPopup').style.display = 'none';
+    
+    // 몰입을 위해 플레이 중 언어 선택기 숨김 (요구사항 5 반영)
+    document.getElementById('langTriggerContainer').style.display = 'none';
+
+    playSound('start');
+    nextTurn();
+}
+
+async function nextTurn() {
+    const aliveCount = state.players.filter(p=>p.alive).length;
+
+    if (state.mode === 'survival' && aliveCount <= 1 && state.players.length > 1) { endGame(); return; }
+    if (state.mode === 'survival' && aliveCount === 0) { endGame(); return; }
+    if (state.mode === 'challenge' && state.currentQ >= 10) { endGame(); return; }
+
+    if (state.mode === 'survival' && state.currentQ >= 70 && aliveCount > 0) {
+        triggerGoldenBellWin();
+        return;
+    }
+
+    state.currentQ++;
+    state.phase = 'counting';
+    state.currentOrder = 0; // 순서 초기화
+    state.players.forEach((p, idx) => {
+        if(p.alive) {
+            p.answered = false; p.selected = null;
+            const fb = document.getElementById(`p-fb-${idx}`);
+            fb.className = 'feedback-overlay'; fb.innerHTML = '';
+        }
+    });
+
+    state.problem = generateFlagProblem(state.currentQ);
+    
+    const maxQText = state.mode==='challenge' ? '10' : '70';
+    const txt = STRINGS[currentLang];
+    
+    document.getElementById('qNumber').innerText = `${txt.q_num} ${state.currentQ} / ${maxQText}`;
+    document.getElementById('bigQuestion').innerText = txt.ready;
+    
+    await runCountdown();
+
+    state.phase = 'playing';
+    document.getElementById('bigQuestion').innerHTML = state.problem.q;
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const grid = document.getElementById(`p-choices-${idx}`);
+        grid.innerHTML = '';
+        
+        let playerOptions = [...state.problem.options];
+        if (state.problem.type !== 2) {
+            playerOptions.sort(() => Math.random() - 0.5);
+        }
+
+        playerOptions.forEach(optObj => {
+            const btn = document.createElement('div');
+            btn.className = 'choice-btn';
+            btn.innerHTML = `<span style="font-family: 'Noto Sans KR', sans-serif;">${optObj.label}</span>`;
+            btn.dataset.val = optObj.value;
+            btn.onpointerdown = (e) => { e.preventDefault(); handleAnswer(idx, optObj.value, btn); };
+            grid.appendChild(btn);
+        });
+    });
+    startTimer();
+}
+
+async function runCountdown() {
+    const layer = document.getElementById('countdownLayer');
+    const txt = document.getElementById('countdownText');
+    layer.style.display = 'flex';
+    for(let i=3; i>0; i--) {
+        txt.innerText = i; 
+        txt.classList.remove('count-animate');
+        void txt.offsetWidth; 
+        txt.classList.add('count-animate');
+        playSound('count'); 
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none';
+}
+
+function startTimer() {
+    state.timer = 30;
+    const tBox = document.getElementById('mainTimer');
+    tBox.innerText = 30; tBox.classList.remove('timer-urgent');
+    if(state.timerInterval) clearInterval(state.timerInterval);
+    state.timerInterval = setInterval(() => {
+        state.timer--; tBox.innerText = state.timer;
+        if(state.timer <= 5) { tBox.classList.add('timer-urgent'); playSound('count'); }
+        if(state.timer <= 0) finishRound();
+    }, 1000);
+}
+
+function handleAnswer(pIdx, val, btnElem) {
+    if(state.phase !== 'playing') return;
+    const p = state.players[pIdx];
+    if(p.answered || !p.alive) return;
+
+    playSound('click');
+    p.answered = true; p.selected = val;
+    p.answerOrder = ++state.currentOrder; // 빨리 선택한 순서 기록
+    
+    const allBtns = document.getElementById(`p-choices-${pIdx}`).children;
+    for(let b of allBtns) b.style.opacity = '0.5';
+    btnElem.style.opacity = '1'; btnElem.classList.add('selected');
+
+    const fb = document.getElementById(`p-fb-${pIdx}`);
+    const txt = STRINGS[currentLang];
+    fb.innerHTML = `
+        <div style="font-size:3rem; margin-bottom:10px;">🔒</div>
+        <div class="submitted-text">${txt.submitted}</div>
+    `;
+    fb.classList.add('secret'); 
+    
+    const living = state.players.filter(pl => pl.alive);
+    if(living.every(pl => pl.answered)) finishRound();
+}
+
+function finishRound() {
+    clearInterval(state.timerInterval);
+    state.phase = 'result';
+    const correctAns = state.problem.aVal;
+    let someoneWrong = false;
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const fb = document.getElementById(`p-fb-${idx}`);
+        const choices = document.getElementById(`p-choices-${idx}`).children;
+
+        fb.classList.remove('secret'); fb.innerHTML = '';
+        
+        for(let btn of choices) {
+            let bVal = btn.dataset.val;
+            if(bVal === correctAns) btn.classList.add('correct');
+            else if(p.selected === bVal) btn.classList.add('wrong');
+        }
+
+        if(p.selected === correctAns) {
+            fb.innerHTML = '<span style="color:#69db7c">⭕</span>'; fb.classList.add('show-result');
+            p.survived++;
+            if(state.mode === 'challenge') {
+                // 빨리 선택한 사람에게 더 높은 점수 부여 (남은시간 x 10 + 선택순서 보너스)
+                p.score += (state.timer * 10) + Math.max(10, (100 - p.answerOrder * 10));
+                document.getElementById(`p-score-${idx}`).innerText = `${p.score} ${STRINGS[currentLang].score_pt}`;
+            }
+        } else {
+            someoneWrong = true;
+            fb.innerHTML = '<span style="color:#ff6b6b">❌</span>'; fb.classList.add('show-result');
+            if(state.mode === 'survival') {
+                p.alive = false;
+                setTimeout(() => {
+                    document.getElementById(`p-${idx}`).classList.add('eliminated');
+                }, 1500);
+            }
+        }
+    });
+    if(!someoneWrong) playSound('correct'); else playSound('wrong');
+    setTimeout(() => nextTurn(), 3000);
+}
+
+function assignRanks() {
+    let ranked = [...state.players];
+    if(state.mode === 'challenge') {
+        ranked.sort((a,b) => b.score - a.score);
+    } else {
+        ranked.sort((a,b) => {
+            if (a.alive && !b.alive) return -1;
+            if (!a.alive && b.alive) return 1;
+            return b.survived - a.survived;
+        });
+    }
+    
+    let currentRank = 1;
+    ranked.forEach((p, i) => {
+        if (i > 0) {
+            const prev = ranked[i-1];
+            let isTie = false;
+            if (state.mode === 'challenge') {
+                if (p.score === prev.score) isTie = true;
+            } else {
+                if (p.alive && prev.alive) isTie = true;
+                else if (!p.alive && !prev.alive && p.survived === prev.survived) isTie = true;
+            }
+            if (!isTie) currentRank = i + 1;
+        } else {
+            currentRank = 1;
+        }
+        const originalPlayer = state.players.find(pl => pl.id === p.id);
+        originalPlayer.rank = currentRank;
+    });
+}
+
+function getRankEmojiHtml(rank) {
+    let rankEmoji = '';
+    if (rank === 1) rankEmoji = '🥇';
+    else if (rank === 2) rankEmoji = '🥈';
+    else if (rank === 3) rankEmoji = '🥉';
+    else if (rank === 4) rankEmoji = '<span style="font-size: 70%;">4️⃣</span>';
+    else if (rank === 5) rankEmoji = '<span style="font-size: 70%;">5️⃣</span>';
+    else if (rank === 6) rankEmoji = '<span style="font-size: 70%;">6️⃣</span>';
+    return `<div style="font-size: 3rem; margin-bottom: 5px;">${rankEmoji}</div>`;
+}
+
+function triggerGoldenBellWin() {
+    clearInterval(state.timerInterval);
+    state.phase = 'gameover';
+    playSound('end');
+
+    state.players.forEach(p => {
+        if(p.alive) p.isGoldenBellWinner = true;
+    });
+    
+    assignRanks();
+
+    const popup = document.getElementById('resultPopup');
+    const list = document.getElementById('finalResultList');
+    const txt = STRINGS[currentLang];
+    
+    document.getElementById('resultTitle').innerHTML = "🎉 골든벨 달성! 🎉<br><span style='font-size: 2rem; color: #ffd43b;'>생존자 전원 승리!</span>";
+    popup.style.display = 'flex'; list.innerHTML = '';
+    
+    state.players.forEach((p, idx) => {
+        const finalDiv = document.getElementById(`p-final-${idx}`);
+        finalDiv.style.display = 'block';
+        const rankHtml = getRankEmojiHtml(p.rank);
+
+        if (p.isGoldenBellWinner) {
+            finalDiv.innerHTML = `${rankHtml}<h3>영광의 우승</h3><p>🔔 골든벨 🔔</p>`;
+            finalDiv.style.border = "4px solid #ffd43b";
+            finalDiv.style.background = "rgba(255, 212, 59, 0.2)";
+        } else {
+            finalDiv.innerHTML = `${rankHtml}<h3>${txt.record}</h3><p>${p.survived} ${txt.survived_count}</p>`;
+        }
+    });
+
+    renderResultList(true);
+}
+
+function endGame() {
+    clearInterval(state.timerInterval);
+    state.phase = 'gameover';
+    playSound('end');
+    
+    assignRanks();
+
+    const popup = document.getElementById('resultPopup');
+    const txt = STRINGS[currentLang];
+    document.getElementById('resultTitle').innerText = txt.result_title;
+    popup.style.display = 'flex';
+    
+    state.players.forEach((p, idx) => {
+        const finalDiv = document.getElementById(`p-final-${idx}`);
+        finalDiv.style.display = 'block';
+        const rankHtml = getRankEmojiHtml(p.rank);
+
+        if (state.mode === 'challenge') { 
+            finalDiv.innerHTML = `${rankHtml}<h3>${txt.final_score}</h3><p>${p.score} ${txt.score_pt}</p>`; 
+        } else { 
+            finalDiv.innerHTML = p.alive ? `${rankHtml}<h3>${txt.record}</h3><p>${txt.winner}</p>` : `${rankHtml}<h3>${txt.record}</h3><p>${p.survived} ${txt.survived_count}</p>`; 
+            if(p.alive) finalDiv.style.border = "4px solid #ffd43b"; 
+        }
+    });
+
+    renderResultList(false);
+}
+
+function renderResultList(isGoldenBell) {
+    const list = document.getElementById('finalResultList');
+    list.innerHTML = '';
+    const txt = STRINGS[currentLang];
+
+    let ranked = [...state.players].sort((a,b) => a.rank - b.rank);
+
+    ranked.forEach((p, i) => {
+        const li = document.createElement('li');
+        li.className = `result-item ${p.rank === 1 ? 'rank-1' : ''}`;
+        
+        let status;
+        if (isGoldenBell && p.isGoldenBellWinner) status = "🔔 골든벨 우승!";
+        else if (state.mode === 'challenge') status = `${p.score} ${txt.score_pt}`;
+        else status = p.alive ? txt.winner : `${p.survived} ${txt.survived_count}`;
+
+        li.innerHTML = `<span>${p.rank}${txt.rank} ${p.icon} ${p.name}</span><span>${status}</span>`;
+        list.appendChild(li);
+    });
+}
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => { console.log(err.message); });
+    } else { document.exitFullscreen(); }
+});
+
+document.getElementById('startBtn').addEventListener('click', initGame);
+document.getElementById('restartBtn').addEventListener('click', () => { 
+    // 게임 끝나고 재시작 시 언어 선택기 다시 보이게 처리
+    document.getElementById('langTriggerContainer').style.display = 'block';
+    document.getElementById('overlay').style.display = 'flex'; 
+    document.getElementById('resultPopup').style.display = 'none'; 
+});
+
+// Block specific gestures for whiteboard use
+document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('dragstart', event => event.preventDefault());
+
+/* =========================================
+   홈버튼 / 전체화면 유지 초기화 (요구사항 4번 반영)
+   ========================================= */
+document.getElementById('btn-home').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        // 새로고침 대신 화면 초기화 로직 실행 (전체 화면 유지)
+        clearInterval(state.timerInterval);
+        state.phase = 'setup';
+        
+        // 홈 화면 진입 시 언어 선택기 다시 노출
+        document.getElementById('langTriggerContainer').style.display = 'block';
+        
+        document.getElementById('resultPopup').style.display = 'none';
+        document.getElementById('countdownLayer').style.display = 'none';
+        document.getElementById('arena').innerHTML = '';
+        document.getElementById('mainTimer').innerText = '30';
+        document.getElementById('mainTimer').classList.remove('timer-urgent');
+        document.getElementById('bigQuestion').innerText = STRINGS[currentLang].ready;
+        document.getElementById('overlay').style.display = 'flex';
+        
+        if(window.playSound) window.playSound('click');
+    } else {
+        location.reload();
+    }
+});
+
+/* =========================================
+   언어 선택기 모달 이벤트 및 렌더링 (요구사항 5번, 8번, 9번 반영)
+   ========================================= */
+const triggerBtn = document.getElementById('langTriggerBtn');
+const modal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const toast = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+let toastTimeout;
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filteredLangs = languagesList.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden');
+        noResult.classList.remove('hidden');
+        noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        noResult.classList.add('hidden');
+        noResult.classList.remove('flex');
+
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLang;
+            
+            const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden lang-ui-text";
+            const stateClasses = isSelected 
+                ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+            const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+
+            const btn = document.createElement('div');
+            btn.className = `${baseClasses} ${stateClasses}`;
+
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+
+            btn.addEventListener('click', () => selectLanguage(lang));
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function selectLanguage(lang) {
+    currentLang = lang.code;
+    
+    // 로컬 스토리지 저장 및 URL 파라미터 업데이트 (요구사항 3 반영)
+    localStorage.setItem('kingsmath_lang', currentLang);
+    const url = new URL(window.location);
+    url.searchParams.set('lang', currentLang);
+    window.history.pushState({}, '', url);
+
+    // 전체 UI 텍스트 갱신
+    updateUIText(currentLang);
+    
+    // 모달 닫기
+    closeModal();
+    
+    // 토스트 알림
+    document.getElementById('ui-toast').textContent = STRINGS[currentLang].ui_toast;
+    toastLangName.textContent = lang.name;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    
+    // 모달 내용 갱신
+    renderLanguages(searchInput.value);
+}
+
+function openModal() {
+    modal.classList.add('active');
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+}
+
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+
+/* =========================================
+   초기 시작점
+   ========================================= */
+window.addEventListener('DOMContentLoaded', () => {
+    initLanguage();      // 언어 초기 세팅
+    renderLanguages();   // 모달 언어 리스트 그리기 (요구사항 8번 버그 방지)
+    
+    // 글자 크기 동적 조절 1회 강제 트리거
+    setTimeout(resizeDynamicTexts, 100); 
+});
+
+</script>
+</body>
+</html>

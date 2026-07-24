@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="description" content="도형의 이름을 보고 맞는 풍선을 터뜨리세요! 전자칠판 전용 무료 수학 게임." id="meta-desc">
+    <meta name="keywords" content="수학게임, 도형, 기하, 삼각형, 사각형, 전자칠판, 킹수학, 교육용게임" id="meta-keywords">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="도형킹! 풍선 터트리기" id="og-title">
+    <meta property="og:description" content="미션에 맞는 도형 풍선을 터뜨려 점수를 얻으세요!" id="og-desc">
+    <meta property="og:url" content="/" id="og-url">
+    <meta property="og:site_name" content="킹수학" id="og-site-name">
+    
+    <title id="page-title">도형킹! 풍선 터트리기</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { corePlugins: { preflight: false } }
+    </script>
+
+    <style>
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        /* [전자칠판 최적화 및 기본 게임 스타일 유지] */
+        * {
+            box-sizing: border-box;
+            user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            
+            --p0-main: #2980b9; --p0-light: #85c1e9; --p0-accent: #00ffff;
+            --p1-main: #d35400; --p1-light: #f5b041; --p1-accent: #ffff00;
+            --p2-main: #c2185b; --p2-light: #f8bbd0; --p2-accent: #FF1493;
+            --p3-main: #27ae60; --p3-light: #a5d6a7; --p3-accent: #00FF00;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            font-weight: 400;
+            touch-action: manipulation; 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        .top-link {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            transition: color 0.3s;
+            text-align: center;
+            cursor: pointer;
+        }
+        .top-link:hover { color: #fff; text-decoration: underline; }
+
+        .bottom-link {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            color: #81ecec;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .bottom-link:hover { transform: scale(1.05); color: #fff; }
+
+        /* 헤더 */
+        header {
+            background-color: #1e1e1e;
+            color: var(--accent-color);
+            padding: 0 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            height: 70px;
+            position: relative;
+        }
+        header h1 {
+            font-size: 1.6rem;
+            margin: 0;
+            text-shadow: 1px 1px 0 #000;
+            cursor: pointer;
+            position: absolute;
+            left: 30px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+
+        #header-info {
+            display: none;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #timer-display {
+            font-size: 2.5rem;
+            color: #fff;
+            background: #444;
+            padding: 5px 20px;
+            border-radius: 15px;
+            border: 2px solid #666;
+            min-width: 100px;
+            text-align: center;
+            box-shadow: inset 0 0 10px #000;
+            font-family: 'Jua', sans-serif;
+            font-weight: 400;
+        }
+        #timer-display.urgent {
+            background: #c0392b;
+            color: #fff;
+            animation: blink 0.5s infinite alternate;
+        }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
+
+        /* 메인 컨테이너 */
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: calc(100% - 60px);
+        }
+
+        /* 설정 화면 */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid #444;
+            max-height: 90vh;
+            overflow-y: auto;
+            min-width: 500px;
+            max-width: 95vw;
+            z-index: 20;
+        }
+
+        .screen-title { 
+            font-size: 3rem; 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000; 
+            margin-bottom: 5px; 
+            line-height: 1.2;
+            font-weight: 400;
+            text-align: center;
+            word-break: keep-all;
+            /* 동적 크기 조절을 위한 클래스 */
+            transition: font-size 0.2s;
+        }
+        .screen-desc {
+            font-size: 1.2rem;
+            color: #ccc;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #555;
+            font-weight: 400;
+            word-break: keep-all;
+        }
+        .highlight { color: #ff7675; font-weight: 400; }
+
+        .option-section { 
+            display: flex;
+            flex-direction: row;    
+            justify-content: center; 
+            align-items: center;      
+            gap: 20px;              
+            margin-bottom: 20px;    
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        .label-text { 
+            margin-bottom: 0;        
+            font-weight: bold;
+            white-space: nowrap;    
+            min-width: 80px;        
+            text-align: right;      
+            color: #aaa; 
+            font-size: 1.3rem; 
+        }
+        
+        .option-group { 
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap; 
+            justify-content: center;
+        }
+        
+        .btn-option {
+            padding: 10px 20px; font-size: 1.1rem; border: 2px solid #555; background: #222;
+            color: #aaa; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+            touch-action: manipulation;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active); color: white; border-color: var(--btn-active);
+            box-shadow: 0 0 10px var(--btn-active); transform: translateY(-2px);
+        }
+
+        #btn-start {
+            margin-top: 10px; padding: 12px 60px; font-size: 2rem;
+            background-color: #ff7675; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 6px 0 #d63031; font-family: 'Jua', sans-serif; cursor: pointer;
+            transition: transform 0.1s;
+            touch-action: manipulation;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        /* 게임 화면 */
+        #game-board {
+            display: none; width: 100%; height: 100%; padding: 10px; padding-bottom: 20px;
+            box-sizing: border-box; flex-direction: row; justify-content: center;
+            align-items: center; gap: 15px; flex-wrap: nowrap;
+        }
+
+        .team-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            border: 3px solid #666;
+            height: 95%; 
+            width: 23%;
+            min-width: 200px;
+            max-width: 400px;
+            transition: all 0.3s;
+            overflow: hidden; 
+        }
+
+        .team-0 { border-color: var(--p0-main); }
+        .team-0 .player-label { color: var(--p0-accent); }
+        .team-0 .target-box { border-color: var(--p0-main); color: var(--p0-accent); }
+        
+        .team-1 { border-color: var(--p1-main); }
+        .team-1 .player-label { color: var(--p1-accent); }
+        .team-1 .target-box { border-color: var(--p1-main); color: var(--p1-accent); }
+
+        .team-2 { border-color: var(--p2-main); }
+        .team-2 .player-label { color: var(--p2-accent); }
+        .team-2 .target-box { border-color: var(--p2-main); color: var(--p2-accent); }
+
+        .team-3 { border-color: var(--p3-main); }
+        .team-3 .player-label { color: var(--p3-accent); }
+        .team-3 .target-box { border-color: var(--p3-main); color: var(--p3-accent); }
+
+        .header-section {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 5;
+        }
+
+        .crown-icon {
+            position: absolute; top: 10px; left: 10px; 
+            font-size: 2rem; opacity: 0; transition: all 0.4s; z-index: 10;
+        }
+        .crown-icon.show { opacity: 1; transform: scale(1.2) rotate(-15deg); }
+
+        .player-label {
+            font-size: 1.5rem;
+            margin-bottom: 2px;
+            text-shadow: 2px 2px 0 #000;
+            font-weight: 400;
+        }
+
+        .score-text {
+            font-size: 1.3rem;
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .balloon-area {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 20px 20px;
+            touch-action: none;
+        }
+
+        .mission-area {
+            width: 100%;
+            padding: 5px;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: row; 
+            justify-content: center;
+            align-items: center;
+            border-top: 2px solid #555;
+            z-index: 5;
+            height: 80px; 
+            gap: 15px; 
+        }
+        
+        .mission-label { 
+            font-size: 1.5rem; 
+            color: #fff; 
+            margin-bottom: 0; 
+            font-weight: 400;
+            white-space: nowrap;
+        }
+
+        .target-box {
+            font-size: 1.8rem;
+            font-weight: 400;
+            padding: 5px 20px;
+            border-radius: 10px;
+            border: 3px solid #fff;
+            background: rgba(0,0,0,0.6);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .target-box.pulse { transform: scale(1.2); }
+
+        /* 풍선 스타일 */
+        .balloon {
+            position: absolute;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 20%),
+                        var(--bg-color);
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1), 
+                        5px 5px 15px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+            will-change: transform, bottom, left; 
+            border: none;
+        }
+
+        .balloon svg {
+            width: 70%;
+            height: 70%;
+            fill: none;
+            stroke: #2d3436;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(2px 2px 0px rgba(255,255,255,0.5));
+            pointer-events: none;
+        }
+        .balloon svg.fill-shape { fill: rgba(255,255,255,0.4); }
+
+        .balloon.color-1 { --bg-color: #ff7675; } 
+        .balloon.color-2 { --bg-color: #74b9ff; } 
+        .balloon.color-3 { --bg-color: #55efc4; } 
+        .balloon.color-4 { --bg-color: #a29bfe; } 
+        .balloon.color-5 { --bg-color: #fdcb6e; } 
+        .balloon.color-6 { --bg-color: #e17055; } 
+        .balloon.color-7 { --bg-color: #00cec9; } 
+        
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 10px solid var(--bg-color);
+            border-radius: 20%;
+        }
+
+        .balloon::before {
+            content: '';
+            position: absolute;
+            top: 100%; 
+            left: 50%;
+            width: 10px; 
+            height: 70px; 
+            background: transparent; 
+            border-left: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 50%; 
+            transform-origin: top left;
+            animation: stringSway 1.5s ease-in-out infinite alternate;
+            z-index: -1; 
+            pointer-events: none;
+        }
+
+        @keyframes stringSway {
+            0% { transform: rotate(-5deg); border-radius: 50%; }
+            100% { transform: rotate(10deg) scaleY(0.95); border-radius: 40%; }
+        }
+        
+        /* 오답 효과 */
+        .balloon.wrong {
+            --bg-color: #636e72;
+            animation: shake 0.4s ease-in-out;
+            opacity: 0.8;
+            pointer-events: none;
+            transform: scale(0.9);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            75% { transform: translateX(5px) rotate(5deg); }
+        }
+
+        /* 결과 화면 오버레이 */
+        .win-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+            border-radius: 17px; display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 50;
+            backdrop-filter: blur(5px); animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .rank-medal { font-size: 5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .rank-text { font-size: 3rem; color: var(--accent-color); margin-bottom: 20px; font-weight: 400; }
+        .final-score { font-size: 1.5rem; color: #fff; margin-bottom: 20px; font-weight: 400; }
+
+        .floating-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px;
+            border-radius: 50%; background: #444; color: white; display: flex;
+            justify-content: center; align-items: center; font-size: 1.5rem;
+            z-index: 60; border: 2px solid #666; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer; touch-action: manipulation;
+        }
+        .floating-btn:active { transform: scale(0.9); }
+        #btn-home { left: 20px; }
+        #btn-fullscreen { right: 20px; }
+        
+        #confetti-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 100; }
+        .confetti { position: absolute; width: 10px; height: 10px; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        /* 다시하기 버튼 */
+        #game-over-controls {
+            display: none;
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #btn-restart {
+            padding: 15px 50px;
+            font-size: 2.2rem;
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(to bottom, #00b894, #00cec9);
+            color: white;
+            border: 4px solid #fff;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), 0 6px 0 #006266;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            pointer-events: auto;
+            font-weight: 400;
+        }
+        #btn-restart:hover { filter: brightness(1.1); transform: scale(1.05); }
+        #btn-restart:active { transform: scale(0.95) translateY(6px); box-shadow: 0 4px 0 #006266; }
+
+        /* [추가] 모달 UI 관련 스타일 */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0; visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px);
+            opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        .toast {
+            transform: translateY(100%); opacity: 0; transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div id="langSelectorContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="color: white; font-family: 'Noto Sans KR', sans-serif;">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4" style="font-family: 'Noto Sans KR', sans-serif;">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-gray-100">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999]" style="font-family: 'Noto Sans KR', sans-serif;">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+
+    <header>
+        <h1 onclick="location.reload()" id="header-title">🎈 도형킹! 풍선 터트리기</h1>
+        <div id="header-info">
+            <div style="font-size:1.5rem; color:#aaa;" data-i18n="time_label">남은 시간</div>
+            <div id="timer-display">60</div>
+        </div>
+    </header>
+
+    <div id="app-container">
+        <div id="setup-screen">
+            <a href="/" target="_self" class="top-link">
+                <span data-i18n="top_desc">게임으로 수학의 킹이 되어라.</span> <span data-i18n="domain_name">킹수학.com</span>
+            </a>
+            
+            <div class="screen-title dynamic-text" data-i18n="title">🎈 도형킹! 풍선 터트리기</div>
+            
+            <div class="screen-desc" data-i18n="desc">
+                화면 하단의 <span class="highlight">미션</span>에 해당하는 도형을 찾아 터뜨리세요!<br>
+                (예: 사각형을 찾아라, 정삼각형을 찾아라)<br>
+                시간이 지날수록 풍선이 점점 <span class="highlight">빨라집니다!</span>
+            </div>
+            
+            <div class="option-section">
+                <div class="label-text" data-i18n="topic">주제 선택</div>
+                <div class="option-group" id="mode-options">
+                    <div class="btn-option selected" data-value="all" data-i18n="all">🎲 모두</div>
+                    <div class="btn-option" data-value="tri" data-i18n="tri">🔺 삼각형</div>
+                    <div class="btn-option" data-value="quad" data-i18n="quad">🟦 사각형</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="players">참여 인원</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" data-value="1" data-i18n="p1">1인 👤</div>
+                    <div class="btn-option" data-value="2" data-i18n="p2">2인 👥</div>
+                    <div class="btn-option" data-value="3" data-i18n="p3">3인 👨‍👩‍👧</div>
+                    <div class="btn-option selected" data-value="4" data-i18n="p4">4인 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <button id="btn-start" class="dynamic-text" data-i18n="btn_start">게임 시작! 🚀</button>
+
+            <a href="/" target="_self" class="bottom-link dynamic-text" data-i18n="btn_more">🎮 다른 게임 고르기</a>
+        </div>
+
+        <div id="game-board">
+        </div>
+
+        <div id="game-over-controls">
+            <button id="btn-restart" class="dynamic-text" data-i18n="btn_restart">🔄 다시 하기</button>
+        </div>
+
+    </div>
+
+<div id="btn-home" class="floating-btn" style="cursor:pointer;">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+    <div id="confetti-container"></div>
+    <script>
+        // --- 다국어 데이터 (16개국 UI 및 게임 번역) ---
+        const uiTranslations = {
+            'ko': { title: '언어 및 지역 선택', desc: '선호하는 언어와 지역을 선택하세요.', search: '언어 검색 (예: English, 한국어...)', empty: '검색 결과가 없습니다.', toast: '언어가 변경되었습니다.' },
+            'en': { title: 'Language & Region', desc: 'Select your preferred language and region.', search: 'Search language (e.g. English, Español...)', empty: 'No results found.', toast: 'Language changed.' },
+            'zh': { title: '语言和地区选择', desc: '请选择您偏好的语言和地区。', search: '搜索语言 (例如: English, 中文...)', empty: '未找到结果。', toast: '语言已更改。' },
+            'ja': { title: '言語と地域の選択', desc: '希望する言語と地域を選択してください。', search: '言語を検索 (例: English, 日本語...)', empty: '結果が見つかりません。', toast: '言語が変更されました。' },
+            'es': { title: 'Idioma y Región', desc: 'Selecciona tu idioma y región preferidos.', search: 'Buscar idioma (ej. English, Español...)', empty: 'No se encontraron resultados.', toast: 'Idioma cambiado.' },
+            'fr': { title: 'Langue et Région', desc: 'Sélectionnez votre langue et région.', search: 'Rechercher (ex: English, Français...)', empty: 'Aucun résultat trouvé.', toast: 'Langue modifiée.' },
+            'ru': { title: 'Язык и Регион', desc: 'Выберите предпочитаемый язык и регион.', search: 'Поиск языка (напр. English, Русский...)', empty: 'Ничего не найдено.', toast: 'Язык изменен.' },
+            'vi': { title: 'Ngôn ngữ & Khu vực', desc: 'Chọn ngôn ngữ và khu vực của bạn.', search: 'Tìm kiếm (VD: English, Tiếng Việt...)', empty: 'Không tìm thấy kết quả.', toast: 'Ngôn ngữ đã được thay đổi.' },
+            'id': { title: 'Bahasa & Wilayah', desc: 'Pilih bahasa dan wilayah pilihan Anda.', search: 'Cari bahasa (Mis: English, Indonesia...)', empty: 'Tidak ada hasil yang ditemukan.', toast: 'Bahasa telah diubah.' },
+            'th': { title: 'ภาษาและภูมิภาค', desc: 'เลือกภาษาและภูมิภาคที่คุณต้องการ', search: 'ค้นหาภาษา (เช่น English, ไทย...)', empty: 'ไม่พบผลลัพธ์', toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว' },
+            'pt-br': { title: 'Idioma e Região', desc: 'Selecione seu idioma e região preferidos.', search: 'Buscar idioma (ex: English, Português...)', empty: 'Nenhum resultado encontrado.', toast: 'Idioma alterado.' },
+            'hi': { title: 'भाषा और क्षेत्र', desc: 'अपनी पसंदीदा भाषा और क्षेत्र चुनें।', search: 'भाषा खोजें (उदा: English, हिन्दी...)', empty: 'कोई परिणाम नहीं मिला।', toast: 'भाषा बदल दी गई है।' },
+            'bn': { title: 'ভাষা ও অঞ্চল', desc: 'আপনার পছন্দের ভাষা এবং অঞ্চল নির্বাচন করুন।', search: 'ভাষা অনুসন্ধান করুন (যেমন: English, বাংলা...)', empty: 'কোনো ফলাফল পাওয়া যায়নি।', toast: 'ভাষা পরিবর্তন করা হয়েছে।' },
+            'tr': { title: 'Dil ve Bölge', desc: 'Tercih ettiğiniz dili ve bölgeyi seçin.', search: 'Dil ara (Örn: English, Türkçe...)', empty: 'Sonuç bulunamadı.', toast: 'Dil değiştirildi.' },
+            'de': { title: 'Sprache & Region', desc: 'Wählen Sie Ihre bevorzugte Sprache und Region.', search: 'Sprache suchen (z.B. English, Deutsch...)', empty: 'Keine Ergebnisse gefunden.', toast: 'Sprache geändert.' },
+            'it': { title: 'Lingua e Regione', desc: 'Seleziona la tua lingua e regione preferita.', search: 'Cerca lingua (es. English, Italiano...)', empty: 'Nessun risultato trovato.', toast: 'Lingua cambiata.' }
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        const i18n = {
+            ko: {
+                title: "🎈 도형킹! 풍선 터트리기", domain_name: "킹수학.com", top_desc: "게임으로 수학의 킹이 되어라.",
+                desc: "화면 하단의 <span class='highlight'>미션</span>에 해당하는 도형을 찾아 터뜨리세요!<br>(예: 사각형을 찾아라, 정삼각형을 찾아라)<br>시간이 지날수록 풍선이 점점 <span class='highlight'>빨라집니다!</span>",
+                topic: "주제 선택", tri: "🔺 삼각형", quad: "🟦 사각형", all: "🎲 모두",
+                players: "참여 인원", p1: "1인 👤", p2: "2인 👥", p3: "3인 👨‍👩‍👧", p4: "4인 👨‍👩‍👧‍👦",
+                btn_start: "게임 시작! 🚀", btn_more: "🎮 다른 게임 고르기", btn_restart: "🔄 다시 하기",
+                time_label: "남은 시간", mission_label: "미션", score_unit: "점",
+                rank_1: "1등!", rank_2: "2등", rank_3: "3등", rank_4: "4위",
+                team_0: "강아지", team_1: "고양이", team_2: "토끼", team_3: "햄스터",
+                meta_desc: "도형의 이름과 특징을 익히는 수학 게임. 미션에 맞는 풍선을 터뜨려 점수를 얻으세요!",
+                meta_keywords: "수학게임, 도형, 삼각형, 사각형, 전자칠판, 킹수학, 교육용게임",
+                sq_reg: "정사각형", rect: "직사각형", rhombus: "마름모", para: "평행사변형", trap: "사다리꼴", quad_gen: "사각형",
+                tri_reg: "정삼각형", tri_right: "직각삼각형", tri_obtuse: "둔각삼각형", tri_acute: "예각삼각형", tri_iso: "이등변삼각형", tri_gen: "삼각형",
+                circle: "원", pentagon: "오각형", hexagon: "육각형", poly: "다각형", oval: "타원",
+                mission_fmt: "{name} 터트리기!"
+            },
+            en: {
+                title: "🎈 Math King: Shape Pop", domain_name: "KingsMath.com", top_desc: "Be the King of Math with Games.",
+                desc: "Pop balloons that match the <span class='highlight'>Mission</span>!<br>(e.g. Find Square)<br>Balloons move <span class='highlight'>faster</span> over time!",
+                topic: "Topic", tri: "🔺 Triangles", quad: "🟦 Quads", all: "🎲 All",
+                players: "Players", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btn_start: "Start Game! 🚀", btn_more: "🎮 More Games", btn_restart: "🔄 Play Again",
+                time_label: "Time", mission_label: "Mission", score_unit: "pts",
+                rank_1: "1st!", rank_2: "2nd", rank_3: "3rd", rank_4: "4th",
+                team_0: "Dog", team_1: "Cat", team_2: "Rabbit", team_3: "Hamster",
+                meta_desc: "Pop balloons to find shapes! A fun math game to learn geometry.",
+                meta_keywords: "math game, shapes, geometry, smartboard, kingsmath, kids game",
+                sq_reg: "Square", rect: "Rectangle", rhombus: "Rhombus", para: "Parallelogram", trap: "Trapezoid", quad_gen: "Quadrilateral",
+                tri_reg: "Equilateral", tri_right: "Right Tri.", tri_obtuse: "Obtuse Tri.", tri_acute: "Acute Tri.", tri_iso: "Isosceles", tri_gen: "Triangle",
+                circle: "Circle", pentagon: "Pentagon", hexagon: "Hexagon", poly: "Polygon", oval: "Oval",
+                mission_fmt: "Find {name}!"
+            },
+            zh: {
+                title: "🎈 数学之王：图形大爆炸", domain_name: "KingsMath.com", top_desc: "玩游戏，成为数学之王。",
+                desc: "戳破符合底部<span class='highlight'>任务</span>的气球！<br>(例如: 寻找正方形)<br>气球会随时间<span class='highlight'>越来越快</span>！",
+                topic: "主题", tri: "🔺 三角形", quad: "🟦 四边形", all: "🎲 全部",
+                players: "人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btn_start: "开始游戏！🚀", btn_more: "🎮 更多游戏", btn_restart: "🔄 再玩一次",
+                time_label: "时间", mission_label: "任务", score_unit: "分",
+                rank_1: "第一名!", rank_2: "第二名", rank_3: "第三名", rank_4: "第四名",
+                team_0: "小狗", team_1: "小猫", team_2: "兔子", team_3: "仓鼠",
+                meta_desc: "学习图形的数学游戏。戳破气球得分！",
+                meta_keywords: "数学游戏, 图形, 几何, 电子白板, KingsMath",
+                sq_reg: "正方形", rect: "长方形", rhombus: "菱形", para: "平行四边形", trap: "梯形", quad_gen: "四边形",
+                tri_reg: "等边三角形", tri_right: "直角三角形", tri_obtuse: "钝角三角形", tri_acute: "锐角三角形", tri_iso: "等腰三角形", tri_gen: "三角形",
+                circle: "圆形", pentagon: "五边形", hexagon: "六边形", poly: "多边形", oval: "椭圆",
+                mission_fmt: "寻找{name}!"
+            },
+            ja: {
+                title: "🎈 数学キング：図形風船割り", domain_name: "KingsMath.com", top_desc: "ゲームで数学のキングになろう。",
+                desc: "下の<span class='highlight'>ミッション</span>に合う風船を割ろう！<br>(例: 正方形を探せ)<br>時間が経つにつれて風船が<span class='highlight'>速く</span>なります！",
+                topic: "テーマ", tri: "🔺 三角形", quad: "🟦 四角形", all: "🎲 すべて",
+                players: "人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btn_start: "スタート！🚀", btn_more: "🎮 他のゲーム", btn_restart: "🔄 もう一度",
+                time_label: "残り時間", mission_label: "ミッション", score_unit: "点",
+                rank_1: "1位!", rank_2: "2位", rank_3: "3位", rank_4: "4位",
+                team_0: "イヌ", team_1: "ネコ", team_2: "ウサギ", team_3: "ハムスター",
+                meta_desc: "図形の名前と特徴を学ぶ数学ゲーム。風船を割って点数を稼ごう！",
+                meta_keywords: "数学ゲーム, 図形, 幾何学, 電子黒板, KingsMath",
+                sq_reg: "正方形", rect: "長方形", rhombus: "ひし形", para: "平行四辺形", trap: "台形", quad_gen: "四角形",
+                tri_reg: "正三角形", tri_right: "直角三角形", tri_obtuse: "鈍角三角形", tri_acute: "鋭角三角形", tri_iso: "二等辺三角形", tri_gen: "三角形",
+                circle: "円", pentagon: "五角形", hexagon: "六角形", poly: "多角形", oval: "楕円",
+                mission_fmt: "{name}を探せ!"
+            },
+            es: {
+                title: "🎈 Rey Mate: Explotar Formas", domain_name: "KingsMath.com", top_desc: "Sé el Rey de las Matemáticas jugando.",
+                desc: "¡Explota los globos de la <span class='highlight'>Misión</span>!<br>(Ej: Encuentra el Cuadrado)<br>¡Los globos irán más <span class='highlight'>rápido</span>!",
+                topic: "Tema", tri: "🔺 Triángulos", quad: "🟦 Cuadriláteros", all: "🎲 Todo",
+                players: "Jugadores", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btn_start: "¡Empezar! 🚀", btn_more: "🎮 Más Juegos", btn_restart: "🔄 Jugar de Nuevo",
+                time_label: "Tiempo", mission_label: "Misión", score_unit: "pts",
+                rank_1: "¡1º!", rank_2: "2º", rank_3: "3º", rank_4: "4º",
+                team_0: "Perro", team_1: "Gato", team_2: "Conejo", team_3: "Hámster",
+                meta_desc: "Juego de matemáticas para aprender formas geométricas. ¡Explota globos!",
+                meta_keywords: "juegos de matemáticas, formas, geometría, pizarra digital, KingsMath",
+                sq_reg: "Cuadrado", rect: "Rectángulo", rhombus: "Rombo", para: "Paralelogramo", trap: "Trapecio", quad_gen: "Cuadrilátero",
+                tri_reg: "Equilátero", tri_right: "Tri. Rectángulo", tri_obtuse: "Tri. Obtusángulo", tri_acute: "Tri. Acutángulo", tri_iso: "Isósceles", tri_gen: "Triángulo",
+                circle: "Círculo", pentagon: "Pentágono", hexagon: "Hexágono", poly: "Polígono", oval: "Óvalo",
+                mission_fmt: "¡Busca {name}!"
+            },
+            fr: {
+                title: "🎈 Roi des Maths : Formes", domain_name: "KingsMath.com", top_desc: "Deviens le Roi des Maths en jouant.",
+                desc: "Éclate les ballons de la <span class='highlight'>Mission</span> !<br>(Ex: Trouve le Carré)<br>Les ballons iront plus <span class='highlight'>vite</span> !",
+                topic: "Sujet", tri: "🔺 Triangles", quad: "🟦 Quadrilatères", all: "🎲 Tout",
+                players: "Joueurs", p1: "1J 👤", p2: "2J 👥", p3: "3J 👨‍👩‍👧", p4: "4J 👨‍👩‍👧‍👦",
+                btn_start: "Commencer ! 🚀", btn_more: "🎮 Plus de Jeux", btn_restart: "🔄 Rejouer",
+                time_label: "Temps", mission_label: "Mission", score_unit: "pts",
+                rank_1: "1er!", rank_2: "2ème", rank_3: "3ème", rank_4: "4ème",
+                team_0: "Chien", team_1: "Chat", team_2: "Lapin", team_3: "Hamster",
+                meta_desc: "Jeu de mathématiques pour apprendre les formes géométriques.",
+                meta_keywords: "jeux de maths, formes, géométrie, tableau interactif, KingsMath",
+                sq_reg: "Carré", rect: "Rectangle", rhombus: "Losange", para: "Parallélogramme", trap: "Trapèze", quad_gen: "Quadrilatère",
+                tri_reg: "Équilatéral", tri_right: "Tri. Rectangle", tri_obtuse: "Tri. Obtus", tri_acute: "Tri. Aigu", tri_iso: "Isocèle", tri_gen: "Triangle",
+                circle: "Cercle", pentagon: "Pentagone", hexagon: "Hexagone", poly: "Polygone", oval: "Ovale",
+                mission_fmt: "Trouve {name}!"
+            },
+            ru: {
+                title: "🎈 Король Математики: Фигуры", domain_name: "KingsMath.com", top_desc: "Стань королем математики.",
+                desc: "Лопай шарики по <span class='highlight'>Заданию</span>!<br>(Напр: Найди Квадрат)<br>Шарики будут лететь <span class='highlight'>быстрее</span>!",
+                topic: "Тема", tri: "🔺 Треуг.", quad: "🟦 Четырехуг.", all: "🎲 Все",
+                players: "Игроки", p1: "1И 👤", p2: "2И 👥", p3: "3И 👨‍👩‍👧", p4: "4И 👨‍👩‍👧‍👦",
+                btn_start: "Начать! 🚀", btn_more: "🎮 Еще игры", btn_restart: "🔄 Заново",
+                time_label: "Время", mission_label: "Задание", score_unit: "очк.",
+                rank_1: "1-й!", rank_2: "2-й", rank_3: "3-й", rank_4: "4-й",
+                team_0: "Собака", team_1: "Кот", team_2: "Заяц", team_3: "Хомяк",
+                meta_desc: "Математическая игра для изучения фигур. Лопай шарики!",
+                meta_keywords: "математика, фигуры, геометрия, KingsMath, игры для детей",
+                sq_reg: "Квадрат", rect: "Прямоугольник", rhombus: "Ромб", para: "Параллелограмм", trap: "Трапеция", quad_gen: "Четырехугольник",
+                tri_reg: "Равносторонний", tri_right: "Прямоуг. Треуг.", tri_obtuse: "Тупоуг. Треуг.", tri_acute: "Остроуг. Треуг.", tri_iso: "Равнобедренный", tri_gen: "Треугольник",
+                circle: "Круг", pentagon: "Пятиугольник", hexagon: "Шестиугольник", poly: "Многоугольник", oval: "Овал",
+                mission_fmt: "Найди {name}!"
+            },
+            id: {
+                title: "🎈 Raja Matematika: Bentuk", domain_name: "KingsMath.com", top_desc: "Jadilah Raja Matematika.",
+                desc: "Pecahkan balon yang sesuai dengan <span class='highlight'>Misi</span>!<br>(Misal: Cari Persegi)<br>Balon akan bergerak lebih <span class='highlight'>cepat</span>!",
+                topic: "Topik", tri: "🔺 Segitiga", quad: "🟦 Segi Empat", all: "🎲 Semua",
+                players: "Pemain", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btn_start: "Mulai! 🚀", btn_more: "🎮 Game Lainnya", btn_restart: "🔄 Main Lagi",
+                time_label: "Waktu", mission_label: "Misi", score_unit: "poin",
+                rank_1: "Ke-1!", rank_2: "Ke-2", rank_3: "Ke-3", rank_4: "Ke-4",
+                team_0: "Anjing", team_1: "Kucing", team_2: "Kelinci", team_3: "Hamster",
+                meta_desc: "Game matematika untuk belajar bentuk. Pecahkan balonnya!",
+                meta_keywords: "matematika, bentuk, geometri, KingsMath",
+                sq_reg: "Persegi", rect: "Persegi Panjang", rhombus: "Belah Ketupat", para: "Jajargenjang", trap: "Trapesium", quad_gen: "Segi Empat",
+                tri_reg: "Sama Sisi", tri_right: "Siku-siku", tri_obtuse: "Tumpul", tri_acute: "Lancip", tri_iso: "Sama Kaki", tri_gen: "Segitiga",
+                circle: "Lingkaran", pentagon: "Segi Lima", hexagon: "Segi Enam", poly: "Poligon", oval: "Oval",
+                mission_fmt: "Cari {name}!"
+            },
+            vi: {
+                title: "🎈 Vua Toán Học: Hình Học", domain_name: "KingsMath.com", top_desc: "Trở thành Vua Toán Học.",
+                desc: "Làm nổ bóng bay đúng với <span class='highlight'>Nhiệm vụ</span>!<br>(VD: Tìm Hình vuông)<br>Bóng bay sẽ di chuyển <span class='highlight'>nhanh hơn</span>!",
+                topic: "Chủ đề", tri: "🔺 Tam giác", quad: "🟦 Tứ giác", all: "🎲 Tất cả",
+                players: "Người chơi", p1: "1N 👤", p2: "2N 👥", p3: "3N 👨‍👩‍👧", p4: "4N 👨‍👩‍👧‍👦",
+                btn_start: "Bắt đầu! 🚀", btn_more: "🎮 Trò chơi khác", btn_restart: "🔄 Chơi lại",
+                time_label: "Thời gian", mission_label: "Nhiệm vụ", score_unit: "điểm",
+                rank_1: "Hạng 1!", rank_2: "Hạng 2", rank_3: "Hạng 3", rank_4: "Hạng 4",
+                team_0: "Chó", team_1: "Mèo", team_2: "Thỏ", team_3: "Chuột",
+                meta_desc: "Trò chơi học hình học thú vị!", meta_keywords: "toán học, hình học, KingsMath",
+                sq_reg: "Hình vuông", rect: "Hình chữ nhật", rhombus: "Hình thoi", para: "Hình bình hành", trap: "Hình thang", quad_gen: "Tứ giác",
+                tri_reg: "Đều", tri_right: "Vuông", tri_obtuse: "Tù", tri_acute: "Nhọn", tri_iso: "Cân", tri_gen: "Tam giác",
+                circle: "Hình tròn", pentagon: "Ngũ giác", hexagon: "Lục giác", poly: "Đa giác", oval: "Hình bầu dục",
+                mission_fmt: "Tìm {name}!"
+            },
+            th: {
+                title: "🎈 ราชาคณิต: รูปทรง", domain_name: "KingsMath.com", top_desc: "มาเป็นราชาคณิตศาสตร์กันเถอะ",
+                desc: "เจาะลูกโป่งที่ตรงกับ <span class='highlight'>ภารกิจ</span>!<br>(เช่น หาสี่เหลี่ยมจัตุรัส)<br>ลูกโป่งจะ <span class='highlight'>เร็วขึ้น</span> เรื่อยๆ!",
+                topic: "หัวข้อ", tri: "🔺 สามเหลี่ยม", quad: "🟦 สี่เหลี่ยม", all: "🎲 ทั้งหมด",
+                players: "ผู้เล่น", p1: "1 คน 👤", p2: "2 คน 👥", p3: "3 คน 👨‍👩‍👧", p4: "4 คน 👨‍👩‍👧‍👦",
+                btn_start: "เริ่มเกม! 🚀", btn_more: "🎮 เกมอื่นๆ", btn_restart: "🔄 เล่นอีกครั้ง",
+                time_label: "เวลา", mission_label: "ภารกิจ", score_unit: "แต้ม",
+                rank_1: "ที่ 1!", rank_2: "ที่ 2", rank_3: "ที่ 3", rank_4: "ที่ 4",
+                team_0: "สุนัข", team_1: "แมว", team_2: "กระต่าย", team_3: "แฮมสเตอร์",
+                meta_desc: "เกมคณิตศาสตร์เรียนรู้รูปทรง", meta_keywords: "คณิตศาสตร์, รูปทรง, KingsMath",
+                sq_reg: "จัตุรัส", rect: "ผืนผ้า", rhombus: "ขนมเปียกปูน", para: "ด้านขนาน", trap: "คางหมู", quad_gen: "สี่เหลี่ยม",
+                tri_reg: "ด้านเท่า", tri_right: "มุมฉาก", tri_obtuse: "มุมป้าน", tri_acute: "มุมแหลม", tri_iso: "หน้าจั่ว", tri_gen: "สามเหลี่ยม",
+                circle: "วงกลม", pentagon: "ห้าเหลี่ยม", hexagon: "หกเหลี่ยม", poly: "รูปหลายเหลี่ยม", oval: "วงรี",
+                mission_fmt: "หา {name}!"
+            },
+            'pt-br': {
+                title: "🎈 Rei da Mat: Formas", domain_name: "KingsMath.com", top_desc: "Seja o Rei da Matemática.",
+                desc: "Estoure os balões da <span class='highlight'>Missão</span>!<br>(Ex: Encontre o Quadrado)<br>Os balões ficam mais <span class='highlight'>rápidos</span>!",
+                topic: "Tema", tri: "🔺 Triângulos", quad: "🟦 Quadriláteros", all: "🎲 Todos",
+                players: "Jogadores", p1: "1J 👤", p2: "2J 👥", p3: "3J 👨‍👩‍👧", p4: "4J 👨‍👩‍👧‍👦",
+                btn_start: "Começar! 🚀", btn_more: "🎮 Mais Jogos", btn_restart: "🔄 Jogar Novamente",
+                time_label: "Tempo", mission_label: "Missão", score_unit: "pts",
+                rank_1: "1º Lugar!", rank_2: "2º", rank_3: "3º", rank_4: "4º",
+                team_0: "Cachorro", team_1: "Gato", team_2: "Coelho", team_3: "Hamster",
+                meta_desc: "Jogo de matemática para aprender formas.", meta_keywords: "matemática, formas, KingsMath",
+                sq_reg: "Quadrado", rect: "Retângulo", rhombus: "Losango", para: "Paralelogramo", trap: "Trapézio", quad_gen: "Quadrilátero",
+                tri_reg: "Equilátero", tri_right: "Tri. Retângulo", tri_obtuse: "Tri. Obtusângulo", tri_acute: "Tri. Acutângulo", tri_iso: "Isósceles", tri_gen: "Triângulo",
+                circle: "Círculo", pentagon: "Pentágono", hexagon: "Hexágono", poly: "Polígono", oval: "Oval",
+                mission_fmt: "Ache {name}!"
+            },
+            hi: {
+                title: "🎈 मैथ किंग: आकार", domain_name: "KingsMath.com", top_desc: "गणित का राजा बनें।",
+                desc: "<span class='highlight'>मिशन</span> के अनुसार गुब्बारे फोड़ें!<br>(उदा: वर्ग खोजें)<br>गुब्बारे <span class='highlight'>तेज</span> हो जाएंगे!",
+                topic: "विषय", tri: "🔺 त्रिभुज", quad: "🟦 चतुर्भुज", all: "🎲 सभी",
+                players: "खिलाड़ी", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btn_start: "शुरू करें! 🚀", btn_more: "🎮 और खेल", btn_restart: "🔄 फिर खेलें",
+                time_label: "समय", mission_label: "मिशन", score_unit: "अंक",
+                rank_1: "पहला!", rank_2: "दूसरा", rank_3: "तीसरा", rank_4: "चौथा",
+                team_0: "कुत्ता", team_1: "बिल्ली", team_2: "खरगोश", team_3: "हम्सटर",
+                meta_desc: "आकार सीखने के लिए गणित का खेल।", meta_keywords: "गणित, आकार, KingsMath",
+                sq_reg: "वर्ग", rect: "आयत", rhombus: "समचतुर्भुज", para: "समानांतर चतुर्भुज", trap: "समलम्ब", quad_gen: "चतुर्भुज",
+                tri_reg: "समबाहु", tri_right: "समकोण", tri_obtuse: "अधिककोण", tri_acute: "न्यूनकोण", tri_iso: "समद्विबाहु", tri_gen: "त्रिभुज",
+                circle: "वृत्त", pentagon: "पंचभुज", hexagon: "षट्भुज", poly: "बहुभुज", oval: "अंडाकार",
+                mission_fmt: "{name} खोजें!"
+            },
+            bn: {
+                title: "🎈 ম্যাথ কিং: আকৃতি", domain_name: "KingsMath.com", top_desc: "গণিতের রাজা হও।",
+                desc: "<span class='highlight'>মিশন</span> এর সাথে মিলে এমন বেলুন ফাটান!<br>(যেমন: বর্গক্ষেত্র খুঁজুন)<br>বেলুনগুলি <span class='highlight'>দ্রুত</span> হবে!",
+                topic: "বিষয়", tri: "🔺 ত্রিভুজ", quad: "🟦 চতুর্ভুজ", all: "🎲 সব",
+                players: "খেলোয়াড়", p1: "1 জন 👤", p2: "2 জন 👥", p3: "3 জন 👨‍👩‍👧", p4: "4 জন 👨‍👩‍👧‍👦",
+                btn_start: "শুরু করুন! 🚀", btn_more: "🎮 আরও খেলা", btn_restart: "🔄 আবার খেলুন",
+                time_label: "সময়", mission_label: "মিশন", score_unit: "পয়েন্ট",
+                rank_1: "১ম!", rank_2: "২য়", rank_3: "৩য়", rank_4: "৪র্থ",
+                team_0: "কুকুর", team_1: "বিড়াল", team_2: "খরগোশ", team_3: "হ্যামস্টার",
+                meta_desc: "আকৃতি শেখার গণিত খেলা।", meta_keywords: "গণিত, আকৃতি, KingsMath",
+                sq_reg: "বর্গক্ষেত্র", rect: "আয়তক্ষেত্র", rhombus: "রম্বস", para: "সামান্তরিক", trap: "ট্রাপিজিয়াম", quad_gen: "চতুর্ভুজ",
+                tri_reg: "সমবাহু", tri_right: "সমকোণী", tri_obtuse: "স্থূলকোণী", tri_acute: "সূক্ষ্মকোণী", tri_iso: "সমদ্বিবাহু", tri_gen: "ত্রিভুজ",
+                circle: "বৃত্ত", pentagon: "পঞ্চভুজ", hexagon: "ষড়ভুজ", poly: "বহুভুজ", oval: "ডিম্বাকৃতি",
+                mission_fmt: "{name} খুঁজুন!"
+            },
+            tr: {
+                title: "🎈 Mat Kralı: Şekiller", domain_name: "KingsMath.com", top_desc: "Matematik Kralı Ol.",
+                desc: "<span class='highlight'>Görev</span>'e uygun balonları patlat!<br>(Örn: Kareyi Bul)<br>Balonlar <span class='highlight'>hızlanacak</span>!",
+                topic: "Konu", tri: "🔺 Üçgenler", quad: "🟦 Dörtgenler", all: "🎲 Tümü",
+                players: "Oyuncular", p1: "1O 👤", p2: "2O 👥", p3: "3O 👨‍👩‍👧", p4: "4O 👨‍👩‍👧‍👦",
+                btn_start: "Başla! 🚀", btn_more: "🎮 Diğer Oyunlar", btn_restart: "🔄 Tekrar Oyna",
+                time_label: "Süre", mission_label: "Görev", score_unit: "puan",
+                rank_1: "1.!", rank_2: "2.", rank_3: "3.", rank_4: "4.",
+                team_0: "Köpek", team_1: "Kedi", team_2: "Tavşan", team_3: "Hamster",
+                meta_desc: "Şekilleri öğrenmek için matematik oyunu.", meta_keywords: "matematik, şekiller, KingsMath",
+                sq_reg: "Kare", rect: "Dikdörtgen", rhombus: "Eşkenar D.", para: "Paralelkenar", trap: "Yamuk", quad_gen: "Dörtgen",
+                tri_reg: "Eşkenar Ü.", tri_right: "Dik Üçgen", tri_obtuse: "Geniş Açılı", tri_acute: "Dar Açılı", tri_iso: "İkizkenar", tri_gen: "Üçgen",
+                circle: "Daire", pentagon: "Beşgen", hexagon: "Altıgen", poly: "Çokgen", oval: "Oval",
+                mission_fmt: "{name} Bul!"
+            },
+            de: {
+                title: "🎈 Mathe-König: Formen", domain_name: "KingsMath.com", top_desc: "Werde der König der Mathematik.",
+                desc: "Zerplatze Ballons passend zur <span class='highlight'>Mission</span>!<br>(z.B. Finde Quadrat)<br>Ballons werden <span class='highlight'>schneller</span>!",
+                topic: "Thema", tri: "🔺 Dreiecke", quad: "🟦 Vierecke", all: "🎲 Alle",
+                players: "Spieler", p1: "1S 👤", p2: "2S 👥", p3: "3S 👨‍👩‍👧", p4: "4S 👨‍👩‍👧‍👦",
+                btn_start: "Start! 🚀", btn_more: "🎮 Mehr Spiele", btn_restart: "🔄 Nochmal",
+                time_label: "Zeit", mission_label: "Mission", score_unit: "Pkt",
+                rank_1: "1. Platz!", rank_2: "2.", rank_3: "3.", rank_4: "4.",
+                team_0: "Hund", team_1: "Katze", team_2: "Hase", team_3: "Hamster",
+                meta_desc: "Mathespiel zum Lernen von Formen.", meta_keywords: "Mathe, Formen, KingsMath",
+                sq_reg: "Quadrat", rect: "Rechteck", rhombus: "Raute", para: "Parallelogramm", trap: "Trapez", quad_gen: "Viereck",
+                tri_reg: "Gleichseitig", tri_right: "Rechtwinklig", tri_obtuse: "Stumpfwinklig", tri_acute: "Spitzwinklig", tri_iso: "Gleichschenklig", tri_gen: "Dreieck",
+                circle: "Kreis", pentagon: "Fünfeck", hexagon: "Sechseck", poly: "Polygon", oval: "Oval",
+                mission_fmt: "Finde {name}!"
+            },
+            it: {
+                title: "🎈 Re della Mat: Forme", domain_name: "KingsMath.com", top_desc: "Diventa il Re della Matematica.",
+                desc: "Scoppia i palloncini della <span class='highlight'>Missione</span>!<br>(Es: Trova il Quadrato)<br>I palloncini andranno più <span class='highlight'>veloci</span>!",
+                topic: "Argomento", tri: "🔺 Triangoli", quad: "🟦 Quadrilateri", all: "🎲 Tutti",
+                players: "Giocatori", p1: "1G 👤", p2: "2G 👥", p3: "3G 👨‍👩‍👧", p4: "4G 👨‍👩‍👧‍👦",
+                btn_start: "Inizia! 🚀", btn_more: "🎮 Altri Giochi", btn_restart: "🔄 Rigioca",
+                time_label: "Tempo", mission_label: "Missione", score_unit: "pti",
+                rank_1: "1° Posto!", rank_2: "2°", rank_3: "3°", rank_4: "4°",
+                team_0: "Cane", team_1: "Gatto", team_2: "Coniglio", team_3: "Criceto",
+                meta_desc: "Gioco di matematica per imparare le forme.", meta_keywords: "matematica, forme, KingsMath",
+                sq_reg: "Quadrato", rect: "Rettangolo", rhombus: "Rombo", para: "Parallelogramma", trap: "Trapezio", quad_gen: "Quadrilatero",
+                tri_reg: "Equilatero", tri_right: "Tri. Rettangolo", tri_obtuse: "Tri. Ottusangolo", tri_acute: "Tri. Acutangolo", tri_iso: "Isoscele", tri_gen: "Triangolo",
+                circle: "Cerchio", pentagon: "Pentagono", hexagon: "Esagono", poly: "Poligono", oval: "Ovale",
+                mission_fmt: "Trova {name}!"
+            }
+        };
+
+        let currentLang = 'en'; // 기본값
+
+        // 도형 데이터베이스 구성
+        function getShapesDB() {
+            const v = i18n[currentLang];
+            const t = (key) => v[key] || key;
+            
+            return [
+                // 사각형
+                { id: 'sq_reg', cat: 'quad', name: t('sq_reg'), tags: [t('sq_reg'), t('rect'), t('rhombus'), t('para'), t('trap'), t('quad_gen'), t('poly')], svg: `<rect x="20" y="20" width="60" height="60" class="fill-shape"/><path d="M 20 30 L 30 30 L 30 20 M 70 20 L 70 30 L 80 30 M 80 70 L 70 70 L 70 80 M 30 80 L 30 70 L 20 70" stroke-width="2"/>` },
+                { id: 'rect', cat: 'quad', name: t('rect'), tags: [t('rect'), t('para'), t('trap'), t('quad_gen'), t('poly')], svg: `<rect x="15" y="30" width="70" height="40" class="fill-shape"/><path d="M 15 40 L 25 40 L 25 30 M 75 30 L 75 40 L 85 40 M 85 60 L 75 60 L 75 70 M 25 70 L 25 60 L 15 60" stroke-width="2"/>` },
+                { id: 'rhombus', cat: 'quad', name: t('rhombus'), tags: [t('rhombus'), t('para'), t('trap'), t('quad_gen'), t('poly')], svg: `<polygon points="50,10 75,50 50,90 25,50" class="fill-shape"/>` },
+                { id: 'para', cat: 'quad', name: t('para'), tags: [t('para'), t('trap'), t('quad_gen'), t('poly')], svg: `<polygon points="30,25 90,25 70,75 10,75" class="fill-shape"/>` },
+                { id: 'trap', cat: 'quad', name: t('trap'), tags: [t('trap'), t('quad_gen'), t('poly')], svg: `<polygon points="35,25 65,25 85,75 15,75" class="fill-shape"/>` },
+                { id: 'quad_general', cat: 'quad', name: t('quad_gen'), tags: [t('quad_gen'), t('poly')], svg: `<polygon points="15,20 90,10 80,90 20,80" class="fill-shape"/>` },
+                // 삼각형
+                { id: 'tri_reg', cat: 'tri', name: t('tri_reg'), tags: [t('tri_reg'), t('tri_iso'), t('tri_acute'), t('tri_gen'), t('poly')], svg: `<polygon points="50,15 90,85 10,85" class="fill-shape"/>` },
+                { id: 'tri_right', cat: 'tri', name: t('tri_right'), tags: [t('tri_right'), t('tri_gen'), t('poly')], svg: `<polygon points="20,40 20,80 80,80" class="fill-shape"/><path d="M 20 70 L 30 70 L 30 80" stroke-width="2"/>` },
+                { id: 'tri_obtuse', cat: 'tri', name: t('tri_obtuse'), tags: [t('tri_obtuse'), t('tri_gen'), t('poly')], svg: `<polygon points="20,80 90,80 10,30" class="fill-shape"/>` },
+                { id: 'tri_acute_iso', cat: 'tri', name: t('tri_iso'), tags: [t('tri_iso'), t('tri_acute'), t('tri_gen'), t('poly')], svg: `<polygon points="50,10 80,90 20,90" class="fill-shape"/><path d="M 32 45 L 40 52 M 60 52 L 68 45" stroke-width="2"/>` },
+                { id: 'tri_obtuse_iso', cat: 'tri', name: t('tri_iso'), tags: [t('tri_iso'), t('tri_obtuse'), t('tri_gen'), t('poly')], svg: `<polygon points="50,40 10,70 90,70" class="fill-shape"/><path d="M 25 58 L 30 65 M 70 65 L 75 58" stroke-width="2"/>` },
+                // 원, 다각형
+                { id: 'circle', cat: 'poly', name: t('circle'), tags: [t('circle')], svg: '<circle cx="50" cy="50" r="35" class="fill-shape"/>' },
+                { id: 'pentagon', cat: 'poly', name: t('pentagon'), tags: [t('pentagon'), t('poly')], svg: `<polygon points="50,10 90,40 75,85 25,85 10,40" class="fill-shape"/>` },
+                { id: 'hexagon', cat: 'poly', name: t('hexagon'), tags: [t('hexagon'), t('poly')], svg: `<polygon points="30,10 70,10 90,45 70,80 30,80 10,45" class="fill-shape"/>` }
+            ];
+        }
+
+        // --- 언어 UI 컨트롤 ---
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function updateUIText(langCode) {
+            const t = uiTranslations[langCode] || uiTranslations['en'];
+            document.getElementById('ui-title').textContent = t.title;
+            document.getElementById('ui-desc').textContent = t.desc;
+            document.getElementById('searchInput').placeholder = t.search;
+            document.getElementById('ui-empty').textContent = t.empty;
+            document.getElementById('ui-toast').textContent = t.toast;
+        }
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => selectLanguage(lang));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function selectLanguage(lang) {
+            currentLang = lang.code;
+            currentFlagImg.src = `https://flagcdn.com/w40/${lang.country}.png`;
+            currentLangSpan.textContent = lang.name;
+            updateUIText(lang.code);
+            closeModal();
+            showToast(lang.name);
+            renderLanguages(searchInput.value);
+            
+            // 실제 게임 언어 적용 및 저장 (URL, 로컬스토리지)
+            changeLanguage(currentLang);
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            // 게임 내 영향 방지를 위해 스크롤 제어 생략 또는 안전한 클래스로 추가
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function showToast(langName) {
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+
+        // --- 언어 감지 및 설정 (순위: URL > LocalStorage > Browser > Default) ---
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const langParam = urlParams.get('lang');
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            const browserLang = navigator.language.slice(0, 2);
+
+            if (langParam && i18n[langParam]) {
+                currentLang = langParam;
+            } else if (savedLang && i18n[savedLang]) {
+                currentLang = savedLang;
+            } else if (i18n[browserLang]) {
+                currentLang = browserLang;
+            } else {
+                currentLang = 'en'; // 기본값
+            }
+
+            // 초기 UI 갱신
+            const langObj = languages.find(l => l.code === currentLang) || languages[1];
+            currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            currentLangSpan.textContent = langObj.name;
+            updateUIText(currentLang);
+            renderLanguages();
+
+            applyLanguage();
+        }
+
+        function changeLanguage(lang) {
+            localStorage.setItem('kingsmath_lang', lang);
+            
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', lang);
+            window.history.pushState({}, '', newUrl);
+            
+            applyLanguage();
+            if(window.playSound) window.playSound('click');
+        }
+
+        function applyDynamicFontSize() {
+            // 버튼이나 영역을 벗어나지 않도록 동적으로 폰트 조절
+            const elements = document.querySelectorAll('.dynamic-text, .btn-option, .screen-title');
+            elements.forEach(el => {
+                el.style.fontSize = ''; // 초기화
+                let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+                while(el.scrollWidth > el.clientWidth && currentSize > 12) {
+                    currentSize -= 1;
+                    el.style.fontSize = currentSize + 'px';
+                }
+            });
+        }
+
+        function applyLanguage() {
+            const t = i18n[currentLang];
+            document.documentElement.lang = currentLang;
+
+            // Meta & Title (SEO 강화)
+            document.title = t.title;
+            document.getElementById('header-title').innerText = t.title;
+            document.getElementById('meta-desc').content = t.meta_desc;
+            document.getElementById('meta-keywords').content = t.meta_keywords;
+            document.getElementById('og-title').content = t.title;
+            document.getElementById('og-desc').content = t.meta_desc;
+            document.getElementById('og-site-name').content = t.domain_name;
+            document.getElementById('og-url').content = `/?lang=${currentLang}`;
+
+            // DOM Elements Text Update
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.dataset.i18n;
+                if (t[key]) el.innerHTML = t[key];
+            });
+
+            // Player Names Update
+            if(!state.isPlaying) {
+                PLAYERS[0].name = "🐶 " + t.team_0;
+                PLAYERS[1].name = "🐱 " + t.team_1;
+                PLAYERS[2].name = "🐰 " + t.team_2;
+                PLAYERS[3].name = "🐹 " + t.team_3;
+            }
+
+            // 텍스트 길이 변경에 따른 폰트 자동 리사이징
+            setTimeout(applyDynamicFontSize, 50);
+        }
+
+        // --- 1. 오디오 시스템 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'pop') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'mission') {
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(500, now); 
+                osc.frequency.setValueAtTime(800, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'end') {
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.linearRampToValueAtTime(440, now + 0.5);
+                gainNode.gain.setValueAtTime(0.3, now); 
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            }
+        }
+
+        // --- 2. 게임 데이터 ---
+        const PLAYERS = [
+            { name: '🐶 강아지', theme: 'team-0' },
+            { name: '🐱 고양이', theme: 'team-1' },
+            { name: '🐰 토끼', theme: 'team-2' },
+            { name: '🐹 햄스터', theme: 'team-3' }
+        ];
+
+        let config = {
+            playerCount: 4,
+            topic: 'all', 
+            gameTime: 60,
+            spawnRate: 1000, 
+            bubbleSpeed: 0.5 
+        };
+
+        let state = {
+            isPlaying: false,
+            startTime: 0,
+            timeLeft: 60,
+            timerInterval: null,
+            teams: [],
+            lastSpawnTime: 0,
+            animationId: null,
+            shapesDB: []
+        };
+
+        // --- 3. 클래스 정의 ---
+        class Team {
+            constructor(index) {
+                this.index = index;
+                this.score = 0;
+                this.currentMissionTag = null; 
+                this.balloons = [];
+                this.element = this.createElement();
+            }
+
+            createElement() {
+                const div = document.createElement('div');
+                div.className = `team-card ${PLAYERS[this.index].theme}`;
+                
+                const t = i18n[currentLang];
+                
+                div.innerHTML = `
+                    <div class="crown-icon" id="crown-${this.index}">👑</div>
+                    
+                    <div class="header-section">
+                        <div class="player-label">${PLAYERS[this.index].name}</div>
+                        <div class="score-text">0${t.score_unit}</div>
+                    </div>
+
+                    <div class="balloon-area" id="lane-${this.index}"></div>
+
+                    <div class="mission-area">
+                        <div class="mission-label">${t.mission_label}</div>
+                        <div class="target-box" style="font-size:1.5rem;">?</div>
+                    </div>
+
+                    <div class="win-overlay">
+                        <div class="rank-medal"></div>
+                        <div class="rank-text"></div>
+                        <div class="final-score"></div>
+                    </div>
+                `;
+                
+                this.ui = {
+                    scoreText: div.querySelector('.score-text'),
+                    balloonArea: div.querySelector('.balloon-area'),
+                    targetBox: div.querySelector('.target-box'),
+                    overlay: div.querySelector('.win-overlay'),
+                    medal: div.querySelector('.rank-medal'),
+                    rankText: div.querySelector('.rank-text'),
+                    finalScore: div.querySelector('.final-score')
+                };
+                return div;
+            }
+
+            setTarget() {
+                const t = i18n[currentLang];
+                
+                let possibleTags = new Set();
+                state.shapesDB.forEach(shape => {
+                    shape.tags.forEach(tag => possibleTags.add(tag));
+                });
+                const tagList = Array.from(possibleTags);
+                
+                this.currentMissionTag = tagList[Math.floor(Math.random() * tagList.length)];
+                
+                let missionText = t.mission_fmt.replace('{name}', this.currentMissionTag);
+                
+                if(missionText.length > 15) {
+                    this.ui.targetBox.style.fontSize = '1.2rem';
+                } else {
+                    this.ui.targetBox.style.fontSize = '1.5rem';
+                }
+
+                this.ui.targetBox.innerHTML = missionText;
+                
+                this.ui.targetBox.classList.add('pulse');
+                setTimeout(() => this.ui.targetBox.classList.remove('pulse'), 300);
+            }
+
+            updateScore(points) {
+                this.score = Math.max(0, this.score + points);
+                const t = i18n[currentLang];
+                this.ui.scoreText.innerText = `${this.score}${t.score_unit}`;
+                updateCurrentLeader();
+            }
+
+            spawnBalloon() {
+                const isCorrect = Math.random() > 0.4;
+                let shapeData;
+                const t = i18n[currentLang];
+                
+                if (isCorrect) {
+                    let candidates = state.shapesDB.filter(s => {
+                        const hasTag = s.tags.includes(this.currentMissionTag);
+                        if (this.currentMissionTag === t.poly) {
+                            return hasTag && !s.tags.includes(t.circle) && !s.tags.includes(t.oval);
+                        }
+                        return hasTag;
+                    });
+                    
+                    if (candidates.length === 0) candidates = state.shapesDB;
+                    shapeData = candidates[Math.floor(Math.random() * candidates.length)];
+                } else {
+                    let candidates = state.shapesDB.filter(s => {
+                        const hasTag = s.tags.includes(this.currentMissionTag);
+                        if (this.currentMissionTag === t.poly) {
+                            return !hasTag || s.tags.includes(t.circle) || s.tags.includes(t.oval);
+                        }
+                        return !hasTag;
+                    });
+                     if (candidates.length === 0) candidates = state.shapesDB;
+                    shapeData = candidates[Math.floor(Math.random() * candidates.length)];
+                }
+
+                const balloon = document.createElement('div');
+                const colorIdx = Math.floor(Math.random() * 7) + 1;
+                balloon.className = `balloon color-${colorIdx}`;
+                
+                balloon.innerHTML = `<svg viewBox="0 0 100 100">${shapeData.svg}</svg>`;
+                
+                const width = Math.floor(Math.random() * 30) + 70; 
+                const height = width * 1.2;
+                
+                balloon.style.width = `${width}px`;
+                balloon.style.height = `${height}px`;
+
+                balloon.dataset.shapeTags = JSON.stringify(shapeData.tags);
+                balloon.dataset.teamIndex = this.index;
+                
+                const elapsedTime = (performance.now() - state.startTime) / 1000;
+                const progress = Math.min(elapsedTime / config.gameTime, 1);
+                const speedBoost = progress * 2.5; 
+                
+                balloon.dataset.speed = (config.bubbleSpeed + speedBoost) + (Math.random() * 0.9);
+                
+                const initialLeft = Math.random() * 60 + 10;
+                balloon.dataset.initialLeft = initialLeft;
+                balloon.dataset.swayPhase = Math.random() * Math.PI * 2; 
+                balloon.dataset.swaySpeed = 0.002 + Math.random() * 0.002; 
+                
+                balloon.style.left = initialLeft + '%';
+                balloon.style.bottom = '-120px';
+
+                this.ui.balloonArea.appendChild(balloon);
+                this.balloons.push(balloon);
+            }
+
+            updateBalloons() {
+                const areaHeight = this.ui.balloonArea.clientHeight;
+                const now = performance.now();
+
+                for (let i = this.balloons.length - 1; i >= 0; i--) {
+                    const b = this.balloons[i];
+                    
+                    if(b.classList.contains('wrong')) continue; 
+
+                    let currentBottom = parseFloat(b.style.bottom) || -120;
+                    currentBottom += parseFloat(b.dataset.speed);
+                    b.style.bottom = `${currentBottom}px`;
+
+                    const initialLeft = parseFloat(b.dataset.initialLeft);
+                    const phase = parseFloat(b.dataset.swayPhase);
+                    const swaySpeed = parseFloat(b.dataset.swaySpeed);
+                    const sway = Math.sin(now * swaySpeed + phase) * 5; 
+                    b.style.left = (initialLeft + sway) + '%';
+
+                    if (currentBottom > areaHeight) {
+                        b.remove();
+                        this.balloons.splice(i, 1);
+                    }
+                }
+            }
+            
+            showResult(rank) {
+                let medal = '';
+                let text = '';
+                const t = i18n[currentLang];
+                
+                if (rank === 1) { medal = '🥇'; text = t.rank_1; }
+                else if (rank === 2) { medal = '🥈'; text = t.rank_2; }
+                else if (rank === 3) { medal = '🥉'; text = t.rank_3; }
+                else { medal = ''; text = t.rank_4; } 
+
+                this.ui.medal.innerText = medal;
+                this.ui.rankText.innerText = text;
+                this.ui.finalScore.innerText = `${this.score}${t.score_unit}`;
+                this.ui.overlay.style.display = 'flex';
+                
+                if(rank === 1) createConfetti();
+            }
+        }
+
+        // --- 4. 게임 관리 로직 ---
+        function updateCurrentLeader() {
+            let maxScore = -1;
+            state.teams.forEach(t => { if (t.score > maxScore) maxScore = t.score; });
+
+            state.teams.forEach(t => {
+                const crown = document.getElementById(`crown-${t.index}`);
+                if (maxScore > 0 && t.score === maxScore) crown.classList.add('show');
+                else crown.classList.remove('show');
+            });
+        }
+
+        function prepareData() {
+            const db = getShapesDB();
+            if (config.topic === 'all') state.shapesDB = [...db];
+            else if (config.topic === 'tri') state.shapesDB = db.filter(s => s.cat === 'tri');
+            else if (config.topic === 'quad') state.shapesDB = db.filter(s => s.cat === 'quad');
+        }
+
+        function startGame() {
+            state.isPlaying = true;
+            prepareData(); 
+
+            // 시작과 동시에 언어 선택기 숨김 처리 (요구사항)
+            document.getElementById('langSelectorContainer').style.display = 'none';
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('header-info').style.display = 'flex';
+            
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            board.style.display = 'flex';
+            
+            board.removeEventListener('pointerdown', handleGlobalTouch);
+            board.addEventListener('pointerdown', handleGlobalTouch);
+
+            state.teams = [];
+            for (let i = 0; i < config.playerCount; i++) {
+                const team = new Team(i);
+                state.teams.push(team);
+                board.appendChild(team.element);
+                team.setTarget(); 
+            }
+            
+            state.timeLeft = config.gameTime;
+            state.startTime = performance.now();
+            state.lastSpawnTime = state.startTime;
+
+            startTimer();
+            gameLoop();
+        }
+
+        function handleGlobalTouch(e) {
+            if(!state.isPlaying) return;
+
+            const elements = document.elementsFromPoint(e.clientX, e.clientY);
+            const hitBalloons = elements.filter(el => el.classList.contains('balloon') && !el.classList.contains('popped') && !el.classList.contains('wrong'));
+            
+            if (hitBalloons.length === 0) return;
+
+            let targetBalloon = hitBalloons[0];
+
+            const teamIndex = parseInt(targetBalloon.dataset.teamIndex);
+            const team = state.teams[teamIndex];
+            
+            const tags = JSON.parse(targetBalloon.dataset.shapeTags);
+            const mission = team.currentMissionTag;
+            const t = i18n[currentLang];
+            
+            let isCorrect = false;
+            if (tags.includes(mission)) {
+                isCorrect = true;
+            } else if (mission === t.poly) {
+                if (!tags.includes(t.circle) && !tags.includes(t.oval)) isCorrect = true;
+            }
+
+            if(isCorrect) {
+                playSound('pop');
+                team.updateScore(10);
+                targetBalloon.classList.add('popped');
+                createMiniExplosion(e.clientX, e.clientY);
+                targetBalloon.remove();
+                team.balloons = team.balloons.filter(b => b !== targetBalloon);
+            } else {
+                playSound('wrong');
+                team.updateScore(-5);
+                targetBalloon.classList.add('wrong'); 
+                setTimeout(() => {
+                    if(targetBalloon.parentElement) {
+                        targetBalloon.remove();
+                        team.balloons = team.balloons.filter(b => b !== targetBalloon);
+                    }
+                }, 1000);
+            }
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timer-display');
+            timerDisplay.innerText = state.timeLeft;
+            timerDisplay.classList.remove('urgent');
+
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                timerDisplay.innerText = state.timeLeft;
+
+                if(state.timeLeft % 10 === 0 && state.timeLeft > 0) {
+                     state.teams.forEach(t => {
+                         t.setTarget();
+                         playSound('mission');
+                     });
+                }
+
+                if (state.timeLeft <= 10) timerDisplay.classList.add('urgent');
+                
+                if (state.timeLeft <= 0) {
+                    finishGame();
+                }
+            }, 1000);
+        }
+
+        function gameLoop(timestamp) {
+            if(!state.isPlaying) return;
+
+            if(timestamp - state.lastSpawnTime > config.spawnRate) {
+                state.teams.forEach(team => {
+                    const elapsedTime = (timestamp - state.startTime) / 1000;
+                    
+                    const baseChance = 0.4 + (elapsedTime / config.gameTime) * 0.4;
+                    const spawnChance = Math.min(baseChance, 0.95); 
+                    
+                    if(Math.random() < spawnChance) team.spawnBalloon();
+                });
+                state.lastSpawnTime = timestamp;
+            }
+
+            state.teams.forEach(team => team.updateBalloons());
+            state.animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function finishGame() {
+            if(!state.isPlaying) return;
+            state.isPlaying = false;
+            clearInterval(state.timerInterval);
+            cancelAnimationFrame(state.animationId);
+            playSound('end');
+
+            const board = document.getElementById('game-board');
+            board.removeEventListener('pointerdown', handleGlobalTouch);
+
+            let sortedTeams = [...state.teams].sort((a, b) => b.score - a.score);
+            let currentRank = 1;
+            for (let i = 0; i < sortedTeams.length; i++) {
+                if (i > 0 && sortedTeams[i].score < sortedTeams[i-1].score) {
+                    currentRank = i + 1;
+                }
+                sortedTeams[i].showResult(currentRank);
+            }
+
+            document.getElementById('game-over-controls').style.display = 'block';
+        }
+
+        function createMiniExplosion(x, y) {
+            for(let i=0; i<8; i++) {
+                const p = document.createElement('div');
+                p.style.position = 'absolute';
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.width = '6px';
+                p.style.height = '6px';
+                p.style.background = '#fff';
+                p.style.borderRadius = '50%';
+                p.style.pointerEvents = 'none';
+                p.style.zIndex = 100;
+                document.body.appendChild(p);
+
+                const angle = Math.random() * Math.PI * 2;
+                const vel = Math.random() * 50 + 20;
+                const tx = Math.cos(angle) * vel;
+                const ty = Math.sin(angle) * vel;
+
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 500,
+                    easing: 'ease-out'
+                }).onfinish = () => p.remove();
+            }
+        }
+
+        // --- 5. 이벤트 핸들러 ---
+        const playerBtns = document.querySelectorAll('#player-options .btn-option');
+        playerBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playerBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                config.playerCount = parseInt(btn.dataset.value);
+                playSound('click');
+            });
+        });
+
+        const modeBtns = document.querySelectorAll('#mode-options .btn-option');
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modeBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                config.topic = btn.dataset.value;
+                playSound('click');
+            });
+        });
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            playSound('click');
+            startGame();
+        });
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            playSound('click');
+            setTimeout(() => location.reload(), 200);
+        });
+
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
+            for (let i = 0; i < 150; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                conf.style.opacity = Math.random();
+                container.appendChild(conf);
+            }
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            window.addEventListener('resize', applyDynamicFontSize);
+        });
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        document.addEventListener('dragstart', event => event.preventDefault());    
+        document.addEventListener('touchmove', function(event) {
+            if (event.scale !== 1) { event.preventDefault(); }
+        }, { passive: false });
+
+document.getElementById('btn-home').addEventListener('click', () => {
+    // 1. 만약 전체 화면 모드라면
+    if (document.fullscreenElement) {
+        // 새로고침 대신 화면 초기화 로직 실행 (전체 화면 유지)
+        state.isPlaying = false;
+        clearInterval(state.timerInterval);
+        cancelAnimationFrame(state.animationId);
+        
+        document.getElementById('langSelectorContainer').style.display = 'block';
+        document.getElementById('game-board').style.display = 'none';
+        document.getElementById('header-info').style.display = 'none';
+        document.getElementById('game-over-controls').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'flex';
+        
+        if(window.playSound) window.playSound('click');
+    } else {
+        // 2. 전체 화면이 아니라면 그냥 새로고침
+        location.reload();
+    }
+});
+    </script>
+</body>
+</html>

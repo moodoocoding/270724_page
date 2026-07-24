@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a2e1a">
+
+    <meta name="description" content="다함께 즐기는 개구리 퍼즐 배틀">
+    <meta name="keywords" content="개구리킹, Frog King, 개구리퍼즐, 수학게임, 두뇌게임, KingsMath">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="개구리킹🐸">
+    <meta property="og:description" content="모든 땅을 푸르게! 다함께 즐기는 개구리 퍼즐 배틀">
+
+    <title>개구리킹🐸</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #1a2e1a; /* 개구리 게임에 맞춘 어두운 초록 배경 */
+            --card-bg: #2d4a2d;
+            --text-color: #f0f0f0;
+            --accent-color: #8bc34a;
+            --btn-active: #4caf50;
+            --correct-color: #4caf50;
+            --wrong-color: #ff5252;
+            --border-color: #555;
+        }
+
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        /* [필수] 다중 터치 및 제스처 완벽 차단 */
+        * {
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-user-drag: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overscroll-behavior: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: #0f1c0f;
+            padding: 0 20px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            z-index: 100;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            position: absolute;
+            left: 20px;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        #timer-display {
+            font-size: 2.5rem;
+            color: #fff;
+            background: #223322;
+            padding: 2px 30px;
+            border-radius: 15px;
+            border: 5px solid #557755;
+            min-width: 120px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #timer-display.urgent {
+            color: var(--wrong-color);
+            border-color: var(--wrong-color);
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* --- Main Container --- */
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: calc(100% - 70px);
+        }
+
+        /* --- Ranking Bar --- */
+        .ranking-bar {
+            width: 100%;
+            height: 40px;
+            background: #0f1c0f;
+            border-bottom: 1px solid #2d4a2d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: #fff;
+            font-size: 1.2rem;
+            z-index: 20;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        .rank-item { display: flex; align-items: center; gap: 5px; }
+        .rank-item span { color: var(--accent-color); font-weight: bold; }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            z-index: 200;
+        }
+
+        .start-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 3px solid #3e6b3e;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .top-banner-link {
+            color: #FFD93D;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: bold;
+        }
+
+        .footer-link {
+            color: #aaa;
+            text-decoration: none;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            display: inline-block;
+            border-bottom: 1px solid #555;
+            transition: color 0.2s;
+        }
+        .footer-link:hover { color: #fff; border-color: #fff; }
+
+        h1 {
+            margin: 0 0 20px 0;
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 3px 3px 0 #000;
+            line-height: 1.2;
+        }
+        h1.long-text { font-size: 2.2rem; }
+
+        .option-group {
+            display: grid;
+            grid-template-columns: repeat(3, auto);
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .btn-option {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border: 2px solid #555;
+            background: #222;
+            color: #aaa;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active);
+            color: white;
+            border-color: #8bc34a;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px #8bc34a;
+        }
+
+        #btn-start {
+            width: 100%;
+            padding: 15px;
+            font-size: 2rem;
+            background-color: #8bc34a;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 0 #558b2f;
+            font-family: 'Jua', sans-serif;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        .guide-box {
+            background: rgba(0,0,0,0.3); padding:15px; border-radius:10px; margin-top:20px; text-align:left; font-size:0.9rem; color:#ccc;
+        }
+        .guide-box b { color: #fff; }
+
+        /* --- Game Screen (전자칠판 최적화: flex-end -> center 변경) --- */
+        #game-screen {
+            display: none;
+            width: 100%;
+            flex: 1;
+            flex-direction: row;
+            overflow: hidden;
+            justify-content: center;
+            align-items: center; /* 세로 중앙 정렬 핵심 */
+        }
+
+        .player-area {
+            flex: 0 0 25%;
+            border-right: 2px solid #0f1c0f;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: var(--bg-color);
+            overflow: hidden;
+            height: 100%;
+            justify-content: center; /* 영역 내 중앙 배치 */
+            padding-bottom: 20px;
+        }
+        .player-area:last-child { border-right: none; }
+
+        .info-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .player-header {
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            margin-bottom: 10px;
+        }
+        .p-name { font-size: 1.8rem; color: #fff; text-shadow: 1px 1px 2px #000; }
+        .p-score { font-size: 2rem; color: var(--accent-color); font-weight: bold; text-shadow: 1px 1px 2px #000; }
+
+        .progress-box {
+            background: #0f1c0f;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #3e6b3e;
+            padding: 5px 15px;
+            min-width: 100px;
+        }
+        .target-label { font-size: 0.8rem; color: #aaa; }
+        .target-num { font-size: 1.5rem; font-weight: bold; color: white; }
+
+        /* --- Frog Grid --- */
+        .board-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 0 5px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            width: 95%;
+            max-width: 350px;
+            aspect-ratio: 1 / 1;
+            background-color: #2d4a2d;
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            /* 보드가 영역을 넘지 않도록 제한 완화 */
+            min-width: 0;
+        }
+
+        .tile {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            border-radius: 6px;
+            position: relative;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 터치 반응 (다중 터치용) */
+        .tile:active { transform: scale(0.9); }
+
+        .tile-dirt { background-color: #5d4037; border-bottom: 3px solid #3e2723; }
+        .tile-visited { background-color: #4caf50; border-bottom: 3px solid #2e7d32; }
+        .tile-stone { background-color: #78909c; border-bottom: 3px solid #455a64; cursor: default; }
+        .tile-frog {
+            background-color: #8bc34a;
+            z-index: 10;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(139, 195, 74, 0.6);
+            border-bottom: 3px solid #689f38;
+        }
+
+        .tile-backtrackable::after {
+            content: '↩️';
+            position: absolute;
+            font-size: 0.6rem;
+            top: 1px;
+            right: 1px;
+            opacity: 0.6;
+        }
+
+        /* 개구리 애니메이션 */
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1.1); }
+        }
+        .frog-anim { animation: pop 0.2s ease-out alternate; }
+
+        /* 결과 오버레이 (개별 플레이어) */
+        .result-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(3px);
+        }
+        .medal { font-size: 6rem; margin-bottom: 10px; animation: popIn 0.5s; }
+        .rank-text { font-size: 2.5rem; color: white; font-weight: bold; }
+        .final-msg { font-size: 1.5rem; color: var(--accent-color); margin-top: 10px; }
+        .wait-msg { font-size: 1.2rem; color: #aaa; margin-top: 5px; animation: blink 1s infinite; }
+
+        /* 전체 종료 오버레이 */
+        #global-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+        #global-overlay.transparent-bg {
+            background: rgba(0,0,0,0) !important;
+            pointer-events: none;
+        }
+        #global-overlay.transparent-bg button, #global-overlay.transparent-bg a {
+            pointer-events: auto;
+        }
+        #countdown-txt { font-size: 8rem; color: var(--accent-color); font-weight: bold; }
+
+        .restart-container {
+            position: absolute;
+            bottom: 10%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 600;
+        }
+
+        .floating-btn {
+            position: absolute;
+            top: 25vh;
+            width: 60px; height: 60px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #666;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer;
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+        .floating-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.8); }
+        .floating-btn:active { transform: scale(0.95); }
+
+        #btn-home { left: 10px; }
+        #btn-fs { right: 10px; }
+
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        /* [전자칠판/태블릿 최적화] - 해상도 맞춤형 미디어 쿼리 추가 */
+        @media (max-width: 1400px), (max-height: 850px) {
+            header { height: 50px; }
+            .header-title { font-size: 1.4rem; }
+            #timer-display { font-size: 2rem; padding: 2px 20px; }
+
+            .ranking-bar { height: 35px; font-size: 1rem; }
+
+            .player-header { padding: 5px 10px; }
+            .p-name { font-size: 1.4rem; }
+            .p-score { font-size: 1.6rem; }
+
+            .grid-container { gap: 3px; padding: 5px; }
+            .tile { font-size: 1.2rem; }
+
+            h1 { font-size: 2.2rem; }
+            .start-card { padding: 20px; width: 400px; }
+            .btn-option { padding: 8px 15px; font-size: 1rem; }
+            #btn-start { font-size: 1.5rem; padding: 10px; }
+
+            .floating-btn { width: 45px; height: 45px; font-size: 1.2rem; top: 70px; }
+
+            .medal { font-size: 4rem; }
+            .rank-text { font-size: 2rem; }
+        }
+
+        /* --- 다국어 UI 격리 스타일 (Prefix: kml-) --- */
+        #langSelectorContainer {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 99999 !important; /* 최고 수준 Z-INDEX */
+        }
+        .kml-trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(31, 41, 55, 0.7);
+            border: 1px solid #4b5563;
+            border-radius: 9999px;
+            padding: 8px 16px;
+            color: #f3f4f6;
+            font-size: 14px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            font-family: 'Noto Sans KR', sans-serif !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: background 0.2s;
+        }
+        .kml-trigger-btn:hover { background: rgba(55, 65, 81, 0.9); }
+        .kml-flag-img { width: 20px; height: 15px; border-radius: 2px; object-cover: cover; }
+
+        /* 모달 스타일 */
+        #kml-langModal {
+            position: fixed;
+            inset: 0;
+            z-index: 99999 !important; /* 최고 수준 Z-INDEX */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Noto Sans KR', sans-serif !important;
+        }
+        #kml-langModal.kml-active { opacity: 1; visibility: visible; }
+        #kml-langModal, #kml-langModal * { box-sizing: border-box !important; } /* 강제 보정 */
+
+        .kml-modal-content {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #kml-langModal.kml-active .kml-modal-content { transform: scale(1); }
+
+        /* 모달 헤더 */
+        .kml-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #374151;
+            background: #1f2937;
+        }
+        .kml-modal-title {
+            margin: 0;
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .kml-close-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+        }
+        .kml-close-btn:hover { color: #fff; }
+
+        /* 검색 바 */
+        .kml-search-bar { padding: 15px 20px; background: #111827; border-bottom: 1px solid #1f2937; }
+        .kml-search-input {
+            width: 100%;
+            background: #1f2937;
+            border: 1px solid #374151;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .kml-search-input:focus { border-color: var(--accent-color); }
+
+        /* 언어 그리드 */
+        .kml-lang-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 10px;
+            background: #111827;
+        }
+
+        /* 스크롤바 커스텀 */
+        .kml-lang-grid::-webkit-scrollbar { width: 8px; }
+        .kml-lang-grid::-webkit-scrollbar-track { background: #111827; }
+        .kml-lang-grid::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        .kml-lang-grid::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+        .kml-lang-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1f2937;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .kml-lang-item:hover { background: #374151; border-color: #4b5563; }
+        .kml-lang-item.kml-selected { border-color: var(--accent-color); background: #2d4a2d; }
+
+        .kml-item-flag { width: 30px; height: 22px; border-radius: 4px; object-fit: cover; }
+        .kml-item-text { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+        .kml-item-name { color: #fff; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .kml-item-en-name { color: #9ca3af; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .kml-check-icon { color: var(--accent-color); font-size: 1.2rem; }
+
+        .kml-no-result { display: none; color: #9ca3af; text-align: center; padding: 40px; grid-column: 1 / -1; }
+
+        /* 토스트 알림 */
+        .kml-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1f2937;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            z-index: 100000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Noto Sans KR', sans-serif !important;
+        }
+        .kml-toast.kml-show { transform: translateY(0); opacity: 1; }
+        .kml-toast-icon { color: #4caf50; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="langSelectorContainer">
+        <button id="kml-langTriggerBtn" class="kml-trigger-btn">
+            <i class="fa-solid fa-globe"></i>
+            <img id="kml-currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="kml-flag-img">
+            <span id="kml-currentLangName">한국어</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.8rem; opacity: 0.7;"></i>
+        </button>
+    </div>
+
+    <div id="kml-langModal">
+        <div class="kml-modal-content">
+            <div class="kml-modal-header">
+                <h2 class="kml-modal-title"><i class="fa-solid fa-language" style="color: var(--accent-color);"></i> Language / 언어</h2>
+                <button id="kml-closeModalBtn" class="kml-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="kml-search-bar">
+                <input type="text" id="kml-searchInput" class="kml-search-input" placeholder="Search language / 언어 검색...">
+            </div>
+            <div class="kml-lang-grid" id="kml-langGrid">
+                <div id="kml-noResult" class="kml-no-result">No results found.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="kml-toast" class="kml-toast">
+        <i class="fa-solid fa-circle-check kml-toast-icon"></i>
+        <span id="kml-toastMessage">언어가 변경되었습니다.</span>
+    </div>
+
+    <header>
+        <div class="header-title" id="header-title-text">개구리킹🐸</div>
+        <div id="timer-display">60</div>
+    </header>
+
+    <div id="app-container">
+        <div class="ranking-bar" id="ranking-bar" style="display:none;"></div>
+
+        <div id="start-screen">
+            <div class="start-card">
+                <a href="/" class="top-banner-link" id="top-link" target="_self">게임으로 수학의 킹이 되어라. 킹수학.com</a>
+
+                <h1 id="main-title">개구리킹🐸</h1>
+
+                <p style="color:#aaa; margin-bottom:10px;" id="player-select-text">플레이어 수 선택</p>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option selected" onclick="selectPlayer(1)" id="p1-text">1인</div>
+                    <div class="btn-option" onclick="selectPlayer(2)" id="p2-text">2인</div>
+                    <div class="btn-option" onclick="selectPlayer(3)" id="p3-text">3인</div>
+                    <div class="btn-option" onclick="selectPlayer(4)" id="p4-text">4인</div>
+                    <div class="btn-option" onclick="selectPlayer(5)" id="p5-text">5인</div>
+                    <div class="btn-option" onclick="selectPlayer(6)" id="p6-text">6인</div>
+                </div>
+
+                <div class="guide-box">
+                    <span id="guide-title">📢 <b>게임 방법</b></span><br>
+                    <span id="guide-1">1. 개구리를 상하좌우 빈칸(🟫)으로 이동시키세요.</span><br>
+                    <span id="guide-2">2. 지나간 자리는 연꽃잎(🌿)으로 변합니다.</span><br>
+                    <span id="guide-3">3. 방금 지나온 길로 돌아가면 다시 흙(🟫)이 됩니다.</span><br>
+                    <span id="guide-4">4. <b>60초 안에 가장 먼저 모든 칸을 채우면 1등!</b></span>
+                </div>
+
+                <button id="btn-start" onclick="initGame()">게임 시작! 🚀</button>
+
+                <a href="/" class="footer-link" id="more-games-link" target="_self">🎮 다른 게임 고르기</a>
+            </div>
+        </div>
+
+        <div id="game-screen"></div>
+
+        <div id="floating-btns" style="display:none;">
+            <div id="btn-home" class="floating-btn" title="Home">🏠</div>
+            <div id="btn-fs" class="floating-btn" onclick="toggleFullScreen()" title="Full Screen">⛶</div>
+        </div>
+
+        <div id="global-overlay">
+            <div id="countdown-txt">3</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 언어 지원 및 번역 데이터 (총 16개국) ---
+        // 번역 어조: 각 나라의 '초등학교 수학 교육과정' 어휘 사용
+        const kml_langData = {
+            'ko': {
+                gameTitle: "개구리킹🐸",
+                seoTitle: "개구리킹 🐸",
+                seoDesc: "모든 땅을 푸르게! 다함께 즐기는 개구리 퍼즐 배틀 - 개구리킹",
+                seoKeywords: "개구리킹, Frog King, 개구리퍼즐, 수학게임, 두뇌게임, KingsMath",
+                ogTitle: "개구리킹🐸",
+                ogDesc: "모든 땅을 푸르게! 다함께 즐기는 개구리 퍼즐 배틀",
+                topLinkText: "게임으로 수학의 킹이 되어라. 킹수학.com",
+                selectPlayer: "플레이어 수 선택", p1: "1인", p2: "2인", p3: "3인", p4: "4인", p5: "5인", p6: "6인",
+                guideTitle: "📢 <b>게임 방법</b>",
+                guide1: "1. 🐸를 상하좌우 빈칸(🟫)으로 터치해 이동!",
+                guide2: "2. 지나간 자리는 연꽃잎(🌿)으로 변합니다.",
+                guide3: "3. 직전 길(↩️)로 되돌아가면 다시 흙(🟫)이 됩니다.",
+                guide4: "4. 가장 먼저 모든 칸을 채운 사람이 1등!",
+                startBtn: "게임 시작! 🚀", moreGames: "🎮 다른 게임 고르기", restartBtn: "다시하기 🔄", rankFormat: "위",
+                waitMsg: "다른 친구들을 기다리는 중...", doneMsg: "성공!", records: "초 기록!", achievements: "개 달성",
+                animals: ['강아지🐶', '고양이🐱', '토끼🐰', '햄스터🐹', '팬더🐼', '곰🐻']
+            },
+            'en': {
+                gameTitle: "Frog King 🐸",
+                seoTitle: "Frog King 🐸",
+                seoDesc: "Turn all land green! Frog puzzle battle for everyone - Frog King",
+                seoKeywords: "Frog King, 개구리킹, Frog Puzzle, Math Game, Brain Game, KingsMath",
+                ogTitle: "Frog King 🐸",
+                ogDesc: "Turn all land green! Frog puzzle battle for everyone",
+                topLinkText: "Become the Math King. KingsMath.com",
+                selectPlayer: "Select Players", p1: "1P", p2: "2P", p3: "3P", p4: "4P", p5: "5P", p6: "6P",
+                guideTitle: "📢 <b>How to Play</b>",
+                guide1: "1. Tap adjacent Dirt(🟫) to move the Frog(🐸).",
+                guide2: "2. Path turns into a Leaf(🌿).",
+                guide3: "3. Go back(↩️) to turn it to Dirt(🟫) again.",
+                guide4: "4. Be the first to fill the board!",
+                startBtn: "Start! 🚀", moreGames: "🎮 More Games", restartBtn: "Restart 🔄", rankFormat: "",
+                waitMsg: "Waiting for others...", doneMsg: "Done!", records: "s record!", achievements: " tiles filled",
+                animals: ['Dog🐶', 'Cat🐱', 'Rabbit🐰', 'Hamster🐹', 'Panda🐼', 'Bear🐻']
+            },
+            'zh': {
+                gameTitle: "青蛙王 🐸",
+                seoTitle: "青蛙王 🐸",
+                seoDesc: "让所有土地变绿！大家一起玩的青蛙拼图对战 - 青蛙王",
+                seoKeywords: "青蛙王, Frog King, 개구리킹, 青蛙拼图, 数学游戏, 益智游戏, KingsMath",
+                ogTitle: "青蛙王 🐸",
+                ogDesc: "让所有土地变绿！大家一起玩的青蛙拼图对战",
+                topLinkText: "成为数学之王. KingsMath.com",
+                selectPlayer: "选择人数", p1: "1人", p2: "2人", p3: "3人", p4: "4人", p5: "5人", p6: "6人",
+                guideTitle: "📢 <b>游戏方法</b>",
+                guide1: "1. 点击空格(🟫)来移动青蛙(🐸)。",
+                guide2: "2. 走过的地方会变成荷叶(🌿)。",
+                guide3: "3. 返回(↩️)刚才的路，会变回泥土(🟫)。",
+                guide4: "4. 60秒内最快填满所有方格的人获胜！",
+                startBtn: "开始游戏！ 🚀", moreGames: "🎮 选择其他游戏", restartBtn: "重新开始 🔄", rankFormat: "名",
+                waitMsg: "等待其他玩家...", doneMsg: "成功！", records: "秒记录！", achievements: "个达成",
+                animals: ['小狗🐶', '小猫🐱', '兔子🐰', '仓鼠🐹', '熊猫🐼', '小熊🐻']
+            },
+            'ja': {
+                gameTitle: "カエルキング 🐸",
+                seoTitle: "カエルキング 🐸",
+                seoDesc: "すべての土地を緑に！みんなで楽しむカエルパズルバトル - カエルキング",
+                seoKeywords: "カエルキング, Frog King, 개구리킹, カエルパズル, 数学ゲーム, 脳トレ, KingsMath",
+                ogTitle: "カエルキング 🐸",
+                ogDesc: "すべての土地を緑に！みんなで楽しむカエルパズルバトル",
+                topLinkText: "数学の王様になろう. KingsMath.com",
+                selectPlayer: "人数選択", p1: "1人", p2: "2人", p3: "3人", p4: "4人", p5: "5人", p6: "6人",
+                guideTitle: "📢 <b>遊び方</b>",
+                guide1: "1. 🐸を上下左右の空き地(🟫)にタッチして移動！",
+                guide2: "2. 通った跡は蓮の葉(🌿)に変わります。",
+                guide3: "3. 直前の道(↩️)に戻ると、また土(🟫)に戻ります。",
+                guide4: "4. 最も早くすべてのマスを埋めた人が1位！",
+                startBtn: "ゲーム開始！ 🚀", moreGames: "🎮 他のゲームを選ぶ", restartBtn: "もう一度 🔄", rankFormat: "位",
+                waitMsg: "他の友達を待っています...", doneMsg: "成功！", records: "秒記録！", achievements: "個達成",
+                animals: ['ワンちゃん🐶', '猫ちゃん🐱', 'うさぎ🐰', 'ハムスター🐹', 'パンダ🐼', 'くま🐻']
+            },
+            'es': {
+                gameTitle: "Rey Rana 🐸",
+                topLinkText: "Conviértete en el Rey de las Matemáticas. KingsMath.com",
+                selectPlayer: "Seleccionar Jugadores", p1: "1J", p2: "2J", p3: "3J", p4: "4J", p5: "5J", p6: "6J",
+                guideTitle: "📢 <b>Cómo Jugar</b>",
+                guide1: "1. Toca la Tierra(🟫) adyacente para mover la Rana(🐸).",
+                guide2: "2. El camino se convierte en una Hoja(🌿).",
+                guide3: "3. Retrocede(↩️) para volver a convertirlo en Tierra(🟫).",
+                guide4: "4. ¡Sé el primero en llenar el tablero!",
+                startBtn: "¡Comenzar! 🚀", moreGames: "🎮 Más Juegos", restartBtn: "Reiniciar 🔄", rankFormat: "º",
+                waitMsg: "Esperando a otros...", doneMsg: "¡Hecho!", records: "s récord!", achievements: " casillas",
+                animals: ['Perro🐶', 'Gato🐱', 'Conejo🐰', 'Hámster🐹', 'Panda🐼', 'Oso🐻']
+            },
+            'fr': {
+                gameTitle: "Roi Grenouille 🐸",
+                topLinkText: "Devenez le Roi des Mathématiques. KingsMath.com",
+                selectPlayer: "Sélectionner Joueurs", p1: "1J", p2: "2J", p3: "3J", p4: "4J", p5: "5J", p6: "6J",
+                guideTitle: "📢 <b>Comment Jouer</b>",
+                guide1: "1. Appuyez sur la Terre(🟫) adjacente pour déplacer la Grenouille(🐸).",
+                guide2: "2. Le chemin se transforme en Feuille(🌿).",
+                guide3: "3. Reculez(↩️) pour le transformer à nouveau en Terre(🟫).",
+                guide4: "4. Soyez le premier à remplir le plateau !",
+                startBtn: "Commencer ! 🚀", moreGames: "🎮 Plus de Jeux", restartBtn: "Recommencer 🔄", rankFormat: "er/e",
+                waitMsg: "En attente des autres...", doneMsg: "Terminé !", records: "s record !", achievements: " cases",
+                animals: ['Chien🐶', 'Chat🐱', 'Lapin🐰', 'Hamster🐹', 'Panda🐼', 'Ours🐻']
+            },
+            'ru': {
+                gameTitle: "Король Лягушек 🐸",
+                topLinkText: "Станьте Королем Математики. KingsMath.com",
+                selectPlayer: "Выбор Игроков", p1: "1И", p2: "2И", p3: "3И", p4: "4И", p5: "5И", p6: "6И",
+                guideTitle: "📢 <b>Как Играть</b>",
+                guide1: "1. Нажмите на соседнюю Землю(🟫), чтобы переместить Лягушку(🐸).",
+                guide2: "2. Путь превращается в Лист(🌿).",
+                guide3: "3. Вернитесь(↩️), чтобы снова превратить его в Землю(🟫).",
+                guide4: "4. Будьте первым, кто заполнит поле!",
+                startBtn: "Старт! 🚀", moreGames: "🎮 Другие Игры", restartBtn: "Заново 🔄", rankFormat: "-й",
+                waitMsg: "Ожидание других...", doneMsg: "Готово!", records: "с рекорд!", achievements: " клеток",
+                animals: ['Собака🐶', 'Кошка🐱', 'Кролик🐰', 'Хомяк🐹', 'Панда🐼', 'Медведь🐻']
+            },
+            'id': {
+                gameTitle: "Raja Katak 🐸",
+                topLinkText: "Menjadi Raja Matematika. KingsMath.com",
+                selectPlayer: "Pilih Pemain", p1: "1P", p2: "2P", p3: "3P", p4: "4P", p5: "5P", p6: "6P",
+                guideTitle: "📢 <b>Cara Bermain</b>",
+                guide1: "1. Ketuk Tanah(🟫) di dekatnya untuk menggerakkan Katak(🐸).",
+                guide2: "2. Jalan berubah menjadi Daun(🌿).",
+                guide3: "3. Kembali(↩️) untuk mengubahnya menjadi Tanah(🟫) lagi.",
+                guide4: "4. Jadilah yang pertama mengisi papan!",
+                startBtn: "Mulai! 🚀", moreGames: "🎮 Game Lainnya", restartBtn: "Ulangi 🔄", rankFormat: "",
+                waitMsg: "Menunggu yang lain...", doneMsg: "Selesai!", records: "detik rekor!", achievements: " petak",
+                animals: ['Anjing🐶', 'Kucing🐱', 'Kelinci🐰', 'Hamster🐹', 'Panda🐼', 'Beruang🐻']
+            },
+            'vi': {
+                gameTitle: "Vua Ếch 🐸",
+                topLinkText: "Trở thành Vua Toán Học. KingsMath.com",
+                selectPlayer: "Chọn Người Chơi", p1: "1N", p2: "2N", p3: "3N", p4: "4N", p5: "5N", p6: "6N",
+                guideTitle: "📢 <b>Cách Chơi</b>",
+                guide1: "1. Chạm vào Đất(🟫) lân cận để di chuyển Ếch(🐸).",
+                guide2: "2. Đường đi biến thành Lá(🌿).",
+                guide3: "3. Quay lại(↩️) để biến nó thành Đất(🟫) lần nữa.",
+                guide4: "4. Hãy là người đầu tiên lấp đầy bảng!",
+                startBtn: "Bắt đầu! 🚀", moreGames: "🎮 Trò Chơi Khác", restartBtn: "Chơi Lại 🔄", rankFormat: "",
+                waitMsg: "Đang chờ người khác...", doneMsg: "Xong!", records: "giây kỷ lục!", achievements: " ô",
+                animals: ['Chó🐶', 'Mèo🐱', 'Thỏ🐰', 'Chuột🐹', 'Gấu🐼', 'Gấu🐻']
+            },
+            'th': {
+                gameTitle: "ราชากบ 🐸",
+                topLinkText: "เป็นราชาคณิตศาสตร์. KingsMath.com",
+                selectPlayer: "เลือกผู้เล่น", p1: "1คน", p2: "2คน", p3: "3คน", p4: "4คน", p5: "5คน", p6: "6คน",
+                guideTitle: "📢 <b>วิธีเล่น</b>",
+                guide1: "1. แตะดิน(🟫)ที่อยู่ติดกันเพื่อย้ายกบ(🐸)",
+                guide2: "2. ทางเดินจะกลายเป็นใบไม้(🌿)",
+                guide3: "3. ย้อนกลับ(↩️)เพื่อเปลี่ยนเป็นดิน(🟫)อีกครั้ง",
+                guide4: "4. เติมกระดานให้เต็มก่อนเป็นคนแรก!",
+                startBtn: "เริ่ม! 🚀", moreGames: "🎮 เกมอื่น", restartBtn: "เล่นใหม่ 🔄", rankFormat: "",
+                waitMsg: "รอคนอื่น...", doneMsg: "เสร็จ!", records: "วินาที สถิติ!", achievements: " ช่อง",
+                animals: ['สุนัข🐶', 'แมว🐱', 'กระต่าย🐰', 'แฮมสเตอร์🐹', 'แพนด้า🐼', 'หมี🐻']
+            },
+            'pt-br': {
+                gameTitle: "Rei Sapo 🐸",
+                topLinkText: "Torne-se o Rei da Matemática. KingsMath.com",
+                selectPlayer: "Selecionar Jogadores", p1: "1J", p2: "2J", p3: "3J", p4: "4J", p5: "5J", p6: "6J",
+                guideTitle: "📢 <b>Como Jogar</b>",
+                guide1: "1. Toque na Terra(🟫) adjacente para mover o Sapo(🐸).",
+                guide2: "2. O caminho se transforma em uma Folha(🌿).",
+                guide3: "3. Volte(↩️) para transformá-lo em Terra(🟫) novamente.",
+                guide4: "4. Seja o primeiro a preencher o tabuleiro!",
+                startBtn: "Começar! 🚀", moreGames: "🎮 Mais Jogos", restartBtn: "Recomeçar 🔄", rankFormat: "º",
+                waitMsg: "Esperando os outros...", doneMsg: "Feito!", records: "s recorde!", achievements: " casas",
+                animals: ['Cachorro🐶', 'Gato🐱', 'Coelho🐰', 'Hamster🐹', 'Panda🐼', 'Urso🐻']
+            },
+            'hi': {
+                gameTitle: "मेंढक राजा 🐸",
+                topLinkText: "गणित के राजा बनें. KingsMath.com",
+                selectPlayer: "खिलाड़ी चुनें", p1: "1", p2: "2", p3: "3", p4: "4", p5: "5", p6: "6",
+                guideTitle: "📢 <b>कैसे खेलें</b>",
+                guide1: "1. मेंढक(🐸) को हिलाने के लिए पास की मिट्टी(🟫) पर टैप करें।",
+                guide2: "2. रास्ता पत्ती(🌿) में बदल जाता है।",
+                guide3: "3. इसे फिर से मिट्टी(🟫) बनाने के लिए वापस(↩️) जाएं।",
+                guide4: "4. बोर्ड भरने वाले पहले व्यक्ति बनें!",
+                startBtn: "शुरू! 🚀", moreGames: "🎮 और खेल", restartBtn: "फिर से शुरू 🔄", rankFormat: "",
+                waitMsg: "दूसरों का इंतज़ार है...", doneMsg: "हो गया!", records: "सेकंड रिकॉर्ड!", achievements: " खाने",
+                animals: ['कुत्ता🐶', 'बिल्ली🐱', 'खरगोश🐰', 'हैम्स्टर🐹', 'पांडा🐼', 'भालू🐻']
+            },
+            'bn': {
+                gameTitle: "ব্যাঙ রাজা 🐸",
+                topLinkText: "গণিতের রাজা হন. KingsMath.com",
+                selectPlayer: "খেলোয়াড় নির্বাচন", p1: "১ জন", p2: "২ জন", p3: "৩ জন", p4: "৪ জন", p5: "৫ জন", p6: "৬ জন",
+                guideTitle: "📢 <b>কিভাবে খেলবেন</b>",
+                guide1: "1. ব্যাঙ(🐸) সরাতে পাশের মাটিতে(🟫) আলতো চাপুন।",
+                guide2: "2. পথ একটি পাতায়(🌿) পরিণত হয়।",
+                guide3: "3. আবার মাটি(🟫) করতে ফিরে(↩️) যান।",
+                guide4: "4. বোর্ড পূরণকারী প্রথম হন!",
+                startBtn: "শুরু! 🚀", moreGames: "🎮 আরও গেম", restartBtn: "আবার শুরু 🔄", rankFormat: "",
+                waitMsg: "অন্যদের জন্য অপেক্ষা...", doneMsg: "শেষ!", records: "সেকেন্ড রেকর্ড!", achievements: " ঘর",
+                animals: ['কুকুর🐶', 'বিড়াল🐱', 'খরগোশ🐰', 'হ্যামস্টার🐹', 'পান্ডা🐼', 'ভালুক🐻']
+            },
+            'tr': {
+                gameTitle: "Kurbağa Kral 🐸",
+                topLinkText: "Matematik Kralı Ol. KingsMath.com",
+                selectPlayer: "Oyuncu Seç", p1: "1P", p2: "2P", p3: "3P", p4: "4P", p5: "5P", p6: "6P",
+                guideTitle: "📢 <b>Nasıl Oynanır</b>",
+                guide1: "1. Kurbağayı(🐸) hareket ettirmek için yakındaki Toprağa(🟫) dokunun.",
+                guide2: "2. Yol bir Yaprağa(🌿) dönüşür.",
+                guide3: "3. Tekrar Toprak(🟫) yapmak için geri(↩️) gidin.",
+                guide4: "4. Tahtayı dolduran ilk kişi olun!",
+                startBtn: "Başla! 🚀", moreGames: "🎮 Diğer Oyunlar", restartBtn: "Tekrarla 🔄", rankFormat: ".",
+                waitMsg: "Diğerleri bekleniyor...", doneMsg: "Bitti!", records: "sn rekor!", achievements: " kare",
+                animals: ['Köpek🐶', 'Kedi🐱', 'Tavşan🐰', 'Hamster🐹', 'Panda🐼', 'Ayı🐻']
+            },
+            'de': {
+                gameTitle: "Froschkönig 🐸",
+                topLinkText: "Werde der Mathe-König. KingsMath.com",
+                selectPlayer: "Spieler Wählen", p1: "1S", p2: "2S", p3: "3S", p4: "4S", p5: "5S", p6: "6S",
+                guideTitle: "📢 <b>Spielanleitung</b>",
+                guide1: "1. Tippe auf benachbarte Erde(🟫), um den Frosch(🐸) zu bewegen.",
+                guide2: "2. Der Pfad verwandelt sich in ein Blatt(🌿).",
+                guide3: "3. Gehe zurück(↩️), um es wieder in Erde(🟫) zu verwandeln.",
+                guide4: "4. Fülle als Erster das Brett!",
+                startBtn: "Start! 🚀", moreGames: "🎮 Mehr Spiele", restartBtn: "Neustart 🔄", rankFormat: ".",
+                waitMsg: "Warten auf andere...", doneMsg: "Fertig!", records: "s Rekord!", achievements: " Felder",
+                animals: ['Hund🐶', 'Katze🐱', 'Hase🐰', 'Hamster🐹', 'Panda🐼', 'Bär🐻']
+            },
+            'it': {
+                gameTitle: "Re Ranocchio 🐸",
+                topLinkText: "Diventa il Re della Matematica. KingsMath.com",
+                selectPlayer: "Seleziona Giocatori", p1: "1G", p2: "2G", p3: "3G", p4: "4G", p5: "5G", p6: "6G",
+                guideTitle: "📢 <b>Come Giocare</b>",
+                guide1: "1. Tocca la Terra(🟫) adiacente per muovere la Rana(🐸).",
+                guide2: "2. Il percorso si trasforma in una Foglia(🌿).",
+                guide3: "3. Torna indietro(↩️) per trasformarlo di nuovo in Terra(🟫).",
+                guide4: "4. Sii il primo a riempire il tabellone!",
+                startBtn: "Inizia! 🚀", moreGames: "🎮 Altri Giochi", restartBtn: "Ricomincia 🔄", rankFormat: "º",
+                waitMsg: "In attesa degli altri...", doneMsg: "Fatto!", records: "s record!", achievements: " caselle",
+                animals: ['Cane🐶', 'Gatto🐱', 'Coniglio🐰', 'Hamster🐹', 'Panda🐼', 'Orso🐻']
+            }
+        };
+
+        // 토스트 알림 전용 다국어 번역 데이터
+        const kml_toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'id': 'Bahasa telah diubah.',
+            'vi': 'Ngôn ngữ đã được thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.', 'hi': 'भाषा बदल दी गई है।',
+            'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.', 'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+        };
+
+        // 16개국 언어 데이터베이스
+        const kml_languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' }
+        ];
+
+        let kml_currentLang = 'en'; // 기본값 영어
+
+        // DOM 요소 (다국어 UI)
+        const kml_triggerBtn = document.getElementById('kml-langTriggerBtn');
+        const kml_modal = document.getElementById('kml-langModal');
+        const kml_closeBtn = document.getElementById('kml-closeModalBtn');
+        const kml_searchInput = document.getElementById('kml-searchInput');
+        const kml_grid = document.getElementById('kml-langGrid');
+        const kml_noResult = document.getElementById('kml-noResult');
+        const kml_currentFlagImg = document.getElementById('kml-currentFlag');
+        const kml_currentLangSpan = document.getElementById('kml-currentLangName');
+        const kml_toast = document.getElementById('kml-toast');
+        const kml_toastMessage = document.getElementById('kml-toastMessage');
+        let kml_toastTimeout;
+
+        // --- 언어 감지 및 초기 설정 로직 (우선순위 철저) ---
+        function kml_detectLanguage() {
+            // 1순위: URL 파라미터 (?lang=fr)
+            const urlParams = new URLSearchParams(window.location.search);
+            const langParam = urlParams.get('lang');
+            if (langParam && kml_langData[langParam]) {
+                return langParam;
+            }
+
+            // 2순위: 저장된 설정 (localStorage)
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            if (storedLang && kml_langData[storedLang]) {
+                return storedLang;
+            }
+
+            // 3순위: 기기 설정 (navigator.language)
+            const deviceLang = navigator.language.substring(0, 2).toLowerCase();
+            if (kml_langData[deviceLang]) {
+                return deviceLang;
+            }
+            // pt-br 같은 특수 경우 처리
+            if(deviceLang === 'pt' && navigator.language.toLowerCase().includes('br') && kml_langData['pt-br']) {
+                return 'pt-br';
+            }
+
+            // 기본값
+            return 'en';
+        }
+
+        // 언어 적용 함수
+        function applyLanguage() {
+            const d = kml_langData[kml_currentLang];
+            if (!d) return;
+
+            // SEO 및 타이틀 동적 변경
+            document.title = d.seoTitle;
+            document.querySelector('meta[name="description"]')?.setAttribute('content', d.seoDesc);
+            document.querySelector('meta[name="keywords"]')?.setAttribute('content', d.seoKeywords);
+            document.querySelector('meta[property="og:title"]')?.setAttribute('content', d.ogTitle);
+            document.querySelector('meta[property="og:description"]')?.setAttribute('content', d.ogDesc);
+
+            // UI 텍스트 변경
+            document.getElementById('header-title-text').innerText = d.gameTitle;
+            document.getElementById('main-title').innerText = d.gameTitle;
+            document.getElementById('top-link').innerText = d.topLinkText;
+            document.getElementById('player-select-text').innerText = d.selectPlayer;
+            ['p1','p2','p3','p4','p5','p6'].forEach((p,i) => document.getElementById(`${p}-text`).innerText = d[`p${i+1}`]);
+            document.getElementById('guide-title').innerHTML = d.guideTitle;
+            document.getElementById('guide-1').innerHTML = d.guide1;
+            document.getElementById('guide-2').innerHTML = d.guide2;
+            document.getElementById('guide-3').innerHTML = d.guide3;
+            document.getElementById('guide-4').innerHTML = d.guide4;
+            document.getElementById('btn-start').innerText = d.startBtn;
+            document.getElementById('more-games-link').innerText = d.moreGames;
+
+            // 상단 트리거 버튼 업데이트
+            const langInfo = kml_languages.find(l => l.code === kml_currentLang);
+            if (langInfo) {
+                kml_currentFlagImg.src = `https://flagcdn.com/w40/${langInfo.country}.png`;
+                kml_currentLangSpan.textContent = langInfo.name;
+            }
+
+            // 레이아웃 대응: 타이틀 폰트 크기 동적 조절
+            const titleEl = document.getElementById('main-title');
+            if (kml_currentLang.length > 2 && kml_currentLang !== 'ko' && kml_currentLang !== 'zh' && kml_currentLang !== 'ja') {
+                titleEl.classList.add('long-text');
+            } else {
+                titleEl.classList.remove('long-text');
+            }
+        }
+
+        // 언어 선택 처리 및 상태 유지
+        function kml_selectLanguage(langCode) {
+            kml_currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode); // 상태 유지
+
+            // URL 업데이트 (?lang=fr, 공유 기능)
+            const url = new URL(window.location);
+            url.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', url);
+
+            applyLanguage();
+            kml_closeModal();
+            kml_showToast(langCode);
+        }
+
+        // 모달 제어
+        function kml_openModal() {
+            kml_modal.classList.add('kml-active');
+            kml_renderLanguages(); //  Gemini 실수 체크: 모달 열 때 렌더링 호출
+            setTimeout(() => kml_searchInput.focus(), 100);
+        }
+
+        function kml_closeModal() {
+            kml_modal.classList.remove('kml-active');
+            kml_searchInput.value = '';
+        }
+
+        // 언어 목록 렌더링 (검색 기능 포함)
+        function kml_renderLanguages(filterText = '') {
+            kml_grid.innerHTML = ''; // 기존 아이템 초기화
+            kml_grid.appendChild(kml_noResult); // 검색 결과 없음 메시지 다시 추가
+
+            const lowerFilter = filterText.toLowerCase();
+            let hasResult = false;
+
+            kml_languages.forEach(lang => {
+                if (lang.name.toLowerCase().includes(lowerFilter) ||
+                    lang.enName.toLowerCase().includes(lowerFilter) ||
+                    lang.code.toLowerCase().includes(lowerFilter)) {
+
+                    hasResult = true;
+                    const isSelected = lang.code === kml_currentLang;
+
+                    const item = document.createElement('div');
+                    item.className = `kml-lang-item ${isSelected ? 'kml-selected' : ''}`;
+                    // Gemini 실수 체크: 클릭 시 선택 함수 호출 및 모달 닫기 로직 포함 확인
+                    item.onclick = () => kml_selectLanguage(lang.code);
+
+                    item.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}" class="kml-item-flag">
+                        <div class="kml-item-text">
+                            <span class="kml-item-name">${lang.name}</span>
+                            <span class="kml-item-en-name">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check kml-check-icon"></i>' : ''}
+                    `;
+                    kml_grid.appendChild(item);
+                }
+            });
+
+            kml_noResult.style.display = hasResult ? 'none' : 'block';
+        }
+
+        // 토스트 알림
+        function kml_showToast(langCode) {
+            const msg = kml_toastTranslations[langCode] || kml_toastTranslations['en'];
+            kml_toastMessage.textContent = msg;
+            kml_toast.classList.add('kml-show');
+
+            clearTimeout(kml_toastTimeout);
+            kml_toastTimeout = setTimeout(() => {
+                kml_toast.classList.remove('kml-show');
+            }, 3000);
+        }
+
+        // 이벤트 리스너 (다국어 UI)
+        kml_triggerBtn.addEventListener('click', kml_openModal);
+        kml_closeBtn.addEventListener('click', kml_closeModal);
+        kml_modal.addEventListener('click', (e) => {
+            if (e.target === kml_modal) kml_closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && kml_modal.classList.contains('kml-active')) kml_closeModal();
+        });
+        kml_searchInput.addEventListener('input', (e) => kml_renderLanguages(e.target.value));
+
+
+        // --- Game System (기존 로직 유지) ---
+        const GRID_SIZE = 6;
+        let playerCount = 1;
+        let gameTime = 60;
+        let timerInterval = null;
+        let rankInterval = null;
+
+        let masterBoardLayout = [];
+        let totalTarget = 0;
+        let players = [];
+
+    const E_FROG = '🐸'; const E_DIRT = ''; const E_LEAF = '🍀'; const E_STONE = '⛰️';
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            if (type === 'move') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            } else if (type === 'back') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            } else if (type === 'win') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(783.99, now + 0.1); osc.frequency.setValueAtTime(1046.50, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
+            } else if (type === 'click') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            }
+
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.6);
+        }
+
+        function selectPlayer(cnt) {
+            playerCount = cnt;
+            document.querySelectorAll('.btn-option').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            playSound('click');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if (document.exitFullscreen) document.exitFullscreen();
+        }
+
+        // 🏠 홈 이모지 전체 화면 지체 없이 첫화면 가는 로직 통합
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                // 새로고침 대신 화면 초기화 로직 실행 (전체 화면 유지)
+                clearInterval(timerInterval); clearInterval(rankInterval);
+                document.getElementById('langSelectorContainer').style.display = 'block'; // 언어 선택기 다시 표시
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('game-screen').innerHTML = '';
+                document.getElementById('ranking-bar').style.display = 'none';
+                document.getElementById('global-overlay').style.display = 'none';
+                document.getElementById('global-overlay').classList.remove('transparent-bg');
+                document.getElementById('floating-btns').style.display = 'none';
+                if(window.playSound) window.playSound('click');
+            } else {
+                // 2. 전체 화면이 아니라면 그냥 새로고침
+                location.reload();
+            }
+        });
+
+        // 맵 생성 알고리즘 (기존 게임 로직 차용)
+        function generateMasterBoard() {
+            let valid = false;
+            let board = [];
+            while (!valid) {
+                board = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill('DIRT'));
+                const stoneCount = 8; // 고정 난이도
+                let placed = 0;
+                while (placed < stoneCount) {
+                    const rx = Math.floor(Math.random() * GRID_SIZE);
+                    const ry = Math.floor(Math.random() * GRID_SIZE);
+                    if ((rx !== 0 || ry !== 0) && board[ry][rx] === 'DIRT') {
+                        board[ry][rx] = 'STONE'; placed++;
+                    }
+                }
+                if (isWinnable(board, stoneCount)) valid = true;
+            }
+            masterBoardLayout = board;
+            totalTarget = (GRID_SIZE * GRID_SIZE) - 8;
+        }
+
+        function isWinnable(testBoard, stoneCount) {
+            const targetCount = (GRID_SIZE * GRID_SIZE) - stoneCount;
+            let visited = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill(false));
+            let maxSteps = 2000; let steps = 0;
+
+            function dfs(x, y, count) {
+                if (count === targetCount) return true;
+                if (steps++ > maxSteps) return false;
+                visited[y][x] = true;
+
+                const dirs = [{x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}];
+                for (let d of dirs) {
+                    const nx = x + d.x, ny = y + d.y;
+                    if (nx>=0 && nx<GRID_SIZE && ny>=0 && ny<GRID_SIZE && !visited[ny][nx] && testBoard[ny][nx] === 'DIRT') {
+                        if (dfs(nx, ny, count + 1)) return true;
+                    }
+                }
+                visited[y][x] = false;
+                return false;
+            }
+            return dfs(0, 0, 1);
+        }
+
+        function initGame() {
+            playSound('click');
+            // 게임 시작 시 언어 선택기 숨김 처리 (CSS hidden 등)
+            document.getElementById('langSelectorContainer').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'none';
+
+            const gameScreen = document.getElementById('game-screen');
+            gameScreen.style.display = 'flex';
+            gameScreen.innerHTML = '';
+
+            generateMasterBoard();
+            players = [];
+
+            for (let i = 0; i < playerCount; i++) {
+                // 각 플레이어별 독립된 상태 생성
+                let pBoard = JSON.parse(JSON.stringify(masterBoardLayout));
+                pBoard[0][0] = 'FROG';
+
+                players.push({
+                    id: i,
+                    board: pBoard,
+                    frogPos: {x: 0, y: 0},
+                    moveHistory: [],
+                    score: 1,
+                    isFinished: false,
+                    finishTime: 999
+                });
+                createPlayerUI(i);
+                renderBoard(i);
+            }
+
+            document.getElementById('ranking-bar').style.display = 'flex';
+            document.getElementById('floating-btns').style.display = 'block';
+            startCountdown();
+        }
+
+        function createPlayerUI(idx) {
+            const container = document.getElementById('game-screen');
+            const div = document.createElement('div');
+            div.className = `player-area`;
+            div.style.flex = `0 0 ${100 / Math.max(4, playerCount)}%`;
+            div.style.maxWidth = "400px";
+
+            const data = kml_langData[kml_currentLang];
+            const animalName = data.animals[idx];
+
+            div.innerHTML = `
+                <div class="info-area">
+                    <div class="player-header">
+                        <span class="p-name">${animalName}</span>
+                        <span class="p-score" id="score-${idx}">1 / ${totalTarget}</span>
+                    </div>
+                </div>
+                <div class="board-wrapper">
+                    <div class="grid-container" id="board-${idx}"></div>
+                </div>
+                <div class="result-overlay" id="result-${idx}">
+                    <div class="medal" id="medal-${idx}"></div>
+                    <div class="rank-text" id="rank-text-${idx}"></div>
+                    <div class="final-msg" id="final-msg-${idx}">${data.waitMsg}</div>
+                </div>
+            `;
+            container.appendChild(div);
+
+            // 포인터 이벤트로 다중 터치 완벽 지원
+            const boardEl = document.getElementById(`board-${idx}`);
+            boardEl.addEventListener('pointerdown', handleTouch);
+        }
+
+        function renderBoard(idx) {
+            const p = players[idx];
+            const boardEl = document.getElementById(`board-${idx}`);
+            boardEl.innerHTML = '';
+
+            const lastMove = p.moveHistory.length > 0 ? p.moveHistory[p.moveHistory.length - 1] : null;
+
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.dataset.p = idx; tile.dataset.x = x; tile.dataset.y = y;
+
+                    const state = p.board[y][x];
+                    if (state === 'DIRT') { tile.classList.add('tile-dirt'); tile.innerText = E_DIRT; }
+                    else if (state === 'STONE') { tile.classList.add('tile-stone'); tile.innerText = E_STONE; }
+                    else if (state === 'VISITED') {
+                        tile.classList.add('tile-visited'); tile.innerText = E_LEAF;
+                        if (lastMove && lastMove.x === x && lastMove.y === y) tile.classList.add('tile-backtrackable');
+                    }
+                    else if (state === 'FROG') { tile.classList.add('tile-frog', 'frog-anim'); tile.innerText = E_FROG; }
+
+                    boardEl.appendChild(tile);
+                }
+            }
+            document.getElementById(`score-${idx}`).innerText = `${p.score} / ${totalTarget}`;
+        }
+
+        function handleTouch(e) {
+            const tile = e.target.closest('.tile');
+            if (!tile) return;
+            e.preventDefault(); // 기본 터치 줌/스크롤 방지
+
+            const pIdx = parseInt(tile.dataset.p);
+            const p = players[pIdx];
+
+            if (p.isFinished || gameTime <= 0) return;
+
+            const x = parseInt(tile.dataset.x);
+            const y = parseInt(tile.dataset.y);
+            const dx = Math.abs(x - p.frogPos.x);
+            const dy = Math.abs(y - p.frogPos.y);
+
+            // 상하좌우 인접 타일만 허용
+            if ((dx === 1 && dy === 0) || (dx === 0 && dy === 1)) {
+                // 전진 (흙 타일)
+                if (p.board[y][x] === 'DIRT') {
+                    p.moveHistory.push({ ...p.frogPos });
+                    p.board[p.frogPos.y][p.frogPos.x] = 'VISITED';
+                    p.frogPos = { x, y };
+                    p.board[y][x] = 'FROG';
+                    p.score++;
+                    playSound('move');
+                }
+                // 후퇴 (직전 연꽃잎 타일)
+                else if (p.board[y][x] === 'VISITED') {
+                    const lastPos = p.moveHistory[p.moveHistory.length - 1];
+                    if (lastPos && lastPos.x === x && lastPos.y === y) {
+                        p.board[p.frogPos.y][p.frogPos.x] = 'DIRT';
+                        p.moveHistory.pop();
+                        p.frogPos = { x, y };
+                        p.board[y][x] = 'FROG';
+                        p.score--;
+                        playSound('back');
+                    }
+                }
+
+                renderBoard(pIdx);
+                checkPlayerWin(pIdx);
+            }
+        }
+
+        function checkPlayerWin(idx) {
+            const p = players[idx];
+            if (p.score === totalTarget && !p.isFinished) {
+                p.isFinished = true;
+                p.finishTime = 60 - gameTime; // 걸린 시간 (초) 기록 (짧을수록 1등)
+                playSound('win');
+
+                const overlay = document.getElementById(`result-${idx}`);
+                document.getElementById(`final-msg-${idx}`).innerText = kml_langData[kml_currentLang].waitMsg;
+                overlay.style.display = 'flex';
+
+                // 모든 플레이어가 끝났는지 확인
+                if (players.every(pl => pl.isFinished)) {
+                    endGame();
+                }
+            }
+        }
+
+        function startCountdown() {
+            const overlay = document.getElementById('global-overlay');
+            overlay.classList.remove('transparent-bg');
+            overlay.innerHTML = '<div id="countdown-txt">3</div>';
+            overlay.style.display = 'flex';
+
+            let count = 3;
+            playSound('click');
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    document.getElementById('countdown-txt').innerText = count;
+                    playSound('click');
+                } else if(count === 0) {
+                    document.getElementById('countdown-txt').innerText = "START!";
+                } else {
+                    clearInterval(iv);
+                    overlay.style.display = 'none';
+                    startGameLoop();
+                }
+            }, 1000);
+        }
+
+        function startGameLoop() {
+            gameTime = 60;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                gameTime--;
+                updateTimerDisplay();
+                if(gameTime <= 0) endGame();
+            }, 1000);
+
+            rankInterval = setInterval(updateRankingBar, 500);
+            updateRankingBar();
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            timerEl.innerText = gameTime;
+            if(gameTime <= 10) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+        }
+
+        // 랭킹 정렬 로직 (1. 완료여부 및 시간 -> 2. 채운 칸 수)
+        function getSortedPlayers() {
+            return [...players].sort((a, b) => {
+                if (a.isFinished && b.isFinished) return a.finishTime - b.finishTime; // 빨리 끝낸 순
+                if (a.isFinished) return -1; // a만 끝냄
+                if (b.isFinished) return 1;  // b만 끝냄
+                return b.score - a.score;    // 둘 다 못 끝냈으면 많이 채운 순
+            });
+        }
+
+        function updateRankingBar() {
+            const sorted = getSortedPlayers();
+            const bar = document.getElementById('ranking-bar');
+            const data = kml_langData[kml_currentLang];
+
+            let html = '';
+            let currentRank = 1;
+            for(let i=0; i<sorted.length; i++) {
+                // 등수 계산 로직
+                if (i > 0) {
+                    const prev = sorted[i-1];
+                    const curr = sorted[i];
+                    if (curr.isFinished && prev.isFinished && curr.finishTime > prev.finishTime) currentRank = i + 1;
+                    else if (!curr.isFinished && prev.isFinished) currentRank = i + 1;
+                    else if (!curr.isFinished && !prev.isFinished && curr.score < prev.score) currentRank = i + 1;
+                }
+
+                const p = sorted[i];
+                let rankStr = currentRank + data.rankFormat;
+                if(kml_currentLang === 'en') {
+                    if(currentRank === 1) rankStr = "1st"; else if(currentRank === 2) rankStr = "2nd"; else if(currentRank === 3) rankStr = "3rd"; else rankStr = currentRank + "th";
+                }
+
+                html += `<div class="rank-item"><span>${rankStr}</span> ${data.animals[p.id].substring(0,2)}(${p.isFinished ? data.doneMsg : p.score})</div>`;
+                if(i < sorted.length -1) html += '<div style="color:#2d4a2d">|</div>';
+            }
+            bar.innerHTML = html;
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            clearInterval(rankInterval);
+            gameTime = 0;
+            updateTimerDisplay();
+            updateRankingBar();
+            playSound('win');
+
+            const sortedPlayers = getSortedPlayers();
+            const data = kml_langData[kml_currentLang];
+
+            let currentRank = 1;
+            for(let i=0; i<sortedPlayers.length; i++) {
+                if (i > 0) {
+                    const prev = sortedPlayers[i-1];
+                    const curr = sortedPlayers[i];
+                    if (curr.isFinished && prev.isFinished && curr.finishTime > prev.finishTime) currentRank = i + 1;
+                    else if (!curr.isFinished && prev.isFinished) currentRank = i + 1;
+                    else if (!curr.isFinished && !prev.isFinished && curr.score < prev.score) currentRank = i + 1;
+                }
+                sortedPlayers[i].finalRank = currentRank;
+            }
+
+            players.forEach(p => {
+                const overlay = document.getElementById(`result-${p.id}`);
+                const medalEl = document.getElementById(`medal-${p.id}`);
+                const rankTxt = document.getElementById(`rank-text-${p.id}`);
+                const msgTxt = document.getElementById(`final-msg-${p.id}`);
+
+                const rank = sortedPlayers.find(sp => sp.id === p.id).finalRank;
+
+                let medal = '👏';
+                if(rank === 1) medal = '🥇'; else if(rank === 2) medal = '🥈'; else if(rank === 3) medal = '🥉';
+
+                let rankStr = rank + data.rankFormat;
+                if(kml_currentLang === 'en') {
+                    if(rank === 1) rankStr = "1st"; else if(rank === 2) rankStr = "2nd"; else if(rank === 3) rankStr = "3rd"; else rankStr = rank + "th";
+                }
+
+                medalEl.innerText = medal;
+                rankTxt.innerText = rankStr;
+
+                msgTxt.classList.remove('wait-msg');
+                if(p.isFinished) {
+                    msgTxt.innerText = `${p.finishTime}${data.records}`;
+                } else {
+                    msgTxt.innerText = `${p.score}${data.achievements}`;
+                }
+
+                overlay.style.display = 'flex';
+            });
+
+            // 전체 재시작 버튼 띄우기
+            const globalOverlay = document.getElementById('global-overlay');
+            globalOverlay.innerHTML = '';
+            globalOverlay.style.display = 'flex';
+            globalOverlay.classList.add('transparent-bg');
+
+            const container = document.createElement('div');
+            container.className = 'restart-container';
+
+            const restartBtn = document.createElement('button');
+            restartBtn.innerText = data.restartBtn;
+            restartBtn.style.cssText = "padding:15px 40px; font-size:2rem; border-radius:50px; border:none; background:#8bc34a; color:white; cursor:pointer; font-family:'Jua', sans-serif; box-shadow:0 5px 15px rgba(0,0,0,0.5);";
+            restartBtn.onclick = () => document.getElementById('btn-home').click();
+
+            const extraLink = document.createElement('a');
+            extraLink.innerText = data.moreGames;
+            extraLink.href = "/";
+            extraLink.style.cssText = "color:#fff; text-decoration:none; font-size:1.2rem; text-shadow:1px 1px 2px black; font-weight:bold;";
+
+            container.appendChild(restartBtn);
+            container.appendChild(extraLink);
+            globalOverlay.appendChild(container);
+        }
+
+        // --- 초기화 ---
+        kml_currentLang = kml_detectLanguage(); // 언어 감지
+        applyLanguage(); // 초기 언어 적용
+        kml_renderLanguages(); // Gemini 실수 체크: 초기 렌더링 호출
+    </script>
+</body>
+</html>

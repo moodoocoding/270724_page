@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2b2b2b">
+    
+    <meta id="meta-desc" name="description" content="Emoji King">
+    <meta id="meta-keywords" name="keywords" content="emoji, game, words">
+    <meta property="og:type" content="website">
+    <meta id="og-title" property="og:title" content="👑 EMOJI KING">
+    <meta id="og-desc" property="og:description" content="Emoji King">
+    
+    <title id="page-title">👑 EMOJI KING</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================
+           [모달 및 언어 선택기 전용 CSS] 
+           ========================================= */
+        #langModal, #langModal * { box-sizing: border-box !important; }
+        
+        #langSelectorContainer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 99999 !important;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99999 !important;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .toast {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 99999 !important;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .fa-solid, .fa-regular, .fas, .far {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900;
+        }
+
+        /* =========================================
+           [게임 화면 CSS] 
+           ========================================= */
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            --correct-color: #00cec9;
+            --wrong-color: #ff7675;
+            --border-color: #555;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            touch-action: none; 
+        }
+
+        /* 폰트를 Noto Sans KR로 통일 */
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Noto Sans KR', sans-serif; 
+            font-weight: 700;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #1e1e1e;
+            padding: 0 20px;
+            height: 70px; 
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            position: absolute;
+            left: 20px;
+            font-size: 1.6rem;
+            color: var(--accent-color);
+            text-shadow: 1px 1px 0 #000;
+            font-weight: 900;
+        }
+
+        #timer-display {
+            font-size: 2.5rem;
+            color: #fff;
+            background: #444;
+            padding: 2px 30px;
+            border-radius: 15px;
+            border: 5px solid #888; 
+            min-width: 120px;
+            text-align: center;
+            font-weight: 900;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #timer-display.urgent {
+            color: #ff7675;
+            border-color: #ff7675;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: calc(100% - 70px);
+        }
+
+        .ranking-bar {
+            width: 100%;
+            height: 40px;
+            background: #252525;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: #fff;
+            font-size: 1.1rem;
+            z-index: 20;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        .rank-item { display: flex; align-items: center; gap: 5px; }
+        .rank-item span { color: var(--accent-color); font-weight: 900; }
+
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            z-index: 200;
+        }
+
+        .start-card {
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid #555;
+            text-align: center;
+            max-width: 95%;
+            width: 600px; /* 약간 더 넓게 */
+            transition: all 0.3s;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-banner-link {
+            color: #FFD93D;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: 900;
+        }
+        .top-banner-link:hover { text-decoration: underline; }
+
+        .footer-link {
+            color: #888;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-top: 15px;
+            display: inline-block;
+            border-bottom: 1px solid #555;
+            transition: color 0.2s;
+        }
+        .footer-link:hover { color: #fff; border-color: #fff; }
+
+        h1 { 
+            margin: 0 0 15px 0; 
+            font-size: 2.5rem;
+            color: #fff; 
+            text-shadow: 3px 3px 0 #000; 
+            line-height: 1.2; 
+            font-weight: 900;
+            transition: font-size 0.3s;
+        }
+
+        /* 옵션(인원수) CSS */
+        .option-group { display: flex; gap: 10px; margin: 10px 0; justify-content: center; }
+        .btn-option {
+            padding: 10px 20px;
+            font-size: 1.1rem;   
+            border: 2px solid #555;
+            background: #222;
+            color: #aaa;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active);
+            color: white;
+            border-color: var(--btn-active);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--btn-active);
+        }
+
+        /* 깔끔하게 개선된 카테고리 선택 영역 */
+        .category-container {
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 10px;
+            background: #222; 
+            border-radius: 15px; 
+            padding: 15px;
+            margin-bottom: 15px;
+            max-height: 180px; 
+            overflow-y: auto;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .btn-cat {
+            padding: 8px 10px;
+            font-size: 0.95rem;
+            font-weight: 400;
+            background: #3a3a3a; color: #bbb;
+            border: 2px solid transparent; border-radius: 12px;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            text-transform: lowercase; /* 추가: 카테고리 소문자표시 */
+        }
+        .btn-cat:hover { background: #4a4a4a; color: #fff; }
+        .btn-cat.selected {
+            background: rgba(0, 206, 201, 0.15); 
+            color: #00cec9; 
+            border-color: #00cec9; 
+            font-weight: 500;
+        }
+        .btn-cat.all-btn { 
+            grid-column: 1 / -1; 
+            background: rgba(255, 118, 117, 0.1); 
+            color: #ff7675; 
+            border-color: #ff7675; 
+        }
+        .btn-cat.all-btn.selected { 
+            background: #ff7675; 
+            color: #fff; 
+            box-shadow: 0 4px 10px rgba(255, 118, 117, 0.4); 
+        }
+
+        #btn-start {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.8rem;
+            background-color: var(--wrong-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 0 #d63031;
+            font-family: inherit;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        .guide-box {
+            background:#222; padding:15px; border-radius:12px; margin-top:10px; text-align:left; font-size:0.9rem; color:#ccc;
+            line-height: 1.5; font-weight: 400;
+        }
+        .guide-box b { color: #fff; font-weight: 700; }
+
+        #game-screen {
+            display: none; 
+            width: 100%;
+            flex: 1; 
+            flex-direction: row;
+            overflow: hidden;
+            justify-content: center; 
+        }
+
+        .player-area {
+            flex: 0 0 25%; 
+            border-right: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #2b2b2b;
+            overflow: hidden;
+            height: 100%;
+        }
+        .player-area:last-child { border-right: 2px solid #444; } 
+
+        .p-theme-0 { --p-color: #00cec9; background: rgba(0, 206, 201, 0.05); }
+        .p-theme-1 { --p-color: #fdcb6e; background: rgba(253, 203, 110, 0.05); }
+        .p-theme-2 { --p-color: #ff7675; background: rgba(255, 118, 117, 0.05); }
+        .p-theme-3 { --p-color: #a29bfe; background: rgba(162, 155, 254, 0.05); }
+
+        .info-area {
+            height: 38%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 2px dashed rgba(255,255,255,0.1);
+        }
+
+        .player-header {
+            width: 100%;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            padding: 5px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            gap: 2px;
+        }
+        .p-name { font-size: 1.5rem; color: var(--p-color); font-weight: 900; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .p-score { font-size: 2.2rem; color: white; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 900; transition: color 0.3s; }
+
+        .character-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: 8px;
+        }
+        .animal-icon { font-size: 3.5rem; margin-bottom: 0px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* 가로로 넓어진 카테고리 박스 (콤보 박스 삭제) */
+        .status-boxes {
+            display: flex; justify-content: center; width: 100%; padding: 0 10px;
+        }
+        .info-box.category-box {
+            background: #444; border-radius: 15px; text-align: center;
+            border: 3px solid var(--p-color); box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            padding: 5px 15px; width: 100%; max-width: 200px; /* 카테고리 칸 넓힘 */
+        }
+        .box-label { font-size: 0.85rem; color: #aaa; margin-bottom: 2px; font-weight: 700; }
+        .box-val { font-size: 1.5rem; font-weight: 400; color: white; line-height: 1.1; text-shadow: 1px 1px 0 #000; letter-spacing: 1px;}
+
+        .game-board {
+            height: 62%;
+            display: flex;
+            position: relative; 
+            padding: 10px 15px; 
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .num-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around; 
+            height: 100%;
+            z-index: 5;
+            padding: 5px 0;
+        }
+
+        /* 왼쪽 이모지 열 (크기 유지) */
+        .left-col { width: 80px; }
+        .left-col .num-btn { width: 80px; height: 60px; font-size: 2.5rem; }
+
+        /* 오른쪽 영어 단어 열 (2배 넓힘) */
+        .right-col { width: 160px; }
+        .right-col .num-btn { width: 150px; height: 60px; padding: 0 10px; }
+
+        .num-btn {
+            background: #333;
+            border: 3px solid #555;
+            border-radius: 12px;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none; 
+            position: relative;
+            transition: transform 0.1s, opacity 0.3s;
+            text-align: center;
+        }
+        
+        .num-btn.active {
+            background: var(--p-color); color: #000; transform: scale(1.05); z-index: 10;
+        }
+        .num-btn.matched { 
+            background: var(--correct-color); border-color: #fff; transform: scale(1.1); opacity: 0; pointer-events: none;
+        }
+        .num-btn.wrong { background: var(--wrong-color); animation: shake 0.3s; }
+
+        /* 텍스트 스타일 */
+        .emoji-text { line-height: 1; pointer-events: none; }
+        .word-text { font-size: 1.3rem; font-weight: 400; line-height: 1.1; pointer-events: none; word-break: break-word; text-transform: lowercase; }
+
+        .svg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4;
+        }
+        .drag-path {
+            stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: 0.8; pointer-events: none;
+        }
+        .result-path {
+            stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; fill: none; opacity: 1; transition: stroke 0.2s, opacity 0.3s;
+        }
+
+        .floating-text {
+            position: absolute; font-size: 2rem; font-weight: 900; color: #FFD93D; text-shadow: 2px 2px 4px #000;
+            pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 100;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.3); } }
+
+        .result-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 50;
+        }
+        .medal { font-size: 6rem; margin-bottom: 10px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .rank-text { font-size: 3rem; color: white; font-weight: 900; }
+        .final-score { font-size: 2rem; color: var(--accent-color); margin-top: 15px; font-weight: 900;}
+
+        #global-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 500;
+        }
+        #global-overlay.transparent-bg { background: rgba(0,0,0,0) !important; pointer-events: none; }
+        #global-overlay.transparent-bg button, #global-overlay.transparent-bg a { pointer-events: auto; }
+
+        #countdown-txt { font-size: 8rem; color: var(--accent-color); font-weight: 900; }
+
+        .restart-container {
+            position: absolute; bottom: 10%; display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 600;
+        }
+
+        .floating-btn {
+            position: absolute; top: 25vh; width: 50px; height: 50px;
+            background: rgba(0,0,0,0.6); border: 2px solid #666; border-radius: 50%;
+            color: white; font-size: 1.5rem; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 200; transition: transform 0.2s;
+        }
+        .floating-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.8); }
+        .floating-btn:active { transform: scale(0.95); }
+
+        #btn-home { left: 10px; }
+        #btn-fs { right: 10px; }
+
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        @media (max-width: 768px) {
+            .header-title { font-size: 1.2rem; }
+            .left-col { width: 60px; }
+            .right-col { width: 120px; }
+            .left-col .num-btn { width: 60px; height: 50px; font-size: 1.8rem; }
+            .right-col .num-btn { width: 110px; height: 50px; }
+            .word-text { font-size: 0.9rem; }
+            .box-val { font-size: 1.2rem; }
+            .p-name { font-size: 1.2rem; }
+            .p-score { font-size: 1.6rem; }
+            .animal-icon { font-size: 2.5rem; }
+            .ranking-bar { font-size: 0.9rem; }
+            .floating-btn { width: 40px; height: 40px; font-size: 1.2rem; top: 80px; }
+            #langSelectorContainer { top: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body class="lang-ko">
+
+    <div id="langSelectorContainer">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/80 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-bold shadow-lg text-white">
+            <i class="fa-solid fa-globe text-gray-300"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-300 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden font-sans">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-gray-900">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-bold text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-title" id="header-title-text">👑 EMOJI KING</div>
+        <div id="timer-display">60</div>
+    </header>
+
+    <div id="app-container">
+        <div class="ranking-bar" id="ranking-bar" style="display:none;"></div>
+
+        <div id="start-screen">
+            <div class="start-card">
+                <a href="https://킹수학.com" class="top-banner-link" id="top-link" target="_self">👑 KingsMath.com</a>
+
+                <h1 id="main-title">👑 EMOJI KING</h1>
+                
+                <p style="color:#aaa; margin-bottom:5px; font-size: 0.9rem;" id="player-select-text">👥 PLAYERS</p>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" onclick="selectPlayer(1)" id="p1-text">1 👤</div>
+                    <div class="btn-option" onclick="selectPlayer(2)" id="p2-text">2 👤</div>
+                    <div class="btn-option" onclick="selectPlayer(3)" id="p3-text">3 👤</div>
+                    <div class="btn-option" onclick="selectPlayer(4)" id="p4-text">4 👤</div>
+                </div>
+
+                <p style="color:#aaa; margin-top:15px; margin-bottom:10px; font-size: 0.9rem;" id="cat-select-text">📁 CATEGORY</p>
+                <div class="category-container custom-scrollbar" id="category-container">
+                    </div>
+
+                <div class="guide-box">
+                    <span id="guide-title">📢 HOW TO PLAY</span><br>
+                    <span id="guide-1">1️⃣ 🍎 〰️ apple</span><br>
+                    <span id="guide-2">2️⃣ 5 🆗 = 🆕 📁</span><br>
+                    <span id="guide-3">3️⃣ ⭕ +10</span><br>
+                    <span id="guide-4">4️⃣ ❌ -5</span>
+                </div>
+
+                <button id="btn-start" onclick="initGame()">▶️ PLAY</button>
+
+                <a href="/?cg=kingen" class="footer-link" id="more-games-link" target="_self">🎮 MORE</a>
+            </div>
+        </div>
+
+        <div id="game-screen"></div>
+
+        <div id="floating-btns" style="display:none;">
+            <div id="btn-home" class="floating-btn" title="Home">🏠</div>
+            <div id="btn-fs" class="floating-btn" onclick="toggleFullScreen()" title="Full Screen">⛶</div>
+        </div>
+
+        <div id="global-overlay">
+            <div id="countdown-txt">3</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 이모지 단어 데이터베이스 ---
+        const emojiDB = [
+            {"category": "🍎 fruit", "emoji": "🍎", "word": "apple"}, {"category": "🍎 fruit", "emoji": "🍌", "word": "banana"}, {"category": "🍎 fruit", "emoji": "🍇", "word": "grape"}, {"category": "🍎 fruit", "emoji": "🍉", "word": "watermelon"}, {"category": "🍎 fruit", "emoji": "🍓", "word": "strawberry"}, {"category": "🍎 fruit", "emoji": "🍑", "word": "peach"}, {"category": "🍎 fruit", "emoji": "🍒", "word": "cherry"}, {"category": "🍎 fruit", "emoji": "🍍", "word": "pineapple"}, {"category": "🍎 fruit", "emoji": "🍋", "word": "lemon"}, {"category": "🍎 fruit", "emoji": "🍊", "word": "orange"}, {"category": "🍎 fruit", "emoji": "🍈", "word": "melon"}, {"category": "🍎 fruit", "emoji": "🥝", "word": "kiwi"},
+            {"category": "🐶 animal", "emoji": "🐶", "word": "dog"}, {"category": "🐶 animal", "emoji": "🐱", "word": "cat"}, {"category": "🐶 animal", "emoji": "🐭", "word": "mouse"}, {"category": "🐶 animal", "emoji": "🐰", "word": "rabbit"}, {"category": "🐶 animal", "emoji": "🐻", "word": "bear"}, {"category": "🐶 animal", "emoji": "🐼", "word": "panda"}, {"category": "🐶 animal", "emoji": "🐯", "word": "tiger"}, {"category": "🐶 animal", "emoji": "🦁", "word": "lion"}, {"category": "🐶 animal", "emoji": "🐮", "word": "cow"}, {"category": "🐶 animal", "emoji": "🐷", "word": "pig"}, {"category": "🐶 animal", "emoji": "🐸", "word": "frog"}, {"category": "🐶 animal", "emoji": "🐵", "word": "monkey"}, {"category": "🐶 animal", "emoji": "🐔", "word": "chicken"}, {"category": "🐶 animal", "emoji": "🐘", "word": "elephant"}, {"category": "🐶 animal", "emoji": "🦊", "word": "fox"}, {"category": "🐶 animal", "emoji": "🐺", "word": "wolf"},
+            {"category": "👀 body", "emoji": "👀", "word": "eyes"}, {"category": "👀 body", "emoji": "👃", "word": "nose"}, {"category": "👀 body", "emoji": "👄", "word": "mouth"}, {"category": "👀 body", "emoji": "👂", "word": "ear"}, {"category": "👀 body", "emoji": "🖐️", "word": "hand"}, {"category": "👀 body", "emoji": "🦶", "word": "foot"}, {"category": "👀 body", "emoji": "💪", "word": "arm"}, {"category": "👀 body", "emoji": "🦵", "word": "leg"}, {"category": "👀 body", "emoji": "🦷", "word": "tooth"}, {"category": "👀 body", "emoji": "👅", "word": "tongue"}, {"category": "👀 body", "emoji": "🧠", "word": "brain"}, {"category": "👀 body", "emoji": "🦴", "word": "bone"},
+            {"category": "👮 job", "emoji": "👮", "word": "police"}, {"category": "👮 job", "emoji": "👩‍🚒", "word": "firefighter"}, {"category": "👮 job", "emoji": "👨‍⚕️", "word": "doctor"}, {"category": "👮 job", "emoji": "👩‍🏫", "word": "teacher"}, {"category": "👮 job", "emoji": "👨‍🍳", "word": "cook"}, {"category": "👮 job", "emoji": "👨‍🌾", "word": "farmer"}, {"category": "👮 job", "emoji": "👨‍✈️", "word": "pilot"}, {"category": "👮 job", "emoji": "👨‍🎨", "word": "artist"}, {"category": "👮 job", "emoji": "👨‍🎤", "word": "singer"}, {"category": "👮 job", "emoji": "👩‍🚀", "word": "astronaut"}, {"category": "👮 job", "emoji": "🕵️", "word": "detective"}, {"category": "👮 job", "emoji": "👷", "word": "builder"},
+            {"category": "🔢 number", "emoji": "0️⃣", "word": "zero"}, {"category": "🔢 number", "emoji": "1️⃣", "word": "one"}, {"category": "🔢 number", "emoji": "2️⃣", "word": "two"}, {"category": "🔢 number", "emoji": "3️⃣", "word": "three"}, {"category": "🔢 number", "emoji": "4️⃣", "word": "four"}, {"category": "🔢 number", "emoji": "5️⃣", "word": "five"}, {"category": "🔢 number", "emoji": "6️⃣", "word": "six"}, {"category": "🔢 number", "emoji": "7️⃣", "word": "seven"}, {"category": "🔢 number", "emoji": "8️⃣", "word": "eight"}, {"category": "🔢 number", "emoji": "9️⃣", "word": "nine"}, {"category": "🔢 number", "emoji": "🔟", "word": "ten"},
+            {"category": "🏫 school", "emoji": "✏️", "word": "pencil"}, {"category": "🏫 school", "emoji": "🖊️", "word": "pen"}, {"category": "🏫 school", "emoji": "🖍️", "word": "crayon"}, {"category": "🏫 school", "emoji": "🎒", "word": "backpack"}, {"category": "🏫 school", "emoji": "✂️", "word": "scissors"}, {"category": "🏫 school", "emoji": "📏", "word": "ruler"}, {"category": "🏫 school", "emoji": "📖", "word": "book"}, {"category": "🏫 school", "emoji": "📓", "word": "notebook"}, {"category": "🏫 school", "emoji": "📋", "word": "clipboard"}, {"category": "🏫 school", "emoji": "📎", "word": "clip"}, {"category": "🏫 school", "emoji": "💻", "word": "computer"},
+            {"category": "🚗 vehicle", "emoji": "🚗", "word": "car"}, {"category": "🚗 vehicle", "emoji": "🚌", "word": "bus"}, {"category": "🚗 vehicle", "emoji": "🚕", "word": "taxi"}, {"category": "🚗 vehicle", "emoji": "🚓", "word": "police car"}, {"category": "🚗 vehicle", "emoji": "🚑", "word": "ambulance"}, {"category": "🚗 vehicle", "emoji": "🚒", "word": "fire truck"}, {"category": "🚗 vehicle", "emoji": "🚲", "word": "bicycle"}, {"category": "🚗 vehicle", "emoji": "🏍️", "word": "motorcycle"}, {"category": "🚗 vehicle", "emoji": "🚂", "word": "train"}, {"category": "🚗 vehicle", "emoji": "✈️", "word": "airplane"}, {"category": "🚗 vehicle", "emoji": "🚁", "word": "helicopter"}, {"category": "🚗 vehicle", "emoji": "🚢", "word": "ship"},
+            {"category": "🌿 nature", "emoji": "☀️", "word": "sun"}, {"category": "🌿 nature", "emoji": "☁️", "word": "cloud"}, {"category": "🌿 nature", "emoji": "🌧️", "word": "rain"}, {"category": "🌿 nature", "emoji": "❄️", "word": "snow"}, {"category": "🌿 nature", "emoji": "⚡", "word": "lightning"}, {"category": "🌿 nature", "emoji": "🌬️", "word": "wind"}, {"category": "🌿 nature", "emoji": "🌈", "word": "rainbow"}, {"category": "🌿 nature", "emoji": "🌊", "word": "wave"}, {"category": "🌿 nature", "emoji": "🌍", "word": "earth"}, {"category": "🌿 nature", "emoji": "🌙", "word": "moon"}, {"category": "🌿 nature", "emoji": "⭐", "word": "star"}, {"category": "🌿 nature", "emoji": "🌲", "word": "tree"}, {"category": "🌿 nature", "emoji": "🌺", "word": "flower"}, {"category": "🌿 nature", "emoji": "🍃", "word": "leaf"},
+            {"category": "😀 emotion", "emoji": "😀", "word": "happy"}, {"category": "😀 emotion", "emoji": "😢", "word": "sad"}, {"category": "😀 emotion", "emoji": "😡", "word": "angry"}, {"category": "😀 emotion", "emoji": "😴", "word": "sleepy"}, {"category": "😀 emotion", "emoji": "😲", "word": "surprised"}, {"category": "😀 emotion", "emoji": "😨", "word": "scared"}, {"category": "😀 emotion", "emoji": "🤢", "word": "sick"}, {"category": "😀 emotion", "emoji": "😍", "word": "lovely"}, {"category": "😀 emotion", "emoji": "😭", "word": "crying"}, {"category": "😀 emotion", "emoji": "😆", "word": "excited"},
+            {"category": "🍔 food", "emoji": "🍔", "word": "hamburger"}, {"category": "🍔 food", "emoji": "🍕", "word": "pizza"}, {"category": "🍔 food", "emoji": "🌭", "word": "hot dog"}, {"category": "🍔 food", "emoji": "🍟", "word": "fries"}, {"category": "🍔 food", "emoji": "🥪", "word": "sandwich"}, {"category": "🍔 food", "emoji": "🍞", "word": "bread"}, {"category": "🍔 food", "emoji": "🧀", "word": "cheese"}, {"category": "🍔 food", "emoji": "🍳", "word": "egg"}, {"category": "🍔 food", "emoji": "🥗", "word": "salad"}, {"category": "🍔 food", "emoji": "🍦", "word": "ice cream"}, {"category": "🍔 food", "emoji": "🍰", "word": "cake"}, {"category": "🍔 food", "emoji": "🍩", "word": "donut"}, {"category": "🍔 food", "emoji": "🍫", "word": "chocolate"}, {"category": "🍔 food", "emoji": "🍬", "word": "candy"},
+            {"category": "👕 clothes", "emoji": "👕", "word": "t-shirt"}, {"category": "👕 clothes", "emoji": "👖", "word": "pants"}, {"category": "👕 clothes", "emoji": "👗", "word": "dress"}, {"category": "👕 clothes", "emoji": "🧥", "word": "coat"}, {"category": "👕 clothes", "emoji": "🧦", "word": "socks"}, {"category": "👕 clothes", "emoji": "👟", "word": "shoes"}, {"category": "👕 clothes", "emoji": "👢", "word": "boots"}, {"category": "👕 clothes", "emoji": "🧢", "word": "hat"}, {"category": "👕 clothes", "emoji": "🧣", "word": "scarf"}, {"category": "👕 clothes", "emoji": "🧤", "word": "gloves"}, {"category": "👕 clothes", "emoji": "👓", "word": "glasses"},
+            {"category": "⚽ sport", "emoji": "⚽", "word": "soccer"}, {"category": "⚽ sport", "emoji": "🏀", "word": "basketball"}, {"category": "⚽ sport", "emoji": "⚾", "word": "baseball"}, {"category": "⚽ sport", "emoji": "🎾", "word": "tennis"}, {"category": "⚽ sport", "emoji": "🏐", "word": "volleyball"}, {"category": "⚽ sport", "emoji": "🎳", "word": "bowling"}, {"category": "⚽ sport", "emoji": "🏓", "word": "ping pong"}, {"category": "⚽ sport", "emoji": "🏸", "word": "badminton"}, {"category": "⚽ sport", "emoji": "🏊", "word": "swimming"}, {"category": "⚽ sport", "emoji": "⛷️", "word": "skiing"}, {"category": "⚽ sport", "emoji": "⛸️", "word": "skating"}, {"category": "⚽ sport", "emoji": "🏃", "word": "running"},
+            {"category": "🔴 shape", "emoji": "🔴", "word": "red"}, {"category": "🔴 shape", "emoji": "🔵", "word": "blue"}, {"category": "🔴 shape", "emoji": "🟡", "word": "yellow"}, {"category": "🔴 shape", "emoji": "🟢", "word": "green"}, {"category": "🔴 shape", "emoji": "⚫", "word": "black"}, {"category": "🔴 shape", "emoji": "⚪", "word": "white"}, {"category": "🔴 shape", "emoji": "🟤", "word": "brown"}, {"category": "🔴 shape", "emoji": "🔺", "word": "triangle"}, {"category": "🔴 shape", "emoji": "🟥", "word": "square"}, {"category": "🔴 shape", "emoji": "⭐", "word": "star"}, {"category": "🔴 shape", "emoji": "❤️", "word": "heart"},
+            {"category": "🎸 instrument", "emoji": "🎹", "word": "piano"}, {"category": "🎸 instrument", "emoji": "🎸", "word": "guitar"}, {"category": "🎸 instrument", "emoji": "🎻", "word": "violin"}, {"category": "🎸 instrument", "emoji": "🎺", "word": "trumpet"}, {"category": "🎸 instrument", "emoji": "🎷", "word": "saxophone"}, {"category": "🎸 instrument", "emoji": "🥁", "word": "drum"}, {"category": "🎸 instrument", "emoji": "🪈", "word": "flute"}, {"category": "🎸 instrument", "emoji": "🔔", "word": "bell"}, {"category": "🎸 instrument", "emoji": "🎤", "word": "microphone"}, {"category": "🎸 instrument", "emoji": "🎧", "word": "headphones"},
+            {"category": "👪 family", "emoji": "👶", "word": "baby"}, {"category": "👪 family", "emoji": "👦", "word": "boy"}, {"category": "👪 family", "emoji": "👧", "word": "girl"}, {"category": "👪 family", "emoji": "👨", "word": "man"}, {"category": "👪 family", "emoji": "👩", "word": "woman"}, {"category": "👪 family", "emoji": "👴", "word": "grandfather"}, {"category": "👪 family", "emoji": "👵", "word": "grandmother"}, {"category": "👪 family", "emoji": "🤴", "word": "king"}, {"category": "👪 family", "emoji": "👸", "word": "queen"}, {"category": "👪 family", "emoji": "👼", "word": "angel"}, {"category": "👪 family", "emoji": "🧑‍🤝‍🧑", "word": "friend"},
+            {"category": "🏠 place", "emoji": "🏠", "word": "house"}, {"category": "🏠 place", "emoji": "🏫", "word": "school"}, {"category": "🏠 place", "emoji": "🏥", "word": "hospital"}, {"category": "🏠 place", "emoji": "🏦", "word": "bank"}, {"category": "🏠 place", "emoji": "🏤", "word": "post office"}, {"category": "🏠 place", "emoji": "🏪", "word": "store"}, {"category": "🏠 place", "emoji": "🏭", "word": "factory"}, {"category": "🏠 place", "emoji": "🏰", "word": "castle"}, {"category": "🏠 place", "emoji": "⛺", "word": "tent"}, {"category": "🏠 place", "emoji": "🏟️", "word": "stadium"}, {"category": "🏠 place", "emoji": "🎡", "word": "park"},
+            {"category": "🦋 insect", "emoji": "🦋", "word": "butterfly"}, {"category": "🦋 insect", "emoji": "🐝", "word": "bee"}, {"category": "🦋 insect", "emoji": "🐞", "word": "ladybug"}, {"category": "🦋 insect", "emoji": "🐜", "word": "ant"}, {"category": "🦋 insect", "emoji": "🐛", "word": "caterpillar"}, {"category": "🦋 insect", "emoji": "🕷️", "word": "spider"}, {"category": "🦋 insect", "emoji": "🐌", "word": "snail"}, {"category": "🦋 insect", "emoji": "🪱", "word": "worm"},
+            {"category": "🧸 toy", "emoji": "🧸", "word": "teddy bear"}, {"category": "🧸 toy", "emoji": "🎈", "word": "balloon"}, {"category": "🧸 toy", "emoji": "🪁", "word": "kite"}, {"category": "🧸 toy", "emoji": "🪀", "word": "yo-yo"}, {"category": "🧸 toy", "emoji": "🧩", "word": "puzzle"}, {"category": "🧸 toy", "emoji": "🎮", "word": "game"}, {"category": "🧸 toy", "emoji": "🎲", "word": "dice"}, {"category": "🧸 toy", "emoji": "🪆", "word": "doll"},
+            {"category": "🚀 space", "emoji": "🚀", "word": "rocket"}, {"category": "🚀 space", "emoji": "👽", "word": "alien"}, {"category": "🚀 space", "emoji": "🛸", "word": "ufo"}, {"category": "🚀 space", "emoji": "🪐", "word": "planet"}, {"category": "🚀 space", "emoji": "☄️", "word": "comet"}, {"category": "🚀 space", "emoji": "🔭", "word": "telescope"}, {"category": "🚀 space", "emoji": "🛰️", "word": "satellite"}
+        ];
+
+        // 중복 없는 카테고리 목록 추출
+        const allCategories = [...new Set(emojiDB.map(e => e.category))];
+        let activeCategories = localStorage.getItem('emoji_king_cats') ? JSON.parse(localStorage.getItem('emoji_king_cats')) : [...allCategories];
+
+        // 카테고리 버튼 생성
+        function initCategoryButtons() {
+            const container = document.getElementById('category-container');
+            const isAllSelected = activeCategories.length === allCategories.length;
+            container.innerHTML = `<div class="btn-cat all-btn ${isAllSelected ? 'selected' : ''}" onclick="toggleCategory('all', this)"><i class="fa-solid fa-dice"></i> all</div>`;
+            allCategories.forEach(cat => {
+                const isSelected = activeCategories.includes(cat) ? 'selected' : '';
+                container.innerHTML += `<div class="btn-cat ${isSelected}" onclick="toggleCategory('${cat}', this)" data-cat="${cat}">${cat.toLowerCase()}</div>`;
+            });
+        }
+
+        function toggleCategory(cat, el) {
+            playSound('click');
+            const allBtn = document.querySelector('.btn-cat.all-btn');
+            
+            if (cat === 'all') {
+                if (activeCategories.length === allCategories.length) {
+                    // 전체 선택 상태이면 -> 전체 취소
+                    activeCategories = [];
+                    document.querySelectorAll('.btn-cat').forEach(b => b.classList.remove('selected'));
+                } else {
+                    // 전체 선택이 아니면 -> 전체 선택
+                    activeCategories = [...allCategories];
+                    document.querySelectorAll('.btn-cat').forEach(b => b.classList.add('selected'));
+                }
+            } else {
+                allBtn.classList.remove('selected');
+                
+                if (activeCategories.includes(cat)) {
+                    activeCategories = activeCategories.filter(c => c !== cat);
+                    el.classList.remove('selected');
+                } else {
+                    activeCategories.push(cat);
+                    el.classList.add('selected');
+                }
+                
+                if (activeCategories.length === allCategories.length) {
+                    allBtn.classList.add('selected');
+                }
+            }
+            localStorage.setItem('emoji_king_cats', JSON.stringify(activeCategories));
+        }
+
+        // --- 16개국 국제화(i18n) 데이터 (단일 언어, 비언어적 글로벌 UI 적용) ---
+        const globalLangData = {
+            title: "👑 EMOJI KING",
+            metaDesc: "Emoji King - Word Match Battle",
+            topLinkText: "👑 KingsMath.com",
+            topLinkDomain: "/",
+            selectPlayer: "👥 PLAYERS",
+            catSelect: "📁 CATEGORY",
+            p1: "1 👤", p2: "2 👤", p3: "3 👤", p4: "4 👤",
+            guideTitle: "📢 HOW TO PLAY",
+            guide1: "1️⃣ 🍎 〰️ apple",
+            guide2: "2️⃣ 5 🆗 = 🆕 📁",
+            guide3: "3️⃣ ⭕ +10",
+            guide4: "4️⃣ ❌ -5",
+            startBtn: "▶️ PLAY",
+            moreGames: "🎮 MORE",
+            score: "",
+            targetCat: "📁",
+            restartBtn: "🔄 REPLAY",
+            rankFormat: "", 
+            animals: ['🐶', '🐱', '🐰', '🐹'] // 비언어적이므로 이모지로 대체
+        };
+
+        const langData = {
+            'ko': globalLangData,
+            'en': globalLangData
+        };
+
+        const fallbackLang = langData['en'];
+        function getLangData(code) { return langData[code] || fallbackLang; }
+
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.'
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' }
+        ];
+
+        let currentLang = 'ko';
+
+        /* ---------------- 언어 설정 및 감지 로직 ---------------- */
+        function getInitialLang() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('lang') && getLangData(urlParams.get('lang'))) return urlParams.get('lang');
+            const stored = localStorage.getItem('emoji_eng_lang');
+            if (stored && getLangData(stored)) return stored;
+            const browserLang = navigator.language.slice(0, 2);
+            if (langData[browserLang]) return browserLang;
+            return 'ko';
+        }
+
+        function changeLanguage(langCode) {
+            currentLang = langCode;
+            localStorage.setItem('emoji_eng_lang', langCode);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', url);
+            
+            applyLanguageUI();
+
+            const langObj = languages.find(l => l.code === langCode);
+            if(langObj) {
+                document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+                document.getElementById('currentLangName').textContent = langObj.name;
+                closeModal();
+                showToast(langObj.name, langObj.code);
+                renderLanguages(document.getElementById('searchInput').value);
+            }
+        }
+
+        function applyLanguageUI() {
+            const data = getLangData(currentLang);
+            
+            document.title = data.title;
+            document.getElementById('page-title').innerText = data.title;
+            document.getElementById('meta-desc').setAttribute("content", data.metaDesc);
+            document.getElementById('og-title').setAttribute("content", data.title);
+            document.getElementById('og-desc').setAttribute("content", data.metaDesc);
+
+            document.body.className = `lang-${currentLang}`;
+            if(!['ko','zh','ja'].includes(currentLang)) document.body.classList.add('lang-non-ko');
+
+            document.getElementById('header-title-text').innerText = data.title;
+            document.getElementById('main-title').innerText = data.title;
+
+            const topLink = document.getElementById('top-link');
+            topLink.innerText = data.topLinkText;
+            topLink.href = data.topLinkDomain;
+
+            document.getElementById('player-select-text').innerText = data.selectPlayer;
+            const catSelectEl = document.getElementById('cat-select-text');
+            if(catSelectEl) catSelectEl.innerText = data.catSelect || "Category Select";
+
+            document.getElementById('p1-text').innerText = data.p1;
+            document.getElementById('p2-text').innerText = data.p2;
+            document.getElementById('p3-text').innerText = data.p3;
+            document.getElementById('p4-text').innerText = data.p4;
+
+            document.getElementById('guide-title').innerHTML = data.guideTitle;
+            document.getElementById('guide-1').innerHTML = data.guide1;
+            document.getElementById('guide-2').innerHTML = data.guide2;
+            document.getElementById('guide-3').innerHTML = data.guide3;
+            document.getElementById('guide-4').innerHTML = data.guide4;
+
+            document.getElementById('btn-start').innerText = data.startBtn;
+            
+            const moreGamesLink = document.getElementById('more-games-link');
+            moreGamesLink.innerText = data.moreGames;
+            moreGamesLink.href = data.topLinkDomain;
+
+            const restartBtn = document.querySelector('.restart-btn-dynamic');
+            if(restartBtn) restartBtn.innerText = data.restartBtn;
+        }
+
+        /* ---------------- 모달 스크립트 ---------------- */
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-bold text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => changeLanguage(lang.code));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() { modal.classList.add('active'); setTimeout(() => searchInput.focus(), 100); }
+        function closeModal() { modal.classList.remove('active'); }
+
+        function showToast(langName, langCode) {
+            const toastMsg = toastTranslations[langCode] || toastTranslations['en'] || 'Language changed.';
+            document.getElementById('ui-toast').textContent = toastMsg;
+            toastLangName.textContent = langName;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+        /* ---------------- 오디오 시스템 ---------------- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            if (type === 'correct') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.4); osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3); osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.05, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05); osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(783.99, now + 0.1); osc.frequency.setValueAtTime(1046.50, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.6); osc.start(now); osc.stop(now + 0.6);
+            } else if (type === 'tick') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(880, now); 
+                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+            }
+            osc.connect(gain); gain.connect(audioCtx.destination);
+        }
+
+        /* ---------------- 게임 핵심 로직 ---------------- */
+        let playerCount = parseInt(localStorage.getItem('emoji_king_players')) || 4;
+        let gameTime = 60;
+        let timerInterval = null;
+        let rankInterval = null;
+        let players = []; 
+        const animals = ['🐶', '🐱', '🐰', '🐹']; 
+        const themeColors = ['#00cec9', '#fdcb6e', '#ff7675', '#a29bfe'];
+        let activeDrags = {}; 
+
+        function selectPlayer(cnt, isInit = false) {
+            playerCount = cnt;
+            localStorage.setItem('emoji_king_players', cnt);
+            document.querySelectorAll('.btn-option').forEach((btn, idx) => {
+                if (idx + 1 === cnt) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            });
+            if (!isInit) playSound('click');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                clearInterval(timerInterval);
+                clearInterval(rankInterval);
+                
+                document.getElementById('langSelectorContainer').style.display = 'block';
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('game-screen').innerHTML = ''; 
+                document.getElementById('ranking-bar').style.display = 'none';
+                document.getElementById('global-overlay').style.display = 'none';
+                document.getElementById('global-overlay').classList.remove('transparent-bg');
+                document.getElementById('floating-btns').style.display = 'none';
+                
+                if(window.playSound) window.playSound('click');
+            } else {
+                location.reload();
+            }
+        });
+
+        function resetToHome() { document.getElementById('btn-home').click(); }
+
+        function initGame() {
+            if(activeCategories.length === 0) {
+                alert("⚠️ 📁 ?");
+                return;
+            }
+
+            playSound('click');
+            document.getElementById('langSelectorContainer').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'none';
+            
+            const gameScreen = document.getElementById('game-screen');
+            gameScreen.style.display = 'flex';
+            gameScreen.innerHTML = '';
+            
+            players = [];
+            for (let i = 0; i < playerCount; i++) {
+                players.push({
+                    id: i, score: 0, matchedCount: 0,
+                    lefts: [], rights: [], currentCategory: ""
+                });
+                createPlayerUI(i);
+                generateProblem(i);
+            }
+
+            document.getElementById('ranking-bar').style.display = 'flex';
+            document.getElementById('floating-btns').style.display = 'block';
+            startCountdown();
+        }
+
+        function createPlayerUI(idx) {
+            const container = document.getElementById('game-screen');
+            const div = document.createElement('div');
+            div.className = `player-area p-theme-${idx}`;
+            div.id = `player-area-${idx}`;
+            
+            if(playerCount <= 2) {
+                div.style.flex = "0 0 33%"; 
+                div.style.maxWidth = "450px"; 
+                if(idx === 0) div.style.borderLeft = "2px solid #444";
+            } else {
+                div.style.flex = "1"; div.style.maxWidth = "none"; div.style.borderLeft = "none";
+            }
+
+            const data = getLangData(currentLang);
+            const animalName = data.animals[idx];
+
+            div.innerHTML = `
+                <div class="info-area">
+                    <div class="player-header">
+                        <span class="p-name">${animalName}</span>
+                        <span class="p-score" id="score-${idx}">0${data.score}</span>
+                    </div>
+                    <div class="character-zone">
+                        <div class="animal-icon">${animals[idx]}</div>
+                        <div class="status-boxes">
+                            <div class="info-box category-box">
+                                <div class="box-label">${data.targetCat}</div>
+                                <div class="box-val" id="cat-text-${idx}">cat</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-board" id="board-${idx}">
+                    <div class="num-column left-col"></div>
+                    <svg class="svg-layer" id="svg-${idx}"></svg>
+                    <div class="num-column right-col"></div>
+                </div>
+
+                <div class="result-overlay" id="result-${idx}">
+                    <div class="medal" id="medal-${idx}"></div>
+                    <div class="rank-text" id="rank-text-${idx}"></div>
+                    <div class="final-score" id="final-score-${idx}"></div>
+                </div>
+            `;
+            container.appendChild(div);
+
+            const board = div.querySelector('.game-board');
+            board.addEventListener('pointerdown', handlePointerDown);
+            board.addEventListener('pointermove', handlePointerMove);
+            board.addEventListener('pointerup', handlePointerUp);
+        }
+
+        function generateProblem(pIdx) {
+            let cat = activeCategories[Math.floor(Math.random() * activeCategories.length)];
+            let catItems = emojiDB.filter(e => e.category === cat);
+            
+            catItems.sort(() => Math.random() - 0.5);
+            let selected = catItems.slice(0, 5);
+
+            let lefts = selected.map(item => ({ val: item.word, display: item.emoji }));
+            let rights = selected.map(item => ({ val: item.word, display: item.word }));
+
+            lefts.sort(() => Math.random() - 0.5);
+            rights.sort(() => Math.random() - 0.5);
+
+            players[pIdx].lefts = lefts;
+            players[pIdx].rights = rights;
+            players[pIdx].matchedCount = 0;
+            players[pIdx].currentCategory = cat;
+
+            renderFractions(pIdx);
+        }
+
+        function renderFractions(pIdx) {
+            const leftCol = document.querySelector(`#board-${pIdx} .left-col`);
+            const rightCol = document.querySelector(`#board-${pIdx} .right-col`);
+
+            document.getElementById(`cat-text-${pIdx}`).innerText = players[pIdx].currentCategory.toLowerCase();
+
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            players[pIdx].lefts.forEach((f) => {
+                leftCol.innerHTML += `
+                    <div class="num-btn" data-p="${pIdx}" data-side="left" data-val="${f.val}">
+                        <div class="emoji-text">${f.display}</div>
+                    </div>`;
+            });
+
+            players[pIdx].rights.forEach((f) => {
+                rightCol.innerHTML += `
+                    <div class="num-btn" data-p="${pIdx}" data-side="right" data-val="${f.val}">
+                        <div class="word-text">${f.display}</div>
+                    </div>`;
+            });
+        }
+
+        function showFloatingText(boardEl, x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.left = `${x}px`; el.style.top = `${y}px`; el.style.color = color || '#FFD93D';
+            boardEl.appendChild(el);
+            setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1000);
+        }
+
+        function startCountdown() {
+            const overlay = document.getElementById('global-overlay');
+            overlay.classList.remove('transparent-bg'); 
+            overlay.innerHTML = '<div id="countdown-txt">3</div>'; 
+            overlay.style.display = 'flex';
+            let count = 3;
+            document.getElementById('countdown-txt').innerText = count;
+            playSound('click');
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    document.getElementById('countdown-txt').innerText = count;
+                    playSound('click');
+                } else if(count === 0) {
+                    document.getElementById('countdown-txt').innerText = "START!";
+                    playSound('correct');
+                } else {
+                    clearInterval(iv);
+                    overlay.style.display = 'none';
+                    startGameLoop();
+                }
+            }, 1000);
+        }
+
+        function startGameLoop() {
+            gameTime = 60;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                gameTime--;
+                updateTimerDisplay();
+                if (gameTime <= 5 && gameTime > 0) playSound('tick');
+                if(gameTime <= 0) endGame();
+            }, 1000);
+
+            rankInterval = setInterval(updateRankingBar, 1000);
+            updateRankingBar();
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            timerEl.innerText = gameTime;
+            if(gameTime <= 10) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+        }
+
+        function handlePointerDown(e) {
+            if (gameTime <= 0) return;
+            const btn = e.target.closest('.num-btn');
+            if (!btn) return;
+
+            e.preventDefault(); 
+            const pIdx = parseInt(btn.dataset.p);
+            const side = btn.dataset.side;
+            const val = btn.dataset.val; 
+            const svg = document.getElementById(`svg-${pIdx}`);
+            const boardRect = document.getElementById(`board-${pIdx}`).getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+
+            const startX = btnRect.left + btnRect.width / 2 - boardRect.left;
+            const startY = btnRect.top + btnRect.height / 2 - boardRect.top;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY}`);
+            path.classList.add('drag-path');
+            path.setAttribute('stroke', themeColors[pIdx]);
+            svg.appendChild(path);
+
+            btn.classList.add('active');
+            playSound('click');
+
+            activeDrags[e.pointerId] = {
+                pIdx, startEl: btn, startSide: side, startVal: val,
+                pathEl: path, points: [{x: startX, y: startY}],
+                boardRect: boardRect, completed: false
+            };
+            btn.setPointerCapture(e.pointerId);
+        }
+
+        function handlePointerMove(e) {
+            const drag = activeDrags[e.pointerId];
+            if (!drag || drag.completed) return;
+            e.preventDefault();
+
+            const currentX = e.clientX - drag.boardRect.left;
+            const currentY = e.clientY - drag.boardRect.top;
+
+            drag.points.push({x: currentX, y: currentY});
+            const d = drag.pathEl.getAttribute('d') + ` L ${currentX} ${currentY}`;
+            drag.pathEl.setAttribute('d', d);
+
+            const hitElement = document.elementFromPoint(e.clientX, e.clientY);
+            const targetBtn = hitElement ? hitElement.closest('.num-btn') : null;
+
+            if (targetBtn && !targetBtn.classList.contains('matched')) {
+                const targetPIdx = parseInt(targetBtn.dataset.p);
+                const targetSide = targetBtn.dataset.side;
+                const targetVal = targetBtn.dataset.val; 
+
+                if (targetPIdx === drag.pIdx && targetSide !== drag.startSide) {
+                    const isSuccess = drag.startVal === targetVal; 
+                    completeDrag(drag, targetBtn, isSuccess, e.pointerId);
+                }
+            }
+        }
+
+        function handlePointerUp(e) {
+            const drag = activeDrags[e.pointerId];
+            if (!drag) return;
+            e.preventDefault();
+            
+            if (!drag.completed) {
+                if (drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                drag.startEl.classList.remove('active');
+            }
+            if(drag.startEl && drag.startEl.hasPointerCapture(e.pointerId)) {
+                drag.startEl.releasePointerCapture(e.pointerId);
+            }
+            delete activeDrags[e.pointerId];
+        }
+
+        function completeDrag(drag, targetBtn, isSuccess, pointerId) {
+            drag.completed = true;
+            if(drag.startEl && pointerId) {
+                try { drag.startEl.releasePointerCapture(pointerId); } catch(e){}
+            }
+
+            const btnRect = targetBtn.getBoundingClientRect();
+            const endX = btnRect.left + btnRect.width / 2 - drag.boardRect.left;
+            const endY = btnRect.top + btnRect.height / 2 - drag.boardRect.top;
+            const d = drag.pathEl.getAttribute('d') + ` L ${endX} ${endY}`;
+            drag.pathEl.setAttribute('d', d);
+
+            const pIdx = drag.pIdx;
+            const boardEl = document.getElementById(`board-${pIdx}`);
+            const data = getLangData(currentLang);
+
+            if (isSuccess) {
+                drag.pathEl.classList.remove('drag-path');
+                drag.pathEl.classList.add('result-path');
+                drag.pathEl.setAttribute('stroke', '#ffffff');
+                
+                drag.startEl.classList.add('matched');
+                targetBtn.classList.add('matched');
+                
+                let earnedScore = 10;
+                players[pIdx].score += earnedScore;
+
+                showFloatingText(boardEl, endX - 20, endY - 20, `+${earnedScore}`, '#00cec9');
+                
+                document.getElementById(`score-${pIdx}`).innerText = players[pIdx].score + data.score;
+                playSound('correct');
+
+                setTimeout(() => {
+                    if(drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                    players[pIdx].matchedCount++;
+                    if (players[pIdx].matchedCount >= 5) {
+                        generateProblem(pIdx);
+                    }
+                }, 400);
+
+            } else {
+                drag.pathEl.setAttribute('stroke', '#ff7675'); 
+                drag.startEl.classList.add('wrong');
+                targetBtn.classList.add('wrong');
+                playSound('wrong');
+
+                players[pIdx].score = Math.max(0, players[pIdx].score - 5);
+                
+                showFloatingText(boardEl, endX - 20, endY - 20, `-5`, '#ff7675');
+
+                document.getElementById(`score-${pIdx}`).innerText = players[pIdx].score + data.score;
+
+                setTimeout(() => {
+                    drag.startEl.classList.remove('active', 'wrong');
+                    targetBtn.classList.remove('active', 'wrong');
+                    if(drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                }, 300);
+            }
+        }
+
+        function updateRankingBar() {
+            const sorted = [...players].sort((a,b) => b.score - a.score);
+            const bar = document.getElementById('ranking-bar');
+            const data = getLangData(currentLang);
+            
+            let html = '';
+            let currentRank = 1;
+            for(let i=0; i<sorted.length; i++) {
+                if (i > 0 && sorted[i].score < sorted[i-1].score) currentRank = i + 1;
+                
+                const p = sorted[i];
+                let rankStr = currentRank + (data.rankFormat || "");
+                if(currentLang === 'en' || currentLang === 'ko') {
+                    if(currentRank === 1) rankStr = "1st";
+                    else if(currentRank === 2) rankStr = "2nd";
+                    else if(currentRank === 3) rankStr = "3rd";
+                    else rankStr = currentRank + "th";
+                }
+
+                html += `<div class="rank-item"><span>${rankStr}</span> ${data.animals[p.id]}(${p.score})</div>`;
+                if(i < sorted.length -1) html += '<div style="color:#555">|</div>';
+            }
+            bar.innerHTML = html;
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            clearInterval(rankInterval);
+            playSound('win');
+
+            const sortedPlayers = [...players].sort((a,b) => b.score - a.score);
+            const data = getLangData(currentLang);
+            
+            let currentRank = 1;
+            for(let i=0; i<sortedPlayers.length; i++) {
+                if(i > 0 && sortedPlayers[i].score < sortedPlayers[i-1].score) currentRank = i + 1;
+                sortedPlayers[i].finalRank = currentRank;
+            }
+
+            players.forEach(p => {
+                const overlay = document.getElementById(`result-${p.id}`);
+                const medalEl = document.getElementById(`medal-${p.id}`);
+                const rankTxt = document.getElementById(`rank-text-${p.id}`);
+                const scoreTxt = document.getElementById(`final-score-${p.id}`);
+                
+                const rank = sortedPlayers.find(sp => sp.id === p.id).finalRank;
+                
+                let medal = '👏';
+                if(rank === 1) medal = '🥇';
+                else if(rank === 2) medal = '🥈';
+                else if(rank === 3) medal = '🥉';
+
+                let rankStr = rank + (data.rankFormat || "");
+                if(currentLang === 'en' || currentLang === 'ko') {
+                    if(rank === 1) rankStr = "1st";
+                    else if(rank === 2) rankStr = "2nd";
+                    else if(rank === 3) rankStr = "3rd";
+                    else rankStr = rank + "th";
+                }
+
+                medalEl.innerText = medal;
+                rankTxt.innerText = rankStr;
+                scoreTxt.innerText = `${p.score}${data.score}`;
+                overlay.style.display = 'flex';
+            });
+
+            const overlay = document.getElementById('global-overlay');
+            overlay.innerHTML = '';
+            overlay.style.display = 'flex';
+            overlay.classList.add('transparent-bg'); 
+
+            const container = document.createElement('div');
+            container.className = 'restart-container';
+
+            const restartBtn = document.createElement('button');
+            restartBtn.innerText = data.restartBtn;
+            restartBtn.className = 'restart-btn-dynamic'; 
+            restartBtn.style.padding = "15px 40px";
+            restartBtn.style.fontSize = "2rem";
+            restartBtn.style.borderRadius = "50px";
+            restartBtn.style.border = "none";
+            restartBtn.style.background = "#6c5ce7";
+            restartBtn.style.color = "white";
+            restartBtn.style.cursor = "pointer";
+            restartBtn.style.fontFamily = "inherit";
+            restartBtn.style.fontWeight = "900";
+            restartBtn.style.boxShadow = "0 5px 15px rgba(0,0,0,0.5)";
+            restartBtn.onclick = resetToHome;
+
+            const extraLink = document.createElement('a');
+            extraLink.innerText = data.moreGames;
+            extraLink.className = 'more-games-dynamic';
+            extraLink.href = data.topLinkDomain;
+            extraLink.target = "_self"; 
+            extraLink.style.color = "#fff";
+            extraLink.style.textDecoration = "none";
+            extraLink.style.fontSize = "1.2rem";
+            extraLink.style.textShadow = "1px 1px 2px black";
+            extraLink.style.fontWeight = "bold";
+
+            container.appendChild(restartBtn);
+            container.appendChild(extraLink);
+            overlay.appendChild(container);
+        }
+
+        /* ---------------- Init (최초 실행) ---------------- */
+        const initLang = getInitialLang();
+        const foundLang = languages.find(l => l.code === initLang);
+        if(foundLang) {
+            currentLang = initLang;
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${foundLang.country}.png`;
+            document.getElementById('currentLangName').textContent = foundLang.name;
+        }
+        
+        initCategoryButtons();
+        selectPlayer(playerCount, true);
+        applyLanguageUI();
+        renderLanguages();
+    </script>
+</body>
+</html>

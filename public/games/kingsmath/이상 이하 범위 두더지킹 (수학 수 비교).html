@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="description" content="이상 이하 두더지 잡기 게임. 조건에 맞는 두더지를 잡아 점수를 얻으세요! 전자칠판 전용 무료 수학 게임." id="meta-desc">
+    <meta name="keywords" content="수학게임, 이상, 이하, 초과, 미만, 두더지게임, 전자칠판, 킹수학, 교육용게임" id="meta-keywords">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="이상 이하 두더지킹" id="og-title">
+    <meta property="og:description" content="미션에 맞는 두더지를 잡아 점수를 얻으세요!" id="og-desc">
+    <meta property="og:url" content="/" id="og-url">
+    <meta property="og:site_name" content="킹수학" id="og-site-name">
+    
+    <title id="page-title">이상 이하 두더지킹</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: { preflight: false }
+        }
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka+One&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+         /* [폰트어썸 아이콘 깨짐 방지용 예외 처리] */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        /* [전자칠판 최적화] */
+        * {
+            box-sizing: border-box;
+            user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            
+            --p0-main: #2980b9; --p0-light: #85c1e9; --p0-accent: #00ffff;
+            --p1-main: #d35400; --p1-light: #f5b041; --p1-accent: #ffff00;
+            --p2-main: #c2185b; --p2-light: #f8bbd0; --p2-accent: #FF1493;
+            --p3-main: #27ae60; --p3-light: #a5d6a7; --p3-accent: #00FF00;
+        }
+
+ body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Jua', sans-serif;
+            height: 100vh; /* 구형 브라우저 호환용 */
+            height: 100dvh; /* 변경: 전체화면이 아닐 때 상하단 브라우저 UI를 제외한 실제 화면 크기에 딱 맞춤 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        /* 헤더 */
+        header {
+            background-color: #111; color: var(--accent-color); padding: 0 30px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); z-index: 10; height: 70px; position: relative;
+        }
+        header h1 { font-size: 1.6rem; margin: 0; position: absolute; left: 30px; cursor: pointer; }
+        #header-info { display: none; align-items: center; gap: 20px; }
+        #timer-display {
+            font-size: 2.5rem; color: #fff; background: #444; padding: 5px 20px;
+            border-radius: 15px; border: 2px solid #666; min-width: 100px; text-align: center;
+        }
+        #timer-display.urgent { background: #c0392b; animation: blinkTimer 0.5s infinite alternate; }
+        @keyframes blinkTimer { from { opacity: 1; } to { opacity: 0.5; } }
+
+        /* 메인 컨테이너 */
+        #app-container { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; }
+
+        /* 상단 글로벌 미션 표시 영역 */
+        #global-mission-area {
+            position: absolute; top: 20px; width: 100%; text-align: center;
+            font-size: 6rem; color: #FFF; text-shadow: 4px 4px 0 #000;
+            z-index: 5; display: none; font-weight: bold;
+        }
+
+        /* 3-2-1 카운트다운 오버레이 */
+        #countdown-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            display: none; justify-content: center; align-items: center;
+            z-index: 9999; flex-direction: column;
+        }
+        .countdown-text { font-size: 15rem; color: #FFD93D; text-shadow: 5px 5px 0 #000; font-family: 'Fredoka One', 'Jua', sans-serif; }
+
+        /* 설정 화면 */
+        #setup-screen {
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            background: var(--card-bg); padding: 30px; border-radius: 30px;
+            border: 3px solid #444; z-index: 20; max-height: 90vh; overflow-y: auto;
+        }
+        .screen-title { font-size: 3rem; color: #fff; text-shadow: 2px 2px 0 #000; margin-bottom: 5px; }
+        .screen-desc {
+            font-size: 1.2rem; color: #ccc; text-align: center; margin-bottom: 20px;
+            background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid #555;
+            word-break: keep-all; /* 텍스트 줄바꿈 최적화 */
+        }
+        .highlight { color: #ff7675; }
+        .option-section { display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; width: 100%; }
+        .label-text { font-weight: bold; min-width: 80px; text-align: right; color: #aaa; font-size: 1.3rem; white-space: nowrap; transition: font-size 0.2s; }
+        .option-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;}
+        .btn-option { padding: 10px 20px; font-size: 1.1rem; border: 2px solid #555; background: #222; color: #aaa; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s;}
+        .btn-option.selected { background-color: var(--btn-active); color: white; border-color: var(--btn-active); transform: translateY(-2px); }
+        #btn-start { margin-top: 10px; padding: 12px 60px; font-size: 2rem; background-color: #ff7675; color: white; border: none; border-radius: 50px; cursor: pointer; font-family: 'Jua', sans-serif;}
+
+        /* 게임 보드 */
+/* 게임 보드 */
+#game-board {
+    display: none; 
+    width: 100%; 
+    height: 100%; 
+    padding: 100px 10px 20px 10px; /* 변경됨: 상단에 100px 여백을 주어 미션 텍스트 공간 확보 */
+    box-sizing: border-box; 
+    flex-direction: row; 
+    justify-content: space-evenly; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.team-card {
+    background: var(--card-bg); 
+    border-radius: 20px; 
+    border: 3px solid #666;
+    height: 85%; 
+    width: 24%; /* 4인 플레이 시 꽉 차도록 23% -> 24% 미세 조정 */
+    min-width: 150px; /* 변경됨: 1280x800 4분할 시 삐져나가지 않도록 200px에서 150px로 완화 */
+    max-width: 400px;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    position: relative; 
+    overflow: hidden;
+    justify-content: flex-end; 
+    padding-top: 60px; 
+}
+        
+        /* 테마별 색상 */
+        .team-0 { border-color: var(--p0-main); } .team-0 .player-label { color: var(--p0-accent); } .team-0 .target-box { border-color: var(--p0-main); color: var(--p0-accent); }
+        .team-1 { border-color: var(--p1-main); } .team-1 .player-label { color: var(--p1-accent); } .team-1 .target-box { border-color: var(--p1-main); color: var(--p1-accent); }
+        .team-2 { border-color: var(--p2-main); } .team-2 .player-label { color: var(--p2-accent); } .team-2 .target-box { border-color: var(--p2-main); color: var(--p2-accent); }
+        .team-3 { border-color: var(--p3-main); } .team-3 .player-label { color: var(--p3-accent); } .team-3 .target-box { border-color: var(--p3-main); color: var(--p3-accent); }
+
+        .header-section { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; z-index: 5; position: absolute; top: 0; left: 0; right: 0; }
+        .player-label { font-size: 4rem; text-shadow: 2px 2px 0 #000; }
+        .score-text { font-size: 4rem; color: #fff; }
+        .crown-icon { position: absolute; top: 10px; left: 10px; font-size: 2rem; opacity: 0; transition: all 0.4s; z-index: 10; }
+        .crown-icon.show { opacity: 1; transform: scale(1.2) rotate(-15deg); }
+
+        /* 두더지 그리드 영역 */
+        .mole-grid-area {
+            flex: none; width: 100%; padding: 5px;
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 5px;
+            background: #222; margin-bottom: 5px;
+        }
+
+        /* 하단 미션 영역 */
+        .mission-area {
+            width: 100%; padding: 5px; background: rgba(0,0,0,0.5); display: flex; justify-content: center;
+            align-items: center; border-top: 2px solid #555; height: 80px; gap: 15px; z-index: 5; flex: none;
+        }
+        .mission-label { font-size: 1.5rem; color: #fff; }
+        .target-box { font-size: 1.8rem; padding: 5px 15px; border-radius: 10px; border: 3px solid #fff; background: rgba(0,0,0,0.6); text-align: center; }
+        .target-box.pulse { transform: scale(1.1); transition: 0.2s; }
+
+        /* --- 두더지 구멍 래퍼 --- */
+        .hole-wrapper {
+            position: relative; width: 100%; height: 100%; min-height: 120px;
+            display: flex; justify-content: center; align-items: center; overflow: hidden;
+        }
+        .hole-scale-box {
+            position: absolute; bottom: 0;
+            transform-origin: bottom center;
+            transform: scale(0.42); 
+            width: 300px; height: 300px;
+        }
+
+        /* --- 원본 두더지 CSS 병합 --- */
+        .donut-back {
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            width: 260px; height: 80px; box-sizing: border-box;
+            border: 45px solid #C2185B; border-bottom: 0; border-radius: 130px 130px 0 0; z-index: 1; pointer-events: none;
+        }
+        .hole-mask {
+            position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 220px; overflow: hidden; z-index: 2; pointer-events: none;
+        }
+        .mole {
+            position: absolute; bottom: 0; left: 50%;
+            transform: translateX(-50%) translateY(200px);
+            width: 130px; height: 190px; background-color: #D68C5E;
+            border-radius: 65px 65px 35px 35px;
+            transition: transform 0.4s cubic-bezier(0.5, -0.5, 0.3, 1.5);
+            display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; pointer-events: auto;
+        }
+        .mole.up { transform: translateX(-50%) translateY(0); }
+        .mole.wrong { animation: shakeMole 0.4s ease-in-out; filter: grayscale(50%); }
+
+        @keyframes shakeMole {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            25% { transform: translateX(-55%) translateY(0) rotate(-5deg); }
+            75% { transform: translateX(-45%) translateY(0) rotate(5deg); }
+        }
+
+        .donut-front {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 260px; height: 80px; box-sizing: border-box;
+            border: 45px solid #FF4081; border-top: 0; border-radius: 0 0 130px 130px;
+            z-index: 6; box-shadow: 0 15px 30px rgba(255, 64, 129, 0.2); pointer-events: none;
+        }
+        
+        .sprinkle { position: absolute; width: 6px; height: 18px; border-radius: 4px; box-shadow: 1px 1px 2px rgba(0,0,0,0.4); pointer-events: none; }
+        .back-s { z-index: 2; } .front-s { z-index: 7; }
+
+        /* 두더지 데코 */
+        .sprout { position: absolute; top: -20px; width: 24px; height: 24px; z-index: 3; }
+        .leaf { position: absolute; width: 14px; height: 14px; background-color: #AEEA00; border-radius: 0 12px 0 12px; }
+        .leaf.left { left: -5px; top: 5px; transform: rotate(-30deg); } .leaf.right { right: -3px; top: 0px; transform: rotate(50deg); }
+        
+        .number-badge {
+            margin-top: 15px; background-color: #FFF; color: #FF5722;
+            font-family: 'Fredoka One', 'Jua', cursive; font-size: 55px; 
+            padding: 5px 20px; border-radius: 30px; border: 5px solid #FFCCBC;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 4;
+        }
+        .eyes { position: absolute; top: 100px; display: flex; gap: 40px; z-index: 4; pointer-events: none;}
+        .eye { position: relative; width: 18px; height: 22px; background-color: #3E2723; border-radius: 50%; animation: blink 4s infinite; }
+        .eye::before { content: ''; position: absolute; top: 3px; right: 3px; width: 7px; height: 9px; background-color: white; border-radius: 50%; }
+        .eye::after { content: ''; position: absolute; bottom: 4px; left: 4px; width: 3px; height: 3px; background-color: white; border-radius: 50%; }
+        .blushes { position: absolute; top: 115px; display: flex; gap: 70px; z-index: 3; pointer-events: none;}
+        .blush { width: 22px; height: 12px; background-color: #FF8A80; border-radius: 50%; opacity: 0.7; filter: blur(1px); }
+        .muzzle { position: absolute; top: 115px; width: 60px; height: 45px; background-color: #FFF3E0; border-radius: 50%; display: flex; flex-direction: column; align-items: center; z-index: 4; pointer-events: none;}
+        .nose { margin-top: 6px; width: 22px; height: 14px; background-color: #FF4081; border-radius: 50%; }
+        .mouth { display: flex; margin-top: 3px; }
+        .mouth-part { width: 12px; height: 8px; border: 2px solid transparent; border-bottom-color: #8D6E63; border-radius: 50%; }
+        .paws { position: absolute; bottom: 25px; display: flex; gap: 70px; z-index: 5; pointer-events: none;}
+        .paw { width: 28px; height: 20px; background-color: #D68C5E; border-radius: 50%; border-bottom: 3px solid #A86B44; }
+        .paw.left { transform: rotate(-15deg); } .paw.right { transform: rotate(15deg); }
+        
+        @keyframes blink { 0%, 96%, 98% { transform: scaleY(1); } 97%, 99% { transform: scaleY(0.1); } 100% { transform: scaleY(1); } }
+
+        /* 타격 효과 ('정답' 텍스트) */
+        .hit-effect { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 10; display: flex; justify-content: center; align-items: center;}
+        .pow { position: absolute; font-size: 55px; font-family: 'Jua', sans-serif; color: #FFEB3B; text-shadow: 3px 3px 0 #F44336; transform: scale(0); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0;}
+        .pow.active { transform: scale(1) translateY(-60px) rotate(-10deg); opacity: 1; }
+
+        /* 결과/종료 화면 */
+        .win-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85); border-radius: 17px; display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 50; backdrop-filter: blur(5px);
+        }
+        .rank-medal { font-size: 5rem; margin-bottom: 10px; }
+        .rank-text { font-size: 3rem; color: var(--accent-color); margin-bottom: 20px; }
+        .final-score { font-size: 3.5rem; color: #fff; margin-bottom: 20px; }
+        #game-over-controls { display: none; position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%); z-index: 200; }
+        #btn-restart { padding: 15px 50px; font-size: 2.2rem; font-family: 'Jua', sans-serif; background: linear-gradient(to bottom, #00b894, #00cec9); color: white; border: 4px solid #fff; border-radius: 50px; cursor: pointer; }
+
+        .floating-btn { position: fixed; bottom: 20px; width: 50px; height: 50px; border-radius: 50%; background: #444; color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 60; cursor: pointer; border: 2px solid #666;}
+        #btn-home { left: 20px; } #btn-fullscreen { right: 20px; }
+        
+        #confetti-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 100; }
+        .confetti { position: absolute; width: 10px; height: 10px; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        /* --- [다국어 UI용 추가 CSS] --- */
+        .font-noto { font-family: 'Noto Sans KR', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+/* [해상도 맞춤형 미디어 쿼리] 1334x800, 1280x800 등 소형/와이드 액정 최적화 */
+@media (max-width: 1400px), (max-height: 850px) {
+    /* 헤더 및 상단 UI 축소 */
+    header { height: 50px; padding: 0 15px; }
+    header h1 { font-size: 1.3rem; left: 15px; }
+    #header-info { gap: 10px; }
+    #timer-display { font-size: 1.8rem; padding: 3px 15px; min-width: 70px; }
+    #global-mission-area { top: 10px; font-size: 4rem; }
+
+    /* 시작 설정 화면 축소 */
+    .screen-title { font-size: 2.2rem; }
+    .screen-desc { font-size: 1rem; padding: 10px; margin-bottom: 10px; }
+    .label-text { font-size: 1.1rem; min-width: 60px; }
+    .btn-option { padding: 6px 12px; font-size: 0.9rem; }
+    #btn-start { padding: 10px 40px; font-size: 1.5rem; margin-top: 5px; }
+
+    /* 보드 여백 및 폰트 축소 */
+#game-board { 
+        padding: 60px 5px 5px 5px; /* 변경됨: 좁은 화면용 상단 여백 60px 확보 */
+        gap: 5px; 
+    }
+    .team-card { padding-top: 40px; }
+    .player-label { font-size: 2.5rem; }
+    .score-text { font-size: 2.5rem; }
+    
+    /* 하단 미션 영역 축소 */
+    .mission-area { height: 60px; gap: 8px; padding: 3px; }
+    .mission-label { font-size: 1.2rem; }
+    .target-box { font-size: 1.4rem; padding: 3px 10px; }
+
+    /* 두더지 크기 및 스케일 축소 */
+    .hole-wrapper { min-height: 90px; }
+    .hole-scale-box { transform: scale(0.32); /* 기존 0.42에서 비율 축소 */ }
+    .number-badge { font-size: 45px; padding: 3px 15px; }
+
+    /* 종료 화면 축소 */
+    .rank-medal { font-size: 3.5rem; margin-bottom: 5px; }
+    .final-score { font-size: 2.5rem; margin-bottom: 10px; }
+    #btn-restart { padding: 10px 30px; font-size: 1.5rem; }
+}
+
+
+    </style>
+</head>
+<body>
+
+<div id="langSelectorContainer" class="fixed top-4 right-4 sm:right-6 z-[99990]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="color: #fff;">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4 z-[99999]">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-gray-100">
+            
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 m-0 leading-none">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors border-none cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500 m-0">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p class="m-0">No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white m-0">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400 m-0 mt-1">Korean</p>
+        </div>
+    </div>
+
+
+    <header>
+        <h1 onclick="location.reload()" id="header-title" data-i18n="title">🔨 이상 이하 두더지킹</h1>
+        <div id="header-info">
+            <div style="font-size:1.5rem; color:#aaa;" data-i18n="time_label">남은 시간</div>
+            <div id="timer-display">60</div>
+        </div>
+    </header>
+
+    <div id="app-container">
+        
+        <div id="setup-screen">
+            <div class="top-link" onclick="window.location.href='/'" style="cursor: pointer;">
+                <span data-i18n="top_desc">게임으로 수학의 킹이 되어라.</span> <span id="domain-text">킹수학.com</span>
+            </div>
+            
+            <div class="screen-title" data-i18n="title" style="white-space: nowrap; text-align: center;">🔨 이상 이하 두더지킹</div>
+            
+            <div class="screen-desc" data-i18n="desc">
+                화면 하단의 <span class="highlight">미션</span>(이상, 이하, 초과, 미만)에 맞는 숫자를 단 두더지를 잡으세요!<br>
+                미션은 <span class="highlight">10초마다</span> 새롭게 바뀝니다!
+            </div>
+            
+            <div class="option-section">
+                <div class="label-text" data-i18n="difficulty">게임 모드</div>
+                <div class="option-group" id="mode-options">
+                    <div class="btn-option selected" data-value="gte_lte" data-i18n="mode_gte_lte">이상 / 이하</div>
+                    <div class="btn-option" data-value="gt_lt" data-i18n="mode_gt_lt">초과 / 미만</div>
+                    <div class="btn-option" data-value="random" data-i18n="mode_random">랜덤</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="players">참여 인원</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" data-value="1">1<span data-i18n="player_unit">인</span> 👤</div>
+                    <div class="btn-option" data-value="2">2<span data-i18n="player_unit">인</span> 👥</div>
+                    <div class="btn-option" data-value="3">3<span data-i18n="player_unit">인</span> 👨‍👩‍👧</div>
+                    <div class="btn-option selected" data-value="4">4<span data-i18n="player_unit">인</span> 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="mole_mode">두더지 출현</div>
+                <div class="option-group" id="molemode-options">
+                    <div class="btn-option selected" data-value="different" data-i18n="mole_diff">각각 다른 두더지</div>
+                    <div class="btn-option" data-value="same" data-i18n="mole_same">동일한 두더지</div>
+                </div>
+            </div>
+
+            <button id="btn-start" data-i18n="btn_start">게임 시작! 🚀</button>
+            <a href="/" target="_self" data-i18n="btn_other_games" style="margin-top: 15px; font-size: 1.2rem; color: #85c1e9; text-decoration: none; border-bottom: 1px solid #85c1e9;">🎮 다른 게임 고르기</a>
+        </div>
+
+        <div id="global-mission-area"></div>
+        <div id="game-board"></div>
+
+        <div id="game-over-controls">
+            <button id="btn-restart" data-i18n="btn_restart">🔄 다시 하기</button>
+        </div>
+
+    </div>
+
+    <div id="countdown-overlay"><div class="countdown-text">3</div></div>
+
+    <div id="btn-home" class="floating-btn">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+    <div id="confetti-container"></div>
+
+    <script>
+        // --- 0. 다국어 설정 및 번역 데이터 (16개국) ---
+        // 게임 컨셉: 수학 킹 (King)이라는 단어가 포함되도록 각 언어별 재미있는 번역 채택.
+        // 초등학교 수학에 맞는 직관적이고 쉬운 어휘 사용.
+        const i18n = {
+            ko: {
+                title: "🔨 이상 이하 두더지킹", top_desc: "게임으로 수학의 킹이 되어라.",
+                desc: "화면 하단의 <span class='highlight'>미션</span>(이상, 이하, 초과, 미만)에 맞는 숫자를 단 두더지를 잡으세요!<br>미션은 <span class='highlight'>10초마다</span> 바뀝니다!",
+                difficulty: "게임 모드", mode_gte_lte: "이상 / 이하", mode_gt_lt: "초과 / 미만", mode_random: "랜덤",
+                players: "참여 인원", player_unit: "인", btn_start: "게임 시작! 🚀", btn_restart: "🔄 다시 하기",
+                time_label: "남은 시간", mission_label: "미션", score_unit: "점",
+                team_0: "강아지", team_1: "고양이", team_2: "토끼", team_3: "햄스터",
+                txt_gte: "{n} 이상", txt_lte: "{n} 이하", txt_gt: "{n} 초과", txt_lt: "{n} 미만", txt_pow: "정답",
+                btn_other_games: "🎮 다른 게임 고르기",
+                mole_mode: "두더지 출현", mole_same: "동일한 두더지", mole_diff: "각각 다른 두더지",
+                domain_name: "킹수학.com", seo_title: "이상 이하 두더지킹 | 킹수학", seo_desc: "미션에 맞는 두더지를 잡아 점수를 얻으세요! 초등 수학 교육용 웹 게임.", seo_keywords: "수학게임, 이상, 이하, 초과, 미만, 두더지게임, 전자칠판, 킹수학, 교육용게임"
+            },
+            en: {
+                title: "🔨 Greater/Less Mole King", top_desc: "Become the King of Math.",
+                desc: "Whack the mole with the number matching the <span class='highlight'>Mission</span>!<br>Missions change every <span class='highlight'>10 seconds</span>!",
+                difficulty: "Game Mode", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Random",
+                players: "Players", player_unit: "P", btn_start: "Start! 🚀", btn_restart: "🔄 Play Again",
+                time_label: "Time Left", mission_label: "Mission", score_unit: "pts",
+                team_0: "Dog", team_1: "Cat", team_2: "Rabbit", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "BINGO",
+                btn_other_games: "🎮 Choose another game",
+                mole_mode: "Mole Spawn", mole_same: "Same Moles", mole_diff: "Different Moles",
+                domain_name: "KingsMath.com", seo_title: "Greater/Less Mole King | KingsMath", seo_desc: "Whack the correct mole to get points! Web math game for elementary students.", seo_keywords: "math game, greater than, less than, whack a mole, kingsmath, education game"
+            },
+            zh: {
+                title: "🔨 大于小于地鼠王", top_desc: "成为数学游戏之王。",
+                desc: "敲击符合底部 <span class='highlight'>任务</span> 数字的地鼠！<br>任务每 <span class='highlight'>10秒</span> 刷新一次！",
+                difficulty: "游戏模式", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "随机",
+                players: "玩家人数", player_unit: "人", btn_start: "开始！🚀", btn_restart: "🔄 再玩一次",
+                time_label: "剩余时间", mission_label: "任务", score_unit: "分",
+                team_0: "小狗", team_1: "小猫", team_2: "兔子", team_3: "仓鼠",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "正确",
+                btn_other_games: "🎮 选择其他游戏",
+                mole_mode: "地鼠出现", mole_same: "相同地鼠", mole_diff: "不同地鼠",
+                domain_name: "KingsMath.com", seo_title: "大于小于地鼠王 | KingsMath", seo_desc: "打地鼠拿高分！小学生的免费数学小游戏。", seo_keywords: "数学游戏, 打地鼠, KingsMath, 免费游戏"
+            },
+            ja: {
+                title: "🔨 以上以下もぐらキング", top_desc: "ゲームで数学のキングになろう。",
+                desc: "下の <span class='highlight'>ミッション</span> に合う数字をもつモグラを叩こう！<br>ミッションは <span class='highlight'>10秒ごと</span> に変わるよ！",
+                difficulty: "モード", mode_gte_lte: "以上 / 以下", mode_gt_lt: "より大きい / より小さい", mode_random: "ランダム",
+                players: "プレイヤー", player_unit: "人", btn_start: "スタート！🚀", btn_restart: "🔄 もう一度",
+                time_label: "残り時間", mission_label: "ミッション", score_unit: "点",
+                team_0: "イヌ", team_1: "ネコ", team_2: "ウサギ", team_3: "ハムスター",
+                txt_gte: "{n} 以上", txt_lte: "{n} 以下", txt_gt: "{n} より大", txt_lt: "{n} より小", txt_pow: "正解",
+                btn_other_games: "🎮 他のゲームを選ぶ",
+                mole_mode: "モグラ出現", mole_same: "同じモグラ", mole_diff: "違うモグラ",
+                domain_name: "KingsMath.com", seo_title: "以上以下もぐらキング | KingsMath", seo_desc: "ミッションに合うモグラを叩いてポイントゲット！小学生向け無料数学ゲーム。", seo_keywords: "数学ゲーム, もぐらたたき, 以上, 以下, KingsMath"
+            },
+            es: {
+                title: "🔨 Rey Topo Mayor Menor", top_desc: "Sé el Rey de las Matemáticas.",
+                desc: "¡Golpea al topo con el número de la <span class='highlight'>Misión</span>!<br>¡Las misiones cambian cada <span class='highlight'>10 segundos</span>!",
+                difficulty: "Modo", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Aleatorio",
+                players: "Jugadores", player_unit: "P", btn_start: "¡Iniciar! 🚀", btn_restart: "🔄 Volver a Jugar",
+                time_label: "Tiempo", mission_label: "Misión", score_unit: "pts",
+                team_0: "Perro", team_1: "Gato", team_2: "Conejo", team_3: "Hámster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "¡BIEN!",
+                btn_other_games: "🎮 Elegir otro juego",
+                mole_mode: "Aparición", mole_same: "Mismos topos", mole_diff: "Topos diferentes",
+                domain_name: "KingsMath.com", seo_title: "Rey Topo Mayor Menor | KingsMath", seo_desc: "¡Juego de matemáticas para niños! Golpea al topo correcto.", seo_keywords: "juego de matemáticas, mayor que, menor que, KingsMath"
+            },
+            fr: {
+                title: "🔨 Roi Taupe Plus Moins", top_desc: "Devenez le Roi des Mathématiques.",
+                desc: "Frappez la taupe avec le nombre correspondant à la <span class='highlight'>Mission</span>!<br>Les missions changent toutes les <span class='highlight'>10 secondes</span>!",
+                difficulty: "Mode", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Aléatoire",
+                players: "Joueurs", player_unit: "J", btn_start: "Démarrer! 🚀", btn_restart: "🔄 Rejouer",
+                time_label: "Temps", mission_label: "Mission", score_unit: "pts",
+                team_0: "Chien", team_1: "Chat", team_2: "Lapin", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "BINGO",
+                btn_other_games: "🎮 Choisir un autre jeu",
+                mole_mode: "Apparition", mole_same: "Mêmes taupes", mole_diff: "Taupes différentes",
+                domain_name: "KingsMath.com", seo_title: "Roi Taupe Plus Moins | KingsMath", seo_desc: "Jeu éducatif de maths pour enfants.", seo_keywords: "jeu de maths, KingsMath, taupe"
+            },
+            ru: {
+                title: "🔨 Король Кротов Больше Меньше", top_desc: "Стань Королем Математики.",
+                desc: "Бейте крота с числом, которое подходит для <span class='highlight'>Миссии</span>!<br>Миссии меняются каждые <span class='highlight'>10 секунд</span>!",
+                difficulty: "Режим", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Случайно",
+                players: "Игроки", player_unit: "И", btn_start: "Старт! 🚀", btn_restart: "🔄 Играть снова",
+                time_label: "Время", mission_label: "Миссия", score_unit: "очк",
+                team_0: "Собака", team_1: "Кот", team_2: "Кролик", team_3: "Хомяк",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "ПРАВ",
+                btn_other_games: "🎮 Выбрать другую игру",
+                mole_mode: "Появление", mole_same: "Одинаковые", mole_diff: "Разные",
+                domain_name: "KingsMath.com", seo_title: "Король Кротов | KingsMath", seo_desc: "Математическая игра для детей.", seo_keywords: "математика, игра, KingsMath"
+            },
+            id: {
+                title: "🔨 Raja Tikus Tanah Lebih Kurang", top_desc: "Jadilah Raja Matematika.",
+                desc: "Pukul tikus tanah dengan angka yang sesuai dengan <span class='highlight'>Misi</span>!<br>Misi berubah setiap <span class='highlight'>10 detik</span>!",
+                difficulty: "Mode", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Acak",
+                players: "Pemain", player_unit: "P", btn_start: "Mulai! 🚀", btn_restart: "🔄 Main Lagi",
+                time_label: "Waktu", mission_label: "Misi", score_unit: "poin",
+                team_0: "Anjing", team_1: "Kucing", team_2: "Kelinci", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "BENAR",
+                btn_other_games: "🎮 Pilih game lain",
+                mole_mode: "Munculan", mole_same: "Sama", mole_diff: "Beda",
+                domain_name: "KingsMath.com", seo_title: "Raja Tikus Tanah | KingsMath", seo_desc: "Game matematika untuk anak SD.", seo_keywords: "game matematika, KingsMath"
+            },
+            vi: {
+                title: "🔨 Vua Chuột Chũi Lớn Hơn Nhỏ Hơn", top_desc: "Trở thành Vua Toán Học.",
+                desc: "Đập chuột chũi với số phù hợp với <span class='highlight'>Nhiệm vụ</span>!<br>Nhiệm vụ thay đổi mỗi <span class='highlight'>10 giây</span>!",
+                difficulty: "Chế độ", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Ngẫu nhiên",
+                players: "Người chơi", player_unit: "N", btn_start: "Bắt đầu! 🚀", btn_restart: "🔄 Chơi lại",
+                time_label: "Thời gian", mission_label: "Nhiệm vụ", score_unit: "điểm",
+                team_0: "Chó", team_1: "Mèo", team_2: "Thỏ", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "ĐÚNG",
+                btn_other_games: "🎮 Chọn game khác",
+                mole_mode: "Xuất hiện", mole_same: "Giống", mole_diff: "Khác",
+                domain_name: "KingsMath.com", seo_title: "Vua Chuột Chũi | KingsMath", seo_desc: "Trò chơi toán học cho học sinh.", seo_keywords: "toán học, KingsMath"
+            },
+            th: {
+                title: "🔨 ราชาตัวตุ่น มากกว่า น้อยกว่า", top_desc: "มาเป็นราชาคณิตศาสตร์กันเถอะ",
+                desc: "ตีตัวตุ่นที่มีตัวเลขตรงกับ <span class='highlight'>ภารกิจ</span>!<br>ภารกิจจะเปลี่ยนทุก <span class='highlight'>10 วินาที</span>!",
+                difficulty: "โหมด", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "สุ่ม",
+                players: "ผู้เล่น", player_unit: "คน", btn_start: "เริ่มเกม! 🚀", btn_restart: "🔄 เล่นอีกครั้ง",
+                time_label: "เวลาที่เหลือ", mission_label: "ภารกิจ", score_unit: "แต้ม",
+                team_0: "สุนัข", team_1: "แมว", team_2: "กระต่าย", team_3: "แฮมสเตอร์",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "ใช่",
+                btn_other_games: "🎮 เลือกเกมอื่น",
+                mole_mode: "การเกิด", mole_same: "เหมือนกัน", mole_diff: "ต่างกัน",
+                domain_name: "KingsMath.com", seo_title: "ราชาตัวตุ่น | KingsMath", seo_desc: "เกมคณิตศาสตร์สำหรับเด็ก", seo_keywords: "เกมคณิตศาสตร์, KingsMath"
+            },
+            "pt-br": {
+                title: "🔨 Rei Toupeira Maior Menor", top_desc: "Seja o Rei da Matemática.",
+                desc: "Acertar a toupeira com o número correspondente à <span class='highlight'>Missão</span>!<br>As missões mudam a cada <span class='highlight'>10 segundos</span>!",
+                difficulty: "Modo", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Aleatório",
+                players: "Jogadores", player_unit: "J", btn_start: "Iniciar! 🚀", btn_restart: "🔄 Jogar de Novo",
+                time_label: "Tempo", mission_label: "Missão", score_unit: "pts",
+                team_0: "Cão", team_1: "Gato", team_2: "Coelho", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "CERTO",
+                btn_other_games: "🎮 Escolher outro jogo",
+                mole_mode: "Aparecimento", mole_same: "Iguais", mole_diff: "Diferentes",
+                domain_name: "KingsMath.com", seo_title: "Rei Toupeira | KingsMath", seo_desc: "Jogo de matemática divertido.", seo_keywords: "matemática, jogo, KingsMath"
+            },
+            hi: {
+                title: "🔨 ग्रेटर लेस मोल किंग", top_desc: "गणित के राजा बनें।",
+                desc: "<span class='highlight'>मिशन</span> से मेल खाने वाले नंबर वाले तिल को मारो!<br>मिशन हर <span class='highlight'>10 सेकंड</span> में बदलते हैं!",
+                difficulty: "मोड", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "यादृच्छिक",
+                players: "खिलाड़ी", player_unit: "खि", btn_start: "शुरू करें! 🚀", btn_restart: "🔄 फिर से खेलें",
+                time_label: "समय", mission_label: "मिशन", score_unit: "अंक",
+                team_0: "कुत्ता", team_1: "बिल्ली", team_2: "खरगोश", team_3: "हम्सटर",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "सही",
+                btn_other_games: "🎮 अन्य गेम चुनें",
+                mole_mode: "जन्म", mole_same: "समान", mole_diff: "विभिन्न",
+                domain_name: "KingsMath.com", seo_title: "ग्रेटर लेस मोल किंग | KingsMath", seo_desc: "मजेदार गणित का खेल।", seo_keywords: "गणित का खेल, KingsMath"
+            },
+            bn: {
+                title: "🔨 বৃহত্তর ক্ষুদ্রতর মোল কিং", top_desc: "গণিতের রাজা হন।",
+                desc: "<span class='highlight'>মিশন</span> এর সাথে মিলে যায় এমন নম্বর সহ মোলটিকে আঘাত করুন!<br>মিশনগুলি প্রতি <span class='highlight'>10 সেকেন্ডে</span> পরিবর্তিত হয়!",
+                difficulty: "মোড", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "এলোমেলো",
+                players: "খেলোয়াড়", player_unit: "খে", btn_start: "শুরু করুন! 🚀", btn_restart: "🔄 আবার খেলুন",
+                time_label: "সময়", mission_label: "মিশন", score_unit: "পয়েন্ট",
+                team_0: "কুকুর", team_1: "বিড়াল", team_2: "খরগোশ", team_3: "হ্যামস্টার",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "সঠিক",
+                btn_other_games: "🎮 অন্য গেম চয়ন করুন",
+                mole_mode: "স্পন", mole_same: "একই", mole_diff: "ভিন্ন",
+                domain_name: "KingsMath.com", seo_title: "মোল কিং | KingsMath", seo_desc: "শিক্ষামূলক গণিত খেলা।", seo_keywords: "গণিত, খেলা, KingsMath"
+            },
+            tr: {
+                title: "🔨 Büyüktür Küçüktür Köstebek Kralı", top_desc: "Matematik Kralı Ol.",
+                desc: "<span class='highlight'>Görev</span>'e uyan sayıya sahip köstebeğe vur!<br>Görevler her <span class='highlight'>10 saniyede</span> bir değişir!",
+                difficulty: "Mod", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Rastgele",
+                players: "Oyuncular", player_unit: "O", btn_start: "Başla! 🚀", btn_restart: "🔄 Tekrar Oyna",
+                time_label: "Süre", mission_label: "Görev", score_unit: "puan",
+                team_0: "Köpek", team_1: "Kedi", team_2: "Tavşan", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "BINGO",
+                btn_other_games: "🎮 Başka oyun seç",
+                mole_mode: "Çıkış", mole_same: "Aynı", mole_diff: "Farklı",
+                domain_name: "KingsMath.com", seo_title: "Köstebek Kralı | KingsMath", seo_desc: "Çocuklar için matematik oyunu.", seo_keywords: "matematik oyunu, KingsMath"
+            },
+            de: {
+                title: "🔨 Größer Kleiner Maulwurfskönig", top_desc: "Werde der König der Mathematik.",
+                desc: "Schlag den Maulwurf mit der Zahl, die zur <span class='highlight'>Mission</span> passt!<br>Missionen ändern sich alle <span class='highlight'>10 Sekunden</span>!",
+                difficulty: "Modus", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Zufall",
+                players: "Spieler", player_unit: "S", btn_start: "Start! 🚀", btn_restart: "🔄 Nochmal",
+                time_label: "Zeit", mission_label: "Mission", score_unit: "Pkt",
+                team_0: "Hund", team_1: "Katze", team_2: "Hase", team_3: "Hamster",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "SUPER",
+                btn_other_games: "🎮 Anderes Spiel",
+                mole_mode: "Auftauchen", mole_same: "Gleiche", mole_diff: "Verschiedene",
+                domain_name: "KingsMath.com", seo_title: "Maulwurfskönig | KingsMath", seo_desc: "Mathe-Spiel für Kinder.", seo_keywords: "Mathe-Spiel, KingsMath"
+            },
+            it: {
+                title: "🔨 Re delle Talpe Maggiore Minore", top_desc: "Diventa il Re della Matematica.",
+                desc: "Colpisci la talpa con il numero che corrisponde alla <span class='highlight'>Missione</span>!<br>Le missioni cambiano ogni <span class='highlight'>10 secondi</span>!",
+                difficulty: "Modalità", mode_gte_lte: ">= / <=", mode_gt_lt: "> / <", mode_random: "Casuale",
+                players: "Giocatori", player_unit: "G", btn_start: "Inizia! 🚀", btn_restart: "🔄 Rigioca",
+                time_label: "Tempo", mission_label: "Missione", score_unit: "pti",
+                team_0: "Cane", team_1: "Gatto", team_2: "Coniglio", team_3: "Criceto",
+                txt_gte: ">= {n}", txt_lte: "<= {n}", txt_gt: "> {n}", txt_lt: "< {n}", txt_pow: "ESATTO",
+                btn_other_games: "🎮 Scegli un altro gioco",
+                mole_mode: "Apparizione", mole_same: "Uguali", mole_diff: "Diverse",
+                domain_name: "KingsMath.com", seo_title: "Re delle Talpe | KingsMath", seo_desc: "Gioco di matematica per bambini.", seo_keywords: "gioco di matematica, KingsMath"
+            }
+        };
+
+        // --- 16개국 언어 데이터베이스 ---
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        // 토스트 알림 다국어 메시지
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'vi': 'Ngôn ngữ đã được thay đổi.',
+            'id': 'Bahasa telah diubah.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.', 'hi': 'भाषा बदल दी गई है。',
+            'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.', 'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+        };
+
+        let currentLang = 'en';
+
+        // --- 다국어 초기화 및 감지 (우선순위 철저 준수) ---
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            const localLang = localStorage.getItem('kingsmath_lang');
+            const navLang = navigator.language.toLowerCase();
+            const browserMap = {
+                'ko':'ko', 'en':'en', 'zh':'zh', 'zh-cn':'zh', 'zh-tw':'zh', 'ja':'ja', 'es':'es',
+                'fr':'fr', 'de':'de', 'it':'it', 'pt':'pt-br', 'pt-br':'pt-br', 'ru':'ru',
+                'hi':'hi', 'bn':'bn', 'id':'id', 'vi':'vi', 'th':'th', 'tr':'tr'
+            };
+            
+            let detectedLang = 'en'; // 4순위: 기본값
+            
+            if (urlLang && i18n[urlLang]) {
+                detectedLang = urlLang; // 1순위: URL
+            } else if (localLang && i18n[localLang]) {
+                detectedLang = localLang; // 2순위: 로컬스토리지
+            } else if (browserMap[navLang.split('-')[0]] || browserMap[navLang]) {
+                detectedLang = browserMap[navLang.split('-')[0]] || browserMap[navLang]; // 3순위: 기기언어
+            }
+
+            changeLanguage(detectedLang, false);
+        }
+
+        function changeLanguage(lang, showToastMsg = true) {
+            if(!i18n[lang]) lang = 'en';
+            currentLang = lang;
+            
+            // 상태유지 1: LocalStorage 저장
+            localStorage.setItem('kingsmath_lang', lang);
+            
+            // 상태유지 2: URL History Push (공유 목적)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', lang);
+            window.history.pushState(null, '', newUrl.toString());
+
+            // 상단 버튼 UI 업데이트
+            const langData = languages.find(l => l.code === lang) || languages[1];
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langData.country}.png`;
+            document.getElementById('currentLangName').textContent = langData.name;
+
+            // DOM 적용
+            applyLanguage();
+            
+            // 모달 닫기 & 토스트
+            closeModal();
+            if(showToastMsg) showToast(langData.name, lang);
+            renderLanguages(document.getElementById('searchInput').value);
+        }
+
+        function applyLanguage() {
+            const t = i18n[currentLang];
+            
+            // 폰트 설정 (한국어 제외, 모두 일반 범용 폰트로)
+            if(currentLang !== 'ko') {
+                document.body.classList.add('global-font');
+            } else {
+                document.body.classList.remove('global-font');
+            }
+
+            // SEO 및 문서 속성 변경
+            document.documentElement.lang = currentLang;
+            document.title = t.seo_title;
+            document.getElementById('og-title').content = t.seo_title;
+            document.getElementById('meta-desc').content = t.seo_desc;
+            document.getElementById('og-desc').content = t.seo_desc;
+            document.getElementById('meta-keywords').content = t.seo_keywords;
+
+            // 도메인 표시 변경
+            document.getElementById('domain-text').innerText = t.domain_name;
+
+            // 텍스트 변환
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                if (t[el.dataset.i18n]) el.innerHTML = t[el.dataset.i18n];
+                el.style.fontSize = ''; // 폰트 사이즈 초기화
+            });
+            
+            // 플레이어 이름 리셋
+            if(!state.isPlaying) {
+                PLAYERS[0].name = "🐶 " + t.team_0; PLAYERS[1].name = "🐱 " + t.team_1;
+                PLAYERS[2].name = "🐰 " + t.team_2; PLAYERS[3].name = "🐹 " + t.team_3;
+            }
+
+            // 다국어 텍스트 길이에 따른 동적 폰트 축소 (레이아웃 보호)
+            setTimeout(() => {
+                document.querySelectorAll('[data-i18n], .btn-option').forEach(el => {
+                    let safeBreak = 20;
+                    while (el.scrollWidth > el.clientWidth && safeBreak > 0) {
+                        let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+                        if(currentSize < 10) break;
+                        el.style.fontSize = (currentSize - 1) + 'px';
+                        safeBreak--;
+                    }
+                });
+            }, 50);
+        }
+
+        // --- 다국어 UI 모달 관련 로직 ---
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => changeLanguage(lang.code, true));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function showToast(langName, langCode) {
+            const toastMsg = toastTranslations[langCode] || toastTranslations['en'];
+            document.getElementById('ui-toast').textContent = toastMsg;
+            toastLangName.textContent = langName;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+
+
+        // ==================== 오리지널 게임 로직 시작 ==================== //
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (type === 'hit') {
+                const playNote = (freq, time, dur, vol) => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'sine'; o.frequency.setValueAtTime(freq, time);
+                    g.gain.setValueAtTime(vol, time); g.gain.exponentialRampToValueAtTime(0.01, time + dur);
+                    o.start(time); o.stop(time + dur);
+                };
+                playNote(1046.50, now, 0.1, 0.3);
+                playNote(1567.98, now + 0.08, 0.4, 0.4);
+            } else if (type === 'urgent') {
+                for (let i = 0; i < 3; i++) {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'square'; o.frequency.setValueAtTime(1200, now + i * 0.15);
+                    g.gain.setValueAtTime(0.15, now + i * 0.15); g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.05);
+                    o.start(now + i * 0.15); o.stop(now + i * 0.15 + 0.05);
+                }
+            } else if (type === 'gameover') {
+                const playNote = (freq, time, dur) => {
+                    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'triangle'; o.frequency.setValueAtTime(freq, time);
+                    g.gain.setValueAtTime(0.3, time); g.gain.exponentialRampToValueAtTime(0.01, time + dur);
+                    o.start(time); o.stop(time + dur);
+                };
+                playNote(523.25, now, 0.2); playNote(659.25, now + 0.2, 0.2);
+                playNote(783.99, now + 0.4, 0.2); playNote(1046.50, now + 0.6, 0.6);
+            } else {
+                const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+                osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+                
+                if (type === 'wrong') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                    gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                } else if (type === 'mission') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.setValueAtTime(900, now + 0.1);
+                    gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                } else if (type === 'beep') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(880, now);
+                    gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now); osc.stop(now + 0.2);
+                } else if (type === 'start') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(1200, now);
+                    gainNode.gain.setValueAtTime(0.5, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now); osc.stop(now + 0.4);
+                }
+            }
+        }
+
+        const PLAYERS = [
+            { name: '🐶 강아지', theme: 'team-0' }, { name: '🐱 고양이', theme: 'team-1' },
+            { name: '🐰 토끼', theme: 'team-2' }, { name: '🐹 햄스터', theme: 'team-3' }
+        ];
+
+        let config = { playerCount: 4, gameMode: 'gte_lte', gameTime: 60, moleMode: 'different' };
+        let state = { isPlaying: false, timeLeft: 60, timerInterval: null, teams: [], currentMission: null };
+
+        function generateMoleNumber(isCorrect, m) {
+            let n = m.val1;
+            let minCorrect, maxCorrect, minWrong, maxWrong;
+
+            if (m.type === '>=') {
+                minCorrect = n; maxCorrect = n + 20; minWrong = n - 20; maxWrong = n - 1;
+            } else if (m.type === '<=') {
+                minCorrect = n - 20; maxCorrect = n; minWrong = n + 1; maxWrong = n + 20;
+            } else if (m.type === '>') {
+                minCorrect = n + 1; maxCorrect = n + 20; minWrong = n - 20; maxWrong = n;
+            } else if (m.type === '<') {
+                minCorrect = n - 20; maxCorrect = n - 1; minWrong = n; maxWrong = n + 20;
+            }
+
+            let minTarget, maxTarget;
+            if (isCorrect) { minTarget = minCorrect; maxTarget = maxCorrect; } 
+            else { minTarget = minWrong; maxTarget = maxWrong; }
+
+            minTarget = Math.max(0, minTarget);
+            maxTarget = Math.max(0, maxTarget);
+            if(minTarget > maxTarget) { let temp = minTarget; minTarget = maxTarget; maxTarget = temp; }
+
+            return Math.floor(Math.random() * (maxTarget - minTarget + 1)) + minTarget;
+        }
+
+        class Team {
+            constructor(index) {
+                this.index = index; this.score = 0; this.holes = []; 
+                this.element = this.createElement();
+            }
+
+            createElement() {
+                const div = document.createElement('div');
+                div.className = `team-card ${PLAYERS[this.index].theme}`;
+                const t = i18n[currentLang];
+                
+                let gridHTML = '';
+                for(let i=0; i<9; i++) {
+                    gridHTML += `
+                    <div class="hole-wrapper" data-hole-id="${i}">
+                        <div class="hole-scale-box">
+                            <div class="donut-back"></div>
+                            <div class="sprinkle back-s" style="bottom: 160px; left: 50px; transform: rotate(30deg); background: #FFF;"></div>
+                            <div class="sprinkle back-s" style="bottom: 170px; left: 140px; transform: rotate(-45deg); background: #00E5FF;"></div>
+                            <div class="hole-mask">
+                                <div class="mole" data-team="${this.index}" data-hole="${i}">
+                                    <div class="sprout"><div class="leaf left"></div><div class="leaf right"></div></div>
+                                    <div class="number-badge"></div>
+                                    <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+                                    <div class="blushes"><div class="blush"></div><div class="blush"></div></div>
+                                    <div class="muzzle"><div class="nose"></div><div class="mouth"><div class="mouth-part"></div><div class="mouth-part"></div></div></div>
+                                    <div class="paws"><div class="paw left"></div><div class="paw right"></div></div>
+                                </div>
+                            </div>
+                            <div class="donut-front"></div>
+                            <div class="sprinkle front-s" style="bottom: 60px; left: 40px; transform: rotate(-20deg); background: #76FF03;"></div>
+                            <div class="sprinkle front-s" style="bottom: 40px; left: 190px; transform: rotate(10deg); background: #00E5FF;"></div>
+                            <div class="hit-effect"><div class="pow">${t.txt_pow || '정답'}</div></div>
+                        </div>
+                    </div>`;
+                }
+
+                div.innerHTML = `
+                    <div class="crown-icon" id="crown-${this.index}">👑</div>
+                    <div class="header-section">
+                        <div class="player-label">${PLAYERS[this.index].name}</div>
+                        <div class="score-text">0${t.score_unit}</div>
+                    </div>
+                    <div class="mole-grid-area">${gridHTML}</div>
+                    <div class="mission-area">
+                        <div class="mission-label">${t.mission_label}</div>
+                        <div class="target-box">?</div>
+                    </div>
+                    <div class="win-overlay">
+                        <div class="rank-medal"></div>
+                        <div class="rank-text"></div>
+                        <div class="final-score"></div>
+                    </div>
+                `;
+                
+                this.ui = {
+                    scoreText: div.querySelector('.score-text'),
+                    targetBox: div.querySelector('.target-box'),
+                    overlay: div.querySelector('.win-overlay'),
+                    medal: div.querySelector('.rank-medal'),
+                    rankText: div.querySelector('.rank-text'),
+                    finalScore: div.querySelector('.final-score'),
+                    moles: Array.from(div.querySelectorAll('.mole'))
+                };
+
+                this.ui.moles.forEach((mole, idx) => {
+                    this.holes[idx] = { el: mole, isUp: false, timeout: null };
+                });
+
+                return div;
+            }
+
+            updateScore(points) {
+                this.score = Math.max(0, this.score + points);
+                this.ui.scoreText.innerText = `${this.score}${i18n[currentLang].score_unit}`;
+                updateCurrentLeader();
+            }
+
+            spawnMole(forcedData) {
+                if(!state.isPlaying) return;
+
+                let hole, isCorrect, num, stayTime;
+
+                if (forcedData) {
+                    hole = this.holes[forcedData.holeIndex];
+                    if (hole.isUp) return;
+                    isCorrect = forcedData.isCorrect;
+                    num = forcedData.num;
+                    stayTime = forcedData.stayTime;
+                    if(this.moleBag && this.moleBag.length > 0) this.moleBag.pop();
+                } else {
+                    const availableHoles = this.holes.filter(h => !h.isUp);
+                    if (availableHoles.length === 0) return;
+                    hole = availableHoles[Math.floor(Math.random() * availableHoles.length)];
+                    
+                    isCorrect = false;
+                    if (this.moleBag && this.moleBag.length > 0) isCorrect = this.moleBag.pop();
+                    else isCorrect = Math.random() > 0.5;
+                    
+                    num = generateMoleNumber(isCorrect, state.currentMission);
+                    stayTime = 2250 + Math.random() * 750;
+                }
+
+                hole.isUp = true;
+                hole.el.dataset.correct = isCorrect;
+                hole.el.querySelector('.number-badge').innerText = num;
+                hole.el.classList.remove('wrong');
+                hole.el.classList.add('up');
+
+                hole.timeout = setTimeout(() => {
+                    if(hole.isUp) {
+                        hole.el.classList.remove('up');
+                        setTimeout(() => hole.isUp = false, 400); 
+                    }
+                }, stayTime);
+            }
+        }
+
+        function setGlobalTarget() {
+            let mode = config.gameMode;
+            if (mode === 'random') {
+                const modes = ['gte_lte', 'gt_lt'];
+                mode = modes[Math.floor(Math.random() * modes.length)];
+            }
+
+            const t = i18n[currentLang];
+            let label = ""; 
+            let n = Math.floor(Math.random() * 90) + 10;
+            let subMode;
+
+            if (mode === 'gte_lte') subMode = Math.random() > 0.5 ? '>=' : '<=';
+            else subMode = Math.random() > 0.5 ? '>' : '<';
+
+            if (subMode === '>=') label = t.txt_gte.replace('{n}', n);
+            else if (subMode === '<=') label = t.txt_lte.replace('{n}', n);
+            else if (subMode === '>') label = t.txt_gt.replace('{n}', n);
+            else if (subMode === '<') label = t.txt_lt.replace('{n}', n);
+
+            let mData = { type: subMode, val1: n };
+            state.currentMission = mData;
+            
+            document.getElementById('global-mission-area').innerHTML = label;
+
+            let masterBag = [true, true, true, true, true, false, false, false, false, false];
+            masterBag.sort(() => Math.random() - 0.5);
+
+            state.teams.forEach(team => {
+                team.moleBag = [...masterBag];
+                team.ui.targetBox.innerHTML = label;
+                team.ui.targetBox.classList.add('pulse');
+                setTimeout(() => team.ui.targetBox.classList.remove('pulse'), 300);
+            });
+        }
+
+        function updateCurrentLeader() {
+            let maxScore = -1;
+            state.teams.forEach(t => { if (t.score > maxScore) maxScore = t.score; });
+            state.teams.forEach(t => {
+                const crown = document.getElementById(`crown-${t.index}`);
+                if (maxScore > 0 && t.score === maxScore) crown.classList.add('show');
+                else crown.classList.remove('show');
+            });
+        }
+
+        function startGame() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // 게임 몰입을 위해 상단 언어 선택 UI 숨김
+            document.getElementById('langSelectorContainer').style.display = 'none';
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('header-info').style.display = 'flex';
+            
+            const board = document.getElementById('game-board');
+            board.innerHTML = ''; board.style.display = 'flex';
+            
+            state.teams = [];
+            for (let i = 0; i < config.playerCount; i++) {
+                const team = new Team(i);
+                state.teams.push(team);
+                board.appendChild(team.element);
+            }
+            
+            document.getElementById('global-mission-area').style.display = 'block';
+            setGlobalTarget(); 
+
+            const overlay = document.getElementById('countdown-overlay');
+            const text = overlay.querySelector('.countdown-text');
+            overlay.style.display = 'flex';
+            let count = 3;
+            text.innerText = count;
+            playSound('beep');
+
+            const countInterval = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    text.innerText = count;
+                    playSound('beep');
+                } else if (count === 0) {
+                    text.innerText = "START!";
+                    playSound('start');
+                } else {
+                    clearInterval(countInterval);
+                    overlay.style.display = 'none';
+                    
+                    state.isPlaying = true;
+                    board.removeEventListener('pointerdown', handleWhack);
+                    board.addEventListener('pointerdown', handleWhack);
+                    state.timeLeft = config.gameTime;
+                    startTimer();
+                    scheduleMoleSpawns();
+                }
+            }, 1000);
+        }
+
+        function handleWhack(e) {
+            if(!state.isPlaying) return;
+            const target = e.target.closest('.mole');
+            if(!target || !target.classList.contains('up') || target.classList.contains('wrong')) return;
+
+            const tIdx = target.dataset.team;
+            const hIdx = target.dataset.hole;
+            const team = state.teams[tIdx];
+            const hole = team.holes[hIdx];
+            const isCorrect = target.dataset.correct === 'true';
+
+            clearTimeout(hole.timeout);
+
+            if(isCorrect) {
+                playSound('hit');
+                team.updateScore(10);
+                target.classList.remove('up');
+                
+                const powEl = target.closest('.hole-scale-box').querySelector('.pow');
+                powEl.classList.add('active');
+                setTimeout(() => powEl.classList.remove('active'), 300);
+                
+                setTimeout(() => hole.isUp = false, 400);
+            } else {
+                playSound('wrong');
+                team.updateScore(-5);
+                target.classList.add('wrong');
+                setTimeout(() => {
+                    target.classList.remove('up', 'wrong');
+                    setTimeout(() => hole.isUp = false, 400);
+                }, 500);
+            }
+        }
+
+        function scheduleMoleSpawns() {
+            if(!state.isPlaying) return;
+
+            if (config.moleMode === 'same') {
+                let availableHoleIndices = [];
+                for(let i=0; i<9; i++) {
+                    let allDown = true;
+                    for(let t=0; t<state.teams.length; t++) {
+                        if(state.teams[t].holes[i].isUp) { allDown = false; break; }
+                    }
+                    if(allDown) availableHoleIndices.push(i);
+                }
+
+                if (availableHoleIndices.length > 0) {
+                    let spawnCount = (Math.random() > 0.7 && availableHoleIndices.length >= 2) ? 2 : 1;
+                    
+                    for(let k=0; k<spawnCount; k++) {
+                        if(availableHoleIndices.length === 0) break;
+                        
+                        const randIdx = Math.floor(Math.random() * availableHoleIndices.length);
+                        const holeIndex = availableHoleIndices[randIdx];
+                        availableHoleIndices.splice(randIdx, 1);
+
+                        let isCorrect = false;
+                        if (state.teams[0].moleBag && state.teams[0].moleBag.length > 0) {
+                            isCorrect = state.teams[0].moleBag[state.teams[0].moleBag.length - 1]; 
+                        } else {
+                            isCorrect = Math.random() > 0.5;
+                        }
+
+                        const num = generateMoleNumber(isCorrect, state.currentMission);
+                        const stayTime = 2250 + Math.random() * 750;
+
+                        state.teams.forEach(team => {
+                            team.spawnMole({ holeIndex, isCorrect, num, stayTime });
+                        });
+                    }
+                }
+                setTimeout(scheduleMoleSpawns, 800 + Math.random() * 500);
+            } else {
+                state.teams.forEach(team => {
+                    if(Math.random() > 0.3) team.spawnMole();
+                    if(Math.random() > 0.7) setTimeout(() => team.spawnMole(), 500);
+                });
+                setTimeout(scheduleMoleSpawns, 800 + Math.random() * 500);
+            }
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timer-display');
+            timerDisplay.innerText = state.timeLeft;
+            timerDisplay.classList.remove('urgent');
+
+            if(state.timerInterval) clearInterval(state.timerInterval);
+            
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                timerDisplay.innerText = state.timeLeft;
+
+                if(state.timeLeft % 10 === 0 && state.timeLeft > 0) {
+                     setGlobalTarget();
+                     playSound('mission');
+                }
+
+                if (state.timeLeft <= 10) timerDisplay.classList.add('urgent');
+                if (state.timeLeft <= 5 && state.timeLeft > 0) playSound('urgent');
+                if (state.timeLeft <= 0) finishGame();
+            }, 1000);
+        }
+
+        function finishGame() {
+            state.isPlaying = false;
+            clearInterval(state.timerInterval);
+            playSound('gameover');
+            
+            // 게임 종료시 언어 선택 UI 다시 보이기
+            document.getElementById('langSelectorContainer').style.display = 'block';
+
+            state.teams.forEach(t => t.holes.forEach(h => {
+                clearTimeout(h.timeout);
+                h.el.classList.remove('up');
+            }));
+
+            let sortedTeams = [...state.teams].sort((a, b) => b.score - a.score);
+            let currentRank = 1;
+            for (let i = 0; i < sortedTeams.length; i++) {
+                if (i > 0 && sortedTeams[i].score < sortedTeams[i-1].score) currentRank = i + 1;
+                let t = i18n[currentLang];
+                
+                sortedTeams[i].ui.medal.innerHTML = currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : currentRank === 3 ? '🥉' : '<span style="font-size: 70%;">4️⃣</span>';
+                sortedTeams[i].ui.rankText.innerText = ''; // 기존 다국어 텍스트는 불필요하여 출력 생략
+                sortedTeams[i].ui.finalScore.innerText = `${sortedTeams[i].score}${t.score_unit}`;
+                sortedTeams[i].ui.overlay.style.display = 'flex';
+                if(currentRank === 1) createConfetti();
+            }
+
+            document.getElementById('game-over-controls').style.display = 'block';
+        }
+
+        // --- 이벤트 리스너 ---
+        document.querySelectorAll('#player-options .btn-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#player-options .btn-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected'); config.playerCount = parseInt(btn.dataset.value);
+            });
+        });
+        document.querySelectorAll('#mode-options .btn-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#mode-options .btn-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected'); config.gameMode = btn.dataset.value;
+            });
+        });
+        document.querySelectorAll('#molemode-options .btn-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#molemode-options .btn-option').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected'); config.moleMode = btn.dataset.value;
+            });
+        });
+
+        document.getElementById('btn-start').addEventListener('click', startGame);
+        document.getElementById('btn-restart').addEventListener('click', () => location.reload());
+        
+        // 홈 이모지 전체 화면 지체 없이 첫 화면 가는 로직 + UI 복원
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                state.isPlaying = false;
+                clearInterval(state.timerInterval);
+                if (state.animationId) cancelAnimationFrame(state.animationId);
+                
+                // 각종 UI 요소 리셋
+                document.getElementById('langSelectorContainer').style.display = 'block';
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('header-info').style.display = 'none';
+                document.getElementById('game-over-controls').style.display = 'none';
+                document.getElementById('countdown-overlay').style.display = 'none';
+                document.getElementById('global-mission-area').style.display = 'none';
+                document.getElementById('setup-screen').style.display = 'flex';
+                
+                if(window.playSound) window.playSound('beep');
+            } else {
+                location.reload();
+            }
+        });
+
+      document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            // 표준 및 webkit(사파리/모바일) 지원 여부 동시 체크
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(err=>{});
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen(); // 사파리 지원
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen(); // 사파리 지원
+                }
+            }
+        });
+
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
+            for (let i = 0; i < 150; i++) {
+                const conf = document.createElement('div'); conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                conf.style.opacity = Math.random();
+                container.appendChild(conf);
+            }
+        }
+
+        // 초기 시작
+        window.addEventListener('DOMContentLoaded', () => {
+            initLanguage();
+            renderLanguages(); // 모달 내부 목록 초기화
+        });
+    </script>
+</body>
+</html>

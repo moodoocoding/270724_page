@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="세균킹 동물 배틀 - 전략적인 두뇌 싸움! 동물을 복제하고 이동하여 영토를 넓히세요.">
+<meta name="keywords" content="킹수학, 동물 배틀, 세균전, 보드게임, 두뇌게임, 교육용 게임, math games, educational games">
+<meta property="og:title" content="세균킹 동물 배틀">
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+    <meta charset="UTF-8">
+    <title>세균킹 동물 배틀</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: { preflight: false }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        /* 폰트 및 다국어 대응 사이즈 조절 */
+        :root {
+            --bg-color: #1a1a1d;
+            --board-dark-bg: #2c2c2c;
+            --line-color: #aaa;
+            --text-color: #fff;
+            
+            /* 동물 색상 테마 (네온 컬러) */
+            --color-dog: #00FFFF;       /* 시안 */
+            --color-cat: #FF00FF;       /* 핫 핑크 */
+            --color-rabbit: #FFFF00;    /* 옐로우 */
+            --color-hamster: #FF9900;   /* 네온 오렌지 */
+            --color-panda: #FF3333;     /* 비비드 레드 */
+            --color-monkey: #39FF14;    /* 라임 그린 */
+        }
+
+        /* 한국어 폰트 */
+        body.lang-ko, body.lang-ko h1, body.lang-ko h2, body.lang-ko h3, body.lang-ko button, body.lang-ko .win-msg, body.lang-ko .start-main-btn, body.lang-ko a {
+            font-family: 'Jua', sans-serif !important;
+        }
+
+        /* 기타 언어 공통 폰트 (가독성 좋은 기본 Sans-serif) */
+        body:not(.lang-ko), body:not(.lang-ko) h1, body:not(.lang-ko) h2, body:not(.lang-ko) h3, body:not(.lang-ko) button, body:not(.lang-ko) .win-msg, body:not(.lang-ko) .start-main-btn, body:not(.lang-ko) a {
+            font-family: 'Noto Sans KR', 'Arial', sans-serif !important;
+            font-weight: 500 !important;
+            letter-spacing: -0.5px;
+        }
+
+        /* 이모지 깨짐 방지용 */
+        .emoji {
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif !important;
+        }
+
+        /* 글자 수가 많은 언어일 때 동적으로 작아지게 하는 클래스 */
+        body.text-sm-mode .rules-box p { font-size: 1.1rem !important; }
+        body.text-sm-mode .start-main-btn { font-size: 1.5rem !important; padding: 15px 30px !important; }
+        body.text-sm-mode .select-title { font-size: 1.6rem !important; }
+        body.text-sm-mode .roulette-msg { font-size: 1.8rem !important; }
+        body.text-sm-mode #start-screen h1 { font-size: 3.5rem !important; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none;
+            touch-action: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1, h2, h3, button, .win-msg, .start-main-btn, a {
+            font-weight: 400 !important; 
+        }
+
+        /* --- 언어 선택기 모달 독립 CSS (충돌 방지) --- */
+        #langTriggerContainer {
+            z-index: 99999 !important;
+        }
+        
+        #langModal, #langModal * {
+            box-sizing: border-box !important;
+        }
+
+        #langModal.modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99999 !important;
+        }
+        #langModal.modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        #langModal .modal-content {
+            transform: scale(0.95) translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #langModal.modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        #toastNotification {
+            z-index: 99999 !important;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        #toastNotification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+
+        /* --- 시작 화면 --- */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50, #000000);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            transition: opacity 0.5s ease;
+        }
+
+        #start-screen h1 {
+            font-size: 4.5rem;
+            color: #f1c40f;
+            margin: 0 0 15px 0;
+            text-shadow: 3px 3px 0 #d35400, 6px 6px 15px rgba(0,0,0,0.5);
+            animation: bounce 2s infinite;
+            letter-spacing: -3px;
+            line-height: 1.1;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .rules-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            max-width: 650px;
+            margin-bottom: 40px;
+        }
+
+        .rules-box h3 {
+            font-size: 2.5rem;
+            margin-top: 0;
+            color: #4facfe;
+        }
+
+        .rules-box p {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #ddd;
+            margin: 10px 0;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .start-main-btn {
+            padding: 20px 40px;
+            font-size: 2.0rem;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #c0392b, 0 20px 20px rgba(0,0,0,0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            white-space: nowrap;
+        }
+
+        .start-main-btn:active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #c0392b, 0 0 0 rgba(0,0,0,0);
+        }
+        
+        .btn-blue { background: #4facfe; box-shadow: 0 10px 0 #2980b9, 0 20px 20px rgba(0,0,0,0.4); }
+        .btn-blue:active { box-shadow: 0 0 0 #2980b9, 0 0 0 rgba(0,0,0,0); }
+
+        .start-sub-link {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            color: #4facfe;
+            text-decoration: none;
+            transition: all 0.3s;
+            padding: 10px;
+        }
+        .start-sub-link:hover {
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        /* --- 게임 컨테이너 --- */
+        #game-container {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 1s ease;
+            position: relative;
+        }
+
+        header {
+            height: 8vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .home-link {
+            position: absolute;
+            left: 20px;
+            font-size: 1.0rem;
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+            z-index: 10;
+        }
+        .home-link:hover {
+            color: #FFDD00;
+        }
+
+        .header-title h2 {
+            font-size: 2rem;
+            margin: 0;
+            color: #FFDD00;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        /* --- 시계 스타일 --- */
+        #clock-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+            background: rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
+        .clock-container {
+            position: static;
+            transform: none;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 30px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column; 
+            gap: 5px;
+            align-items: center;
+        }
+
+        .clock-date {
+            font-size: 1.5rem; 
+            color: #eee;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .clock-time {
+            font-size: 2.5rem; 
+            color: #fff;
+            line-height: 1.2;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .clock-link {
+            margin-top: 5px;
+            font-size: 1.2rem;
+            color: #4facfe;
+            text-decoration: none;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        .clock-link:hover {
+            color: #fff;
+            background: #4facfe;
+            transform: scale(1.05);
+        }
+
+        /* --- 바둑판 영역 정렬 --- */
+        .boards-wrapper {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .game-station {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; 
+            padding-bottom: 2vh;
+            border-right: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .game-station:last-child { border-right: none; }
+
+        /* --- 캐릭터 선택 화면 --- */
+        .selection-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 20, 20, 0.95);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .select-title {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #fff;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .animal-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .animal-card {
+            width: 90px;
+            height: 110px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 3px solid transparent;
+            background: rgba(0,0,0,0.5);
+            border-color: var(--animal-color);
+            box-shadow: 
+                0 0 10px var(--animal-color),
+                0 0 20px var(--animal-color),
+                inset 0 0 10px var(--animal-color);
+        }
+
+        .animal-card.selected {
+            border-color: var(--animal-color);
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px var(--animal-color);
+        }
+
+        .animal-card.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+            pointer-events: none;
+            box-shadow: none !important;
+            border-color: transparent !important;
+        }
+
+        .animal-icon { 
+            font-size: 2.5rem; 
+            margin-bottom: 5px; 
+            transition: text-shadow 0.2s;
+        }
+        
+        .animal-name { 
+            font-size: 0.9rem; 
+            transition: color 0.2s, text-shadow 0.2s;
+            color: var(--animal-color);
+            text-shadow: 0 0 10px var(--animal-color);
+            text-align: center;
+        }
+
+        .animal-card:hover .animal-name,
+        .animal-card:hover .animal-icon {
+            color: var(--animal-color);
+            text-shadow: 0 0 10px var(--animal-color);
+        }
+
+        /* --- 룰렛 --- */
+        .roulette-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 60;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .roulette-msg {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .roulette-display {
+            font-size: 5rem;
+            animation: pop 0.2s infinite alternate;
+        }
+
+        /* --- 메인 게임 UI --- */
+        .game-ui {
+            display: none;
+            width: 100%;
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-end; 
+            position: relative;
+            gap: 10px;
+            margin-bottom: 2vh; 
+        }
+
+        .player-info {
+            flex: 1;
+            max-width: 120px;
+            min-width: 60px;
+            height: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            margin-bottom: 5vh; 
+            position: relative;
+        }
+
+        .player-info.active-turn {
+            opacity: 1;
+        }
+        
+        .player-info.active-turn .info-bg {
+            box-shadow: 0 0 20px var(--glow-color); 
+            border: 3px solid var(--glow-color);
+            background: rgba(50, 50, 50, 0.9);
+            transform: scale(1.05);
+        }
+
+        .info-bg {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 5px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #555;
+            width: 100%;
+            box-sizing: border-box;
+            transition: all 0.3s;
+        }
+
+        .p-icon { font-size: 2.5rem; display: block; margin-bottom: 5px; }
+        .p-name { font-size: 0.9rem; display: block; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .score-count {
+            font-size: 1.8rem;
+            margin-top: 5px;
+            color: #fff;
+        }
+        
+        .turn-badge {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--color-hamster);
+            display: none;
+        }
+        .active-turn .turn-badge { display: block; }
+        
+        /* 왕관 스타일 */
+        .winner-crown {
+            position: absolute;
+            top: -50px;
+            font-size: 3rem;
+            animation: bounce 1s infinite;
+            display: none;
+            z-index: 15;
+            text-shadow: 0 0 20px #f1c40f;
+        }
+
+        .result-label {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            text-shadow: 0 0 5px rgba(0,0,0,0.8);
+            white-space: nowrap;
+            animation: bounce 0.5s infinite alternate;
+            z-index: 10;
+        }
+        .res-win { color: #FFDD00; text-shadow: 0 0 10px #FFDD00; }
+        .res-lose { color: #888; text-shadow: none; animation: none; font-size: 1.5rem; top: -35px;}
+
+        /* 세균전 보드 스타일 (7x7) */
+        .omok-board {
+            background-color: var(--line-color);
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+            padding: 0;
+            
+            width: 70%;
+            aspect-ratio: 1 / 1;
+            max-width: 55vh; 
+            max-height: 55vh;
+            
+            margin: 0 5px; 
+            
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 2px;
+            border: 4px solid #444;
+            position: relative;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .cell {
+            position: relative;
+            cursor: pointer;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            box-sizing: border-box;
+            background-color: var(--board-dark-bg);
+            touch-action: none;
+        }
+        
+        /* 선택된 셀 강조 */
+        .cell.selected {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 0 10px #fff;
+        }
+
+        .cell.hint-clone::after {
+            content: attr(data-hint);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #2ecc71;
+            z-index: 5;
+            text-shadow: 0 0 3px black;
+            opacity: 1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .cell.hint-clone {
+            background-color: var(--board-dark-bg) !important;
+            box-shadow: inset 0 0 10px rgba(46, 204, 113, 0.3);
+        }
+
+        .cell.hint-jump::after {
+            content: attr(data-hint);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #f1c40f;
+            z-index: 5;
+            text-shadow: 0 0 3px black;
+            opacity: 1;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .cell.hint-jump {
+            background-color: var(--board-dark-bg) !important;
+            box-shadow: inset 0 0 10px rgba(241, 196, 15, 0.3);
+        }
+
+        /* 세균 모양 스타일 */
+        .germ-piece {
+            width: 90%;
+            height: 90%;
+            z-index: 2;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+        
+        .germ-piece svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.7));
+        }
+
+        .germ-idle {
+            animation: wiggle 2s infinite ease-in-out;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: scale(0.9) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(20deg); } 
+            50% { transform: scale(0.9) rotate(0deg); }
+            75% { transform: scale(1.1) rotate(-20deg); } 
+        }
+
+        .floating-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #e74c3c;
+            font-size: 1.0rem;
+            z-index: 10;
+            pointer-events: none;
+            text-shadow: 0 0 3px #000;
+            animation: floatUp 0.8s ease-out forwards;
+            white-space: nowrap;
+        }
+        
+        @keyframes floatUp {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -150%) scale(1); opacity: 0; }
+        }
+
+        .germ-appear { animation: popIn 0.4s ease-out forwards; }
+        .germ-infect { animation: infectAnim 0.6s ease-out; }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes infectAnim {
+            0% { transform: scale(1) rotate(0deg); filter: brightness(2); }
+            50% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+        }
+
+        .restart-btn {
+            position: absolute;
+            top: 40%; 
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            background-color: #ff4757;
+            color: white;
+            font-size: 1.0rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            line-height: 1.2;
+            transition: transform 0.1s;
+        }
+        .restart-btn:active { transform: scale(0.95); }
+
+        #game-station-1 .restart-btn { left: 5px; }
+        #game-station-2 .restart-btn { right: 5px; }
+
+        .win-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            border-radius: 0;
+        }
+        .win-overlay.active { opacity: 1; pointer-events: all; }
+        .win-msg { font-size: 2.2rem; color: var(--color-hamster); margin-bottom: 10px; text-shadow: 0 0 20px #d35400; text-align: center; padding: 0 10px;}
+        .win-icon { font-size: 4rem; animation: bounce 1s infinite; margin-bottom: 10px; }
+        
+        .overlay-btn {
+            padding: 10px 30px; font-size: 1.5rem; border-radius: 40px; border: none; background: #4facfe; color: white; cursor: pointer;
+        }
+
+        /* --- 플로팅 버튼 스타일 --- */
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s, background 0.2s;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .floating-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.1);
+        }
+        .home-btn { left: 20px; }
+        .fullscreen-btn { right: 20px; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body class="lang-ko">
+
+    <div id="langTriggerContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="color: white; backdrop-filter: blur(4px);">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden" style="color: #f3f4f6;">
+            
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 m-0" style="font-family: 'Noto Sans KR', sans-serif !important;">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors border-none cursor-pointer m-0 p-0">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 shrink-0">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white m-0 leading-tight">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400 m-0 mt-1">Korean</p>
+        </div>
+    </div>
+
+
+    <div id="start-screen">
+        <h1 data-i18n="title">세균킹 동물 배틀</h1>
+        <div class="rules-box">
+            <h3 data-i18n="rules_title">게임 규칙</h3>
+            <p>
+                1. <span data-i18n="rules_1">내 세균을 터치하여 선택 후 빈 칸을 터치하세요.</span><br>
+                <span style="color:#2ecc71">★ <span data-i18n="rules_1_step">1칸 이동:</span></span> <b data-i18n="action_clone">복제</b> (<span data-i18n="rules_clone_desc">내 세균이 하나 더 생겨요!</span>)<br>
+                <span style="color:#f1c40f">★ <span data-i18n="rules_2_step">2칸 이동:</span></span> <b data-i18n="action_jump">이동</b> (<span data-i18n="rules_jump_desc">원래 자리는 비워져요!</span>)<br>
+                2. <span data-i18n="rules_2">이동한 곳 주변의 상대방 세균은</span> <b data-i18n="rules_infect" style="color:#e74c3c;">내 세균으로 감염</b><span data-i18n="rules_2_end">됩니다.</span><br>
+                3. <span data-i18n="rules_3">게임판이 가득 차거나 상대가 움직일 수 없으면 종료!</span><br>
+                4. <span data-i18n="rules_4">세균이 더 많은 쪽이 승리합니다!</span>
+            </p>
+        </div>
+        <div class="btn-group">
+            <button class="start-main-btn btn-blue" onclick="enterGame(1)" data-i18n="btn_1board">게임판 1개</button>
+            <button class="start-main-btn" onclick="enterGame(2)" data-i18n="btn_2boards">게임판 2개</button>
+        </div>
+        <a href="/" target="_self" class="start-sub-link" id="start-link" data-i18n="link_other">🎮 다른 게임 고르기</a>
+    </div>
+
+    <div id="game-container">
+        <header>
+            <a href="/" target="_self" class="home-link" id="header-link" data-i18n="header_slogan">게임으로 수학의 킹이 되어라. 킹수학.com</a>
+            
+            <div class="header-title">
+                <h2 data-i18n="header_title">👑 세균킹 동물 배틀 👑</h2>
+            </div>
+        </header>
+        <div id="clock-wrapper">
+            <div class="clock-container" id="live-clock">
+            </div>
+        </div>
+
+        <div class="boards-wrapper">
+            <div class="game-station" id="game-station-1">
+                <div class="selection-screen" id="select-1">
+                    <div class="select-title" id="select-title-1"></div>
+                    <div class="animal-grid" id="grid-1"></div>
+                </div>
+                <div class="roulette-screen" id="roulette-1">
+                    <div class="roulette-msg" data-i18n="roulette_ask">누가 먼저 할까요?</div>
+                    <div class="roulette-display emoji" id="roulette-disp-1">❓</div>
+                    <div class="roulette-msg" id="roulette-res-1" style="color:var(--color-hamster); margin-top:10px;"></div>
+                </div>
+                <div class="game-ui" id="ui-1">
+                    <div class="player-info" id="p1-info-1">
+                        <div class="winner-crown emoji" id="p1-crown-1">👑</div>
+                        <div class="info-bg">
+                            <span class="p-icon emoji" id="p1-icon-1">🐶</span>
+                            <span class="p-name" id="p1-name-1">강아지</span>
+                            <div class="score-count" id="p1-score-1">2</div>
+                            <div class="turn-badge" data-i18n="turn_badge">차례!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="omok-board" id="board-1">
+                        <div class="win-overlay" id="win-1">
+                            <div class="win-icon emoji" id="win-icon-1">🏆</div>
+                            <div class="win-msg" id="win-msg-1">승리!</div>
+                            <button class="overlay-btn" onclick="resetGame(1)" data-i18n="btn_repick">다시 고르기</button>
+                        </div>
+                    </div>
+                    
+                    <div class="player-info" id="p2-info-1">
+                        <div class="winner-crown emoji" id="p2-crown-1">👑</div>
+                        <div class="info-bg">
+                            <span class="p-icon emoji" id="p2-icon-1">🐱</span>
+                            <span class="p-name" id="p2-name-1">고양이</span>
+                            <div class="score-count" id="p2-score-1">2</div>
+                            <div class="turn-badge" data-i18n="turn_badge">차례!</div>
+                        </div>
+                    </div>
+                </div>
+         <button class="restart-btn" ontouchstart="event.preventDefault(); resetGame(1)" onclick="resetGame(1)" data-i18n="btn_restart">재시작</button>
+            </div>
+
+            <div class="game-station" id="game-station-2">
+                <div class="selection-screen" id="select-2">
+                    <div class="select-title" id="select-title-2"></div>
+                    <div class="animal-grid" id="grid-2"></div>
+                </div>
+                <div class="roulette-screen" id="roulette-2">
+                    <div class="roulette-msg" data-i18n="roulette_ask">누가 먼저 할까요?</div>
+                    <div class="roulette-display emoji" id="roulette-disp-2">❓</div>
+                    <div class="roulette-msg" id="roulette-res-2" style="color:var(--color-hamster); margin-top:10px;"></div>
+                </div>
+                <div class="game-ui" id="ui-2">
+                      <div class="player-info" id="p1-info-2">
+                        <div class="winner-crown emoji" id="p1-crown-2">👑</div>
+                        <div class="info-bg">
+                            <span class="p-icon emoji" id="p1-icon-2"></span>
+                            <span class="p-name" id="p1-name-2"></span>
+                            <div class="score-count" id="p1-score-2">2</div>
+                            <div class="turn-badge" data-i18n="turn_badge">차례!</div>
+                           </div>
+                      </div>
+                    
+                    <div class="omok-board" id="board-2">
+                        <div class="win-overlay" id="win-2">
+                            <div class="win-icon emoji" id="win-icon-2">🏆</div>
+                            <div class="win-msg" id="win-msg-2">승리!</div>
+                            <button class="overlay-btn" onclick="resetGame(2)" data-i18n="btn_repick">다시 고르기</button>
+                        </div>
+                    </div>
+                    
+                    <div class="player-info" id="p2-info-2">
+                          <div class="winner-crown emoji" id="p2-crown-2">👑</div>
+                          <div class="info-bg">
+                             <span class="p-icon emoji" id="p2-icon-2"></span>
+                             <span class="p-name" id="p2-name-2"></span>
+                             <div class="score-count" id="p2-score-2">2</div>
+                             <div class="turn-badge" data-i18n="turn_badge">차례!</div>
+                            </div>
+                      </div>
+                </div>
+            <button class="restart-btn" ontouchstart="event.preventDefault(); resetGame(2)" onclick="resetGame(2)" data-i18n="btn_restart">재시작</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="btn-home" class="floating-btn home-btn emoji" style="cursor:pointer;" title="Home">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn fullscreen-btn emoji" style="cursor:pointer;" onclick="toggleFullScreen()" title="Full Screen">📺</div>
+
+    <script>
+        // 전자칠판 및 대형 터치스크린 최적화 스크립트
+        (function() {
+            const blockEvent = (e) => e.preventDefault();
+            document.addEventListener('touchmove', (e) => {
+                if (e.scale !== 1) e.preventDefault();
+            }, { passive: false });
+            document.addEventListener('dragstart', blockEvent);
+            document.addEventListener('contextmenu', blockEvent);
+            document.addEventListener('dblclick', blockEvent);
+            document.addEventListener('gesturestart', blockEvent);
+            document.addEventListener('gesturechange', blockEvent);
+            document.addEventListener('gestureend', blockEvent);
+
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) e.preventDefault();
+                lastTouchEnd = now;
+            }, false);
+
+            document.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) e.preventDefault();
+            }, { passive: false });
+        })();
+
+        // --- 다국어 데이터 및 로직 완벽 통합 (16개국) ---
+        // 언어 변경 시 보여줄 안내 토스트 메시지
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'de': 'Sprache geändert.', 'it': 'Lingua cambiata.',
+            'pt-br': 'Idioma alterado.', 'ru': 'Язык изменен.', 'hi': 'भाषा बदल दी गई है।', 'bn': 'ভাষা পরিবর্তন করা হয়েছে।',
+            'id': 'Bahasa telah diubah.', 'vi': 'Ngôn ngữ đã được thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'tr': 'Dil değiştirildi.'
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        // "Germ King: Ataxx Mobile" 의 의미를 살려 각 언어별로 수학의 왕(King) 컨셉에 맞춰 16개국 번역 완비
+        const langData = {
+            ko: {
+                title: "세균킹 동물 배틀", seo_title: "세균킹 동물 배틀 - 킹수학", seo_desc: "세균킹 동물 배틀 - 전략적인 두뇌 싸움! 동물을 복제하고 이동하여 영토를 넓히세요.",
+                header_title: "👑 세균킹 동물 배틀 👑", header_slogan: "게임으로 수학의 킹이 되어라. 킹수학.com", link_url: "/",
+                rules_title: "게임 규칙", rules_1: "내 동물을 터치한 후 빈 칸을 누르세요.", rules_1_step: "1칸 이동:", action_clone: "복제", rules_clone_desc: "친구가 한 명 더 생겨요!",
+                rules_2_step: "2칸 이동:", action_jump: "이동", rules_jump_desc: "원래 자리는 비워져요!", rules_2: "주변의 상대방 동물은", rules_infect: "내 동물이 돼요", rules_2_end: ".",
+                rules_3: "게임판이 꽉 차면 끝나요!", rules_4: "동물이 더 많은 쪽이 승리!", btn_1board: "게임판 1개", btn_2boards: "게임판 2개", link_other: "🎮 다른 게임 고르기",
+                select_left: "왼쪽(1P) 선택", select_right: "오른쪽(2P) 선택", roulette_ask: "누가 먼저 할까요?", first_turn: "선공!", turn_badge: "차례!",
+                win_msg: "승리!", draw_msg: "무승부!", lose_msg: "패배", btn_repick: "다시 고르기", btn_restart: "재시작", infect_txt: "변신!",
+                animal_dog: "강아지", animal_cat: "고양이", animal_rabbit: "토끼", animal_hamster: "햄스터", animal_panda: "판다", animal_monkey: "원숭이", date_fmt: "{y}년 {m}월 {d}일 {day}"
+            },
+            en: {
+                title: "Germ King: Animal Battle", seo_title: "Germ King: Animal Battle - KingsMath", seo_desc: "Germ King: Animal Battle - Strategic brain game! Clone and jump to infect opponent animals.",
+                header_title: "👑 Germ King: Animal Battle 👑", header_slogan: "Be the King of Math. KingsMath.com", link_url: "/",
+                rules_title: "Game Rules", rules_1: "Touch your animal, then touch an empty spot.", rules_1_step: "Move 1:", action_clone: "Copy", rules_clone_desc: "Make a new friend!",
+                rules_2_step: "Move 2:", action_jump: "Jump", rules_jump_desc: "Hop to a new spot!", rules_2: "Nearby opponent animals will be", rules_infect: "changed to yours", rules_2_end: ".",
+                rules_3: "Game ends when the board is full!", rules_4: "Whoever has more animals wins!", btn_1board: "1 Board", btn_2boards: "2 Boards", link_other: "🎮 Pick Another Game",
+                select_left: "Left (1P) Pick", select_right: "Right (2P) Pick", roulette_ask: "Who goes first?", first_turn: "First!", turn_badge: "Turn!",
+                win_msg: "Winner!", draw_msg: "Draw!", lose_msg: "Lost", btn_repick: "Pick Again", btn_restart: "Restart", infect_txt: "Change!",
+                animal_dog: "Dog", animal_cat: "Cat", animal_rabbit: "Rabbit", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Monkey", date_fmt: "{day}, {m}/{d}/{y}"
+            },
+            zh: {
+                title: "细菌大王：动物乱斗", seo_title: "细菌大王：动物乱斗 - KingsMath", seo_desc: "细菌大王：动物乱斗 - 策略益智游戏！复制并跳跃以感染对手的动物。",
+                header_title: "👑 细菌大王：动物乱斗 👑", header_slogan: "用游戏成为数学之王。KingsMath.com", link_url: "/",
+                rules_title: "游戏规则", rules_1: "点击你的动物，然后点击空白处。", rules_1_step: "移动1格:", action_clone: "复制", rules_clone_desc: "多一个朋友！",
+                rules_2_step: "移动2格:", action_jump: "跳跃", rules_jump_desc: "跳到新位置！", rules_2: "周围的对手动物会被", rules_infect: "变成你的", rules_2_end: "。",
+                rules_3: "棋盘满时游戏结束！", rules_4: "动物多的一方获胜！", btn_1board: "1个棋盘", btn_2boards: "2个棋盘", link_other: "🎮 选择其他游戏",
+                select_left: "左边(1P)选择", select_right: "右边(2P)选择", roulette_ask: "谁先开始？", first_turn: "先手！", turn_badge: "你的回合",
+                win_msg: "胜利！", draw_msg: "平局！", lose_msg: "失败", btn_repick: "重选", btn_restart: "重开", infect_txt: "变身！",
+                animal_dog: "小狗", animal_cat: "小猫", animal_rabbit: "兔子", animal_hamster: "仓鼠", animal_panda: "熊猫", animal_monkey: "猴子", date_fmt: "{y}年{m}月{d}日 {day}"
+            },
+            ja: {
+                title: "バイキンキングの動物バトル", seo_title: "バイキンキングの動物バトル - KingsMath", seo_desc: "バイキンキングの動物バトル - 動物をコピーしてジャンプ！",
+                header_title: "👑 バイキンキングの動物バトル 👑", header_slogan: "ゲームで数学の王になろう。KingsMath.com", link_url: "/",
+                rules_title: "ゲームのルール", rules_1: "自分の動物をタッチして、空いているマスをタッチ。", rules_1_step: "1マス:", action_clone: "コピー", rules_clone_desc: "友達が増えるよ！",
+                rules_2_step: "2マス:", action_jump: "ジャンプ", rules_jump_desc: "新しい場所に飛ぶよ！", rules_2: "周りの相手の動物は", rules_infect: "自分の動物になる", rules_2_end: "よ。",
+                rules_3: "盤が埋まったら終わり！", rules_4: "動物が多い方が勝ち！", btn_1board: "ボード1つ", btn_2boards: "ボード2つ", link_other: "🎮 他のゲーム",
+                select_left: "左(1P) 選ぶ", select_right: "右(2P) 選ぶ", roulette_ask: "どっちが先？", first_turn: "先攻！", turn_badge: "きみの番！",
+                win_msg: "勝ち！", draw_msg: "引き分け！", lose_msg: "負け", btn_repick: "選び直す", btn_restart: "リスタート", infect_txt: "変身！",
+                animal_dog: "イヌ", animal_cat: "ネコ", animal_rabbit: "ウサギ", animal_hamster: "ハムスター", animal_panda: "パンダ", animal_monkey: "サル", date_fmt: "{y}年{m}月{d}日 {day}"
+            },
+            es: {
+                title: "Rey Germen: Batalla Animal", seo_title: "Rey Germen: Batalla Animal - KingsMath", seo_desc: "Juego de estrategia cerebral. Clona y salta.",
+                header_title: "👑 Rey Germen: Batalla 👑", header_slogan: "Sé el Rey de las Matemáticas. KingsMath.com", link_url: "/",
+                rules_title: "Reglas del Juego", rules_1: "Toca tu animal, luego un espacio vacío.", rules_1_step: "Mover 1:", action_clone: "Copiar", rules_clone_desc: "¡Haz un amigo!",
+                rules_2_step: "Mover 2:", action_jump: "Saltar", rules_jump_desc: "¡Salta lejos!", rules_2: "Los animales oponentes cercanos se", rules_infect: "volverán tuyos", rules_2_end: ".",
+                rules_3: "¡Termina cuando se llena el tablero!", rules_4: "¡El que tenga más gana!", btn_1board: "1 Tablero", btn_2boards: "2 Tableros", link_other: "🎮 Otro Juego",
+                select_left: "Izquierda(1P)", select_right: "Derecha(2P)", roulette_ask: "¿Quién empieza?", first_turn: "¡Primero!", turn_badge: "¡Tu turno!",
+                win_msg: "¡Ganador!", draw_msg: "¡Empate!", lose_msg: "Perdió", btn_repick: "Elegir de nuevo", btn_restart: "Reiniciar", infect_txt: "¡Cambio!",
+                animal_dog: "Perro", animal_cat: "Gato", animal_rabbit: "Conejo", animal_hamster: "Hámster", animal_panda: "Panda", animal_monkey: "Mono", date_fmt: "{d}/{m}/{y} {day}"
+            },
+            fr: {
+                title: "Roi Microbe : Bataille Animale", seo_title: "Roi Microbe : Bataille Animale - KingsMath", seo_desc: "Jeu de stratégie. Clonez et sautez.",
+                header_title: "👑 Roi Microbe : Bataille 👑", header_slogan: "Le Roi des Maths. KingsMath.com", link_url: "/",
+                rules_title: "Règles", rules_1: "Touchez votre animal, puis une case vide.", rules_1_step: "Bouger 1:", action_clone: "Copier", rules_clone_desc: "Un ami de plus !",
+                rules_2_step: "Bouger 2:", action_jump: "Sauter", rules_jump_desc: "Sautez ailleurs !", rules_2: "Les animaux adverses proches", rules_infect: "deviennent les vôtres", rules_2_end: ".",
+                rules_3: "Fin quand c'est plein !", rules_4: "Plus d'animaux = gagné !", btn_1board: "1 Plateau", btn_2boards: "2 Plateaux", link_other: "🎮 Autre Jeu",
+                select_left: "Gauche (1P)", select_right: "Droite (2P)", roulette_ask: "Qui commence ?", first_turn: "Premier !", turn_badge: "À toi !",
+                win_msg: "Gagné !", draw_msg: "Égalité !", lose_msg: "Perdu", btn_repick: "Rechoisir", btn_restart: "Rejouer", infect_txt: "Magie !",
+                animal_dog: "Chien", animal_cat: "Chat", animal_rabbit: "Lapin", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Singe", date_fmt: "{d}/{m}/{y} {day}"
+            },
+            ru: {
+                title: "Король Микробов: Битва", seo_title: "Король Микробов - KingsMath", seo_desc: "Клонируй и прыгай!",
+                header_title: "👑 Король Микробов 👑", header_slogan: "Король математики. KingsMath.com", link_url: "/",
+                rules_title: "Правила", rules_1: "Нажми на животное, затем на пустое место.", rules_1_step: "Ход 1:", action_clone: "Копия", rules_clone_desc: "Новый друг!",
+                rules_2_step: "Ход 2:", action_jump: "Прыжок", rules_jump_desc: "Прыгай!", rules_2: "Соседние враги станут", rules_infect: "твоими", rules_2_end: ".",
+                rules_3: "Конец, когда доска полна!", rules_4: "У кого больше - победил!", btn_1board: "1 Доска", btn_2boards: "2 Доски", link_other: "🎮 Другая игра",
+                select_left: "Левый (1P)", select_right: "Правый (2P)", roulette_ask: "Кто первый?", first_turn: "Первый!", turn_badge: "Твой ход!",
+                win_msg: "Победа!", draw_msg: "Ничья!", lose_msg: "Проиграл", btn_repick: "Снова", btn_restart: "Заново", infect_txt: "Твой!",
+                animal_dog: "Собака", animal_cat: "Кошка", animal_rabbit: "Кролик", animal_hamster: "Хомяк", animal_panda: "Панда", animal_monkey: "Обезьяна", date_fmt: "{d}.{m}.{y} {day}"
+            },
+            id: {
+                title: "Raja Kuman: Pertarungan Hewan", seo_title: "Raja Kuman - KingsMath", seo_desc: "Kloning dan lompat!", header_title: "👑 Raja Kuman 👑",
+                header_slogan: "Raja Matematika. KingsMath.com", link_url: "/", rules_title: "Aturan",
+                rules_1: "Sentuh hewanmu, lalu tempat kosong.", rules_1_step: "Gerak 1:", action_clone: "Salin", rules_clone_desc: "Buat teman baru!",
+                rules_2_step: "Gerak 2:", action_jump: "Lompat", rules_jump_desc: "Pindah!", rules_2: "Hewan musuh di dekatmu", rules_infect: "menjadi milikmu", rules_2_end: ".",
+                rules_3: "Selesai jika penuh!", rules_4: "Yang terbanyak menang!", btn_1board: "1 Papan", btn_2boards: "2 Papan", link_other: "🎮 Game Lain",
+                select_left: "Kiri (1P)", select_right: "Kanan (2P)", roulette_ask: "Siapa duluan?", first_turn: "Pertama!", turn_badge: "Giliranmu!",
+                win_msg: "Menang!", draw_msg: "Seri!", lose_msg: "Kalah", btn_repick: "Pilih Lagi", btn_restart: "Ulangi", infect_txt: "Berubah!",
+                animal_dog: "Anjing", animal_cat: "Kucing", animal_rabbit: "Kelinci", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Monyet", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            vi: {
+                title: "Vua Vi Khuẩn: Trận Chiến", seo_title: "Vua Vi Khuẩn - KingsMath", seo_desc: "Nhân bản và nhảy!", header_title: "👑 Vua Vi Khuẩn 👑",
+                header_slogan: "Vua Toán Học. KingsMath.com", link_url: "/", rules_title: "Quy Tắc",
+                rules_1: "Chạm vào động vật, sau đó chạm vào ô trống.", rules_1_step: "Di chuyển 1:", action_clone: "Sao chép", rules_clone_desc: "Thêm bạn!",
+                rules_2_step: "Di chuyển 2:", action_jump: "Nhảy", rules_jump_desc: "Nhảy xa!", rules_2: "Động vật đối thủ ở gần", rules_infect: "sẽ biến thành của bạn", rules_2_end: ".",
+                rules_3: "Kết thúc khi đầy bàn!", rules_4: "Ai nhiều hơn sẽ thắng!", btn_1board: "1 Bàn", btn_2boards: "2 Bàn", link_other: "🎮 Trò Chơi Khác",
+                select_left: "Trái (1P)", select_right: "Phải (2P)", roulette_ask: "Ai đi trước?", first_turn: "Đầu tiên!", turn_badge: "Lượt bạn!",
+                win_msg: "Thắng!", draw_msg: "Hòa!", lose_msg: "Thua", btn_repick: "Chọn lại", btn_restart: "Chơi lại", infect_txt: "Biến!",
+                animal_dog: "Chó", animal_cat: "Mèo", animal_rabbit: "Thỏ", animal_hamster: "Chuột", animal_panda: "Gấu Trúc", animal_monkey: "Khỉ", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            th: {
+                title: "ราชาแบคทีเรีย: ศึกสัตว์โลก", seo_title: "ราชาแบคทีเรีย - KingsMath", seo_desc: "โคลนและกระโดด!", header_title: "👑 ราชาแบคทีเรีย 👑",
+                header_slogan: "ราชาคณิตศาสตร์ KingsMath.com", link_url: "/", rules_title: "กฎ",
+                rules_1: "แตะสัตว์ของคุณ แล้วแตะช่องว่าง", rules_1_step: "เดิน 1:", action_clone: "คัดลอก", rules_clone_desc: "เพิ่มเพื่อน!",
+                rules_2_step: "เดิน 2:", action_jump: "กระโดด", rules_jump_desc: "กระโดดข้าม!", rules_2: "สัตว์ของคู่แข่งที่อยู่ใกล้ๆ", rules_infect: "จะกลายเป็นของคุณ", rules_2_end: ".",
+                rules_3: "จบเมื่อกระดานเต็ม!", rules_4: "ใครเยอะกว่าชนะ!", btn_1board: "1 กระดาน", btn_2boards: "2 กระดาน", link_other: "🎮 เกมอื่น",
+                select_left: "ซ้าย (1P)", select_right: "ขวา (2P)", roulette_ask: "ใครเริ่มก่อน?", first_turn: "เริ่มก่อน!", turn_badge: "ตาคุณ!",
+                win_msg: "ชนะ!", draw_msg: "เสมอ!", lose_msg: "แพ้", btn_repick: "เลือกใหม่", btn_restart: "เริ่มใหม่", infect_txt: "เปลี่ยน!",
+                animal_dog: "หมา", animal_cat: "แมว", animal_rabbit: "กระต่าย", animal_hamster: "แฮมสเตอร์", animal_panda: "แพนด้า", animal_monkey: "ลิง", date_fmt: "{day} {d}/{m}/{y}"
+            },
+            'pt-br': {
+                title: "Rei Germe: Batalha Animal", seo_title: "Rei Germe - KingsMath", seo_desc: "Clone e pule!", header_title: "👑 Rei Germe 👑",
+                header_slogan: "Rei da Matemática. KingsMath.com", link_url: "/", rules_title: "Regras",
+                rules_1: "Toque no seu animal, depois num espaço vazio.", rules_1_step: "Mover 1:", action_clone: "Copiar", rules_clone_desc: "Mais um amigo!",
+                rules_2_step: "Mover 2:", action_jump: "Pular", rules_jump_desc: "Pule longe!", rules_2: "Animais inimigos perto", rules_infect: "viram os seus", rules_2_end: ".",
+                rules_3: "Acaba quando encher!", rules_4: "Quem tiver mais vence!", btn_1board: "1 Tabuleiro", btn_2boards: "2 Tabuleiros", link_other: "🎮 Outro Jogo",
+                select_left: "Esquerda (1P)", select_right: "Direita (2P)", roulette_ask: "Quem começa?", first_turn: "Primeiro!", turn_badge: "Sua vez!",
+                win_msg: "Venceu!", draw_msg: "Empate!", lose_msg: "Perdeu", btn_repick: "Escolher", btn_restart: "Reiniciar", infect_txt: "Mudou!",
+                animal_dog: "Cão", animal_cat: "Gato", animal_rabbit: "Coelho", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Macaco", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            hi: {
+                title: "कीटाणु राजा: पशु युद्ध", seo_title: "कीटाणु राजा - KingsMath", seo_desc: "क्लोन करें और कूदें!", header_title: "👑 कीटाणु राजा 👑",
+                header_slogan: "गणित का राजा। KingsMath.com", link_url: "/", rules_title: "नियम",
+                rules_1: "अपने जानवर को छुएं, फिर खाली जगह पर।", rules_1_step: "1 कदम:", action_clone: "कॉपी", rules_clone_desc: "नया दोस्त!",
+                rules_2_step: "2 कदम:", action_jump: "कूदें", rules_jump_desc: "दूर जाएं!", rules_2: "पास के दुश्मन", rules_infect: "आपके बन जाएंगे", rules_2_end: "।",
+                rules_3: "भरने पर खेल खत्म!", rules_4: "ज्यादा जानवर वाला जीता!", btn_1board: "1 बोर्ड", btn_2boards: "2 बोर्ड", link_other: "🎮 अन्य गेम",
+                select_left: "बायां (1P)", select_right: "दायां (2P)", roulette_ask: "पहले कौन?", first_turn: "पहला!", turn_badge: "आपकी बारी!",
+                win_msg: "जीत!", draw_msg: "बराबर!", lose_msg: "हार", btn_repick: "फिर चुनें", btn_restart: "दोबारा", infect_txt: "जादू!",
+                animal_dog: "कुत्ता", animal_cat: "बिल्ली", animal_rabbit: "खरगोश", animal_hamster: "हम्सटर", animal_panda: "पांडा", animal_monkey: "बंदर", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            bn: {
+                title: "জীবাণু রাজা: পশু যুদ্ধ", seo_title: "জীবাণু রাজা - KingsMath", seo_desc: "ক্লোন এবং লাফ দিন!", header_title: "👑 জীবাণু রাজা 👑",
+                header_slogan: "গণিতের রাজা। KingsMath.com", link_url: "/", rules_title: "নিয়ম",
+                rules_1: "আপনার পশু স্পর্শ করুন, তারপর খালি জায়গা।", rules_1_step: "১ ধাপ:", action_clone: "কপি", rules_clone_desc: "নতুন বন্ধু!",
+                rules_2_step: "২ ধাপ:", action_jump: "লাফ", rules_jump_desc: "দূরে যান!", rules_2: "কাছের শত্রুরা", rules_infect: "আপনার হয়ে যাবে", rules_2_end: "।",
+                rules_3: "বোর্ড পূর্ণ হলে শেষ!", rules_4: "যার বেশি সে জিতবে!", btn_1board: "১ বোর্ড", btn_2boards: "২ বোর্ড", link_other: "🎮 অন্য গেম",
+                select_left: "বাম (1P)", select_right: "ডান (2P)", roulette_ask: "আগে কে?", first_turn: "প্রথম!", turn_badge: "আপনার পালা!",
+                win_msg: "জয়!", draw_msg: "ড্র!", lose_msg: "হার", btn_repick: "আবার বাছুন", btn_restart: "রিস্টার্ট", infect_txt: "যাদু!",
+                animal_dog: "কুকুর", animal_cat: "বিড়াল", animal_rabbit: "খরগোশ", animal_hamster: "হ্যামস্টার", animal_panda: "পান্ডা", animal_monkey: "বানর", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            tr: {
+                title: "Mikrop Kral: Hayvan Savaşı", seo_title: "Mikrop Kral - KingsMath", seo_desc: "Klonla ve zıpla!", header_title: "👑 Mikrop Kral 👑",
+                header_slogan: "Matematik Kralı. KingsMath.com", link_url: "/", rules_title: "Kurallar",
+                rules_1: "Hayvanına dokun, sonra boş yere.", rules_1_step: "Git 1:", action_clone: "Kopyala", rules_clone_desc: "Yeni arkadaş!",
+                rules_2_step: "Git 2:", action_jump: "Zıpla", rules_jump_desc: "Uzağa zıpla!", rules_2: "Yakındaki düşmanlar", rules_infect: "senin olur", rules_2_end: ".",
+                rules_3: "Tahta dolunca biter!", rules_4: "Çok olan kazanır!", btn_1board: "1 Tahta", btn_2boards: "2 Tahta", link_other: "🎮 Başka Oyun",
+                select_left: "Sol (1P)", select_right: "Sağ (2P)", roulette_ask: "Kim önce?", first_turn: "İlk!", turn_badge: "Sıra sende!",
+                win_msg: "Kazandın!", draw_msg: "Berabere!", lose_msg: "Kaybettin", btn_repick: "Tekrar Seç", btn_restart: "Yeniden", infect_txt: "Değişti!",
+                animal_dog: "Köpek", animal_cat: "Kedi", animal_rabbit: "Tavşan", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Maymun", date_fmt: "{day}, {d}/{m}/{y}"
+            },
+            de: {
+                title: "Bakterienkönig: Tierkampf", seo_title: "Bakterienkönig - KingsMath", seo_desc: "Klonen und springen!", header_title: "👑 Bakterienkönig 👑",
+                header_slogan: "Mathekönig. KingsMath.com", link_url: "/", rules_title: "Regeln",
+                rules_1: "Tippe dein Tier an, dann ein leeres Feld.", rules_1_step: "Gehe 1:", action_clone: "Kopieren", rules_clone_desc: "Neuer Freund!",
+                rules_2_step: "Gehe 2:", action_jump: "Springen", rules_jump_desc: "Spring weit weg!", rules_2: "Gegner in der Nähe", rules_infect: "gehören dir", rules_2_end: ".",
+                rules_3: "Ende, wenn das Brett voll ist!", rules_4: "Wer mehr hat, gewinnt!", btn_1board: "1 Brett", btn_2boards: "2 Bretter", link_other: "🎮 Anderes Spiel",
+                select_left: "Links (1P)", select_right: "Rechts (2P)", roulette_ask: "Wer fängt an?", first_turn: "Zuerst!", turn_badge: "Du bist dran!",
+                win_msg: "Sieg!", draw_msg: "Unentschieden!", lose_msg: "Verloren", btn_repick: "Neu wählen", btn_restart: "Neustart", infect_txt: "Deins!",
+                animal_dog: "Hund", animal_cat: "Katze", animal_rabbit: "Hase", animal_hamster: "Hamster", animal_panda: "Panda", animal_monkey: "Affe", date_fmt: "{day}, {d}.{m}.{y}"
+            },
+            it: {
+                title: "Re dei Germi: Battaglia", seo_title: "Re dei Germi - KingsMath", seo_desc: "Clona e salta!", header_title: "👑 Re dei Germi 👑",
+                header_slogan: "Re della Matematica. KingsMath.com", link_url: "/", rules_title: "Regole",
+                rules_1: "Tocca il tuo animale, poi uno spazio vuoto.", rules_1_step: "Muovi 1:", action_clone: "Copia", rules_clone_desc: "Nuovo amico!",
+                rules_2_step: "Muovi 2:", action_jump: "Salta", rules_jump_desc: "Salta lontano!", rules_2: "I nemici vicini", rules_infect: "diventano tuoi", rules_2_end: ".",
+                rules_3: "Finisce quando è pieno!", rules_4: "Chi ne ha di più vince!", btn_1board: "1 Tavolo", btn_2boards: "2 Tavoli", link_other: "🎮 Altro Gioco",
+                select_left: "Sinistra (1P)", select_right: "Destra (2P)", roulette_ask: "Chi inizia?", first_turn: "Primo!", turn_badge: "Tocca a te!",
+                win_msg: "Vittoria!", draw_msg: "Pareggio!", lose_msg: "Perso", btn_repick: "Scegli di nuovo", btn_restart: "Riavvia", infect_txt: "Tuo!",
+                animal_dog: "Cane", animal_cat: "Gatto", animal_rabbit: "Coniglio", animal_hamster: "Criceto", animal_panda: "Panda", animal_monkey: "Scimmia", date_fmt: "{day}, {d}/{m}/{y}"
+            }
+        };
+
+        // UI 모달 로직
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const langTriggerContainer = document.getElementById('langTriggerContainer');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+        let currentLang = 'en';
+
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const langParam = urlParams.get('lang');
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            const browserLang = navigator.language.slice(0, 2);
+
+            if (langParam && langData[langParam]) currentLang = langParam;
+            else if (storedLang && langData[storedLang]) currentLang = storedLang;
+            else if (langData[browserLang]) currentLang = browserLang;
+            else currentLang = 'en';
+
+            applyLanguage(currentLang);
+        }
+
+        function setLanguage(langCode) {
+            const langObj = languages.find(l => l.code === langCode);
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            // URL 업데이트 (히스토리 상태 푸시)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', newUrl);
+
+            applyLanguage(langCode);
+            closeModal();
+            showToast(langObj.name, langCode);
+            renderLanguages(searchInput.value);
+        }
+
+        function applyLanguage(lang) {
+            const data = langData[lang];
+            const langObj = languages.find(l => l.code === lang);
+            
+            // 버튼 상태 업데이트
+            currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            currentLangSpan.textContent = langObj.name;
+            
+            // CSS 클래스 조정 (글꼴 및 텍스트 크기 조절)
+            document.body.className = `lang-${lang} ${['ru', 'fr', 'es', 'de', 'it', 'pt-br', 'id', 'vi', 'tr'].includes(lang) ? 'text-sm-mode' : ''}`;
+
+            // 텍스트 콘텐츠 및 SEO 업데이트
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (data[key]) el.textContent = data[key];
+            });
+            document.getElementById('start-link').href = data.link_url;
+            document.getElementById('header-link').href = data.link_url;
+            document.title = data.title;
+            document.querySelector('meta[name="description"]').setAttribute("content", data.seo_desc);
+            document.querySelector('meta[property="og:title"]').setAttribute("content", data.seo_title);
+
+            updateAnimalNames(lang);
+            updateClock();
+            
+            // 게임 중 언어 변경 대비 UI 리렌더링
+            ['1', '2'].forEach(id => {
+                if (games[id] && games[id].state.startsWith('select')) renderSelectionGrid(id);
+            });
+        }
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}" style="font-family:'Noto Sans KR', sans-serif;">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full" style="font-family:'Noto Sans KR', sans-serif;">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => setLanguage(lang.code));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function showToast(langName, langCode) {
+            const toastMsg = toastTranslations[langCode] || toastTranslations['en'];
+            document.getElementById('ui-toast').textContent = toastMsg;
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        // 홈 이모지 전체 화면 지체 없이 첫 화면 리셋 소스 통합 (새로고침 없이)
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                // 게임 데이터 초기화 (전체 화면 유지하면서 첫 화면으로)
+                Object.keys(games).forEach(id => {
+                    games[id].active = false;
+                });
+                
+                langTriggerContainer.style.display = 'block'; // 언어 선택기 다시 보이기
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('start-screen').style.opacity = '1';
+                
+                if(window.playStartSound) window.playStartSound(); // 효과음 (선택 사항)
+            } else {
+                location.reload();
+            }
+        });
+
+
+        // --- 기존 게임 로직 (수정 없이 유지) ---
+        const ANIMALS = [
+            { id: 'dog', name: '강아지', icon: '🐶', color: 'var(--color-dog)' },
+            { id: 'cat', name: '고양이', icon: '🐱', color: 'var(--color-cat)' },
+            { id: 'rabbit', name: '토끼', icon: '🐰', color: 'var(--color-rabbit)' },
+            { id: 'hamster', name: '햄스터', icon: '🐹', color: 'var(--color-hamster)' },
+            { id: 'panda', name: '판다', icon: '🐼', color: 'var(--color-panda)' },
+            { id: 'monkey', name: '원숭이', icon: '🐵', color: 'var(--color-monkey)' }
+        ];
+
+        function updateAnimalNames(lang) {
+            const data = langData[lang];
+            ANIMALS.forEach(animal => {
+                const key = `animal_${animal.id}`;
+                if (data[key]) animal.name = data[key];
+            });
+        }
+        
+        function getVarColor(varName) { return getComputedStyle(document.documentElement).getPropertyValue(varName).trim(); }
+        const SIZE = 7; 
+
+        const games = {
+            1: { state: 'select_p1', p1: null, p2: null, board: [], turn: 0, active: false, selected: null, validMoves: [], scores: {1: 2, 2: 2} },
+            2: { state: 'select_p1', p1: null, p2: null, board: [], turn: 0, active: false, selected: null, validMoves: [], scores: {1: 2, 2: 2} }
+        };
+
+        function updateClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const daysData = {
+                ko: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'], en: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                zh: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'], ja: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+                es: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], fr: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+                ru: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+                id: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], vi: ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'],
+                th: ['วันอาทิตย์', 'วันจันทร์', 'วันอังคาร', 'วันพุธ', 'วันพฤหัสบดี', 'วันศุกร์', 'วันเสาร์'], 'pt-br': ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'],
+                hi: ['रविवार', 'सोमवार', 'मंगलवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'], bn: ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'],
+                tr: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], de: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+                it: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato']
+            };
+            const dayName = daysData[currentLang][now.getDay()];
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? (currentLang === 'ko' ? '오후' : 'PM') : (currentLang === 'ko' ? '오전' : 'AM');
+            hours = hours % 12; hours = hours ? hours : 12;
+
+            let dateStr = langData[currentLang].date_fmt.replace('{y}', year).replace('{m}', month).replace('{d}', date).replace('{day}', dayName);
+            dateStr = `<div class="clock-date">${dateStr}</div>`;
+            const timeStr = `<div class="clock-time">${ampm} ${hours}:${minutes}</div>`; 
+            const linkText = langData[currentLang].link_other;
+            const linkUrl = langData[currentLang].link_url;
+            const linkStr = `<a href="${linkUrl}" class="clock-link" target="_self">${linkText}</a>`;
+            const clockEl = document.getElementById('live-clock');
+            if(clockEl) clockEl.innerHTML = dateStr + timeStr + linkStr;
+        }
+        setInterval(updateClock, 1000);
+        
+        // Audio functions
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playStoneSound(animalId) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            switch(animalId) {
+                case 'dog': osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.5, now + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15); break;
+                case 'cat': osc.type = 'sine'; osc.frequency.setValueAtTime(500, now); osc.frequency.linearRampToValueAtTime(800, now + 0.2); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); break;
+                case 'rabbit': osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.1); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15); break;
+                case 'hamster': osc.type = 'sine'; osc.frequency.setValueAtTime(1200, now); osc.frequency.linearRampToValueAtTime(1800, now + 0.08); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.01); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); break;
+                case 'panda': osc.type = 'sine'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.3); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.4, now + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35); osc.start(now); osc.stop(now + 0.35); break;
+                case 'monkey': osc.type = 'triangle'; osc.frequency.setValueAtTime(600, now); osc.frequency.linearRampToValueAtTime(400, now + 0.1); osc.frequency.linearRampToValueAtTime(600, now + 0.2); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.linearRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); break;
+                default: osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.1); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.01); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); break;
+            }
+            osc.connect(gain); gain.connect(audioCtx.destination);
+        }
+
+        function playActionSound(type) {
+             if (!audioCtx) return;
+             const now = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+             if (type === 'clone') { osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1); } 
+             else if (type === 'jump') { osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.2); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05); gain.gain.linearRampToValueAtTime(0.01, now + 0.3); osc.start(now); osc.stop(now + 0.3); } 
+             else if (type === 'infect') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.1); osc.frequency.linearRampToValueAtTime(150, now + 0.2); gain.gain.setValueAtTime(0.0, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); }
+             osc.connect(gain); gain.connect(audioCtx.destination);
+        }
+
+        function playRouletteTick() {
+            if (!audioCtx) return; const now = audioCtx.currentTime; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.05); gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.05);
+        }
+
+        function playStartSound() {
+             if (!audioCtx) return; const now = audioCtx.currentTime;
+             [523.25, 659.25, 783.99].forEach((freq, i) => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.value = freq; const t = now + (i * 0.05); gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.2, t + 0.02); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.2); });
+        }
+
+        function playWinSound() {
+            if (!audioCtx) return; const now = audioCtx.currentTime; const notes = [1046.50, 1318.51, 1567.98, 2093.00]; const times = [0, 0.1, 0.2, 0.3];
+            notes.forEach((freq, i) => { const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.value = freq; gain.gain.setValueAtTime(0.0, now + times[i]); gain.gain.linearRampToValueAtTime(0.3, now + times[i] + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, now + times[i] + 0.4); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + times[i]); osc.stop(now + times[i] + 0.5); });
+        }
+
+        function enterGame(mode) {
+            initAudio(); playStartSound();
+            
+            // 언어 선택 모달 숨기기 (게임 몰입)
+            langTriggerContainer.style.display = 'none';
+
+            const station1 = document.getElementById('game-station-1'); const station2 = document.getElementById('game-station-2');
+            if (mode === 1) { station2.style.display = 'none'; station1.style.borderRight = 'none'; } 
+            else { station2.style.display = 'flex'; station1.style.borderRight = '1px solid rgba(255,255,255,0.1)'; }
+
+            document.getElementById('start-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('start-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'flex';
+                setTimeout(() => document.getElementById('game-container').style.opacity = '1', 50);
+                initSelection(1); if (mode === 2) { initSelection(2); }
+            }, 500);
+        }
+
+        function initSelection(id) {
+            games[id].state = 'select_p1'; games[id].p1 = null; games[id].p2 = null; renderSelectionGrid(id);
+            document.getElementById(`ui-${id}`).style.display = 'none'; document.getElementById(`select-${id}`).style.display = 'flex';
+            document.getElementById(`roulette-${id}`).style.display = 'none'; document.getElementById(`win-${id}`).classList.remove('active');
+            clearResultBadges(id);
+        }
+
+        function renderSelectionGrid(id) {
+            const grid = document.getElementById(`grid-${id}`); const title = document.getElementById(`select-title-${id}`); grid.innerHTML = '';
+            const currentPlayer = games[id].state === 'select_p1' ? 1 : 2;
+            const textLeft = langData[currentLang].select_left; const textRight = langData[currentLang].select_right;
+            title.innerHTML = currentPlayer === 1 ? `<span style="color:#ff4757">${textLeft}</span>` : `<span style="color:#4facfe">${textRight}</span>`;
+
+            ANIMALS.forEach(animal => {
+                const card = document.createElement('div'); card.className = 'animal-card'; card.style.setProperty('--animal-color', animal.color);
+                if (currentPlayer === 2 && games[id].p1.id === animal.id) { card.classList.add('disabled'); }
+                card.innerHTML = `<div class="animal-icon emoji">${animal.icon}</div><div class="animal-name">${animal.name}</div>`;
+                const handleSelect = (e) => { e.stopPropagation(); if (e.cancelable) e.preventDefault(); selectAnimal(id, animal); };
+                card.addEventListener('touchstart', handleSelect, { passive: false }); card.addEventListener('mousedown', handleSelect);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectAnimal(id, animal) {
+            playStoneSound(animal.id);
+            if (games[id].state === 'select_p1') { games[id].p1 = animal; games[id].state = 'select_p2'; renderSelectionGrid(id); } 
+            else if (games[id].state === 'select_p2') { games[id].p2 = animal; startRoulette(id); }
+        }
+
+        function startRoulette(id) {
+            games[id].state = 'roulette'; document.getElementById(`select-${id}`).style.display = 'none';
+            const rScreen = document.getElementById(`roulette-${id}`); const rDisp = document.getElementById(`roulette-disp-${id}`); const rRes = document.getElementById(`roulette-res-${id}`);
+            rScreen.style.display = 'flex'; rRes.textContent = ""; let count = 0; const maxCount = 20; const candidates = [games[id].p1, games[id].p2];
+            
+            const interval = setInterval(() => {
+                playRouletteTick(); const idx = count % 2; rDisp.textContent = candidates[idx].icon; count++;
+                if (count > maxCount) {
+                    clearInterval(interval); const winnerIdx = Math.floor(Math.random() * 2); const firstPlayer = winnerIdx === 0 ? 1 : 2; const winnerAnimal = candidates[winnerIdx];
+                    rDisp.textContent = winnerAnimal.icon; const firstMsg = langData[currentLang].first_turn; rRes.textContent = `${winnerAnimal.name} ${firstMsg}`;
+                    playStoneSound(winnerAnimal.id); 
+                    setTimeout(() => { rScreen.style.display = 'none'; initBoard(id, firstPlayer); }, 1500);
+                }
+            }, 100);
+        }
+
+        function initBoard(id, firstPlayer) {
+            games[id].state = 'playing'; games[id].active = true; games[id].turn = firstPlayer; games[id].selected = null; games[id].validMoves = []; games[id].scores = {1: 2, 2: 2};
+            games[id].board = Array(SIZE).fill(null).map(() => Array(SIZE).fill(0));
+            games[id].board[0][0] = 1; games[id].board[6][6] = 1; games[id].board[0][6] = 2; games[id].board[6][0] = 2;
+            document.getElementById(`ui-${id}`).style.display = 'flex'; clearResultBadges(id);
+            setupPlayerInfo(id, 1, games[id].p1); setupPlayerInfo(id, 2, games[id].p2); updateScores(id); drawBoardGrid(id); updateTurnUI(id);
+        }
+
+        function clearResultBadges(id) {
+            document.querySelectorAll(`#ui-${id} .result-label`).forEach(el => el.remove());
+            document.getElementById(`p1-crown-${id}`).style.display = 'none'; document.getElementById(`p2-crown-${id}`).style.display = 'none';
+        }
+
+        function setupPlayerInfo(boardId, playerIdx, animal) {
+            const elId = playerIdx === 1 ? `p1` : `p2`;
+            document.getElementById(`${elId}-icon-${boardId}`).textContent = animal.icon;
+            document.getElementById(`${elId}-name-${boardId}`).textContent = animal.name;
+            const infoPanel = document.getElementById(`${elId}-info-${boardId}`);
+            infoPanel.style.setProperty('--glow-color', getVarColor(animal.color.replace('var(', '').replace(')', '')));
+        }
+
+        function drawBoardGrid(id) {
+            const boardEl = document.getElementById(`board-${id}`);
+            Array.from(boardEl.children).forEach(child => { if (!child.classList.contains('win-overlay')) boardEl.removeChild(child); });
+            const game = games[id];
+            
+            for (let r = 0; r < SIZE; r++) {
+                for (let c = 0; c < SIZE; c++) {
+                    const cell = document.createElement('div'); cell.className = 'cell'; cell.dataset.r = r; cell.dataset.c = c; const cellValue = game.board[r][c];
+                    if (cellValue !== 0) {
+                           const piece = createGermElement(id, cellValue);
+                           if (!game.active) piece.classList.add('germ-appear');
+                           if (game.active && cellValue === game.turn) { piece.classList.add('germ-idle'); }
+                           cell.appendChild(piece);
+                    }
+                    if (game.selected) {
+                        if (game.selected.r === r && game.selected.c === c) { cell.classList.add('selected'); }
+                        const move = game.validMoves.find(m => m.r === r && m.c === c);
+                        if (move) {
+                            if (move.type === 'clone') { cell.classList.add('hint-clone'); cell.setAttribute('data-hint', langData[currentLang].action_clone); }
+                            if (move.type === 'jump') { cell.classList.add('hint-jump'); cell.setAttribute('data-hint', langData[currentLang].action_jump); }
+                        }
+                    }
+                    const handleInput = (e) => { e.preventDefault(); onCellClick(id, r, c); };
+                    cell.addEventListener('touchstart', handleInput, { passive: false }); cell.addEventListener('mousedown', (e) => { onCellClick(id, r, c); });
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+        
+        function createGermElement(id, player) {
+            const animal = player === 1 ? games[id].p1 : games[id].p2; const colorHex = getVarColor(animal.color.replace('var(', '').replace(')', ''));
+            const div = document.createElement('div'); div.className = 'germ-piece';
+            div.innerHTML = `
+                <svg viewBox="0 0 100 100">
+                    <defs>
+                        <radialGradient id="grad-${id}-${player}" cx="30%" cy="30%" r="70%">
+                            <stop offset="0%" style="stop-color:#fff; stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:${colorHex}; stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <path d="M50 10 Q70 5 85 25 Q95 40 90 60 Q85 85 60 90 Q35 95 15 80 Q5 60 10 40 Q20 15 50 10 Z" fill="url(#grad-${id}-${player})" stroke="${colorHex}" stroke-width="3" />
+                    <circle cx="35" cy="40" r="5" fill="white" /><circle cx="35" cy="40" r="2" fill="black" />
+                    <circle cx="65" cy="40" r="5" fill="white" /><circle cx="65" cy="40" r="2" fill="black" />
+                    <path d="M40 65 Q50 75 60 65" stroke="black" stroke-width="2" fill="none" opacity="0.6"/>
+                </svg>
+            `;
+            return div;
+        }
+
+        function getValidMoves(board, r, c) {
+            const moves = [];
+            for (let dr = -2; dr <= 2; dr++) {
+                for (let dc = -2; dc <= 2; dc++) {
+                    const nr = r + dr; const nc = c + dc;
+                    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
+                    if (dr === 0 && dc === 0) continue;
+                    if (board[nr][nc] !== 0) continue;
+                    const dist = Math.max(Math.abs(dr), Math.abs(dc));
+                    if (dist === 1) moves.push({r: nr, c: nc, type: 'clone'}); else if (dist === 2) moves.push({r: nr, c: nc, type: 'jump'});
+                }
+            }
+            return moves;
+        }
+
+        function hasAnyMoves(board, player) {
+            for(let r=0; r<SIZE; r++) {
+                for(let c=0; c<SIZE; c++) {
+                    if(board[r][c] === player && getValidMoves(board, r, c).length > 0) return true;
+                }
+            }
+            return false;
+        }
+
+        function onCellClick(id, r, c) {
+            const game = games[id]; if (!game.active) return; const cellValue = game.board[r][c];
+            if (cellValue === game.turn) {
+                game.selected = {r, c}; game.validMoves = getValidMoves(game.board, r, c);
+                playStoneSound(game.turn === 1 ? game.p1.id : game.p2.id); drawBoardGrid(id); return;
+            }
+            const move = game.validMoves.find(m => m.r === r && m.c === c);
+            if (move && game.selected) { executeMove(id, move); } else { game.selected = null; game.validMoves = []; drawBoardGrid(id); }
+        }
+
+        function executeMove(id, move) {
+            const game = games[id]; if (!game.active) return; game.active = false; 
+            const currentPlayer = game.turn; const fromR = game.selected.r; const fromC = game.selected.c;
+            
+            game.board[move.r][move.c] = currentPlayer; if (move.type === 'jump') { game.board[fromR][fromC] = 0; }
+            playActionSound(move.type);
+
+            const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+            const opponent = currentPlayer === 1 ? 2 : 1; const infectedCells = [];
+            directions.forEach(([dr, dc]) => {
+                const nr = move.r + dr; const nc = move.c + dc;
+                if(nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && game.board[nr][nc] === opponent) {
+                    game.board[nr][nc] = currentPlayer; infectedCells.push({r: nr, c: nc});
+                }
+            });
+
+            game.selected = null; game.validMoves = []; updateScores(id); drawBoardGrid(id);
+            let animationDelay = 0;
+            if(infectedCells.length > 0) {
+                animationDelay = 1000; setTimeout(() => playActionSound('infect'), 150);
+                const boardEl = document.getElementById(`board-${id}`); const cells = boardEl.querySelectorAll('.cell');
+                infectedCells.forEach(pos => {
+                    const idx = pos.r * SIZE + pos.c; const cell = cells[idx]; const piece = cell.querySelector('.germ-piece');
+                    if(piece) piece.classList.add('germ-infect');
+                    const floatText = document.createElement('div'); floatText.className = 'floating-text'; floatText.textContent = langData[currentLang].infect_txt;
+                    cell.appendChild(floatText); setTimeout(() => floatText.remove(), 2000);
+                });
+            }
+
+            setTimeout(() => {
+                const p1Cnt = game.scores[1]; const p2Cnt = game.scores[2]; const emptyCnt = SIZE*SIZE - (p1Cnt + p2Cnt);
+                if (p1Cnt === 0 || p2Cnt === 0 || emptyCnt === 0) { endGame(id); return; }
+                const nextPlayer = currentPlayer === 1 ? 2 : 1;
+                if (hasAnyMoves(game.board, nextPlayer)) { game.turn = nextPlayer; game.active = true; } 
+                else { if (hasAnyMoves(game.board, currentPlayer)) { game.active = true; } else { endGame(id); return; } }
+                updateTurnUI(id); drawBoardGrid(id);
+            }, animationDelay + 100); 
+        }
+
+        function updateScores(id) {
+            let p1 = 0, p2 = 0;
+            for(let r=0; r<SIZE; r++) { for(let c=0; c<SIZE; c++) { if(games[id].board[r][c] === 1) p1++; if(games[id].board[r][c] === 2) p2++; } }
+            games[id].scores[1] = p1; games[id].scores[2] = p2;
+            document.getElementById(`p1-score-${id}`).textContent = p1; document.getElementById(`p2-score-${id}`).textContent = p2;
+        }
+
+        function updateTurnUI(id) {
+            const game = games[id];
+            if (game.turn === 1) { document.getElementById(`p1-info-${id}`).classList.add('active-turn'); document.getElementById(`p2-info-${id}`).classList.remove('active-turn'); } 
+            else { document.getElementById(`p1-info-${id}`).classList.remove('active-turn'); document.getElementById(`p2-info-${id}`).classList.add('active-turn'); }
+        }
+
+        function endGame(id) {
+            games[id].active = false; updateScores(id);
+            const p1Score = games[id].scores[1]; const p2Score = games[id].scores[2];
+            const overlay = document.getElementById(`win-${id}`); const icon = document.getElementById(`win-icon-${id}`); const msg = document.getElementById(`win-msg-${id}`);
+            let winner = null; if (p1Score > p2Score) winner = 1; else if (p2Score > p1Score) winner = 2;
+            
+            if (winner === null) {
+                playStartSound(); icon.textContent = "🤝"; msg.textContent = langData[currentLang].draw_msg; msg.style.color = "#fff";
+                createResultLabel(id, 1, langData[currentLang].draw_msg, 'res-lose'); createResultLabel(id, 2, langData[currentLang].draw_msg, 'res-lose');
+            } else {
+                const winnerAnimal = winner === 1 ? games[id].p1 : games[id].p2;
+                playWinSound(); icon.textContent = winnerAnimal.icon; msg.textContent = `${winnerAnimal.name} ${langData[currentLang].win_msg}`;
+                msg.style.color = getVarColor(winnerAnimal.color.replace('var(', '').replace(')', ''));
+                document.getElementById(`p${winner}-crown-${id}`).style.display = 'block';
+                const winText = ""; const loseText = langData[currentLang].lose_msg;
+                createResultLabel(id, 1, winner === 1 ? winText : loseText, winner === 1 ? 'res-win' : 'res-lose');
+                createResultLabel(id, 2, winner === 2 ? winText : loseText, winner === 2 ? 'res-win' : 'res-lose');
+            }
+            overlay.classList.add('active');
+        }
+        
+        function createResultLabel(id, playerNum, text, className) {
+             const label = document.createElement('div'); label.className = `result-label ${className}`; label.textContent = text;
+             document.getElementById(`p${playerNum}-info-${id}`).appendChild(label);
+        }
+
+        function resetGame(id) { initSelection(id); }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => { console.log(`Error: ${err.message}`); }); } 
+            else { if (document.exitFullscreen) { document.exitFullscreen(); } }
+        }
+
+        // 페이지 초기 렌더링 세팅
+        window.onload = () => {
+            renderLanguages();
+            initLanguage();
+        };
+    </script>
+</body>
+</html>

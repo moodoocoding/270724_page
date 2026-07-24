@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="description" content="확률킹 - 직관과 계산의 대결! 움직이는 바늘을 멈춰 더 높은 확률을 선택하고 승리하세요. 초등 수학 확률 게임.">
+    <meta name="keywords" content="확률게임, 수학게임, 초등수학, 킹수학, 교육용게임, 확률공부, 두뇌게임">
+    <meta property="og:title" content="확률킹 - 타이밍 배틀">
+    <meta property="og:description" content="직관과 계산의 대결! 친구들과 함께 즐기는 실시간 확률 게임">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/">
+    
+    <title>확률킹 - 타이밍 배틀</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* --- 기본 설정 --- */
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            
+            /* Team Colors */
+            --p0-main: #e74c3c; --p0-light: #ff7675; /* Red/Pink */
+            --p1-main: #3498db; --p1-light: #74b9ff; /* Blue */
+            --p2-main: #9b59b6; --p2-light: #a29bfe; /* Purple */
+            --p3-main: #2ecc71; --p3-light: #55efc4; /* Green */
+
+            --zone-a-color: #ff6b6b; /* Left Zone Color */
+            --zone-b-color: #48dbfb; /* Right Zone Color */
+        }
+
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            
+            /* --- 전자칠판 최적화 --- */
+            touch-action: none; 
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            overscroll-behavior: none;
+            
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        .top-link {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            transition: color 0.3s;
+            text-align: center;
+            display: block;
+            margin-top: -10px;
+        }
+        .top-link:hover { color: #fff; text-decoration: underline; }
+
+        .bottom-link {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            color: #81ecec;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+        .bottom-link:hover { transform: scale(1.05); color: #fff; text-decoration: underline; }
+
+        /* --- 헤더 --- */
+        header {
+            background-color: #1e1e1e;
+            color: var(--accent-color);
+            padding: 0 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            height: 70px;
+            position: relative;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 1px 1px 0 #000;
+            cursor: pointer;
+            position: absolute;
+            left: 30px;
+        }
+
+        /* 타이머 */
+        #header-info {
+            display: none;
+            align-items: center;
+            gap: 20px;
+        }
+        #timer-display {
+            font-size: 2.5rem;
+            color: #fff;
+            background: #444;
+            padding: 5px 20px;
+            border-radius: 15px;
+            border: 2px solid #666;
+            min-width: 80px;
+            text-align: center;
+            box-shadow: inset 0 0 10px #000;
+        }
+        #timer-display.urgent {
+            background: #c0392b;
+            animation: blink 0.5s infinite alternate;
+        }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
+
+        /* --- 메인 컨테이너 --- */
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: calc(100% - 70px);
+        }
+
+        /* --- 설정 화면 --- */
+        #setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 30px 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid #444;
+            max-height: 90vh;
+            overflow-y: auto;
+            min-width: 360px;
+            z-index: 20;
+        }
+
+        .screen-title { 
+            font-size: 4rem;
+            color: #fff; 
+            text-shadow: 3px 3px 0 #000; 
+            margin-bottom: 10px; 
+            line-height: 1.2;
+            text-align: center;
+        }
+        .option-section { width: 100%; text-align: center; margin-bottom: 10px; }
+        .label-text { color: #aaa; margin-bottom: 8px; font-size: 1.3rem; }
+        .option-group { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        .btn-option {
+            padding: 15px 25px; font-size: 1.3rem; border: 2px solid #555; background: #222;
+            color: #aaa; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+            touch-action: none; 
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active); color: white; border-color: var(--btn-active);
+            box-shadow: 0 0 10px var(--btn-active); transform: translateY(-2px);
+        }
+
+        #btn-start {
+            margin-top: 10px; padding: 15px 70px; font-size: 2.2rem;
+            background-color: #ff7675; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 6px 0 #d63031; font-family: inherit; cursor: pointer;
+            transition: transform 0.1s;
+            touch-action: none;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        /* --- 게임 보드 --- */
+        #game-board {
+            display: none; width: 100%; height: 100%; padding: 10px; padding-bottom: 20px;
+            box-sizing: border-box; flex-direction: row; justify-content: center;
+            align-items: stretch; gap: 15px;
+        }
+
+        /* 플레이어 카드 */
+        .team-card {
+            background: var(--card-bg);
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            border: 3px solid #666;
+            flex: 0 0 23%; 
+            min-width: 250px; 
+            max-width: 400px; 
+            transition: all 0.3s;
+        }
+
+        .team-0 { border-color: var(--p0-main); }
+        .team-0 .player-label { color: var(--p0-light); }
+        .team-1 { border-color: var(--p1-main); }
+        .team-1 .player-label { color: var(--p1-light); }
+        .team-2 { border-color: var(--p2-main); }
+        .team-2 .player-label { color: var(--p2-light); }
+        .team-3 { border-color: var(--p3-main); }
+        .team-3 .player-label { color: var(--p3-light); }
+
+        .crown-icon {
+            position: absolute; top: -40px; left: 50%; transform: translateX(-50%) scale(0.5);
+            font-size: 3rem; opacity: 0; transition: all 0.4s; z-index: 9990; pointer-events: none;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .crown-icon.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+        .player-label {
+            font-size: 1.8rem; margin-bottom: 5px; text-shadow: 1px 1px 0 #000; text-align: center;
+        }
+
+        .prob-display {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 5px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+        .prob-bar-container {
+            width: 100%; height: 15px; background: #222; border-radius: 10px;
+            overflow: hidden; margin-bottom: 10px; border: 1px solid #555;
+        }
+        .prob-bar-fill {
+            height: 100%; width: 0%; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .team-0 .prob-bar-fill { background-color: var(--p0-main); }
+        .team-1 .prob-bar-fill { background-color: var(--p1-main); }
+        .team-2 .prob-bar-fill { background-color: var(--p2-main); }
+        .team-3 .prob-bar-fill { background-color: var(--p3-main); }
+
+        /* 문제 영역 */
+        .problem-area {
+            flex: 1; width: 100%; display: flex; flex-direction: column;
+            gap: 5px; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.2); border-radius: 15px; padding: 10px; box-sizing: border-box;
+        }
+
+        .vs-container {
+            display: flex; width: 100%; gap: 5px; flex: 1;
+        }
+        .option-box {
+            flex: 1; display: flex; flex-direction: column; justify-content: start; align-items: center;
+            border-radius: 10px; padding: 5px; text-align: center; position: relative;
+            word-break: keep-all; font-size: 1.1rem; line-height: 1.3;
+            border: 2px solid transparent;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .option-a { background: rgba(255, 107, 107, 0.15); color: #ffadad; border-color: rgba(255, 107, 107, 0.3); }
+        .option-b { background: rgba(72, 219, 251, 0.15); color: #7efff5; border-color: rgba(72, 219, 251, 0.3); }
+        
+        .option-box.reveal { border-width: 3px; background: rgba(0,0,0,0.6); }
+        
+        .option-title { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; }
+        .option-content { flex: 1; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+
+        .answer-placeholder {
+            height: 40px; width: 100%; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.5); border-radius: 5px; margin-top: 5px;
+            font-size: 2.2rem;
+            color: var(--accent-color);
+            visibility: hidden;
+            transition: opacity 0.3s;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .answer-placeholder.show {
+            visibility: visible;
+            animation: fadeIn 0.3s forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .gauge-wrapper {
+            width: 100%; height: 40px; position: relative; margin: 5px 0;
+            border-radius: 25px; overflow: hidden; border: 3px solid #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .gauge-bg {
+            display: flex; width: 100%; height: 100%;
+        }
+        .zone-a { width: 50%; height: 100%; background: var(--zone-a-color); display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,0.3); font-size: 1.2rem; }
+        .zone-b { width: 50%; height: 100%; background: var(--zone-b-color); display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,0.3); font-size: 1.2rem; }
+        
+        .needle {
+            position: absolute; top: 0; bottom: 0; width: 6px; background: #fff;
+            left: 50%; transform: translateX(-50%);
+            box-shadow: 0 0 10px #000; z-index: 5;
+            border-radius: 3px;
+        }
+
+        .stop-btn {
+            width: 100%; padding: 12px 0; margin-top: 5px;
+            font-size: 2rem; border-radius: 15px; border: none;
+            background: linear-gradient(to bottom, #f1c40f, #f39c12);
+            color: #fff; font-family: inherit;
+            box-shadow: 0 6px 0 #d35400; cursor: pointer;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            touch-action: none;
+        }
+        .stop-btn:active { transform: translateY(6px); box-shadow: none; }
+        .stop-btn:disabled { background: #555; color: #888; box-shadow: none; transform: none; cursor: not-allowed; }
+
+        .instruction-text {
+            color: #aaa; font-size: 0.9rem; text-align: center;
+            margin: 30px 0;
+            word-break: keep-all;
+        }
+
+        .feedback {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 6rem; z-index: 30; text-shadow: 0 0 20px rgba(0,0,0,1);
+            pointer-events: none; opacity: 0;
+        }
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        #countdown-overlay {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 15rem; color: #ff7675; z-index: 100;
+            text-shadow: 0 0 50px rgba(255, 0, 0, 0.5); display: none;
+            pointer-events: none; font-family: inherit;
+            animation: pulseCount 0.8s infinite;
+        }
+        @keyframes pulseCount {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .win-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            border-radius: 15px; display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 50;
+            backdrop-filter: blur(5px); animation: popIn 0.3s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .rank-medal { font-size: 5rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .rank-text { font-size: 3rem; color: var(--accent-color); margin-bottom: 10px; }
+        .final-score { font-size: 1.5rem; color: #fff; margin-bottom: 20px; }
+
+        .floating-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px;
+            border-radius: 50%; background: #444; color: white; display: flex;
+            justify-content: center; align-items: center; font-size: 1.5rem;
+            z-index: 60; border: 2px solid #666; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer; touch-action: none;
+        }
+        .floating-btn:active { transform: scale(0.9); }
+        #btn-home { left: 20px; }
+        #btn-fullscreen { right: 20px; }
+        
+        #confetti-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 100; }
+        .confetti { position: absolute; width: 10px; height: 10px; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        #game-over-controls {
+            display: none; position: absolute; bottom: 10%; left: 50%;
+            transform: translateX(-50%); z-index: 200;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #btn-restart {
+            padding: 15px 50px; font-size: 2.2rem; font-family: inherit;
+            background: linear-gradient(to bottom, #00b894, #00cec9);
+            color: white; border: 4px solid #fff; border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4), 0 6px 0 #006266;
+            cursor: pointer; text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s; pointer-events: auto;
+            touch-action: none;
+        }
+        #btn-restart:hover { filter: brightness(1.1); transform: scale(1.05); }
+        #btn-restart:active { transform: scale(0.95) translateY(6px); box-shadow: 0 4px 0 #006266; }
+
+        /* --- UI CSS 시작 --- */
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        .toast {
+            transform: translateY(100%); opacity: 0; transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        
+        /* 텍스트 자동 조절 클래스 */
+        .auto-resize {
+            transition: font-size 0.2s;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false">
+
+    <div id="langSelectorContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6" style="z-index: 99999;">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="color: #fff;">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/us.png" alt="US" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">English</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4" style="z-index: 99999;">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-left" style="color:#fff;">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3" style="z-index: 99999;">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div class="text-left">
+            <p id="ui-toast" class="text-sm font-medium text-white">Language changed.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">English</p>
+        </div>
+    </div>
+
+    <header>
+        <h1 onclick="location.reload()" id="game-title">🎲 확률킹</h1>
+        <div id="header-info">
+            <div id="timer-display">60</div>
+        </div>
+    </header>
+
+    <div id="app-container">
+        
+        <div id="setup-screen">
+            <a href="/" target="_self" class="top-link auto-resize" id="link-top">게임으로 수학의 킹이 되어라. 킹수학.com</a>
+
+            <div class="screen-title auto-resize" id="screen-title">👑 확률킹</div>
+            <div class="label-text auto-resize" id="screen-desc">움직이는 바늘을 더 높은 확률에 멈추세요!</div>
+            
+            <div class="option-section">
+                <div class="label-text auto-resize" id="player-label">참여 인원</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option auto-resize" data-value="1"><span id="p1-text">1인</span> 👤</div>
+                    <div class="btn-option auto-resize" data-value="2"><span id="p2-text">2인</span> 👥</div>
+                    <div class="btn-option auto-resize" data-value="3"><span id="p3-text">3인</span> 👨‍👩‍👧</div>
+                    <div class="btn-option selected auto-resize" data-value="4"><span id="p4-text">4인</span> 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <button id="btn-start" class="auto-resize">게임 시작! 🚀</button>
+            
+            <a href="/" target="_self" class="bottom-link auto-resize" id="link-bottom">🎮 다른 게임 고르기</a>
+        </div>
+
+        <div id="game-board">
+        </div>
+
+        <div id="game-over-controls">
+            <button id="btn-restart" class="auto-resize">🔄 다시 하기</button>
+        </div>
+        
+        <div id="countdown-overlay"></div>
+
+    </div>
+
+    <div id="btn-home" class="floating-btn">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+    <div id="confetti-container"></div>
+
+    <script>
+        // --- 0. 다국어 데이터 및 설정 ---
+        let currentLang = 'en'; 
+
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'vi': 'Ngôn ngữ đã được thay đổi.',
+            'id': 'Bahasa telah diubah.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.', 'hi': 'भाषा बदल दी गई है।',
+            'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.', 'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        const TRANSLATIONS = {
+            ko: {
+                title: "🎲 확률킹", screenTitle: "👑 확률킹", screenDesc: "움직이는 바늘을 더 높은 확률에 멈추세요!", playerLabel: "참여 인원", startBtn: "게임 시작! 🚀", restartBtn: "🔄 다시 하기",
+                p1: "1인", p2: "2인", p3: "3인", p4: "4인", topLinkText: "게임으로 수학의 킹이 되어라. 킹수학.com", bottomLinkText: "🎮 다른 게임 고르기", winRate: "승리 확률", optionA: "선택 A", optionB: "선택 B",
+                stopBtn: "STOP!", instruction: "움직이는 바늘을 더 높은 확률에 멈추세요.", win: "우승!", rank2: "2등", rank3: "3등", rank4: "4위", finalScore: "최종 확률",
+                animal0: "🐶 강아지", animal1: "🐱 고양이", animal2: "🐰 토끼", animal3: "🐹 햄스터",
+                coinName: "동전 {n}개", diceName: "주사위 {n}개", bagName: "구슬 {n}개", rpsName: "가위바위보", coinHead: "앞면", coinTail: "뒷면", coinAllHead: "모두 앞면", coinAllTail: "모두 뒷면", coinDiff: "서로 다른 면",
+                coinHead1: "앞면이 1개", coinTailAtLeast1: "적어도 뒷면 1개", diceEven: "짝수의 눈", diceMul3: "3의 배수", diceOver5: "5 이상의 눈", dice1: "1의 눈", diceSum7: "합이 7", diceSumEven: "합이 짝수", diceSame: "두 눈이 같음", diceSum12: "합이 12",
+                bagDesc: "빨강 {r}개, 파랑 {b}개\n빨간 공 뽑기", rpsWin: "상대를 이김", rpsDraw: "비김", rpsLose: "상대에게 짐", metaDesc: "확률킹 - 직관과 계산의 대결! 움직이는 바늘을 멈춰 더 높은 확률을 선택하고 승리하세요. 초등 수학 확률 게임.", metaKeywords: "확률게임, 수학게임, 초등수학, 킹수학, 교육용게임, 확률공부, 두뇌게임"
+            },
+            en: {
+                title: "🎲 Probability King", screenTitle: "👑 Probability King", screenDesc: "Stop the needle on the higher probability!", playerLabel: "Players", startBtn: "Start Game! 🚀", restartBtn: "🔄 Play Again",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Become the Math King. KingsMath.com", bottomLinkText: "🎮 Choose Another Game", winRate: "Win Rate", optionA: "Option A", optionB: "Option B",
+                stopBtn: "STOP!", instruction: "Stop the needle on the higher probability.", win: "Winner!", rank2: "2nd", rank3: "3rd", rank4: "4th", finalScore: "Final Score",
+                animal0: "🐶 Dog", animal1: "🐱 Cat", animal2: "🐰 Rabbit", animal3: "🐹 Hamster",
+                coinName: "{n} Coin(s)", diceName: "{n} Dice", bagName: "{n} Beads", rpsName: "Rock Paper Scissors", coinHead: "Heads", coinTail: "Tails", coinAllHead: "All Heads", coinAllTail: "All Tails", coinDiff: "Different Sides",
+                coinHead1: "One Head", coinTailAtLeast1: "At least 1 Tail", diceEven: "Even Number", diceMul3: "Multiple of 3", diceOver5: "5 or more", dice1: "Number 1", diceSum7: "Sum is 7", diceSumEven: "Sum is Even", diceSame: "Double", diceSum12: "Sum is 12",
+                bagDesc: "Red {r}, Blue {b}\nPick Red", rpsWin: "Win", rpsDraw: "Draw", rpsLose: "Lose", metaDesc: "Probability King - Battle of intuition and calculation! Stop the needle to choose higher probability.", metaKeywords: "probability game, math game, elementary math, KingsMath, educational game"
+            },
+            zh: {
+                title: "🎲 概率之王", screenTitle: "👑 概率之王", screenDesc: "将指针停在概率更高的地方！", playerLabel: "玩家人数", startBtn: "开始游戏！🚀", restartBtn: "🔄 再玩一次",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人", topLinkText: "成为数学之王。KingsMath.com", bottomLinkText: "🎮 选择其他游戏", winRate: "胜率", optionA: "选项 A", optionB: "选项 B",
+                stopBtn: "停！", instruction: "选择概率更高的一边。", win: "冠军！", rank2: "第二名", rank3: "第三名", rank4: "第四名", finalScore: "最终得分",
+                animal0: "🐶 小狗", animal1: "🐱 小猫", animal2: "🐰 兔子", animal3: "🐹 仓鼠",
+                coinName: "{n}个硬币", diceName: "{n}个骰子", bagName: "{n}个珠子", rpsName: "石头剪刀布", coinHead: "正面", coinTail: "反面", coinAllHead: "全正面", coinAllTail: "全反面", coinDiff: "不同面",
+                coinHead1: "1个正面", coinTailAtLeast1: "至少1个反面", diceEven: "偶数", diceMul3: "3的倍数", diceOver5: "5以上", dice1: "点数1", diceSum7: "和为7", diceSumEven: "和为偶数", diceSame: "点数相同", diceSum12: "和为12",
+                bagDesc: "红{r}, 蓝{b}\n摸到红色", rpsWin: "赢", rpsDraw: "平局", rpsLose: "输", metaDesc: "概率之王 - 直觉与计算的对决！选择更高的概率并获胜。", metaKeywords: "概率游戏, 数学游戏, 小学数学, KingsMath, 教育游戏"
+            },
+            ja: {
+                title: "🎲 確率の王様", screenTitle: "👑 確率の王様", screenDesc: "動く針を確率が高い方で止めよう！", playerLabel: "参加人数", startBtn: "ゲーム開始！🚀", restartBtn: "🔄 もう一度",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人", topLinkText: "数学の王になろう。KingsMath.com", bottomLinkText: "🎮 他のゲームを選ぶ", winRate: "勝率", optionA: "選択 A", optionB: "選択 B",
+                stopBtn: "ストップ！", instruction: "確率が高い方で針を止めてね。", win: "優勝！", rank2: "2位", rank3: "3位", rank4: "4位", finalScore: "最終確率",
+                animal0: "🐶 イヌ", animal1: "🐱 ネコ", animal2: "🐰 ウサギ", animal3: "🐹 ハムスター",
+                coinName: "コイン{n}枚", diceName: "サイコロ{n}個", bagName: "玉{n}個", rpsName: "じゃんけん", coinHead: "表", coinTail: "裏", coinAllHead: "すべて表", coinAllTail: "すべて裏", coinDiff: "違う面",
+                coinHead1: "表が1枚", coinTailAtLeast1: "少なくとも裏1枚", diceEven: "偶数", diceMul3: "3の倍数", diceOver5: "5以上", dice1: "1の目", diceSum7: "合計が7", diceSumEven: "合計が偶数", diceSame: "ゾロ目", diceSum12: "合計が12",
+                bagDesc: "赤{r}, 青{b}\n赤を引く", rpsWin: "勝ち", rpsDraw: "あいこ", rpsLose: "負け", metaDesc: "確率の王様 - 直感と計算の勝負！高い確率を選んで勝利しよう。", metaKeywords: "確率ゲーム, 数学ゲーム, 小学生数学, KingsMath, 教育ゲーム"
+            },
+            es: {
+                title: "🎲 Rey de Probabilidad", screenTitle: "👑 Rey Probabilidad", screenDesc: "¡Detén la aguja en la mayor probabilidad!", playerLabel: "Jugadores", startBtn: "¡Empezar! 🚀", restartBtn: "🔄 Jugar de nuevo",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Conviértete en el Rey. KingsMath.com", bottomLinkText: "🎮 Elegir otro juego", winRate: "Tasa Victoria", optionA: "Opción A", optionB: "Opción B",
+                stopBtn: "¡ALTO!", instruction: "Elige la probabilidad más alta.", win: "¡Ganador!", rank2: "2º", rank3: "3º", rank4: "4º", finalScore: "Puntuación",
+                animal0: "🐶 Perro", animal1: "🐱 Gato", animal2: "🐰 Conejo", animal3: "🐹 Hámster",
+                coinName: "{n} Moneda(s)", diceName: "{n} Dado(s)", bagName: "{n} Cuentas", rpsName: "Piedra Papel Tijeras", coinHead: "Cara", coinTail: "Cruz", coinAllHead: "Todo Cara", coinAllTail: "Todo Cruz", coinDiff: "Lados Diferentes",
+                coinHead1: "Una Cara", coinTailAtLeast1: "Al menos 1 Cruz", diceEven: "Par", diceMul3: "Múltiplo de 3", diceOver5: "5 o más", dice1: "Número 1", diceSum7: "Suma 7", diceSumEven: "Suma Par", diceSame: "Doble", diceSum12: "Suma 12",
+                bagDesc: "Rojo {r}, Azul {b}\nSacar Rojo", rpsWin: "Ganar", rpsDraw: "Empate", rpsLose: "Perder", metaDesc: "Rey de Probabilidad - ¡Batalla de intuición!", metaKeywords: "juego probabilidad, matemáticas, KingsMath"
+            },
+            fr: {
+                title: "🎲 Roi de Probabilité", screenTitle: "👑 Roi Probabilité", screenDesc: "Arrêtez l'aiguille sur la plus haute probabilité !", playerLabel: "Joueurs", startBtn: "Commencer ! 🚀", restartBtn: "🔄 Rejouer",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Devenez le roi des maths. KingsMath.com", bottomLinkText: "🎮 Autre jeu", winRate: "Victoire", optionA: "Option A", optionB: "Option B",
+                stopBtn: "STOP !", instruction: "Choisissez la probabilité la plus élevée.", win: "Vainqueur !", rank2: "2ème", rank3: "3ème", rank4: "4ème", finalScore: "Score",
+                animal0: "🐶 Chien", animal1: "🐱 Chat", animal2: "🐰 Lapin", animal3: "🐹 Hamster",
+                coinName: "{n} Pièce(s)", diceName: "{n} Dé(s)", bagName: "{n} Billes", rpsName: "Pierre Papier Ciseaux", coinHead: "Face", coinTail: "Pile", coinAllHead: "Tout Face", coinAllTail: "Tout Pile", coinDiff: "Différents",
+                coinHead1: "Une Face", coinTailAtLeast1: "Au moins 1 Pile", diceEven: "Pair", diceMul3: "Multiple de 3", diceOver5: "5 ou plus", dice1: "Numéro 1", diceSum7: "Somme 7", diceSumEven: "Somme Paire", diceSame: "Double", diceSum12: "Somme 12",
+                bagDesc: "Rouge {r}, Bleu {b}\nTirer Rouge", rpsWin: "Gagner", rpsDraw: "Égalité", rpsLose: "Perdre", metaDesc: "Roi de Probabilité - Bataille d'intuition !", metaKeywords: "probabilité, mathématiques, KingsMath"
+            },
+            ru: {
+                title: "🎲 Король Вероятности", screenTitle: "👑 Вероятность", screenDesc: "Остановите стрелку на большей вероятности!", playerLabel: "Игроки", startBtn: "Начать! 🚀", restartBtn: "🔄 Снова",
+                p1: "1И", p2: "2И", p3: "3И", p4: "4И", topLinkText: "Стань королем математики. KingsMath.com", bottomLinkText: "🎮 Другая игра", winRate: "Шанс", optionA: "Вариант A", optionB: "Вариант B",
+                stopBtn: "СТОП!", instruction: "Выберите более высокую вероятность.", win: "Победитель!", rank2: "2-е", rank3: "3-е", rank4: "4-е", finalScore: "Счет",
+                animal0: "🐶 Собака", animal1: "🐱 Кот", animal2: "🐰 Кролик", animal3: "🐹 Хомяк",
+                coinName: "Монет: {n}", diceName: "Костей: {n}", bagName: "Шариков: {n}", rpsName: "Камень-Ножницы-Бумага", coinHead: "Орел", coinTail: "Решка", coinAllHead: "Все Орлы", coinAllTail: "Все Решки", coinDiff: "Разные",
+                coinHead1: "Один Орел", coinTailAtLeast1: "Хотя бы 1 Решка", diceEven: "Четное", diceMul3: "Кратно 3", diceOver5: "5+", dice1: "Номер 1", diceSum7: "Сумма 7", diceSumEven: "Сумма четная", diceSame: "Дубль", diceSum12: "Сумма 12",
+                bagDesc: "Кр {r}, Син {b}\nТянуть Красный", rpsWin: "Победа", rpsDraw: "Ничья", rpsLose: "Поражение", metaDesc: "Король Вероятности - Битва интуиции!", metaKeywords: "вероятность, математика, KingsMath"
+            },
+            id: {
+                title: "🎲 Raja Peluang", screenTitle: "👑 Raja Peluang", screenDesc: "Hentikan jarum di peluang yang lebih tinggi!", playerLabel: "Pemain", startBtn: "Mulai! 🚀", restartBtn: "🔄 Main Lagi",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Jadilah Raja Matematika. KingsMath.com", bottomLinkText: "🎮 Pilih Game Lain", winRate: "Tingkat Menang", optionA: "Opsi A", optionB: "Opsi B",
+                stopBtn: "STOP!", instruction: "Pilih peluang tertinggi.", win: "Pemenang!", rank2: "Ke-2", rank3: "Ke-3", rank4: "Ke-4", finalScore: "Skor",
+                animal0: "🐶 Anjing", animal1: "🐱 Kucing", animal2: "🐰 Kelinci", animal3: "🐹 Hamster",
+                coinName: "{n} Koin", diceName: "{n} Dadu", bagName: "{n} Manik", rpsName: "Batu Gunting Kertas", coinHead: "Angka", coinTail: "Gambar", coinAllHead: "Semua Angka", coinAllTail: "Semua Gambar", coinDiff: "Berbeda",
+                coinHead1: "1 Angka", coinTailAtLeast1: "Min 1 Gambar", diceEven: "Genap", diceMul3: "Kelipatan 3", diceOver5: "5 ke atas", dice1: "Nomor 1", diceSum7: "Jumlah 7", diceSumEven: "Jumlah Genap", diceSame: "Kembar", diceSum12: "Jumlah 12",
+                bagDesc: "Merah {r}, Biru {b}\nAmbil Merah", rpsWin: "Menang", rpsDraw: "Seri", rpsLose: "Kalah", metaDesc: "Raja Peluang - Pertarungan intuisi!", metaKeywords: "peluang, matematika, KingsMath"
+            },
+            vi: {
+                title: "🎲 Vua Xác Suất", screenTitle: "👑 Vua Xác Suất", screenDesc: "Dừng kim ở xác suất cao hơn!", playerLabel: "Người chơi", startBtn: "Bắt đầu! 🚀", restartBtn: "🔄 Chơi Lại",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Trở thành Vua Toán học. KingsMath.com", bottomLinkText: "🎮 Chọn Trò Chơi Khác", winRate: "Tỉ lệ thắng", optionA: "Tùy chọn A", optionB: "Tùy chọn B",
+                stopBtn: "DỪNG!", instruction: "Chọn xác suất cao hơn.", win: "Chiến thắng!", rank2: "Hạng 2", rank3: "Hạng 3", rank4: "Hạng 4", finalScore: "Điểm",
+                animal0: "🐶 Chó", animal1: "🐱 Mèo", animal2: "🐰 Thỏ", animal3: "🐹 Chuột",
+                coinName: "{n} Đồng Xu", diceName: "{n} Xúc Xắc", bagName: "{n} Viên Bi", rpsName: "Oẳn tù tì", coinHead: "Ngửa", coinTail: "Sấp", coinAllHead: "Tất cả Ngửa", coinAllTail: "Tất cả Sấp", coinDiff: "Khác nhau",
+                coinHead1: "1 Ngửa", coinTailAtLeast1: "Ít nhất 1 Sấp", diceEven: "Số Chẵn", diceMul3: "Bội số 3", diceOver5: "Từ 5 trở lên", dice1: "Số 1", diceSum7: "Tổng 7", diceSumEven: "Tổng Chẵn", diceSame: "Cặp đôi", diceSum12: "Tổng 12",
+                bagDesc: "Đỏ {r}, Xanh {b}\nChọn Đỏ", rpsWin: "Thắng", rpsDraw: "Hòa", rpsLose: "Thua", metaDesc: "Vua Xác Suất - Trận chiến trực giác!", metaKeywords: "xác suất, toán học, KingsMath"
+            },
+            th: {
+                title: "🎲 ราชาความน่าจะเป็น", screenTitle: "👑 ราชาความน่าจะเป็น", screenDesc: "หยุดเข็มที่ความน่าจะเป็นที่สูงกว่า!", playerLabel: "ผู้เล่น", startBtn: "เริ่มเกม! 🚀", restartBtn: "🔄 เล่นอีกครั้ง",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "เป็นราชาแห่งคณิตศาสตร์. KingsMath.com", bottomLinkText: "🎮 เลือกเกมอื่น", winRate: "อัตราการชนะ", optionA: "ตัวเลือก A", optionB: "ตัวเลือก B",
+                stopBtn: "หยุด!", instruction: "เลือกความน่าจะเป็นที่สูงกว่า", win: "ผู้ชนะ!", rank2: "ที่ 2", rank3: "ที่ 3", rank4: "ที่ 4", finalScore: "คะแนน",
+                animal0: "🐶 สุนัข", animal1: "🐱 แมว", animal2: "🐰 กระต่าย", animal3: "🐹 แฮมสเตอร์",
+                coinName: "เหรียญ {n}", diceName: "ลูกเต๋า {n}", bagName: "ลูกปัด {n}", rpsName: "เป่ายิ้งฉุบ", coinHead: "หัว", coinTail: "ก้อย", coinAllHead: "หัวทั้งหมด", coinAllTail: "ก้อยทั้งหมด", coinDiff: "หน้าต่างกัน",
+                coinHead1: "หัว 1 อัน", coinTailAtLeast1: "อย่างน้อยก้อย 1 อัน", diceEven: "เลขคู่", diceMul3: "พหุคูณ 3", diceOver5: "5 ขึ้นไป", dice1: "หมายเลข 1", diceSum7: "ผลรวม 7", diceSumEven: "ผลรวมคู่", diceSame: "เลขซ้ำ", diceSum12: "ผลรวม 12",
+                bagDesc: "แดง {r}, ฟ้า {b}\nหยิบแดง", rpsWin: "ชนะ", rpsDraw: "เสมอ", rpsLose: "แพ้", metaDesc: "ราชาความน่าจะเป็น - การต่อสู้ด้วยสัญชาตญาณ!", metaKeywords: "ความน่าจะเป็น, เกมคณิตศาสตร์, KingsMath"
+            },
+            "pt-br": {
+                title: "🎲 Rei da Probabilidade", screenTitle: "👑 Rei Probabilidade", screenDesc: "Pare a agulha na probabilidade maior!", playerLabel: "Jogadores", startBtn: "Começar! 🚀", restartBtn: "🔄 Jogar Novamente",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Torne-se o Rei da Matemática. KingsMath.com", bottomLinkText: "🎮 Escolher Outro Jogo", winRate: "Taxa Vitória", optionA: "Opção A", optionB: "Opção B",
+                stopBtn: "PARAR!", instruction: "Escolha a probabilidade mais alta.", win: "Vencedor!", rank2: "2º", rank3: "3º", rank4: "4º", finalScore: "Pontuação",
+                animal0: "🐶 Cachorro", animal1: "🐱 Gato", animal2: "🐰 Coelho", animal3: "🐹 Hamster",
+                coinName: "{n} Moeda(s)", diceName: "{n} Dado(s)", bagName: "{n} Contas", rpsName: "Pedra Papel Tesoura", coinHead: "Cara", coinTail: "Coroa", coinAllHead: "Tudo Cara", coinAllTail: "Tudo Coroa", coinDiff: "Lados Diferentes",
+                coinHead1: "Uma Cara", coinTailAtLeast1: "Ao menos 1 Coroa", diceEven: "Par", diceMul3: "Múltiplo de 3", diceOver5: "5 ou mais", dice1: "Número 1", diceSum7: "Soma 7", diceSumEven: "Soma Par", diceSame: "Duplo", diceSum12: "Soma 12",
+                bagDesc: "Vermelho {r}, Azul {b}\nTirar Vermelho", rpsWin: "Vencer", rpsDraw: "Empate", rpsLose: "Perder", metaDesc: "Rei da Probabilidade - Batalha de intuição!", metaKeywords: "probabilidade, matemática, KingsMath"
+            },
+            hi: {
+                title: "🎲 संभावना का राजा", screenTitle: "👑 संभावना का राजा", screenDesc: "उच्च संभावना पर सुई को रोकें!", playerLabel: "खिलाड़ी", startBtn: "शुरू करें! 🚀", restartBtn: "🔄 फिर से खेलें",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "गणित के राजा बनें। KingsMath.com", bottomLinkText: "🎮 अन्य खेल चुनें", winRate: "जीत दर", optionA: "विकल्प A", optionB: "विकल्प B",
+                stopBtn: "रुकें!", instruction: "उच्च संभावना चुनें।", win: "विजेता!", rank2: "दूसरा", rank3: "तीसरा", rank4: "चौथा", finalScore: "स्कोर",
+                animal0: "🐶 कुत्ता", animal1: "🐱 बिल्ली", animal2: "🐰 खरगोश", animal3: "🐹 हम्सटर",
+                coinName: "{n} सिक्का", diceName: "{n} पासा", bagName: "{n} मोती", rpsName: "रॉक पेपर कैंची", coinHead: "हेड्स", coinTail: "टेल्स", coinAllHead: "सभी हेड्स", coinAllTail: "सभी टेल्स", coinDiff: "अलग-अलग",
+                coinHead1: "एक हेड्स", coinTailAtLeast1: "कम से कम 1 टेल्स", diceEven: "सम संख्या", diceMul3: "3 का गुणज", diceOver5: "5 या अधिक", dice1: "संख्या 1", diceSum7: "योग 7", diceSumEven: "योग सम", diceSame: "डबल", diceSum12: "योग 12",
+                bagDesc: "लाल {r}, नीला {b}\nलाल चुनें", rpsWin: "जीत", rpsDraw: "ड्रॉ", rpsLose: "हार", metaDesc: "संभावना का राजा - अंतर्ज्ञान की लड़ाई!", metaKeywords: "संभावना, गणित, KingsMath"
+            },
+            bn: {
+                title: "🎲 সম্ভাবনার রাজা", screenTitle: "👑 সম্ভাবনার রাজা", screenDesc: "উচ্চ সম্ভাবনায় কাঁটা থামান!", playerLabel: "খেলোয়াড়", startBtn: "শুরু করুন! 🚀", restartBtn: "🔄 আবার খেলুন",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "গণিতের রাজা হোন। KingsMath.com", bottomLinkText: "🎮 অন্য খেলা বেছে নিন", winRate: "জয়ের হার", optionA: "বিকল্প A", optionB: "বিকল্প B",
+                stopBtn: "থামুন!", instruction: "উচ্চ সম্ভাবনা চয়ন করুন।", win: "বিজয়ী!", rank2: "দ্বিতীয়", rank3: "তৃতীয়", rank4: "চতুর্থ", finalScore: "স্কোর",
+                animal0: "🐶 কুকুর", animal1: "🐱 বিড়াল", animal2: "🐰 খরগোশ", animal3: "🐹 হ্যামস্টার",
+                coinName: "{n} মুদ্রা", diceName: "{n} ছক্কা", bagName: "{n} জপমালা", rpsName: "পাথর কাগজ কাঁচি", coinHead: "মাথা", coinTail: "লেজ", coinAllHead: "সব মাথা", coinAllTail: "সব লেজ", coinDiff: "ভিন্ন দিক",
+                coinHead1: "একটি মাথা", coinTailAtLeast1: "অন্তত ১ লেজ", diceEven: "জোড় সংখ্যা", diceMul3: "৩ এর গুণিতক", diceOver5: "৫ বা তার বেশি", dice1: "নম্বর ১", diceSum7: "যোগফল ৭", diceSumEven: "যোগফল জোড়", diceSame: "ডাবল", diceSum12: "যোগফল ১২",
+                bagDesc: "লাল {r}, নীল {b}\nলাল বাছুন", rpsWin: "জয়", rpsDraw: "ড্র", rpsLose: "পরাজয়", metaDesc: "সম্ভাবনার রাজা - অন্তর্দৃষ্টির লড়াই!", metaKeywords: "সম্ভাবনা, গণিত, KingsMath"
+            },
+            tr: {
+                title: "🎲 Olasılık Kralı", screenTitle: "👑 Olasılık Kralı", screenDesc: "İbreyi yüksek olasılıkta durdur!", playerLabel: "Oyuncular", startBtn: "Başla! 🚀", restartBtn: "🔄 Tekrar Oyna",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Matematik Kralı Ol. KingsMath.com", bottomLinkText: "🎮 Başka Oyun Seç", winRate: "Kazanma Oranı", optionA: "Seçenek A", optionB: "Seçenek B",
+                stopBtn: "DUR!", instruction: "Daha yüksek olasılığı seç.", win: "Kazanan!", rank2: "2.", rank3: "3.", rank4: "4.", finalScore: "Puan",
+                animal0: "🐶 Köpek", animal1: "🐱 Kedi", animal2: "🐰 Tavşan", animal3: "🐹 Hamster",
+                coinName: "{n} Para", diceName: "{n} Zar", bagName: "{n} Boncuk", rpsName: "Taş Kağıt Makas", coinHead: "Tura", coinTail: "Yazı", coinAllHead: "Hepsi Tura", coinAllTail: "Hepsi Yazı", coinDiff: "Farklı Yüz",
+                coinHead1: "Bir Tura", coinTailAtLeast1: "En az 1 Yazı", diceEven: "Çift", diceMul3: "3'ün Katı", diceOver5: "5 veya üstü", dice1: "Numara 1", diceSum7: "Toplam 7", diceSumEven: "Toplam Çift", diceSame: "Çift", diceSum12: "Toplam 12",
+                bagDesc: "Kırmızı {r}, Mavi {b}\nKırmızı Çek", rpsWin: "Kazan", rpsDraw: "Berabere", rpsLose: "Kaybet", metaDesc: "Olasılık Kralı - Sezgi savaşı!", metaKeywords: "olasılık, matematik, KingsMath"
+            },
+            de: {
+                title: "🎲 Wahrscheinlichkeitskönig", screenTitle: "👑 Wahrscheinlichkeitskönig", screenDesc: "Stoppe die Nadel bei der höheren Wahrscheinlichkeit!", playerLabel: "Spieler", startBtn: "Starten! 🚀", restartBtn: "🔄 Nochmal",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Werde der Mathe-König. KingsMath.com", bottomLinkText: "🎮 Anderes Spiel", winRate: "Siegquote", optionA: "Option A", optionB: "Option B",
+                stopBtn: "STOPP!", instruction: "Wähle die höhere Wahrscheinlichkeit.", win: "Gewinner!", rank2: "2.", rank3: "3.", rank4: "4.", finalScore: "Punkte",
+                animal0: "🐶 Hund", animal1: "🐱 Katze", animal2: "🐰 Hase", animal3: "🐹 Hamster",
+                coinName: "{n} Münze(n)", diceName: "{n} Würfel", bagName: "{n} Perlen", rpsName: "Schere Stein Papier", coinHead: "Kopf", coinTail: "Zahl", coinAllHead: "Alles Kopf", coinAllTail: "Alles Zahl", coinDiff: "Unterschiedlich",
+                coinHead1: "Ein Kopf", coinTailAtLeast1: "Mind. 1 Zahl", diceEven: "Gerade", diceMul3: "Vielfaches von 3", diceOver5: "5 oder mehr", dice1: "Nummer 1", diceSum7: "Summe 7", diceSumEven: "Summe Gerade", diceSame: "Pasch", diceSum12: "Summe 12",
+                bagDesc: "Rot {r}, Blau {b}\nRot ziehen", rpsWin: "Sieg", rpsDraw: "Unentschieden", rpsLose: "Verlust", metaDesc: "Wahrscheinlichkeitskönig - Kampf der Intuition!", metaKeywords: "wahrscheinlichkeit, mathematik, KingsMath"
+            },
+            it: {
+                title: "🎲 Re delle Probabilità", screenTitle: "👑 Re Probabilità", screenDesc: "Ferma l'ago sulla probabilità più alta!", playerLabel: "Giocatori", startBtn: "Inizia! 🚀", restartBtn: "🔄 Gioca ancora",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", topLinkText: "Diventa il Re della Matematica. KingsMath.com", bottomLinkText: "🎮 Altro Gioco", winRate: "Vittoria", optionA: "Opzione A", optionB: "Opzione B",
+                stopBtn: "STOP!", instruction: "Scegli la probabilità più alta.", win: "Vincitore!", rank2: "2º", rank3: "3º", rank4: "4º", finalScore: "Punti",
+                animal0: "🐶 Cane", animal1: "🐱 Gatto", animal2: "🐰 Coniglio", animal3: "🐹 Criceto",
+                coinName: "{n} Moneta/e", diceName: "{n} Dado/i", bagName: "{n} Perline", rpsName: "Sasso Carta Forbice", coinHead: "Testa", coinTail: "Croce", coinAllHead: "Tutto Testa", coinAllTail: "Tutto Croce", coinDiff: "Lati Diversi",
+                coinHead1: "Una Testa", coinTailAtLeast1: "Almeno 1 Croce", diceEven: "Pari", diceMul3: "Multiplo di 3", diceOver5: "5 o più", dice1: "Numero 1", diceSum7: "Somma 7", diceSumEven: "Somma Pari", diceSame: "Doppio", diceSum12: "Somma 12",
+                bagDesc: "Rosso {r}, Blu {b}\nPescare Rosso", rpsWin: "Vincere", rpsDraw: "Pareggio", rpsLose: "Perdere", metaDesc: "Re delle Probabilità - Battaglia d'intuizione!", metaKeywords: "probabilità, matematica, KingsMath"
+            }
+        };
+
+        // 다국어 헬퍼 함수
+        function t(key, params = {}) {
+            let str = TRANSLATIONS[currentLang][key] || TRANSLATIONS['en'][key] || key;
+            for (const [k, v] of Object.entries(params)) {
+                str = str.replace(`{${k}}`, v);
+            }
+            return str;
+        }
+
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden text-left";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => selectLanguage(lang));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function selectLanguage(lang) {
+            currentLang = lang.code;
+            localStorage.setItem('kingsmath_lang', lang.code);
+            
+            // Update URL
+            const url = new URL(window.location);
+            url.searchParams.set('lang', lang.code);
+            window.history.pushState({}, '', url);
+
+            closeModal();
+            showToast(lang.name, lang.code);
+            renderLanguages(searchInput.value);
+            applyLanguage();
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showToast(langName, langCode) {
+            const toastMsg = toastTranslations[langCode] || toastTranslations['en'];
+            document.getElementById('ui-toast').textContent = toastMsg;
+            toastLangName.textContent = langName;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+        // 언어 초기화
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const langParam = urlParams.get('lang');
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            const browserLang = navigator.language.substring(0, 2);
+
+            if (langParam && TRANSLATIONS[langParam]) { currentLang = langParam; } 
+            else if (storedLang && TRANSLATIONS[storedLang]) { currentLang = storedLang; } 
+            else if (TRANSLATIONS[browserLang]) { currentLang = browserLang; } 
+            else { currentLang = 'en'; }
+            
+            renderLanguages();
+            applyLanguage();
+        }
+
+        function autoResizeText() {
+            setTimeout(() => {
+                const elements = document.querySelectorAll('.auto-resize');
+                elements.forEach(el => {
+                    let fontSize = 100; // percent
+                    el.style.fontSize = ''; // reset first
+                    if (!el.dataset.baseFontSize) {
+                        el.dataset.baseFontSize = window.getComputedStyle(el).fontSize;
+                    }
+                    el.style.fontSize = el.dataset.baseFontSize;
+                    
+                    while ((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) && fontSize > 50) {
+                        fontSize -= 5;
+                        el.style.fontSize = `calc(${el.dataset.baseFontSize} * ${fontSize / 100})`;
+                    }
+                });
+            }, 50);
+        }
+
+        function applyLanguage() {
+            const langData = languages.find(l => l.code === currentLang);
+            if (langData) {
+                currentFlagImg.src = `https://flagcdn.com/w40/${langData.country}.png`;
+                currentLangSpan.textContent = langData.name;
+            }
+
+            if(currentLang !== 'ko') {
+                document.body.style.fontFamily = "'Noto Sans', sans-serif";
+            } else {
+                document.body.style.fontFamily = "'Jua', 'Noto Sans KR', sans-serif";
+            }
+
+            document.getElementById('game-title').innerText = t('title');
+            document.getElementById('screen-title').innerText = t('screenTitle');
+            document.getElementById('screen-desc').innerText = t('screenDesc');
+            document.getElementById('player-label').innerText = t('playerLabel');
+            document.getElementById('btn-start').innerText = t('startBtn');
+            document.getElementById('btn-restart').innerText = t('restartBtn');
+            document.getElementById('p1-text').innerText = t('p1');
+            document.getElementById('p2-text').innerText = t('p2');
+            document.getElementById('p3-text').innerText = t('p3');
+            document.getElementById('p4-text').innerText = t('p4');
+            document.getElementById('link-top').innerText = t('topLinkText');
+            document.getElementById('link-bottom').innerText = t('bottomLinkText');
+
+            document.title = t('title');
+            document.querySelector('meta[name="description"]').setAttribute("content", t('metaDesc'));
+            document.querySelector('meta[name="keywords"]').setAttribute("content", t('metaKeywords'));
+            document.querySelector('meta[property="og:title"]').setAttribute("content", t('title'));
+            document.querySelector('meta[property="og:description"]').setAttribute("content", t('metaDesc'));
+
+            if(teams && teams.length > 0) {
+                 teams.forEach(team => {
+                     team.ui.probText.innerText = `${t('winRate')}: ${team.score * 10}%`;
+                     team.ui.stopBtn.innerText = t('stopBtn');
+                     team.element.querySelector('.instruction-text').innerText = t('instruction');
+                     team.element.querySelectorAll('.option-title')[0].innerText = t('optionA');
+                     team.element.querySelectorAll('.option-title')[1].innerText = t('optionB');
+                     team.element.querySelector('.player-label').innerText = t(`animal${team.index}`);
+                 });
+            }
+            autoResizeText();
+        }
+
+        // --- 1. 오디오 시스템 ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'correct') {
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(440, now); 
+                osc.frequency.setValueAtTime(880, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'countdown') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+                gainNode.gain.setValueAtTime(0.3, now); 
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'end') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(523, now); osc.frequency.linearRampToValueAtTime(1046, now + 0.5);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
+                osc.start(now); osc.stop(now + 1.0);
+            }
+        }
+
+        // --- 2. 문제 생성 로직 ---
+        function gcd(a, b) { return b == 0 ? a : gcd(b, a % b); }
+
+        const ProblemGenerator = {
+            tools: {
+                coin: (n) => { return { type: 'coin', n: n, total: Math.pow(2, n), name: t('coinName', {n: n}) }; },
+                dice: (n) => { return { type: 'dice', n: n, total: Math.pow(6, n), name: t('diceName', {n: n}) }; },
+                bag: (total) => { return { type: 'bag', total: total, name: t('bagName', {n: total}) }; },
+                rps: () => { return { type: 'rps', total: 3, name: t('rpsName') }; }
+            },
+
+            createEvent: function(toolObj) {
+                let desc = "";
+                let numerator = 0;
+                let denominator = toolObj.total;
+
+                switch(toolObj.type) {
+                    case 'coin':
+                        if(toolObj.n === 1) {
+                            desc = Math.random() < 0.5 ? t('coinHead') : t('coinTail');
+                            numerator = 1;
+                        } else if(toolObj.n === 2) {
+                            const r = Math.random();
+                            if(r < 0.33) { desc = t('coinAllHead'); numerator = 1; }
+                            else if(r < 0.66) { desc = t('coinAllTail'); numerator = 1; }
+                            else { desc = t('coinDiff'); numerator = 2; }
+                        } else {
+                            const r = Math.random();
+                            if(r < 0.2) { desc = t('coinAllHead'); numerator = 1; }
+                            else if(r < 0.4) { desc = t('coinAllTail'); numerator = 1; }
+                            else if(r < 0.7) { desc = t('coinHead1'); numerator = 3; } 
+                            else { desc = t('coinTailAtLeast1'); numerator = 7; }
+                        }
+                        break;
+                    case 'dice':
+                        if(toolObj.n === 1) {
+                            const r = Math.random();
+                            if(r < 0.3) { desc = t('diceEven'); numerator = 3; }
+                            else if(r < 0.6) { desc = t('diceMul3'); numerator = 2; }
+                            else if(r < 0.8) { desc = t('diceOver5'); numerator = 2; }
+                            else { desc = t('dice1'); numerator = 1; }
+                        } else {
+                            const r = Math.random();
+                            if(r < 0.3) { desc = t('diceSum7'); numerator = 6; }
+                            else if(r < 0.6) { desc = t('diceSumEven'); numerator = 18; }
+                            else if(r < 0.8) { desc = t('diceSame'); numerator = 6; }
+                            else { desc = t('diceSum12'); numerator = 1; }
+                        }
+                        break;
+                    case 'bag':
+                        numerator = Math.floor(Math.random() * (toolObj.total - 1)) + 1;
+                        const other = toolObj.total - numerator;
+                        desc = t('bagDesc', {r: numerator, b: other});
+                        break;
+                    case 'rps':
+                        const r = Math.random();
+                        if(r < 0.33) { desc = t('rpsWin'); numerator = 1; }
+                        else if(r < 0.66) { desc = t('rpsDraw'); numerator = 1; }
+                        else { desc = t('rpsLose'); numerator = 1; }
+                        break;
+                }
+
+                const probVal = numerator / denominator;
+                const percent = (probVal * 100).toFixed(1);
+
+                return {
+                    text: `[${toolObj.name}]\n${desc}`,
+                    prob: probVal,
+                    display: `${percent}%`
+                };
+            },
+
+            getProblem: function() {
+                const toolsPool = [
+                    this.tools.coin(1), this.tools.coin(2), this.tools.coin(3),
+                    this.tools.dice(1), this.tools.dice(2),
+                    this.tools.bag(5), this.tools.bag(8), this.tools.bag(10),
+                    this.tools.rps()
+                ];
+
+                let A, B;
+                let limit = 0;
+                do {
+                    const toolA = toolsPool[Math.floor(Math.random() * toolsPool.length)];
+                    const toolB = toolsPool[Math.floor(Math.random() * toolsPool.length)];
+                    A = this.createEvent(toolA);
+                    B = this.createEvent(toolB);
+                    limit++;
+                } while( (Math.abs(A.prob - B.prob) < 0.01) && limit < 10 );
+
+                if(A.prob === B.prob) { B.prob = 0; B.display = "0%"; }
+                return { A, B };
+            }
+        };
+
+        // --- 3. 게임 변수 및 설정 ---
+        const GOAL_SCORE = 10;
+        const TIME_LIMIT = 60;
+        let playerCount = 4;
+        let teams = [];
+        let isGameActive = false;
+        let timeLeft = TIME_LIMIT;
+        let timerInterval = null;
+
+        // --- 4. Team Class ---
+        class Team {
+            constructor(index) {
+                this.index = index;
+                this.score = 0;
+                this.currentProblem = null;
+                this.needlePos = 50;
+                this.needleDir = 1;
+                this.baseSpeed = 1.0; 
+                this.isStopped = false;
+                this.animId = null;
+
+                this.element = this.createElement();
+            }
+
+            createElement() {
+                const div = document.createElement('div');
+                div.className = `team-card team-${this.index}`;
+                
+                const playerName = t(`animal${this.index}`);
+                const winRateText = t('winRate');
+                const optA = t('optionA');
+                const optB = t('optionB');
+                const btnText = t('stopBtn');
+                const instruct = t('instruction');
+
+                div.innerHTML = `
+                    <div class="crown-icon" id="crown-${this.index}">👑</div>
+                    <div class="player-label auto-resize">${playerName}</div>
+                    
+                    <div class="prob-display auto-resize">${winRateText}: 0%</div>
+                    <div class="prob-bar-container">
+                        <div class="prob-bar-fill" style="width: 0%"></div>
+                    </div>
+
+                    <div class="problem-area">
+                        <div class="vs-container">
+                            <div class="option-box option-a" id="box-a-${this.index}">
+                                <div class="option-title auto-resize">${optA}</div>
+                                <div class="option-content auto-resize" id="text-a-${this.index}">-</div>
+                                <div class="answer-placeholder auto-resize" id="ans-a-${this.index}"></div>
+                            </div>
+                            <div class="option-box option-b" id="box-b-${this.index}">
+                                <div class="option-title auto-resize">${optB}</div>
+                                <div class="option-content auto-resize" id="text-b-${this.index}">-</div>
+                                <div class="answer-placeholder auto-resize" id="ans-b-${this.index}"></div>
+                            </div>
+                        </div>
+
+                        <div class="gauge-wrapper">
+                            <div class="gauge-bg">
+                                <div class="zone-a">A</div>
+                                <div class="zone-b">B</div>
+                            </div>
+                            <div class="needle" style="left: 50%"></div>
+                        </div>
+
+                        <button class="stop-btn auto-resize">${btnText}</button>
+                        <div class="instruction-text auto-resize">${instruct}</div>
+                    </div>
+
+                    <div class="feedback"></div>
+
+                    <div class="win-overlay" id="overlay-${this.index}">
+                        <div class="rank-medal"></div>
+                        <div class="rank-text auto-resize"></div>
+                        <div class="final-score auto-resize"></div>
+                    </div>
+                `;
+
+                this.ui = {
+                    probText: div.querySelector('.prob-display'),
+                    probFill: div.querySelector('.prob-bar-fill'),
+                    boxA: div.querySelector(`#box-a-${this.index}`),
+                    boxB: div.querySelector(`#box-b-${this.index}`),
+                    textA: div.querySelector(`#text-a-${this.index}`),
+                    textB: div.querySelector(`#text-b-${this.index}`),
+                    ansA: div.querySelector(`#ans-a-${this.index}`),
+                    ansB: div.querySelector(`#ans-b-${this.index}`),
+                    needle: div.querySelector('.needle'),
+                    stopBtn: div.querySelector('.stop-btn'),
+                    feedback: div.querySelector('.feedback'),
+                    overlay: div.querySelector('.win-overlay'),
+                    medal: div.querySelector('.rank-medal'),
+                    rankText: div.querySelector('.rank-text'),
+                    finalScore: div.querySelector('.final-score')
+                };
+
+                const stopHandler = (e) => {
+                    e.preventDefault();
+                    if(!isGameActive || this.isStopped) return;
+                    this.checkAnswer();
+                };
+                this.ui.stopBtn.addEventListener('pointerdown', stopHandler);
+
+                return div;
+            }
+
+            newProblem() {
+                const p = ProblemGenerator.getProblem();
+                this.currentProblem = p;
+                
+                this.ui.textA.innerText = `${p.A.text}`;
+                this.ui.textB.innerText = `${p.B.text}`;
+
+                this.ui.ansA.innerText = `${p.A.display}`;
+                this.ui.ansB.innerText = `${p.B.display}`;
+                this.ui.ansA.classList.remove('show');
+                this.ui.ansB.classList.remove('show');
+
+                this.ui.boxA.classList.remove('reveal');
+                this.ui.boxB.classList.remove('reveal');
+
+                this.isStopped = false;
+                this.ui.stopBtn.disabled = false;
+                this.ui.stopBtn.innerText = t('stopBtn');
+                
+                this.baseSpeed = 1.2 + (this.score * 0.25);
+                this.needlePos = 50;
+                this.needleDir = Math.random() < 0.5 ? 1 : -1;
+                
+                this.startNeedle();
+                autoResizeText();
+            }
+
+            startNeedle() {
+                if(this.animId) cancelAnimationFrame(this.animId);
+                
+                const animate = () => {
+                    if(!isGameActive || this.isStopped) return;
+                    this.needlePos += this.baseSpeed * this.needleDir;
+
+                    if(this.needlePos >= 100) {
+                        this.needlePos = 100; this.needleDir = -1;
+                    } else if (this.needlePos <= 0) {
+                        this.needlePos = 0; this.needleDir = 1;
+                    }
+
+                    this.ui.needle.style.left = `${this.needlePos}%`;
+                    this.animId = requestAnimationFrame(animate);
+                };
+                this.animId = requestAnimationFrame(animate);
+            }
+
+            checkAnswer() {
+                this.isStopped = true;
+                cancelAnimationFrame(this.animId);
+                this.ui.stopBtn.disabled = true;
+
+                this.ui.ansA.classList.add('show');
+                this.ui.ansB.classList.add('show');
+                
+                this.ui.boxA.classList.add('reveal');
+                this.ui.boxB.classList.add('reveal');
+
+                const isAWin = this.currentProblem.A.prob > this.currentProblem.B.prob;
+                let isCorrect = false;
+                if (isAWin && this.needlePos < 50) isCorrect = true;
+                else if (!isAWin && this.needlePos >= 50) isCorrect = true;
+
+                if (isCorrect) {
+                    playSound('correct');
+                    this.showFeedback("⭕");
+                    this.score++;
+                    this.updateScoreUI();
+                } else {
+                    playSound('wrong');
+                    this.showFeedback("❌");
+                    this.score = Math.max(0, this.score - 1);
+                    this.updateScoreUI();
+                }
+
+                if(this.score >= GOAL_SCORE) {
+                    finishGame();
+                } else {
+                    setTimeout(() => {
+                        if(isGameActive) this.newProblem();
+                    }, 3000); 
+                }
+                updateCurrentLeader();
+            }
+
+            showFeedback(emoji) {
+                this.ui.feedback.innerText = emoji;
+                this.ui.feedback.style.animation = 'none';
+                this.ui.feedback.offsetHeight; 
+                this.ui.feedback.style.animation = 'feedbackPop 0.8s forwards';
+            }
+
+            updateScoreUI() {
+                const percent = this.score * 10;
+                this.ui.probText.innerText = `${t('winRate')}: ${percent}%`;
+                this.ui.probFill.style.width = `${percent}%`;
+            }
+
+            showResult(rank) {
+                let medal = '';
+                let text = '';
+                
+                if (rank === 1) { medal = '🥇'; text = t('win'); }
+                else if (rank === 2) { medal = '🥈'; text = t('rank2'); }
+                else if (rank === 3) { medal = '🥉'; text = t('rank3'); }
+                else { medal = ''; text = t('rank4'); }
+
+                this.ui.medal.innerText = medal;
+                this.ui.rankText.innerText = text;
+                this.ui.finalScore.innerText = `${t('finalScore')}: ${this.score * 10}%`;
+                this.ui.overlay.style.display = 'flex';
+                
+                if(rank === 1) createConfetti();
+                autoResizeText();
+            }
+        }
+
+        // --- 5. 게임 관리 ---
+        function updateCurrentLeader() {
+            let maxScore = -1;
+            teams.forEach(t => { if (t.score > maxScore) maxScore = t.score; });
+
+            teams.forEach(t => {
+                const crown = document.getElementById(`crown-${t.index}`);
+                if (maxScore > 0 && t.score === maxScore) crown.classList.add('show');
+                else crown.classList.remove('show');
+            });
+        }
+
+        function startGame() {
+            isGameActive = true;
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('langSelectorContainer').style.display = 'none'; // 게임 시작 시 언어 선택기 숨김
+            document.getElementById('header-info').style.display = 'flex';
+            
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            board.style.display = 'flex';
+            
+            teams = [];
+            for (let i = 0; i < playerCount; i++) {
+                const team = new Team(i);
+                teams.push(team);
+                board.appendChild(team.element);
+                team.newProblem();
+            }
+            
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = TIME_LIMIT;
+            const timerDisplay = document.getElementById('timer-display');
+            timerDisplay.innerText = timeLeft;
+            timerDisplay.classList.remove('urgent');
+
+            if(timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    const cdOverlay = document.getElementById('countdown-overlay');
+                    cdOverlay.innerText = timeLeft;
+                    cdOverlay.style.display = 'block';
+                    playSound('countdown');
+                } else if (timeLeft <= 0) {
+                    document.getElementById('countdown-overlay').style.display = 'none';
+                    finishGame();
+                }
+            }, 1000);
+        }
+
+        function finishGame() {
+            if(!isGameActive) return;
+            isGameActive = false;
+            clearInterval(timerInterval);
+            document.getElementById('countdown-overlay').style.display = 'none';
+            playSound('end');
+
+            let sortedTeams = [...teams].sort((a, b) => b.score - a.score);
+            
+            let currentRank = 1;
+            for (let i = 0; i < sortedTeams.length; i++) {
+                if (i > 0 && sortedTeams[i].score < sortedTeams[i-1].score) {
+                    currentRank = i + 1;
+                }
+                sortedTeams[i].showResult(currentRank);
+                if(sortedTeams[i].animId) cancelAnimationFrame(sortedTeams[i].animId);
+            }
+
+            document.getElementById('game-over-controls').style.display = 'block';
+        }
+
+        // --- 6. 이벤트 핸들러 ---
+        const playerOptionBtns = document.querySelectorAll('#player-options .btn-option');
+        playerOptionBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playerOptionBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                playerCount = parseInt(btn.dataset.value);
+                playSound('click');
+            });
+        });
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            playSound('click');
+            startGame();
+        });
+
+        // 홈 이모지 전체 화면 지체 없이 첫화면 가는 소스
+        document.getElementById('btn-home').addEventListener('click', () => {
+            // 1. 만약 전체 화면 모드라면
+            if (document.fullscreenElement) {
+                // 새로고침 대신 화면 초기화 로직 실행 (전체 화면 유지)
+                isGameActive = false;
+                clearInterval(timerInterval);
+                teams.forEach(t => {
+                    t.isStopped = true;
+                    if(t.animId) cancelAnimationFrame(t.animId);
+                });
+                
+                document.getElementById('langSelectorContainer').style.display = 'block';
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('header-info').style.display = 'none';
+                document.getElementById('game-over-controls').style.display = 'none';
+                document.getElementById('setup-screen').style.display = 'flex';
+                
+                if(window.playSound) window.playSound('click');
+            } else {
+                // 2. 전체 화면이 아니라면 그냥 새로고침
+                location.reload();
+            }
+        });
+        
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            playSound('click');
+            setTimeout(() => location.reload(), 200);
+        });
+
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
+            for (let i = 0; i < 150; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                conf.style.opacity = Math.random();
+                container.appendChild(conf);
+            }
+        }
+
+        // --- 7. 전자칠판 최적화 ---
+        document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+        document.addEventListener('touchmove', function(event) { event.preventDefault(); }, { passive: false });
+        document.addEventListener('touchstart', function(event) { if (event.touches.length > 1) { event.preventDefault(); } }, { passive: false });
+
+        // --- 8. 초기화 실행 ---
+        window.addEventListener('resize', autoResizeText);
+        initLanguage();
+
+    </script>
+</body>
+</html>

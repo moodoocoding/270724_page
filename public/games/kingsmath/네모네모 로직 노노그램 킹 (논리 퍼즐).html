@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0F4C3A">
+    
+    <title>Nonogram King 👑 | KingsMath</title>
+    <meta name="description" content="Play Nonogram King for free! The best logic puzzle game for brain training.">
+    <meta name="keywords" content="Nonogram, Picross, Logic Puzzle, Brain Training, KingsMath, Math Game">
+    <link rel="canonical" href="/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nonogram King 👑">
+    <meta property="og:description" content="Free Logic Battle for Electronic Blackboards">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/스도쿠킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="/">
+    <meta property="og:site_name" content="KingsMath">
+
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+SC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            
+            --board-border: #666;
+            --cell-border: #555;
+            --cell-filled: #333; /* 기본값 */
+            --check-btn-color: #6c5ce7;
+            --hint-btn-color: #f1c40f;
+        }
+
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            /* 한글 폰트는 유지하고 그 외 다국어는 sans-serif 계열 처리 */
+            font-family: 'Jua', 'Noto Sans KR', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        /* 공통 UI 스타일 (헤더, 버튼 등) */
+        header {
+            background-color: #1e1e1e;
+            color: var(--accent-color);
+            padding: 3px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            height: 76px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        header a {
+            color: var(--accent-color);
+            text-decoration: none;
+            text-shadow: 1px 1px 0 #000;
+            font-size: 1.8rem;
+        }
+
+        #timer-display {
+            font-size: 2rem;
+            color: #fff;
+            background: #444;
+            padding: 10px 30px;
+            border-radius: 25px;
+            border: 3px solid #666;
+            min-width: 140px;
+            text-align: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+        }
+        #timer-display.time-urgent {
+            color: #ff7675;
+            border-color: #ff7675;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.7; } }
+
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: calc(100% - 90px);
+        }
+
+        /* 시작 화면 */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 3px solid #444;
+            overflow-y: auto;
+            max-height: 95vh;
+            width: fit-content; 
+            min-width: 340px;
+            max-width: 90%; 
+        }
+
+        h1 { margin: 0; color: #fff; font-size: 2.2rem; text-shadow: 3px 3px 0 #000; margin-bottom: 5px; }
+
+        .guide-box {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 2px dashed #888;
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+            margin-bottom: 5px;
+        }
+        .guide-box h3 { margin: 0 0 8px 0; font-size: 1.3rem; color: var(--accent-color); text-align: center; text-shadow: 1px 1px 0 #000; }
+        .guide-box p { margin: 4px 0; font-size: 1.0rem; color: #ddd; line-height: 1.4; word-break: keep-all; }
+        .guide-box b { color: #fff; text-decoration: underline; text-decoration-color: var(--accent-color); }
+
+        .option-section { width: 100%; text-align: center; }
+        .label-text { color: #aaa; margin-bottom: 3px; font-size: 1.0rem; }
+        .option-group { display: flex; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; justify-content: center; }
+
+        .btn-option {
+            padding: 8px 16px;
+            font-size: 1.0rem;
+            border: 2px solid #555;
+            background: #222;
+            color: #aaa;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 50px;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active);
+            color: white;
+            border-color: var(--btn-active);
+            box-shadow: 0 0 10px var(--btn-active);
+            transform: translateY(-2px);
+        }
+
+        #btn-start {
+            margin-top: 15px;
+            padding: 8px 60px;
+            font-size: 1.8rem;
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 5px 0 #d63031;
+            font-family: 'Jua', sans-serif;
+            transition: transform 0.1s;
+        }
+        #btn-start:active { transform: translateY(5px); box-shadow: none; }
+
+        .other-game-link { margin-top: 15px; font-size: 1.0rem; color: #888; text-decoration: none; border-bottom: 1px dashed #888; transition: color 0.3s; }
+        .other-game-link:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+        /* 게임 화면 레이아웃 */
+#game-screen {
+    display: none;
+    width: 100%;
+    height: 100%;
+    padding: 10px 4%; /* 양옆에 4% 여백을 주어 화면 끝에 딱 붙지 않게 안정감을 줍니다. */
+    padding-bottom: 70px; 
+    box-sizing: border-box;
+    flex-direction: row; 
+    justify-content: center; /* 전체 묶음을 화면 가운데로 정렬 */
+    align-items: flex-end; 
+    
+    /* 🌟 핵심 포인트 1: 고정 15px을 지우고 화면 넓이에 비례(vw)하여 넉넉한 간격을 줍니다. */
+    gap: 5vw; 
+    
+    flex-wrap: nowrap; 
+}
+/* 2. 각 플레이어의 게임 보드 (자식 컨테이너) */
+.player-board-container {
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative; 
+    border: 3px solid var(--board-border);
+    height: auto; 
+    box-sizing: border-box;
+    justify-content: flex-start;
+
+    /* 🌟 핵심 포인트 2: N등분 설정 및 최대 크기 제한 */
+    flex: 1; /* 남은 공간을 참여 인원(N)에 맞춰 1/N로 균등하게 나눕니다. */
+    min-width: 240px; 
+    max-width: 450px; /* 450px 이상 커지지 않게 막아줍니다. 이 덕분에 2~3인용일 때 양옆 여백이 생기면서 예쁘게 중앙 정렬됩니다. */
+}
+        /* 테마 색상 */
+        .player-board-container.theme-0 { --board-border: #2980b9; --cell-filled: #2980b9; --check-btn-color: #2980b9; }
+        .player-board-container.theme-1 { --board-border: #d35400; --cell-filled: #d35400; --check-btn-color: #d35400; }
+        .player-board-container.theme-2 { --board-border: #c2185b; --cell-filled: #c2185b; --check-btn-color: #c2185b; }
+        .player-board-container.theme-3 { --board-border: #27ae60; --cell-filled: #27ae60; --check-btn-color: #27ae60; }
+
+        .player-label { font-size: 1.8rem; margin-bottom: 5px; color: var(--cell-filled);  font-weight: bold; text-shadow: 2px 2px 0 #000; }
+
+        .crown-icon {
+            position: absolute; top: -100px;  left: 50%;
+            transform: translateX(-50%) scale(0.5); font-size: 5rem; 
+            opacity: 0; transition: all 0.4s; z-index: 10;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none;
+        }
+        .crown-icon.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+        /* 버튼 그룹 */
+        .action-btn-row { width: 100%; display: flex; gap: 5px; margin-bottom: 5px; height: 40px; }
+        .game-action-btn {
+            flex: 1; position: relative; overflow: hidden;
+            border-radius: 10px; background-color: #444; border: 2px solid #666;
+            cursor: pointer; box-shadow: 0 3px 0 rgba(0,0,0,0.5); transition: transform 0.1s;
+        }
+        .game-action-btn:active { transform: scale(0.98); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+        .game-action-btn.disabled { pointer-events: none; opacity: 0.6; box-shadow: none; transform: none; }
+        
+        .check-btn-container { border-color: var(--check-btn-color); }
+        .check-btn-container .progress-bar { background-color: var(--check-btn-color); }
+        .hint-btn-container { border-color: var(--hint-btn-color); }
+        .hint-btn-container .progress-bar { background-color: var(--hint-btn-color); }
+
+        .progress-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; transition: height 0.1s linear; z-index: 1; }
+        .btn-text { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; color: white; font-weight: bold; z-index: 2; text-shadow: 1px 1px 2px black; line-height: 1.1; text-align: center; }
+
+        /* --- 네모 로직 그리드 레이아웃 --- */
+        .nemo-board-wrapper {
+            display: grid; gap: 2px; background: #222; padding: 5px; border-radius: 10px;
+            width: 100%; aspect-ratio: 1/1.1; 
+        }
+        .nemo-spacer { background: transparent; }
+        .nemo-hints-top { display: grid; gap: 1px; }
+        .hint-col-cell { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; font-size: 0.8rem; color: #aaa; line-height: 1.1; padding-bottom: 2px; }
+        .nemo-hints-left { display: grid; gap: 1px; }
+        .hint-row-cell { display: flex; flex-direction: row; justify-content: flex-end; align-items: center; font-size: 0.8rem; color: #aaa; padding-right: 4px; gap: 3px; }
+        .nemo-grid { display: grid; border: 2px solid var(--board-border); background: #555; gap: 1px; }
+
+        .nemo-cell { background: #2b2b2b; cursor: pointer; transition: background 0.1s; position: relative; }
+        .nemo-cell.filled { background-color: var(--cell-filled); }
+        .nemo-cell.marked::before {
+            content: 'X'; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); color: #888; font-size: 1.2rem; font-weight: bold;
+        }
+        .nemo-cell.hint-reveal { animation: hintFlash 1s ease-out; background-color: #fff !important; z-index: 100; }
+        @keyframes hintFlash { 0% { transform: scale(1); background-color: #fff; } 50% { transform: scale(1.3); background-color: #ff00de; } 100% { transform: scale(1); } }
+
+        .nemo-board-wrapper.size-5 .hint-col-cell, .nemo-board-wrapper.size-5 .hint-row-cell { font-size: 1.1rem; }
+        .nemo-board-wrapper.size-8 .hint-col-cell, .nemo-board-wrapper.size-8 .hint-row-cell { font-size: 0.9rem; }
+        .nemo-board-wrapper.size-12 .hint-col-cell, .nemo-board-wrapper.size-12 .hint-row-cell { font-size: 0.7rem; }
+
+        .toast-msg {
+            position: absolute; top: 50px; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95); color: white; padding: 10px 15px; border-radius: 15px;
+            font-size: 1.1rem; z-index: 50; display: none; border: 2px solid white;
+            text-align: center; width: 90%; box-shadow: 0 5px 15px rgba(0,0,0,0.5); white-space: nowrap; 
+        }
+
+        .win-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.3); display: none; flex-direction: column; justify-content: center; align-items: center;
+            border-radius: 20px; z-index: 30; backdrop-filter: blur(5px);
+        }
+        .win-msg { font-size: 2.5rem; color: var(--accent-color); margin-bottom: 10px; text-shadow: 0 0 20px rgba(255, 217, 61, 0.5); text-align: center; }
+
+        .floating-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px; border-radius: 50%; background: #444; color: white;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 50; border: 2px solid #666;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;
+        }
+        .floating-btn:active { transform: scale(0.9); }
+        #btn-home { left: 20px; }
+        #btn-fullscreen { right: 20px; }
+
+        #btn-restart {
+            position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%);
+            padding: 15px 40px; font-size: 1.5rem; background: #6c5ce7; color: white; border: 3px solid #fff;
+            border-radius: 50px; z-index: 200; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer;
+            font-family: 'Jua', sans-serif;
+        }
+        #btn-restart:active { transform: translateX(-50%) scale(0.95); }
+
+        #countdown-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999;
+            display: none; justify-content: center; align-items: center; font-size: 10rem; color: #FFD93D; font-weight: bold;
+            text-shadow: 0 0 50px rgba(255, 217, 61, 0.8);
+        }
+
+        /* ========================================================================
+        모달 & 언어 선택 UI 독립 CSS (Tailwind 변환 - 게임과 충돌 방지)
+        Box-sizing 강제 적용 및 최상단 z-index: 99999
+        ========================================================================
+        */
+        #langTriggerContainer, #langModal, #toastNotification {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        #langModal, #langModal * { box-sizing: border-box !important; }
+
+        #langTriggerContainer {
+            position: absolute; top: 1rem; right: 1rem; z-index: 99999;
+        }
+        @media (min-width: 640px) { #langTriggerContainer { top: 1.5rem; right: 1.5rem; } }
+
+        #langTriggerBtn {
+            display: flex; align-items: center; gap: 0.5rem; background-color: rgba(55, 65, 81, 0.5); border: 1px solid #4b5563;
+            border-radius: 9999px; padding: 0.5rem 1rem; transition: all 0.2s; color: #f3f4f6; font-size: 0.875rem; font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); cursor: pointer; outline: none;
+        }
+        #langTriggerBtn:hover { background-color: rgba(55, 65, 81, 1); }
+        #langTriggerBtn img { width: 1.25rem; height: auto; border-radius: 2px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .hidden-mobile { display: none; }
+        @media (min-width: 640px) { .hidden-mobile { display: inline-block; } }
+
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 99999; display: flex; align-items: flex-start; justify-content: center;
+            background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); padding-top: 4rem; padding-left: 1rem; padding-right: 1rem;
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @media (min-width: 640px) { .modal-overlay { align-items: center; padding-top: 0; } }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal-content-box {
+            background-color: #111827; border: 1px solid #374151; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            width: 100%; max-width: 56rem; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content-box { transform: scale(1) translateY(0); opacity: 1; }
+
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid #1f2937;
+            background-color: rgba(17, 24, 39, 0.95); position: sticky; top: 0; z-index: 10;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 0.5rem; }
+        .modal-close-btn {
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px; background-color: #1f2937; display: flex; align-items: center; justify-content: center;
+            color: #9ca3af; transition: colors 0.2s; cursor: pointer; border: none; outline: none;
+        }
+        .modal-close-btn:hover { background-color: #374151; color: white; }
+
+        .modal-search { padding: 1.25rem; padding-bottom: 0.5rem; background-color: #111827; position: relative; }
+        .modal-search input {
+            width: 100%; background-color: #1f2937; border: 1px solid #374151; color: white; font-size: 0.875rem; border-radius: 0.75rem;
+            padding: 0.875rem; padding-left: 2.75rem; outline: none; transition: all 0.2s;
+        }
+        .modal-search input:focus { box-shadow: 0 0 0 2px #eab308; border-color: #eab308; }
+        .modal-search input::placeholder { color: #6b7280; }
+        .modal-search i { position: absolute; left: 2.25rem; top: 50%; transform: translateY(-30%); color: #9ca3af; }
+
+        .modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .lang-grid { display: grid; gap: 0.75rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        @media (min-width: 640px) { .lang-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .lang-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .lang-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .lang-grid.hidden { display: none; }
+
+        .lang-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #374151;
+            background-color: rgba(31, 41, 55, 0.4); cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .lang-item:hover { background-color: #374151; border-color: #6b7280; }
+        .lang-item.selected { background-color: #1f2937; border-color: #eab308; box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.5); }
+        .lang-item-flag { flex-shrink: 0; width: 2rem; height: 1.5rem; border-radius: 0.25rem; overflow: hidden; border: 1px solid rgba(55, 65, 81, 0.5); }
+        .lang-item-flag img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .lang-item:hover .lang-item-flag img { transform: scale(1.1); }
+        .lang-item-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+        .lang-name { font-size: 0.875rem; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .lang-item.selected .lang-name { color: #facc15; }
+        .lang-en-name { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        #noResult { display: none; flex-direction: column; items: center; justify-content: center; padding: 3rem 0; color: #6b7280; text-align: center; }
+        #noResult.flex { display: flex; }
+
+        .lang-toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem; background-color: #1f2937; border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem; padding: 1rem; display: flex; align-items: center; gap: 0.75rem; z-index: 99999;
+            transform: translateY(150%); opacity: 0; transition: all 0.3s ease;
+        }
+        .lang-toast.show { transform: translateY(0); opacity: 1; }
+        .toast-icon { width: 2rem; height: 2rem; border-radius: 9999px; background-color: rgba(34, 197, 94, 0.2); display: flex; align-items: center; justify-content: center; color: #4ade80; }
+        .toast-content p:first-child { margin: 0; font-size: 0.875rem; font-weight: 500; color: white; }
+        .toast-content p:last-child { margin: 0; font-size: 0.75rem; color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+    <div id="langTriggerContainer">
+        <button id="langTriggerBtn">
+            <i class="fa-solid fa-globe" style="color: #9ca3af;"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/us.png" alt="US">
+            <span id="currentLangName" class="hidden-mobile">English</span>
+            <i class="fa-solid fa-chevron-down" style="color: #9ca3af; font-size: 0.75rem; margin-left: 0.25rem;"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay">
+        <div class="modal-content-box">
+            <div class="modal-header">
+                <h2>
+                    <i class="fa-solid fa-language" style="color: #eab308;"></i>
+                    <span>Language / 언어</span>
+                </h2>
+                <button id="closeModalBtn" class="modal-close-btn">
+                    <i class="fa-solid fa-xmark" style="font-size: 1.125rem;"></i>
+                </button>
+            </div>
+            <div class="modal-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search / 검색 ...">
+            </div>
+            <div class="modal-body custom-scrollbar">
+                <div id="languageGrid" class="lang-grid"></div>
+                <div id="noResult">
+                    <i class="fa-regular fa-face-frown-open" style="font-size: 2.25rem; margin-bottom: 0.75rem;"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="lang-toast">
+        <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="toast-content">
+            <p id="ui-toast">Language changed.</p>
+            <p id="toastLangName">English</p>
+        </div>
+    </div>
+
+    <header>
+        <a href="/" target="_self" id="header-link">KingsMath.com</a>
+        <div id="timer-display">00s</div>
+    </header>
+
+    <div id="app-container">
+        <div id="start-screen">
+            <h1 data-i18n="gameTitle">👑 Nonogram King</h1>
+            
+            <div class="guide-box">
+                <h3 data-i18n="guideTitle">🐣 How to Play?</h3>
+                <p data-i18n="guide1">1️⃣ Numbers show <b>consecutive filled cells</b>.</p>
+                <p data-i18n="guide2">2️⃣ <b>Touch</b>: Fill -> Mark(X) -> Clear.</p>
+                <p data-i18n="guide3">💡 Use logic to reveal the hidden picture!</p>
+                <p data-i18n="guide4">3️⃣ [Check] checks for errors (10s cool).</p>
+                <p data-i18n="guide5">4️⃣ [Hint] reveals correct/wrong cells.</p>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="lblDiff">Difficulty (Grid Size)</div>
+                <div class="option-group" id="difficulty-options">
+                    <div class="btn-option selected" data-value="5" data-i18n="diffEasy">Easy (5x5)</div>
+                    <div class="btn-option" data-value="8" data-i18n="diffNormal">Normal (8x8)</div>
+                    <div class="btn-option" data-value="12" data-i18n="diffHard">Hard (12x12)</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="lblTime">Time Limit</div>
+                <div class="option-group" id="time-options">
+                    <div class="btn-option selected" data-value="60" data-i18n="time1m">1 Min</div>
+                    <div class="btn-option" data-value="180" data-i18n="time3m">3 Min</div>
+                    <div class="btn-option" data-value="unlimited" data-i18n="timeUnlimited">Unlimited</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="lblPlayers">Players</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" data-value="1" data-i18n="p1">1P 👤</div>
+                    <div class="btn-option" data-value="2" data-i18n="p2">2P 👥</div>
+                    <div class="btn-option" data-value="3" data-i18n="p3">3P 👨‍👩‍👧</div>
+                    <div class="btn-option selected" data-value="4" data-i18n="p4">4P 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <button id="btn-start" data-i18n="btnStart">Start Game! 🚀</button>
+
+            <a href="/" target="_self" class="other-game-link" id="more-games-link" data-i18n="linkMore">🎮 More Games</a>
+        </div>
+
+        <div id="game-screen"></div>
+
+    </div>
+
+    <div id="countdown-overlay">3</div>
+    <div id="btn-home" class="floating-btn">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+    <button id="btn-restart">↻ RESTART</button>
+
+    <script>
+        /**
+         * 16개국 번역본 (총 16 Languages with Child-Friendly Tone & "King" Title localized)
+         */
+        const translations = {
+            ko: {
+                pageTitle: "네모로직 킹 👑 | 킹수학", headerTitle: "게임으로 수학의 킹이 되어라. 킹수학.com", gameTitle: "👑 네모로직 킹",
+                guideTitle: "🐣 게임 방법", guide1: "1️⃣ 숫자는 <b>연속으로 칠해진 칸</b>의 수입니다.", guide2: "2️⃣ <b>터치 반복</b>: 채움(ㅁ) -> 표시(X) -> 지움.", guide3: "💡 X표시는 오답이 아닙니다. 자유롭게 쓰세요.", guide4: "3️⃣ [정답 확인] 점수를 깎지 않고 확인합니다.", guide5: "4️⃣ [힌트] 정답 1~3개와 X위치 1~3개를 알려줍니다.",
+                lblDiff: "난이도 (크기)", diffEasy: "쉬움 (5x5)", diffNormal: "보통 (8x8)", diffHard: "어려움 (12x12)",
+                lblTime: "제한 시간", time1m: "1분", time3m: "3분", timeUnlimited: "무제한",
+                lblPlayers: "참여 인원", p1: "1인 👤", p2: "2인 👥", p3: "3인 👨‍👩‍👧", p4: "4인 👨‍👩‍👧‍👦",
+                btnStart: "게임 시작! 🚀", linkMore: "🎮 다른 게임 고르기",
+                timeSec: "초", timeMin: "분", timeRemaining: "남은 시간: ", btnCheck: "정답<br>확인", btnHint: "정답<br>힌트 ✨",
+                toastCheck: "답안 확인 중...", toastCorrect: "⭕ 일치:", toastWrong: "❌ 불일치:", toastScore: "🏆 점수:",
+                msgTimeOver: "⌛ 타임 오버!", msgTimeOverSub: "점수를 확인하세요.", msgSuccess: "🎉 성공!", msgSuccessTime: "성공!",
+                playerNames: ['🐶 강아지', '🐱 고양이', '🐰 토끼', '🐹 햄스터'],
+                seoDesc: "무료 네모로직 킹 게임을 플레이하세요! 두뇌 발달을 위한 최고의 논리 퍼즐.", seoKeywords: "네모로직, 피크로스, 두뇌게임, 킹수학, 초등수학",
+                toastMsg: "언어가 변경되었습니다."
+            },
+            en: {
+                pageTitle: "Nonogram King 👑 | KingsMath", headerTitle: "Become the Logic King 👑 KingsMath.com", gameTitle: "👑 Nonogram King",
+                guideTitle: "🐣 How to Play?", guide1: "1️⃣ Numbers show <b>connected blocks</b>.", guide2: "2️⃣ <b>Touch</b>: Fill -> Mark(X) -> Clear.", guide3: "💡 Use logic to find the picture!", guide4: "3️⃣ [Check] See if you are right.", guide5: "4️⃣ [Hint] Shows some correct blocks.",
+                lblDiff: "Difficulty", diffEasy: "Easy (5x5)", diffNormal: "Normal (8x8)", diffHard: "Hard (12x12)",
+                lblTime: "Time Limit", time1m: "1 Min", time3m: "3 Mins", timeUnlimited: "No Limit",
+                lblPlayers: "Players", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Start Game! 🚀", linkMore: "🎮 More Games",
+                timeSec: "s", timeMin: "m", timeRemaining: "Time Left: ", btnCheck: "Check<br>Ans", btnHint: "Hint<br>✨",
+                toastCheck: "Checking...", toastCorrect: "⭕ Correct:", toastWrong: "❌ Wrong:", toastScore: "🏆 Score:",
+                msgTimeOver: "⌛ Time Over!", msgTimeOverSub: "Check your score.", msgSuccess: "🎉 Success!", msgSuccessTime: "Success!",
+                playerNames: ['🐶 Dog', '🐱 Cat', '🐰 Rabbit', '🐹 Hamster'],
+                seoDesc: "Play Nonogram King for free! Best logic puzzle for kids.", seoKeywords: "Nonogram, Picross, Logic Puzzle, Brain Game, KingsMath",
+                toastMsg: "Language changed."
+            },
+            zh: {
+                pageTitle: "数织之王 👑 | KingsMath", headerTitle: "成为逻辑之王 👑 KingsMath.com", gameTitle: "👑 数织之王",
+                guideTitle: "🐣 怎么玩？", guide1: "1️⃣ 数字代表<b>连续的方块</b>。", guide2: "2️⃣ <b>点击</b>: 填色 -> 标记(X) -> 清除。", guide3: "💡 动脑筋找出隐藏的图片！", guide4: "3️⃣ [检查] 看看对不对。", guide5: "4️⃣ [提示] 显示几个正确方块。",
+                lblDiff: "难度", diffEasy: "简单 (5x5)", diffNormal: "普通 (8x8)", diffHard: "困难 (12x12)",
+                lblTime: "时间限制", time1m: "1 分钟", time3m: "3 分钟", timeUnlimited: "无限制",
+                lblPlayers: "玩家人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btnStart: "开始游戏! 🚀", linkMore: "🎮 更多游戏",
+                timeSec: "秒", timeMin: "分", timeRemaining: "剩余时间: ", btnCheck: "检查<br>答案", btnHint: "提示<br>✨",
+                toastCheck: "正在检查...", toastCorrect: "⭕ 正确:", toastWrong: "❌ 错误:", toastScore: "🏆 分数:",
+                msgTimeOver: "⌛ 时间到!", msgTimeOverSub: "看看分数吧。", msgSuccess: "🎉 成功!", msgSuccessTime: "成功!",
+                playerNames: ['🐶 小狗', '🐱 小猫', '🐰 兔子', '🐹 仓鼠'],
+                seoDesc: "免费玩数织之王！最好的儿童逻辑益智游戏。", seoKeywords: "数织, 逻辑拼图, 益智游戏, KingsMath, 数学游戏",
+                toastMsg: "语言已更改。"
+            },
+            ja: {
+                pageTitle: "ロジックキング 👑 | KingsMath", headerTitle: "ロジックの王様になろう 👑 KingsMath.com", gameTitle: "👑 ロジックキング",
+                guideTitle: "🐣 遊び方", guide1: "1️⃣ 数字は<b>連続して塗るマス</b>の数だよ。", guide2: "2️⃣ <b>タッチ</b>: 塗る -> バツ(X) -> 消す。", guide3: "💡 アタマを使って絵を見つけよう！", guide4: "3️⃣ [判定] 間違いがないかチェック。", guide5: "4️⃣ [ヒント] 正解のマスを教えるよ。",
+                lblDiff: "難易度", diffEasy: "かんたん (5x5)", diffNormal: "ふつう (8x8)", diffHard: "むずかしい (12x12)",
+                lblTime: "制限時間", time1m: "1分", time3m: "3分", timeUnlimited: "無制限",
+                lblPlayers: "プレイ人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btnStart: "スタート! 🚀", linkMore: "🎮 他のゲーム",
+                timeSec: "秒", timeMin: "分", timeRemaining: "残り時間: ", btnCheck: "答え<br>合わせ", btnHint: "ヒント<br>✨",
+                toastCheck: "チェック中...", toastCorrect: "⭕ 正解:", toastWrong: "❌ 不正解:", toastScore: "🏆 点数:",
+                msgTimeOver: "⌛ 時間切れ!", msgTimeOverSub: "点数を見てみよう。", msgSuccess: "🎉 クリア!", msgSuccessTime: "成功!",
+                playerNames: ['🐶 イヌ', '🐱 ネコ', '🐰 ウサギ', '🐹 ハムスター'],
+                seoDesc: "無料のロジックキングゲーム！子供向けの最高の脳トレパズル。", seoKeywords: "お絵かきロジック, ピクロス, 脳トレ, KingsMath, 算数ゲーム",
+                toastMsg: "言語が変更されました。"
+            },
+            es: {
+                pageTitle: "Rey del Nonograma 👑 | KingsMath", headerTitle: "Sé el Rey de la Lógica 👑 KingsMath.com", gameTitle: "👑 Rey del Nonograma",
+                guideTitle: "🐣 ¿Cómo jugar?", guide1: "1️⃣ Los números son <b>bloques pintados</b>.", guide2: "2️⃣ <b>Toque</b>: Pintar -> Marcar(X) -> Borrar.", guide3: "💡 ¡Usa la lógica para ver el dibujo!", guide4: "3️⃣ [Revisar] Mira si estás bien.", guide5: "4️⃣ [Pista] Muestra bloques correctos.",
+                lblDiff: "Dificultad", diffEasy: "Fácil (5x5)", diffNormal: "Normal (8x8)", diffHard: "Difícil (12x12)",
+                lblTime: "Tiempo", time1m: "1 Min", time3m: "3 Mins", timeUnlimited: "Sin Límite",
+                lblPlayers: "Jugadores", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "¡Empezar! 🚀", linkMore: "🎮 Más Juegos",
+                timeSec: "s", timeMin: "m", timeRemaining: "Tiempo: ", btnCheck: "Revisar", btnHint: "Pista<br>✨",
+                toastCheck: "Comprobando...", toastCorrect: "⭕ Bien:", toastWrong: "❌ Mal:", toastScore: "🏆 Puntos:",
+                msgTimeOver: "⌛ ¡Tiempo!", msgTimeOverSub: "Mira tus puntos.", msgSuccess: "🎉 ¡Éxito!", msgSuccessTime: "¡Éxito!",
+                playerNames: ['🐶 Perro', '🐱 Gato', '🐰 Conejo', '🐹 Hámster'],
+                seoDesc: "¡Juega al Rey del Nonograma gratis! El mejor puzzle lógico para niños.", seoKeywords: "Nonograma, Picross, Puzzle Lógico, KingsMath, Juego Matemático",
+                toastMsg: "Idioma cambiado."
+            },
+            fr: {
+                pageTitle: "Roi du Nonogramme 👑 | KingsMath", headerTitle: "Deviens le Roi de la Logique 👑 KingsMath.com", gameTitle: "👑 Roi du Nonogramme",
+                guideTitle: "🐣 Comment jouer ?", guide1: "1️⃣ Les nombres sont les <b>blocs peints</b>.", guide2: "2️⃣ <b>Toucher</b>: Peindre -> Marquer(X) -> Effacer.", guide3: "💡 Utilise la logique pour trouver l'image !", guide4: "3️⃣ [Vérifier] Vois si tu as bon.", guide5: "4️⃣ [Indice] Montre des blocs corrects.",
+                lblDiff: "Difficulté", diffEasy: "Facile (5x5)", diffNormal: "Moyen (8x8)", diffHard: "Difficile (12x12)",
+                lblTime: "Temps", time1m: "1 Min", time3m: "3 Mins", timeUnlimited: "Illimité",
+                lblPlayers: "Joueurs", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Jouer ! 🚀", linkMore: "🎮 Autres Jeux",
+                timeSec: "s", timeMin: "m", timeRemaining: "Reste : ", btnCheck: "Vérifier", btnHint: "Indice<br>✨",
+                toastCheck: "Vérification...", toastCorrect: "⭕ Correct :", toastWrong: "❌ Faux :", toastScore: "🏆 Score :",
+                msgTimeOver: "⌛ Fini !", msgTimeOverSub: "Regarde ton score.", msgSuccess: "🎉 Bravo !", msgSuccessTime: "Bravo !",
+                playerNames: ['🐶 Chien', '🐱 Chat', '🐰 Lapin', '🐹 Hamster'],
+                seoDesc: "Joue au Roi du Nonogramme gratuitement ! Le meilleur puzzle logique pour enfants.", seoKeywords: "Nonogramme, Picross, Logique, KingsMath, Jeu Mathématique",
+                toastMsg: "Langue modifiée."
+            },
+            ru: {
+                pageTitle: "Король Нонограмм 👑 | KingsMath", headerTitle: "Стань Королем Логики 👑 KingsMath.com", gameTitle: "👑 Король Нонограмм",
+                guideTitle: "🐣 Как играть?", guide1: "1️⃣ Числа — это <b>закрашенные клетки</b>.", guide2: "2️⃣ <b>Нажми</b>: Красить -> Метка(X) -> Стереть.", guide3: "💡 Найди скрытую картинку!", guide4: "3️⃣ [Проверка] Проверь ошибки.", guide5: "4️⃣ [Подсказка] Откроет клетки.",
+                lblDiff: "Сложность", diffEasy: "Легко (5x5)", diffNormal: "Норма (8x8)", diffHard: "Сложно (12x12)",
+                lblTime: "Время", time1m: "1 Мин", time3m: "3 Мин", timeUnlimited: "Бесконечно",
+                lblPlayers: "Игроки", p1: "1 чел 👤", p2: "2 чел 👥", p3: "3 чел 👨‍👩‍👧", p4: "4 чел 👨‍👩‍👧‍👦",
+                btnStart: "Старт! 🚀", linkMore: "🎮 Другие игры",
+                timeSec: "с", timeMin: "м", timeRemaining: "Осталось: ", btnCheck: "Проверка", btnHint: "Совет<br>✨",
+                toastCheck: "Проверяю...", toastCorrect: "⭕ Верно:", toastWrong: "❌ Неверно:", toastScore: "🏆 Счёт:",
+                msgTimeOver: "⌛ Время вышло!", msgTimeOverSub: "Посмотри свой счёт.", msgSuccess: "🎉 Победа!", msgSuccessTime: "Победа!",
+                playerNames: ['🐶 Пёс', '🐱 Кот', '🐰 Заяц', '🐹 Хомяк'],
+                seoDesc: "Играй в Король Нонограмм бесплатно! Лучшая логическая головоломка для детей.", seoKeywords: "Нонограмма, Японский кроссворд, Логика, KingsMath, Математика",
+                toastMsg: "Язык изменен."
+            },
+            id: {
+                pageTitle: "Raja Nonogram 👑 | KingsMath", headerTitle: "Jadilah Raja Logika 👑 KingsMath.com", gameTitle: "👑 Raja Nonogram",
+                guideTitle: "🐣 Cara Bermain?", guide1: "1️⃣ Angka adalah <b>blok yang diwarnai</b>.", guide2: "2️⃣ <b>Sentuh</b>: Warnai -> Tanda(X) -> Hapus.", guide3: "💡 Gunakan logika untuk gambar!", guide4: "3️⃣ [Cek] Lihat jika kamu benar.", guide5: "4️⃣ [Petunjuk] Buka blok yang benar.",
+                lblDiff: "Kesulitan", diffEasy: "Mudah (5x5)", diffNormal: "Sedang (8x8)", diffHard: "Sulit (12x12)",
+                lblTime: "Waktu", time1m: "1 Menit", time3m: "3 Menit", timeUnlimited: "Tanpa Batas",
+                lblPlayers: "Pemain", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Mulai! 🚀", linkMore: "🎮 Game Lain",
+                timeSec: "d", timeMin: "m", timeRemaining: "Sisa: ", btnCheck: "Cek<br>Jawaban", btnHint: "Petunjuk<br>✨",
+                toastCheck: "Mengecek...", toastCorrect: "⭕ Benar:", toastWrong: "❌ Salah:", toastScore: "🏆 Skor:",
+                msgTimeOver: "⌛ Waktu Habis!", msgTimeOverSub: "Lihat skormu.", msgSuccess: "🎉 Berhasil!", msgSuccessTime: "Berhasil!",
+                playerNames: ['🐶 Anjing', '🐱 Kucing', '🐰 Kelinci', '🐹 Hamster'],
+                seoDesc: "Main Raja Nonogram gratis! Teka-teki logika terbaik.", seoKeywords: "Nonogram, Logika, KingsMath, Matematika",
+                toastMsg: "Bahasa telah diubah."
+            },
+            vi: {
+                pageTitle: "Vua Nonogram 👑 | KingsMath", headerTitle: "Trở thành Vua Logic 👑 KingsMath.com", gameTitle: "👑 Vua Nonogram",
+                guideTitle: "🐣 Cách chơi?", guide1: "1️⃣ Số là <b>các ô được tô</b>.", guide2: "2️⃣ <b>Chạm</b>: Tô -> Đánh(X) -> Xóa.", guide3: "💡 Dùng logic để tìm hình!", guide4: "3️⃣ [Kiểm tra] Xem bạn đúng không.", guide5: "4️⃣ [Gợi ý] Hiện các ô đúng.",
+                lblDiff: "Độ khó", diffEasy: "Dễ (5x5)", diffNormal: "Vừa (8x8)", diffHard: "Khó (12x12)",
+                lblTime: "Thời gian", time1m: "1 Phút", time3m: "3 Phút", timeUnlimited: "Không giới hạn",
+                lblPlayers: "Người chơi", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Bắt đầu! 🚀", linkMore: "🎮 Trò chơi khác",
+                timeSec: "s", timeMin: "p", timeRemaining: "Còn lại: ", btnCheck: "Kiểm tra", btnHint: "Gợi ý<br>✨",
+                toastCheck: "Đang kiểm tra...", toastCorrect: "⭕ Đúng:", toastWrong: "❌ Sai:", toastScore: "🏆 Điểm:",
+                msgTimeOver: "⌛ Hết giờ!", msgTimeOverSub: "Xem điểm nhé.", msgSuccess: "🎉 Thành công!", msgSuccessTime: "Thành công!",
+                playerNames: ['🐶 Chó', '🐱 Mèo', '🐰 Thỏ', '🐹 Chuột'],
+                seoDesc: "Chơi Vua Nonogram miễn phí! Câu đố logic hay nhất.", seoKeywords: "Nonogram, Logic, KingsMath, Toán học",
+                toastMsg: "Ngôn ngữ đã được thay đổi."
+            },
+            th: {
+                pageTitle: "ราชาโนโนแกรม 👑 | KingsMath", headerTitle: "เป็นราชาแห่งตรรกะ 👑 KingsMath.com", gameTitle: "👑 ราชาโนโนแกรม",
+                guideTitle: "🐣 วิธีเล่น?", guide1: "1️⃣ ตัวเลขคือ <b>ช่องที่ระบายสี</b>", guide2: "2️⃣ <b>แตะ</b>: ระบาย -> กากบาท(X) -> ลบ", guide3: "💡 ใช้ตรรกะค้นหาภาพ!", guide4: "3️⃣ [ตรวจ] ดูว่าถูกไหม", guide5: "4️⃣ [คำใบ้] ดูช่องที่ถูกต้อง",
+                lblDiff: "ความยาก", diffEasy: "ง่าย (5x5)", diffNormal: "ปานกลาง (8x8)", diffHard: "ยาก (12x12)",
+                lblTime: "เวลา", time1m: "1 นาที", time3m: "3 นาที", timeUnlimited: "ไม่จำกัด",
+                lblPlayers: "ผู้เล่น", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "เริ่มเลย! 🚀", linkMore: "🎮 เกมอื่นๆ",
+                timeSec: "วิ", timeMin: "นาที", timeRemaining: "เหลือ: ", btnCheck: "ตรวจ<br>คำตอบ", btnHint: "คำใบ้<br>✨",
+                toastCheck: "กำลังตรวจ...", toastCorrect: "⭕ ถูก:", toastWrong: "❌ ผิด:", toastScore: "🏆 คะแนน:",
+                msgTimeOver: "⌛ หมดเวลา!", msgTimeOverSub: "ดูคะแนนของคุณ", msgSuccess: "🎉 สำเร็จ!", msgSuccessTime: "สำเร็จ!",
+                playerNames: ['🐶 หมา', '🐱 แมว', '🐰 กระต่าย', '🐹 แฮมสเตอร์'],
+                seoDesc: "เล่นราชาโนโนแกรมฟรี! ปริศนาตรรกะที่ดีที่สุด.", seoKeywords: "โนโนแกรม, ตรรกะ, KingsMath, คณิตศาสตร์",
+                toastMsg: "เปลี่ยนภาษาเรียบร้อยแล้ว"
+            },
+            "pt-br": {
+                pageTitle: "Rei do Nonograma 👑 | KingsMath", headerTitle: "Seja o Rei da Lógica 👑 KingsMath.com", gameTitle: "👑 Rei do Nonograma",
+                guideTitle: "🐣 Como jogar?", guide1: "1️⃣ Os números são <b>blocos pintados</b>.", guide2: "2️⃣ <b>Toque</b>: Pintar -> Marcar(X) -> Apagar.", guide3: "💡 Use lógica para a imagem!", guide4: "3️⃣ [Checar] Veja se acertou.", guide5: "4️⃣ [Dica] Mostra blocos certos.",
+                lblDiff: "Dificuldade", diffEasy: "Fácil (5x5)", diffNormal: "Normal (8x8)", diffHard: "Difícil (12x12)",
+                lblTime: "Tempo", time1m: "1 Min", time3m: "3 Min", timeUnlimited: "Sem Limite",
+                lblPlayers: "Jogadores", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Começar! 🚀", linkMore: "🎮 Mais Jogos",
+                timeSec: "s", timeMin: "m", timeRemaining: "Tempo: ", btnCheck: "Checar", btnHint: "Dica<br>✨",
+                toastCheck: "Checando...", toastCorrect: "⭕ Certo:", toastWrong: "❌ Errado:", toastScore: "🏆 Pontos:",
+                msgTimeOver: "⌛ Acabou!", msgTimeOverSub: "Veja seus pontos.", msgSuccess: "🎉 Sucesso!", msgSuccessTime: "Sucesso!",
+                playerNames: ['🐶 Cachorro', '🐱 Gato', '🐰 Coelho', '🐹 Hamster'],
+                seoDesc: "Jogue Rei do Nonograma grátis! O melhor puzzle de lógica.", seoKeywords: "Nonograma, Lógica, KingsMath, Matemática",
+                toastMsg: "Idioma alterado."
+            },
+            hi: {
+                pageTitle: "ननोग्राम किंग 👑 | KingsMath", headerTitle: "लॉजिक के राजा बनें 👑 KingsMath.com", gameTitle: "👑 ननोग्राम किंग",
+                guideTitle: "🐣 कैसे खेलें?", guide1: "1️⃣ संख्या का अर्थ है <b>रंगे हुए ब्लॉक</b>।", guide2: "2️⃣ <b>टच</b>: रंग -> क्रॉस(X) -> मिटाएं।", guide3: "💡 छिपी तस्वीर खोजें!", guide4: "3️⃣ [चेक] देखें कि आप सही हैं।", guide5: "4️⃣ [हिंट] सही ब्लॉक देखें।",
+                lblDiff: "कठिनाई", diffEasy: "आसान (5x5)", diffNormal: "मध्यम (8x8)", diffHard: "कठिन (12x12)",
+                lblTime: "समय", time1m: "1 मिनट", time3m: "3 मिनट", timeUnlimited: "असीमित",
+                lblPlayers: "खिलाड़ी", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "शुरू करें! 🚀", linkMore: "🎮 और खेल",
+                timeSec: "s", timeMin: "m", timeRemaining: "बचा समय: ", btnCheck: "उत्तर<br>जांचें", btnHint: "हिंट<br>✨",
+                toastCheck: "जांच कर रहे हैं...", toastCorrect: "⭕ सही:", toastWrong: "❌ गलत:", toastScore: "🏆 स्कोर:",
+                msgTimeOver: "⌛ समय समाप्त!", msgTimeOverSub: "स्कोर देखें।", msgSuccess: "🎉 सफलता!", msgSuccessTime: "सफलता!",
+                playerNames: ['🐶 कुत्ता', '🐱 बिल्ली', '🐰 खरगोश', '🐹 हम्सटर'],
+                seoDesc: "ननोग्राम किंग मुफ्त खेलें! बच्चों के लिए बेस्ट पहेली।", seoKeywords: "ननोग्राम, लॉजिक, KingsMath, गणित",
+                toastMsg: "भाषा बदल दी गई है।"
+            },
+            bn: {
+                pageTitle: "ননোগ্রাম রাজা 👑 | KingsMath", headerTitle: "লজিকের রাজা হোন 👑 KingsMath.com", gameTitle: "👑 ননোগ্রাম রাজা",
+                guideTitle: "🐣 কীভাবে খেলবেন?", guide1: "1️⃣ সংখ্যা মানে <b>রঙিন ব্লক</b>।", guide2: "2️⃣ <b>স্পর্শ</b>: রঙ -> ক্রস(X) -> মুছুন।", guide3: "💡 লুকানো ছবি খুঁজুন!", guide4: "3️⃣ [চেক] আপনি ঠিক কিনা দেখুন।", guide5: "4️⃣ [ইঙ্গিত] সঠিক ব্লক দেখুন।",
+                lblDiff: "কঠিনতা", diffEasy: "সহজ (5x5)", diffNormal: "মাঝারি (8x8)", diffHard: "কঠিন (12x12)",
+                lblTime: "সময়", time1m: "১ মিনিট", time3m: "৩ মিনিট", timeUnlimited: "সীমাহীন",
+                lblPlayers: "খেলোয়াড়", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "শুরু করুন! 🚀", linkMore: "🎮 আরও খেলা",
+                timeSec: "s", timeMin: "m", timeRemaining: "বাকি সময়: ", btnCheck: "উত্তর<br>চেক", btnHint: "ইঙ্গিত<br>✨",
+                toastCheck: "চেক হচ্ছে...", toastCorrect: "⭕ সঠিক:", toastWrong: "❌ ভুল:", toastScore: "🏆 স্কোর:",
+                msgTimeOver: "⌛ সময় শেষ!", msgTimeOverSub: "আপনার স্কোর দেখুন।", msgSuccess: "🎉 সফল!", msgSuccessTime: "সফল!",
+                playerNames: ['🐶 কুকুর', '🐱 বিড়াল', '🐰 খরগোশ', '🐹 হ্যামস্টার'],
+                seoDesc: "ননোগ্রাম রাজা বিনামূল্যে খেলুন! সেরা লজিক পাজল।", seoKeywords: "ননোগ্রাম, লজিক, KingsMath, অংক",
+                toastMsg: "ভাষা পরিবর্তন করা হয়েছে।"
+            },
+            tr: {
+                pageTitle: "Nonogram Kralı 👑 | KingsMath", headerTitle: "Mantık Kralı Ol 👑 KingsMath.com", gameTitle: "👑 Nonogram Kralı",
+                guideTitle: "🐣 Nasıl Oynanır?", guide1: "1️⃣ Sayılar <b>boyalı blokları</b> gösterir.", guide2: "2️⃣ <b>Dokun</b>: Boya -> Çarpı(X) -> Sil.", guide3: "💡 Resmi bulmak için düşün!", guide4: "3️⃣ [Kontrol] Doğru mu diye bak.", guide5: "4️⃣ [İpucu] Doğru blokları gör.",
+                lblDiff: "Zorluk", diffEasy: "Kolay (5x5)", diffNormal: "Orta (8x8)", diffHard: "Zor (12x12)",
+                lblTime: "Süre", time1m: "1 Dk", time3m: "3 Dk", timeUnlimited: "Sınırsız",
+                lblPlayers: "Oyuncular", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Başla! 🚀", linkMore: "🎮 Daha Fazla Oyun",
+                timeSec: "sn", timeMin: "dk", timeRemaining: "Kalan: ", btnCheck: "Kontrol<br>Et", btnHint: "İpucu<br>✨",
+                toastCheck: "Kontrol ediliyor...", toastCorrect: "⭕ Doğru:", toastWrong: "❌ Yanlış:", toastScore: "🏆 Puan:",
+                msgTimeOver: "⌛ Süre Bitti!", msgTimeOverSub: "Puanına bak.", msgSuccess: "🎉 Başardın!", msgSuccessTime: "Başardın!",
+                playerNames: ['🐶 Köpek', '🐱 Kedi', '🐰 Tavşan', '🐹 Hamster'],
+                seoDesc: "Nonogram Kralı'nı ücretsiz oyna! En iyi mantık bulmacası.", seoKeywords: "Nonogram, Mantık, KingsMath, Matematik",
+                toastMsg: "Dil değiştirildi."
+            },
+            de: {
+                pageTitle: "Nonogramm König 👑 | KingsMath", headerTitle: "Werde der Logik-König 👑 KingsMath.com", gameTitle: "👑 Nonogramm König",
+                guideTitle: "🐣 Wie man spielt?", guide1: "1️⃣ Zahlen sind <b>farbige Blöcke</b>.", guide2: "2️⃣ <b>Tippen</b>: Farbe -> Kreuz(X) -> Löschen.", guide3: "💡 Finde das versteckte Bild!", guide4: "3️⃣ [Prüfen] Schau, ob es stimmt.", guide5: "4️⃣ [Tipp] Zeigt richtige Blöcke.",
+                lblDiff: "Schwierigkeit", diffEasy: "Leicht (5x5)", diffNormal: "Mittel (8x8)", diffHard: "Schwer (12x12)",
+                lblTime: "Zeit", time1m: "1 Min", time3m: "3 Min", timeUnlimited: "Unbegrenzt",
+                lblPlayers: "Spieler", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Starten! 🚀", linkMore: "🎮 Mehr Spiele",
+                timeSec: "s", timeMin: "m", timeRemaining: "Zeit: ", btnCheck: "Prüfen", btnHint: "Tipp<br>✨",
+                toastCheck: "Prüfe...", toastCorrect: "⭕ Richtig:", toastWrong: "❌ Falsch:", toastScore: "🏆 Punkte:",
+                msgTimeOver: "⌛ Zeit abgelaufen!", msgTimeOverSub: "Sieh deine Punkte.", msgSuccess: "🎉 Erfolg!", msgSuccessTime: "Erfolg!",
+                playerNames: ['🐶 Hund', '🐱 Katze', '🐰 Hase', '🐹 Hamster'],
+                seoDesc: "Spiele Nonogramm König gratis! Das beste Logikrätsel.", seoKeywords: "Nonogramm, Logik, KingsMath, Mathe",
+                toastMsg: "Sprache geändert."
+            },
+            it: {
+                pageTitle: "Re del Nonogramma 👑 | KingsMath", headerTitle: "Diventa il Re della Logica 👑 KingsMath.com", gameTitle: "👑 Re del Nonogramma",
+                guideTitle: "🐣 Come si gioca?", guide1: "1️⃣ I numeri sono <b>blocchi colorati</b>.", guide2: "2️⃣ <b>Tocca</b>: Colora -> Croce(X) -> Cancella.", guide3: "💡 Trova l'immagine nascosta!", guide4: "3️⃣ [Controlla] Vedi se è giusto.", guide5: "4️⃣ [Aiuto] Mostra i blocchi giusti.",
+                lblDiff: "Difficoltà", diffEasy: "Facile (5x5)", diffNormal: "Medio (8x8)", diffHard: "Difficile (12x12)",
+                lblTime: "Tempo", time1m: "1 Min", time3m: "3 Min", timeUnlimited: "Senza Limiti",
+                lblPlayers: "Giocatori", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Inizia! 🚀", linkMore: "🎮 Altri Giochi",
+                timeSec: "s", timeMin: "m", timeRemaining: "Tempo: ", btnCheck: "Verifica", btnHint: "Aiuto<br>✨",
+                toastCheck: "Controllo...", toastCorrect: "⭕ Giusto:", toastWrong: "❌ Sbagliato:", toastScore: "🏆 Punti:",
+                msgTimeOver: "⌛ Tempo scaduto!", msgTimeOverSub: "Guarda i tuoi punti.", msgSuccess: "🎉 Successo!", msgSuccessTime: "Successo!",
+                playerNames: ['🐶 Cane', '🐱 Gatto', '🐰 Coniglio', '🐹 Criceto'],
+                seoDesc: "Gioca gratis al Re del Nonogramma! Il miglior puzzle di logica.", seoKeywords: "Nonogramma, Logica, KingsMath, Matematica",
+                toastMsg: "Lingua cambiata."
+            }
+        };
+
+        // 16개국 언어 데이터베이스
+        const languagesList = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' }
+        ];
+
+        let currentLang = 'en'; // Default
+        let isGameRunning = false;
+        let timerInterval = null;
+        
+        // --- 언어 및 UI 초기 세팅 ---
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const triggerContainer = document.getElementById('langTriggerContainer');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const gridUI = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toastUI = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function getInitialLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && translations[urlLang]) return urlLang;
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            if (storedLang && translations[storedLang]) return storedLang;
+            const browserLang = navigator.language.slice(0, 2);
+            if (translations[browserLang]) return browserLang;
+            return 'en';
+        }
+
+        function updateMetaTags(lang) {
+            const t = translations[lang];
+            document.title = t.pageTitle;
+            document.querySelector('meta[name="description"]').setAttribute("content", t.seoDesc);
+            document.querySelector('meta[property="og:description"]').setAttribute("content", t.seoDesc);
+            document.querySelector('meta[name="keywords"]').setAttribute("content", t.seoKeywords);
+            document.querySelector('meta[property="og:title"]').setAttribute("content", t.pageTitle);
+            document.querySelector('meta[property="og:site_name"]').setAttribute("content", "KingsMath");
+        }
+
+        function renderLanguages(filterText = '') {
+            gridUI.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languagesList.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                gridUI.classList.add('hidden');
+                noResult.classList.add('flex');
+            } else {
+                gridUI.classList.remove('hidden');
+                noResult.classList.remove('flex');
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const btn = document.createElement('div');
+                    btn.className = `lang-item ${isSelected ? 'selected' : ''}`;
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    
+                    btn.innerHTML = `
+                        <div class="lang-item-flag"><img src="${flagUrl}" alt="${lang.country}"></div>
+                        <div class="lang-item-text">
+                            <span class="lang-name">${lang.name}</span>
+                            <span class="lang-en-name">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check" style="color:#facc15; font-size:1.125rem;"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => selectLanguage(lang));
+                    gridUI.appendChild(btn);
+                });
+            }
+        }
+
+        function selectLanguage(langObj) {
+            const lang = langObj.code;
+            if (!translations[lang]) return;
+            currentLang = lang;
+            
+            // UI Update
+            currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            currentLangSpan.textContent = langObj.name;
+            closeModal();
+            
+            // Save & URL
+            localStorage.setItem('kingsmath_lang', lang);
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', lang);
+            window.history.pushState({}, '', newUrl);
+
+            // DOM Texts Update
+            const t = translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+
+            // Domain Rules
+            const headerLink = document.getElementById('header-link');
+            if(lang === 'ko') {
+                headerLink.innerHTML = "게임으로 수학의 킹이 되어라. 킹수학.com";
+                headerLink.href = "/";
+            } else {
+                headerLink.innerHTML = t.headerTitle;
+                headerLink.href = "/";
+            }
+
+            // SEO & Sub Texts
+            updateMetaTags(lang);
+            const btnRestart = document.getElementById('btn-restart');
+            if(btnRestart) btnRestart.innerText = "↻ " + (lang === 'ko' ? "다시하기" : "RESTART");
+
+            showToast(langObj.name, lang);
+            renderLanguages(searchInput.value);
+            
+            // 만약 게임 중이라면 화면 다시 그리기
+            if(isGameRunning) {
+                renderGameScreen();
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            renderLanguages(''); 
+            searchInput.value = '';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+        function showToast(langName, langCode) {
+            const tMsg = translations[langCode].toastMsg || "Language changed.";
+            document.getElementById('ui-toast').textContent = tMsg;
+            toastLangName.textContent = langName;
+            toastUI.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toastUI.classList.remove('show'), 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        /* --- Audio Context --- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'fill') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'mark') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, now);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'clear') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                gainNode.gain.setValueAtTime(0.05, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'count') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'go') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, now);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
+            } else if (type === 'tick') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                const freqs = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+                const times = [0, 0.15, 0.3, 0.45, 0.6, 0.75];
+                times.forEach((t, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(freqs[i], now + t);
+                    g.gain.setValueAtTime(0.1, now + t);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + t + 0.3);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(now + t); o.stop(now + t + 0.3);
+                });
+            } else if (type === 'hint') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1000, now);
+                osc.frequency.setValueAtTime(1500, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        }
+
+        function addFastClick(element, callback) {
+            element.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                callback(e);
+            });
+        }
+
+        /* --- Game Global Variables --- */
+        let playerCount = 4;
+        let gridSize = 5; 
+        let timeLimit = 60; 
+        
+        let solutions = []; 
+        let playerGrids = []; 
+        let rowHints = [];     
+        let colHints = [];
+        
+        let checkCooldowns = [0, 0, 0, 0];
+        let hintCooldowns = [0, 0, 0, 0];
+        let remainingTime = 0;
+
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const countdownOverlay = document.getElementById('countdown-overlay');
+        const btnRestart = document.getElementById('btn-restart');
+
+        /* --- Options Logic --- */
+        document.querySelectorAll('#player-options .btn-option').forEach(opt => {
+            addFastClick(opt, () => {
+                document.querySelectorAll('#player-options .btn-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                playerCount = parseInt(opt.dataset.value);
+            });
+        });
+        document.querySelectorAll('#difficulty-options .btn-option').forEach(opt => {
+            addFastClick(opt, () => {
+                document.querySelectorAll('#difficulty-options .btn-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                gridSize = parseInt(opt.dataset.value);
+            });
+        });
+        document.querySelectorAll('#time-options .btn-option').forEach(opt => {
+            addFastClick(opt, () => {
+                document.querySelectorAll('#time-options .btn-option').forEach(o=>o.classList.remove('selected'));
+                opt.classList.add('selected');
+                timeLimit = opt.dataset.value === 'unlimited' ? 'unlimited' : parseInt(opt.dataset.value);
+            });
+        });
+
+        addFastClick(document.getElementById('btn-start'), () => {
+            playSound('fill');
+            startCountdown();
+        });
+
+        /* --- Logic Generation --- */
+        function generateLogic(size) {
+            let grid = [];
+            let isValid = false;
+            while(!isValid) {
+                grid = [];
+                for(let r=0; r<size; r++) {
+                    let row = [];
+                    for(let c=0; c<size; c++) row.push(Math.random() > 0.45 ? 1 : 0);
+                    grid.push(row);
+                }
+                isValid = true;
+                for(let r=0; r<size; r++) if(!grid[r].includes(1)) { isValid = false; break; }
+                if(isValid) {
+                    for(let c=0; c<size; c++) {
+                        let colHasFill = false;
+                        for(let r=0; r<size; r++) if(grid[r][c] === 1) colHasFill = true;
+                        if(!colHasFill) { isValid = false; break; }
+                    }
+                }
+            }
+            return grid;
+        }
+
+        function calculateHints(arr) {
+            let hints = [];
+            let count = 0;
+            for(let val of arr) {
+                if(val === 1) count++;
+                else if (count > 0) { hints.push(count); count = 0; }
+            }
+            if(count > 0) hints.push(count);
+            if(hints.length === 0) hints.push(0);
+            return hints;
+        }
+
+        /* --- Countdown & Init --- */
+        function startCountdown() {
+            startScreen.style.display = 'none';
+            triggerContainer.style.display = 'none'; // 시작 시 언어 UI 숨김 (게임 몰입)
+            countdownOverlay.style.display = 'flex';
+            btnRestart.style.display = 'none';
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            let count = 3;
+            countdownOverlay.innerText = count;
+            playSound('count');
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    countdownOverlay.innerText = count;
+                    playSound('count');
+                } else {
+                    clearInterval(countInterval);
+                    countdownOverlay.innerText = "START!";
+                    playSound('go');
+                    setTimeout(() => {
+                        countdownOverlay.style.display = 'none';
+                        initGame();
+                    }, 800);
+                }
+            }, 1000);
+        }
+
+        function initGame() {
+            solutions = []; playerGrids = []; rowHints = []; colHints = [];
+            checkCooldowns = [0,0,0,0]; hintCooldowns = [0,0,0,0];
+            
+            for(let p=0; p<playerCount; p++) {
+                const sol = generateLogic(gridSize);
+                solutions.push(sol);
+                
+                let pGrid = [];
+                for(let r=0; r<gridSize; r++) pGrid.push(new Array(gridSize).fill(0));
+                playerGrids.push(pGrid);
+
+                let rHints = [];
+                for(let r=0; r<gridSize; r++) rHints.push(calculateHints(sol[r]));
+                rowHints.push(rHints);
+
+                let cHints = [];
+                for(let c=0; c<gridSize; c++) {
+                    let colArr = [];
+                    for(let r=0; r<gridSize; r++) colArr.push(sol[r][c]);
+                    cHints.push(calculateHints(colArr));
+                }
+                colHints.push(cHints);
+            }
+
+            renderGameScreen();
+            gameScreen.style.display = 'flex';
+            timerDisplay.style.display = 'block'; 
+            
+            playSound('go');
+            
+            isGameRunning = true;
+            startTimer();
+        }
+
+        /* --- Rendering --- */
+        function renderGameScreen() {
+            gameScreen.innerHTML = '';
+            const t = translations[currentLang];
+            const pNames = t.playerNames;
+
+            for (let p = 0; p < playerCount; p++) {
+                const container = document.createElement('div');
+                container.className = `player-board-container theme-${p}`;
+                
+                const crown = document.createElement('div');
+                crown.className = 'crown-icon';
+                crown.id = `crown-${p}`;
+                crown.innerText = '👑';
+                container.appendChild(crown);
+
+                const label = document.createElement('div');
+                label.className = 'player-label';
+                label.innerText = pNames[p];
+                container.appendChild(label);
+
+                const btnRow = document.createElement('div');
+                btnRow.className = 'action-btn-row';
+                
+                const checkBtn = document.createElement('div');
+                checkBtn.className = 'game-action-btn check-btn-container';
+                checkBtn.id = `check-btn-${p}`;
+                checkBtn.innerHTML = `<div class="progress-bar"></div><div class="btn-text">${t.btnCheck}</div>`;
+                addFastClick(checkBtn, () => { playSound('fill'); checkAnswer(p); });
+                btnRow.appendChild(checkBtn);
+
+                const hintBtn = document.createElement('div');
+                hintBtn.className = 'game-action-btn hint-btn-container';
+                hintBtn.id = `hint-btn-${p}`;
+                hintBtn.innerHTML = `<div class="progress-bar"></div><div class="btn-text">${t.btnHint}</div>`;
+                addFastClick(hintBtn, () => { playSound('fill'); useHint(p); });
+                btnRow.appendChild(hintBtn);
+                
+                container.appendChild(btnRow);
+
+                const boardWrapper = document.createElement('div');
+                boardWrapper.className = `nemo-board-wrapper size-${gridSize}`;
+                boardWrapper.style.gridTemplateColumns = `max-content 1fr`;
+                boardWrapper.style.gridTemplateRows = `max-content 1fr`;
+
+                const spacer = document.createElement('div');
+                spacer.className = 'nemo-spacer';
+                boardWrapper.appendChild(spacer);
+
+                const topHints = document.createElement('div');
+                topHints.className = 'nemo-hints-top';
+                topHints.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+                for(let c=0; c<gridSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'hint-col-cell';
+                    colHints[p][c].forEach(num => {
+                        const span = document.createElement('span');
+                        span.innerText = num;
+                        cell.appendChild(span);
+                    });
+                    topHints.appendChild(cell);
+                }
+                boardWrapper.appendChild(topHints);
+
+                const leftHints = document.createElement('div');
+                leftHints.className = 'nemo-hints-left';
+                leftHints.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+                for(let r=0; r<gridSize; r++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'hint-row-cell';
+                    rowHints[p][r].forEach(num => {
+                        const span = document.createElement('span');
+                        span.innerText = num;
+                        cell.appendChild(span);
+                    });
+                    leftHints.appendChild(cell);
+                }
+                boardWrapper.appendChild(leftHints);
+
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'nemo-grid';
+                gridDiv.id = `grid-${p}`;
+                gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+                gridDiv.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+                for(let r=0; r<gridSize; r++) {
+                    for(let c=0; c<gridSize; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'nemo-cell';
+                        if(playerGrids[p][r][c] === 1) cell.classList.add('filled');
+                        if(playerGrids[p][r][c] === 2) cell.classList.add('marked');
+                        cell.dataset.r = r;
+                        cell.dataset.c = c;
+                        
+                        addFastClick(cell, () => {
+                            if(!isGameRunning) return;
+                            if(timeLimit !== 'unlimited' && remainingTime <= 0) return;
+                            
+                            const currentVal = playerGrids[p][r][c];
+                            let newVal = 0;
+                            if (currentVal === 0) newVal = 1;
+                            else if (currentVal === 1) newVal = 2;
+                            else newVal = 0;
+
+                            playerGrids[p][r][c] = newVal;
+                            
+                            cell.classList.remove('filled', 'marked');
+                            if(newVal === 1) {
+                                cell.classList.add('filled');
+                                playSound('fill');
+                            } else if (newVal === 2) {
+                                cell.classList.add('marked');
+                                playSound('mark');
+                            } else {
+                                playSound('clear');
+                            }
+
+                            checkWin(p);
+                            updateCrowns();
+                        });
+                        gridDiv.appendChild(cell);
+                    }
+                }
+                boardWrapper.appendChild(gridDiv);
+                container.appendChild(boardWrapper);
+
+                const toast = document.createElement('div');
+                toast.className = 'toast-msg';
+                toast.id = `toast-${p}`;
+                container.appendChild(toast);
+
+                const overlay = document.createElement('div');
+                overlay.className = 'win-overlay';
+                overlay.id = `overlay-${p}`;
+                overlay.innerHTML = `<div class="win-msg">${t.msgSuccess}</div>`;
+                container.appendChild(overlay);
+
+                gameScreen.appendChild(container);
+            }
+        }
+
+        /* --- Game Features --- */
+        function calculateScore(pIdx) {
+            let correct = 0;
+            let wrong = 0;
+            for(let r=0; r<gridSize; r++) {
+                for(let c=0; c<gridSize; c++) {
+                    if(playerGrids[pIdx][r][c] === 1) {
+                        if(solutions[pIdx][r][c] === 1) correct++;
+                        else wrong++;
+                    }
+                }
+            }
+            return { correct, wrong, score: correct - wrong };
+        }
+
+        function updateCrowns() {
+            let scores = [];
+            let maxScore = -9999;
+            for(let p=0; p<playerCount; p++) {
+                const s = calculateScore(p);
+                scores.push(s.score);
+                if(s.score > maxScore) maxScore = s.score;
+            }
+            for(let p=0; p<playerCount; p++) {
+                const crown = document.getElementById(`crown-${p}`);
+                if(scores[p] === maxScore && maxScore > 0) crown.classList.add('show');
+                else crown.classList.remove('show');
+            }
+        }
+
+        function checkWin(pIdx) {
+            let isWin = true;
+            for(let r=0; r<gridSize; r++) {
+                for(let c=0; c<gridSize; c++) {
+                    const u = playerGrids[pIdx][r][c] === 1 ? 1 : 0;
+                    if(u !== solutions[pIdx][r][c]) {
+                        isWin = false; break;
+                    }
+                }
+            }
+
+            if(isWin) {
+                const overlay = document.getElementById(`overlay-${pIdx}`);
+                if(overlay.style.display !== 'flex') {
+                    overlay.style.display = 'flex';
+                    playSound('win');
+                }
+            }
+
+            if (timeLimit === 'unlimited') {
+                let allCleared = true;
+                for(let i=0; i<playerCount; i++) {
+                     const overlay = document.getElementById(`overlay-${i}`);
+                     if (!overlay || overlay.style.display !== 'flex') {
+                         allCleared = false;
+                         break;
+                     }
+                }
+                if(allCleared) {
+                    btnRestart.style.display = 'block';
+                }
+            }
+        }
+
+        function checkAnswer(pIdx) {
+            if(checkCooldowns[pIdx] > Date.now()) return;
+            if(!isGameRunning) return;
+            if(timeLimit !== 'unlimited' && remainingTime <= 0) return;
+
+            let matchCount = 0;
+            let mismatchCount = 0;
+
+            for(let r=0; r<gridSize; r++) {
+                for(let c=0; c<gridSize; c++) {
+                    const userVal = playerGrids[pIdx][r][c];
+                    const solVal = solutions[pIdx][r][c];
+                    if(userVal === 1) {
+                        if(solVal === 1) matchCount++;
+                        else mismatchCount++;
+                    }
+                }
+            }
+
+            const t = translations[currentLang];
+            const toast = document.getElementById(`toast-${pIdx}`);
+            toast.innerHTML = `
+                <div style="font-size:0.9rem; color:#aaa; margin-bottom:4px;">${t.toastCheck}</div>
+                <span style="color:#00ff00">${t.toastCorrect} ${matchCount}</span> | 
+                <span style="color:#ff5252">${t.toastWrong} ${mismatchCount}</span>
+            `;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+            
+            checkCooldowns[pIdx] = Date.now() + 10000;
+            updateSingleCooldown(pIdx, checkCooldowns, 'check-btn', 10000);
+        }
+
+        function useHint(pIdx) {
+            if(hintCooldowns[pIdx] > Date.now()) return;
+            if(!isGameRunning) return;
+            if(timeLimit !== 'unlimited' && remainingTime <= 0) return;
+
+            const gridDiv = document.getElementById(`grid-${pIdx}`);
+            let fillCandidates = [];
+            let emptyCandidates = [];
+            
+            for(let r=0; r<gridSize; r++) {
+                for(let c=0; c<gridSize; c++) {
+                    const s = solutions[pIdx][r][c];
+                    const u = playerGrids[pIdx][r][c];
+                    if(s === 1 && u !== 1) fillCandidates.push({r,c});
+                    if(s === 0 && u !== 2) emptyCandidates.push({r,c});
+                }
+            }
+
+            if(fillCandidates.length === 0 && emptyCandidates.length === 0) return;
+
+            let fillCount = Math.min(fillCandidates.length, Math.floor(Math.random()*3)+1);
+            for(let i=0; i<fillCount; i++) {
+                const randIdx = Math.floor(Math.random() * fillCandidates.length);
+                const t = fillCandidates[randIdx];
+                fillCandidates.splice(randIdx, 1);
+                playerGrids[pIdx][t.r][t.c] = 1;
+                const cell = gridDiv.children[t.r * gridSize + t.c];
+                cell.className = 'nemo-cell filled hint-reveal';
+                setTimeout(()=>cell.classList.remove('hint-reveal'), 1000);
+            }
+
+            let emptyCount = Math.min(emptyCandidates.length, Math.floor(Math.random()*3)+1);
+            for(let i=0; i<emptyCount; i++) {
+                const randIdx = Math.floor(Math.random() * emptyCandidates.length);
+                const t = emptyCandidates[randIdx];
+                emptyCandidates.splice(randIdx, 1);
+                playerGrids[pIdx][t.r][t.c] = 2;
+                const cell = gridDiv.children[t.r * gridSize + t.c];
+                cell.className = 'nemo-cell marked hint-reveal';
+                setTimeout(()=>cell.classList.remove('hint-reveal'), 1000);
+            }
+
+            playSound('hint');
+            checkWin(pIdx);
+            updateCrowns();
+
+            hintCooldowns[pIdx] = Date.now() + 30000;
+            updateSingleCooldown(pIdx, hintCooldowns, 'hint-btn', 30000);
+        }
+
+        /* --- Timer & Cooldown Loop --- */
+        function startTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerDisplay.classList.remove('time-urgent');
+
+            if (timeLimit === 'unlimited') {
+                remainingTime = 0;
+                updateTimerDisplay(remainingTime, false);
+                timerInterval = setInterval(() => {
+                    remainingTime++;
+                    updateTimerDisplay(remainingTime, false);
+                    updateCooldowns();
+                }, 1000);
+            } else {
+                remainingTime = timeLimit;
+                updateTimerDisplay(remainingTime, true);
+                timerInterval = setInterval(() => {
+                    remainingTime--;
+                    updateTimerDisplay(remainingTime, true);
+                    updateCooldowns();
+                    
+                    if(remainingTime <= 5 && remainingTime > 0) {
+                         playSound('tick'); 
+                    }
+                    if(remainingTime <= 0) {
+                        clearInterval(timerInterval);
+                        showTimeOver();
+                        playSound('win'); 
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay(seconds, isDown) {
+            const t = translations[currentLang];
+            let txt = "";
+            if(seconds < 60) txt = (seconds<10?'0':'')+seconds + t.timeSec;
+            else {
+                const m = Math.floor(seconds/60);
+                const s = seconds%60;
+                txt = (m<10?'0':'')+m + t.timeMin + ' ' + (s<10?'0':'')+s + t.timeSec;
+            }
+            if(isDown) {
+                timerDisplay.innerText = t.timeRemaining + txt;
+                if(seconds <= 10) timerDisplay.classList.add('time-urgent');
+            } else {
+                timerDisplay.innerText = txt;
+            }
+        }
+
+        function updateCooldowns() {
+            for(let p=0; p<playerCount; p++) {
+                updateSingleCooldown(p, checkCooldowns, 'check-btn', 10000);
+                updateSingleCooldown(p, hintCooldowns, 'hint-btn', 30000);
+            }
+        }
+
+        function updateSingleCooldown(pIdx, cdArray, idPrefix, duration) {
+            const now = Date.now();
+            const btn = document.getElementById(`${idPrefix}-${pIdx}`);
+            if(!btn) return;
+            
+            if(cdArray[pIdx] > now) {
+                btn.classList.add('disabled');
+                const left = cdArray[pIdx] - now;
+                const pct = 100 - (left/duration*100);
+                btn.querySelector('.progress-bar').style.height = `${pct}%`;
+            } else {
+                btn.classList.remove('disabled');
+                btn.querySelector('.progress-bar').style.height = '100%';
+                cdArray[pIdx] = 0; 
+            }
+        }
+
+        function showTimeOver() {
+            isGameRunning = false;
+            const t = translations[currentLang];
+            
+            let finalScores = [];
+            for(let p=0; p<playerCount; p++) {
+                const res = calculateScore(p);
+                finalScores.push({ id: p, ...res });
+            }
+            finalScores.sort((a,b) => b.score - a.score);
+
+            const medals = ['🥇', '🥈', '🥉', '4️⃣'];
+
+            for(let p=0; p<playerCount; p++) {
+                const overlay = document.getElementById(`overlay-${p}`);
+                if(overlay.style.display !== 'flex') {
+                    const myData = finalScores.find(d => d.id === p);
+                    const rankIdx = finalScores.findIndex(d => d.id === p);
+                    const rankEmoji = medals[rankIdx] || '';
+
+                    overlay.innerHTML = `
+                        <div class="win-msg" style="color:#ff7675; font-size:2rem;">${t.msgTimeOver}</div>
+                        <div style="font-size:3rem; margin:10px;">${rankEmoji}</div>
+                        <div style="font-size:1.1rem; color:#fff; line-height:1.5;">
+                            ${(currentLang==='ko'?'정답:':'Correct:')} ${myData.correct}<br>
+                            ${(currentLang==='ko'?'오답:':'Wrong:')} ${myData.wrong}<br>
+                            <b>${(currentLang==='ko'?'총 점수:':'Total:')} ${myData.score}</b>
+                        </div>
+                    `;
+                    overlay.style.display = 'flex';
+                }
+            }
+            btnRestart.style.display = 'block';
+        }
+
+        // --- Utils: Home / Fullscreen / Restart ---
+        function goHome() {
+            // 전체 화면 모드라면 화면 초기화 실행하여 시작 화면으로 이동하고 전체화면 상태 유지 (요청사항 반영)
+            if (document.fullscreenElement) {
+                isGameRunning = false;
+                if(timerInterval) clearInterval(timerInterval);
+                
+                gameScreen.style.display = 'none';
+                timerDisplay.style.display = 'none';
+                startScreen.style.display = 'flex';
+                triggerContainer.style.display = 'block'; // 언어 선택 버튼 다시 표시
+                timerDisplay.innerText = "00s";
+                btnRestart.style.display = 'none';
+                
+                if(window.playSound) window.playSound('clear');
+            } else {
+                // 전체 화면이 아닐 경우 깔끔하게 초기화
+                location.reload();
+            }
+        }
+
+        addFastClick(document.getElementById('btn-home'), goHome);
+        addFastClick(btnRestart, goHome);
+
+        addFastClick(document.getElementById('btn-fullscreen'), () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else if(document.exitFullscreen) document.exitFullscreen();
+        });
+
+        // Initialize App Language
+        const initLang = getInitialLanguage();
+        // 렌더링 세팅 후 초기 언어 설정 적용
+        renderLanguages();
+        selectLanguage(languagesList.find(l => l.code === initLang) || languagesList[1]);
+
+    </script>
+</body>
+</html>

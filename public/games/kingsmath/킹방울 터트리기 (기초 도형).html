@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+    <meta charset="UTF-8">
+    
+    <meta name="description" content="킹수학으로 전자칠판을 최고의 수학 학습 도구로 만드세요! 게임으로 즐기는 무료 수학 트레이닝.">
+    <meta name="keywords" content="전자칠판, 수학게임, 킹수학, 두뇌게임, 무료게임, 연산게임, 교육용게임, KingsMath">
+    <link rel="canonical" href="/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="킹방울 터트리기 | 킹수학.com">
+    <meta property="og:description" content="전자칠판 전용 수학 놀이, 무료·무설치">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울터트리기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="/">
+    <meta property="og:site_name" content="킹수학">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="킹방울 터트리기 | 킹수학.com">
+    <meta name="twitter:description" content="전자칠판 전용 수학 놀이">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울터트리기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+    <meta name="theme-color" content="#0F4C3A">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>킹방울 터트리기</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* 폰트: HS산토끼 */
+        @font-face {
+            font-family: 'HsSantoki';
+            src: url('https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/HS-Regular.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+
+        :root {
+            --p1-main: #ff9f43; 
+            --p1-glow: rgba(255, 159, 67, 0.6);
+            --p2-main: #54a0ff;
+            --p2-glow: rgba(84, 160, 255, 0.6);
+            --bg-color: #1e1e2e;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'HsSantoki', 'Noto Sans KR', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            color: white;
+            font-weight: normal;
+        }
+
+        body { display: flex; flex-direction: column; background-color: #1e1e2e; }
+        a { text-decoration: none; color: inherit; }
+
+        /* --- 신규 다국어 모달 관련 CSS --- */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active {
+            opacity: 1; visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Noto Sans KR', sans-serif; /* 모달 내부는 가독성 폰트 사용 */
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0); opacity: 1;
+        }
+        .toast {
+            transform: translateY(100%); opacity: 0; transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .toast.show {
+            transform: translateY(0); opacity: 1;
+        }
+
+        /* --- 배경 (전역) --- */
+        .background-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #222f3e 0%, #1e1e2e 100%);
+            z-index: -10;
+            overflow: hidden;
+        }
+
+        .bg-bubble {
+            position: absolute;
+            bottom: -50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: rise var(--duration) infinite linear;
+            left: var(--left);
+            width: var(--size);
+            height: var(--size);
+            animation-delay: var(--delay);
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+            80% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* --- 인트로 화면 --- */
+        #intro-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+            transition: opacity 0.5s;
+        }
+
+        .promo-link {
+            font-size: 1.5rem; color: #ccc; margin-bottom: 10px; opacity: 0.9;
+            transition: transform 0.2s, color 0.2s; cursor: pointer;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .promo-link span { color: #feca57; text-decoration: underline; }
+        .promo-link:hover { transform: scale(1.05); color: #fff; }
+
+        .game-title {
+            font-size: 5rem; margin-bottom: 0px;
+            background: linear-gradient(to right, #ff9f43, #54a0ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+            animation: float 3s ease-in-out infinite; font-weight: normal;
+            white-space: nowrap;
+        }
+
+        .tutorial-box {
+            background: rgba(30, 30, 40, 0.1); padding: 10px 50px;
+            border-radius: 20px; border: 2px solid rgba(255,255,255,0.2);
+            margin-bottom: 30px; 
+            max-width: 80%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .tutorial-text { font-size: 1.8rem; line-height: 1.6; color: #eee; font-weight: normal; }
+        .highlight { color: #feca57; font-size: 2rem; font-weight: normal; }
+        .warning { color: #ff6b6b; font-weight: normal; display: block; margin-top: 10px; }
+        b { font-weight: normal; }
+
+        .btn-group { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+
+        .btn {
+            padding: 15px 40px; font-size: 1.8rem; font-family: 'HsSantoki';
+            border: none; border-radius: 50px; cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s; color: #fff;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2); text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-weight: normal;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-basic { background: linear-gradient(45deg, #1dd1a1, #10ac84); }
+        .btn-normal { background: linear-gradient(45deg, #feca57, #ff9f43); }
+        .btn-hard { background: linear-gradient(45deg, #54a0ff, #2e86de); }
+        .btn small { display: block; font-size: 0.7em; margin-top: 5px; opacity: 0.9; }
+
+        .other-game-link {
+            font-size: 1.2rem; color: #aaa; margin-top: 10px;
+            text-decoration: none; cursor: pointer; transition: color 0.2s;
+        }
+        .other-game-link:hover { color: #fff; text-decoration: underline; }
+
+        /* --- 게임 UI --- */
+        #game-screen {
+            display: none; flex: 1; flex-direction: column; width: 100%; height: 100%;
+        }
+
+        .top-hud {
+            flex: 0 0 90px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; background: rgba(30, 30, 40, 0.9);
+            border-bottom: 3px solid rgba(255,255,255,0.1); z-index: 100;
+        }
+
+        .team-score { 
+            font-size: 1.5rem; display: flex; flex-direction: row; 
+            align-items: center; min-width: 180px; gap: 15px; font-weight: normal;
+        }
+        .p1-score-box { justify-content: flex-start; }
+        .p2-score-box { flex-direction: row-reverse; justify-content: flex-start; }
+
+        .team-name { font-size: 3rem; opacity: 1.0; white-space: nowrap; font-weight: normal; }
+        .score-num { font-size: 3rem; min-width: 60px; text-align: center; font-weight: normal; }
+        
+        .p1-color { color: var(--p1-main); text-shadow: 0 0 5px rgba(255, 159, 67, 0.3); }
+        .p2-color { color: var(--p2-main); text-shadow: 0 0 5px rgba(84, 160, 255, 0.3); }
+
+        .timer-box { flex: 1; text-align: center; max-width: 300px; margin: 0 20px; }
+        .timer-num { font-size: 2.2rem; color: #feca57; margin-bottom: 5px; font-weight: normal; }
+        .progress-track { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; border: 1px solid #555; }
+        .progress-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #1dd1a1, #feca57, #ff6b6b); transition: width 0.2s linear; }
+
+        .play-area {
+            flex: 1; display: flex; position: relative; flex-direction: row; 
+        }
+
+        .player-zone {
+            flex: 1; position: relative; display: flex; justify-content: center; 
+            align-items: flex-end; 
+            border-right: 2px dashed rgba(255,255,255,0.1); overflow: hidden;
+            padding-bottom: 5vh;
+        }
+        .player-zone:last-child { border-right: none; }
+
+        .bg-watermark { display: none; }
+
+        .game-board {
+            width: 74%; 
+            aspect-ratio: 1/1; 
+            max-width: 64vh; 
+            max-height: 90%;
+            background: rgba(20, 20, 30, 0.6); border-radius: 24px;
+            position: relative; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 5px solid rgba(255,255,255,0.1); transition: border-color 0.2s;
+            margin-top: 0;
+        }
+
+        #board-p1 { border-color: var(--p1-main); }
+        #board-p2 { border-color: var(--p2-main); }
+
+        .shake-anim { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; border-color: #ff4757 !important; }
+
+        .target-hint {
+            position: absolute;
+            top: -60px; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 46, 0.95);
+            padding: 8px 30px; border-radius: 50px;
+            font-size: 1.6rem; white-space: nowrap;
+            border: 3px solid #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 50; color: #feca57;
+            text-shadow: 0 0 5px rgba(254, 202, 87, 0.5);
+        }
+        .target-hint::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 10px solid #fff;
+        }
+
+        .bubble {
+            position: absolute; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            /* 폰트 굵기 두껍게 변경 */
+            font-size: 1.4rem; font-weight: bold; color: #000;
+            cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.6), 0 3px 6px rgba(0, 0, 0, 0.3);
+            /* 투명도 제거: rgba 알파 값을 1.0으로 변경 */
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,1.0) 0%, rgba(255,255,255,1.0) 20%, var(--bubble-bg) 100%);
+            opacity: 1.0; 
+            border: 2px solid rgba(255,255,255,0.5);
+            transform: scale(1); transition: transform 0.1s;
+            animation: floatBubble 3s ease-in-out infinite alternate;
+            white-space: nowrap;
+            text-shadow: 0 0 2px #fff;
+            will-change: transform;
+            /* 숫자 폰트 변경: 기본 폰트 적용 */
+            font-family: Arial, sans-serif;
+        }
+        .bubble:active { transform: scale(0.9); filter: brightness(0.9); }
+        .bubble::after {
+            content: ''; position: absolute; top: 15%; left: 15%;
+            width: 25%; height: 12%; border-radius: 50%;
+            /* 하이라이트 투명도 제거: rgba 알파 값을 1.0으로 변경 */
+            background: rgba(255,255,255,1.0); transform: rotate(-45deg);
+        }
+        .bubble.hint-active {
+            animation: hintPulse 0.8s ease-in-out infinite alternate;
+            border: 4px solid #fff000; z-index: 9999 !important; filter: brightness(1.2);
+        }
+
+        .float-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px;
+            background: rgba(60, 60, 70, 0.8); border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%; cursor: pointer; z-index: 5000;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 24px; transition: all 0.2s;
+        }
+        .float-btn:hover { background: rgba(80, 80, 90, 0.9); transform: scale(1.1); }
+        .float-btn:active { transform: scale(0.95); }
+        #home-btn { left: 20px; }
+        #fullscreen-btn { right: 20px; }
+
+        .popping { animation: popAnim 0.2s forwards ease-out; pointer-events: none; }
+        .respawning { animation: spawnAnim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); z-index: 3000;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes floatBubble { 0% { transform: translateY(0); } 100% { transform: translateY(-5px); } }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        @keyframes popAnim { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.8; } 100% { transform: scale(0); opacity: 0; } }
+        @keyframes spawnAnim { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes hintPulse { 0% { transform: scale(1); box-shadow: 0 0 10px #fff000; } 100% { transform: scale(1.15); box-shadow: 0 0 20px #fff000; } }
+
+        @media (max-aspect-ratio: 1/1) {
+            .play-area { flex-direction: column; }
+            .player-zone { border-right: none; border-bottom: 2px dashed rgba(255,255,255,0.1); }
+            .game-board { width: auto; height: 85%; margin-top: 0; margin-left: 20px; }
+            .target-hint { top: 10px; left: 10px; transform: none; font-size: 1.2rem; padding: 5px 15px; }
+            .target-hint::after { display: none; }
+        }
+
+        @media (max-width: 600px) and (orientation: portrait) {
+            .game-board { width: 90%; height: auto; margin-top: 25px; }
+            .target-hint { top: -45px; left: 50%; transform: translateX(-50%); }
+            .top-hud { padding: 0 10px; }
+            .team-score { min-width: auto; font-size: 1.2rem; }
+            .score-num { font-size: 1.8rem; min-width: 40px; }
+            .team-name { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="lang-ui-container" class="absolute top-4 right-4 sm:top-6 sm:right-6" style="z-index: 99999;">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="font-family: 'Noto Sans KR', sans-serif;">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4" style="z-index: 99999;">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3" style="z-index: 99999;">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div class="background-container" id="bg-bubbles">
+    </div>
+
+    <div id="intro-screen">
+        <a id="promo-link-a" href="/" target="_self" class="promo-link">
+            <span data-i18n="slogan">게임으로 수학의 킹이 되어라</span> <span id="site-name-span" data-i18n="siteName">킹수학.com</span>
+        </a>
+        <h1 class="game-title">🫧 <span data-i18n="gameTitle" style="word-break: keep-all;">킹방울 터트리기</span> 🫧</h1>
+        <div class="tutorial-box">
+            <p class="tutorial-text">
+                <b style="color:var(--p1-main)" data-i18n="teamDog">🐶강아지팀</b> vs <b style="color:var(--p2-main)" data-i18n="teamCat">🐱고양이팀</b><br>                <span data-i18n="rules1">화면 상단의</span> <span class="highlight" data-i18n="rules2">규칙</span><span data-i18n="rules3">을 확인하고</span><br>
+                <span data-i18n="rules4">순서대로 방울을 터트리세요!</span><br>
+   
+                <span class="warning" data-i18n="hintWarning">3초간 못 찾으면 힌트가 나와요!</span>
+            </p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-basic" onclick="game.init('basic')"><span data-i18n="btnBasic">기본</span><small>(1-50)</small></button>
+            <button class="btn btn-normal" onclick="game.init('normal')"><span data-i18n="btnNormal">보통</span><small data-i18n="descNormal">(2~9배수)</small></button>
+            <button class="btn btn-hard" onclick="game.init('hard')"><span data-i18n="btnHard">어려움</span><small data-i18n="descHard">(10~99배수)</small></button>
+        </div>
+        <a id="other-game-link-a" href="/" target="_self" class="other-game-link" data-i18n="linkOther">🎮 다른 게임 고르기</a>
+    </div>
+
+    <div id="game-screen">
+        <div class="top-hud">
+            <div class="team-score p1-color p1-score-box">
+                <span class="team-name" data-i18n="teamDog">🐶 강아지팀</span>
+                <span class="score-num" id="score-p1">0</span>
+            </div>
+            <div class="timer-box">
+                <div class="timer-num" id="timer-display">60</div>
+                <div class="progress-track"><div class="progress-bar" id="timer-bar"></div></div>
+            </div>
+            <div class="team-score p2-color p2-score-box">
+                <span class="team-name" data-i18n="teamCat">🐱 고양이팀</span>
+                <span class="score-num" id="score-p2">0</span>
+            </div>
+        </div>
+
+        <div class="play-area">
+            <div class="player-zone" id="zone-p1">
+                <div class="game-board" id="board-p1">
+                </div>
+            </div>
+            <div class="player-zone" id="zone-p2">
+                <div class="game-board" id="board-p2">
+                </div>
+            </div>
+        </div>
+
+        <div id="home-btn" class="float-btn" onclick="location.reload()" title="Home">🏠</div>
+        <div id="fullscreen-btn" class="float-btn" onclick="toggleFullScreen()" title="Full Screen">⛶</div>
+    </div>
+
+    <canvas id="fx-canvas"></canvas>
+
+    <div id="result-modal">
+        <h1 class="game-title" style="font-size: 4rem;">GAME OVER</h1>
+        <h2 id="winner-text" style="color:#fff; font-size:3rem; margin: 20px 0;"></h2>
+        <div style="font-size: 2.5rem; color: #fff; margin-bottom: 40px;">
+            <span style="color:var(--p1-main)">🐶 <span id="final-p1">0</span></span>
+            &nbsp;&nbsp;vs&nbsp;&nbsp;
+            <span style="color:var(--p2-main)">🐱 <span id="final-p2">0</span></span>
+        </div>
+        <button class="btn btn-basic" onclick="location.reload()"><span data-i18n="btnRetry">다시 하기</span></button>
+        <a id="other-game-link-b" href="/" target="_self" class="other-game-link" style="margin-top:20px;" data-i18n="linkOther">🎮 다른 게임 고르기</a>
+    </div>
+
+<script>
+    /* =========================================
+       Language System (다국어 시스템) 16개국
+       ========================================= */
+    
+    // UI 텍스트 번역 데이터
+    const uiTranslations = {
+        'ko': { title: '언어 및 지역 선택', desc: '선호하는 언어와 지역을 선택하세요.', search: '언어 검색 (예: English, 한국어...)', empty: '검색 결과가 없습니다.', toast: '언어가 변경되었습니다.' },
+        'en': { title: 'Language & Region', desc: 'Select your preferred language and region.', search: 'Search language (e.g. English, Español...)', empty: 'No results found.', toast: 'Language changed.' },
+        'zh': { title: '语言和地区选择', desc: '请选择您偏好的语言和地区。', search: '搜索语言 (例如: English, 中文...)', empty: '未找到结果。', toast: '语言已更改。' },
+        'ja': { title: '言語と地域の選択', desc: '希望する言語と地域を選択してください。', search: '言語を検索 (例: English, 日本語...)', empty: '結果が見つかりません。', toast: '言語が変更されました。' },
+        'es': { title: 'Idioma y Región', desc: 'Selecciona tu idioma y región preferidos.', search: 'Buscar idioma (ej. English, Español...)', empty: 'No se encontraron resultados.', toast: 'Idioma cambiado.' },
+        'fr': { title: 'Langue et Région', desc: 'Sélectionnez votre langue et région.', search: 'Rechercher (ex: English, Français...)', empty: 'Aucun résultat trouvé.', toast: 'Langue modifiée.' },
+        'ru': { title: 'Язык и Регион', desc: 'Выберите предпочитаемый язык и регион.', search: 'Поиск языка (напр. English, Русский...)', empty: 'Ничего не найдено.', toast: 'Язык изменен.' },
+        'vi': { title: 'Ngôn ngữ & Khu vực', desc: 'Chọn ngôn ngữ và khu vực của bạn.', search: 'Tìm kiếm (VD: English, Tiếng Việt...)', empty: 'Không tìm thấy kết quả.', toast: 'Ngôn ngữ đã được thay đổi.' },
+        'id': { title: 'Bahasa & Wilayah', desc: 'Pilih bahasa dan wilayah pilihan Anda.', search: 'Cari bahasa (Mis: English, Indonesia...)', empty: 'Tidak ada hasil yang ditemukan.', toast: 'Bahasa telah diubah.' },
+        'th': { title: 'ภาษาและภูมิภาค', desc: 'เลือกภาษาและภูมิภาคที่คุณต้องการ', search: 'ค้นหาภาษา (เช่น English, ไทย...)', empty: 'ไม่พบผลลัพธ์', toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว' },
+        'pt-br': { title: 'Idioma e Região', desc: 'Selecione seu idioma e região preferidos.', search: 'Buscar idioma (ex: English, Português...)', empty: 'Nenhum resultado encontrado.', toast: 'Idioma alterado.' },
+        'hi': { title: 'भाषा और क्षेत्र', desc: 'अपनी पसंदीदा भाषा और क्षेत्र चुनें।', search: 'भाषा खोजें (उदा: English, हिन्दी...)', empty: 'कोई परिणाम नहीं मिला।', toast: 'भाषा बदल दी गई है।' },
+        'bn': { title: 'ভাষা এবং অঞ্চল', desc: 'আপনার পছন্দের ভাষা এবং অঞ্চল নির্বাচন করুন।', search: 'ভাষা অনুসন্ধান করুন...', empty: 'কোনো ফলাফল পাওয়া যায়নি।', toast: 'ভাষা পরিবর্তন করা হয়েছে।' },
+        'tr': { title: 'Dil ve Bölge', desc: 'Tercih ettiğiniz dil ve bölgeyi seçin.', search: 'Dil ara (örn: English, Türkçe...)', empty: 'Sonuç bulunamadı.', toast: 'Dil değiştirildi.' },
+        'de': { title: 'Sprache und Region', desc: 'Wählen Sie Ihre bevorzugte Sprache und Region aus.', search: 'Sprache suchen (z.B. English, Deutsch...)', empty: 'Keine Ergebnisse gefunden.', toast: 'Sprache geändert.' },
+        'it': { title: 'Lingua e Regione', desc: 'Seleziona la tua lingua e regione preferite.', search: 'Cerca lingua (es. English, Italiano...)', empty: 'Nessun risultato trovato.', toast: 'Lingua modificata.' }
+    };
+
+    // 16개국 언어 데이터베이스 
+    const languages = [
+        { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+        { code: 'en', country: 'us', name: 'English', enName: 'English' },
+        { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+        { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+        { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+        { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+        { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+        { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+        { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+        { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+        { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+        { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+        { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+        { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+        { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+        { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+    ];
+
+    const LangSys = {
+        current: 'en',
+        dict: {
+            ko: { title: "킹방울 터트리기", metaDesc: "킹수학으로 전자칠판을 최고의 수학 학습 도구로 만드세요! 게임으로 즐기는 무료 수학 트레이닝.", metaKey: "전자칠판, 수학게임, 킹수학, 두뇌게임, 무료게임, 연산게임, 교육용게임", siteName: "킹수학.com", gameTitle: "킹방울 터트리기", slogan: "게임으로 수학의 킹이 되어라", teamDog: "🐶 강아지팀", teamCat: "🐱 고양이팀", rules1: "화면 상단의", rules2: "규칙", rules3: "을 확인하고", rules4: "순서대로 방울을 터트리세요!", hintWarning: "3초간 못 찾으면 힌트가 나와요!", btnBasic: "기본", btnNormal: "보통", btnHard: "어려움", descNormal: "(2~9배수)", descHard: "(10~99배수)", linkOther: "🎮 다른 게임 고르기", btnRetry: "다시 하기", ruleSeq: "1부터 차례대로", ruleSkip: "{n}씩 건너 세기", winDog: "🐶 강아지팀 승리!", winCat: "🐱 고양이팀 승리!", draw: "무승부!" },
+            en: { title: "Math King Bubble Battle", metaDesc: "Turn your interactive whiteboard into the ultimate math tool with KingsMath! Free math training games.", metaKey: "interactive whiteboard, math games, KingsMath, brain games, free games, math drills", siteName: "KingsMath.com", gameTitle: "King's Bubble Battle", slogan: "Become the King of Math", teamDog: "🐶 Dog Team", teamCat: "🐱 Cat Team", rules1: "Check the", rules2: "Rule", rules3: "at the top", rules4: "and pop bubbles in order!", hintWarning: "Hint appears after 3 seconds!", btnBasic: "Basic", btnNormal: "Normal", btnHard: "Hard", descNormal: "(Multiples 2-9)", descHard: "(Multiples 10-99)", linkOther: "🎮 More Games", btnRetry: "Play Again", ruleSeq: "Count from 1", ruleSkip: "Count by {n}s", winDog: "🐶 Dog Team Wins!", winCat: "🐱 Cat Team Wins!", draw: "Draw!" },
+            zh: { title: "数学之王 泡泡大作战", metaDesc: "用 KingsMath 把电子白板变成终极数学工具！免费的数学训练游戏。", metaKey: "电子白板, 数学游戏, KingsMath, 益智游戏, 免费游戏, 算术游戏", siteName: "KingsMath.com", gameTitle: "泡泡大王作战", slogan: "成为数学之王", teamDog: "🐶 狗狗队", teamCat: "🐱 猫咪队", rules1: "查看上方的", rules2: "规则", rules3: "并", rules4: "按顺序戳破泡泡！", hintWarning: "3秒找不到会有提示！", btnBasic: "基础", btnNormal: "普通", btnHard: "困难", descNormal: "(2-9的倍数)", descHard: "(10-99的倍数)", linkOther: "🎮 更多游戏", btnRetry: "再玩一次", ruleSeq: "从1开始数", ruleSkip: "每 {n} 个数一数", winDog: "🐶 狗狗队胜利!", winCat: "🐱 猫咪队胜利!", draw: "平局!" },
+            ja: { title: "キング・バブル 数学王", metaDesc: "KingsMathで電子黒板を最高の数学学習ツールに！ゲームで楽しむ無料数学トレーニング。", metaKey: "電子黒板, 数学ゲーム, KingsMath, 脳トレ, 無料ゲーム, 計算ゲーム", siteName: "KingsMath.com", gameTitle: "キング・バブル", slogan: "ゲームで数学の王様になろう", teamDog: "🐶 イヌチーム", teamCat: "🐱 ネコチーム", rules1: "画面上の", rules2: "ルール", rules3: "を見て", rules4: "順番にバブルを割ろう！", hintWarning: "3秒でヒントが出ます！", btnBasic: "基本", btnNormal: "普通", btnHard: "難しい", descNormal: "(2~9の倍数)", descHard: "(10~99の倍数)", linkOther: "🎮 他のゲーム", btnRetry: "もう一度", ruleSeq: "1から数える", ruleSkip: "{n}とびに数える", winDog: "🐶 イヌチームの勝ち!", winCat: "🐱 ネコチームの勝ち!", draw: "引き分け!" },
+            es: { title: "Rey de las Burbujas", metaDesc: "¡Convierte tu pizarra interactiva en la mejor herramienta matemática con KingsMath! Juegos de entrenamiento gratuitos.", metaKey: "pizarra interactiva, juegos de matemáticas, KingsMath, juegos mentales, gratis", siteName: "KingsMath.com", gameTitle: "Rey de las Burbujas", slogan: "Conviértete en el Rey", teamDog: "🐶 Equipo Perro", teamCat: "🐱 Equipo Gato", rules1: "¡Mira la", rules2: "regla", rules3: "arriba", rules4: "y explota en orden!", hintWarning: "¡Pista en 3 segundos!", btnBasic: "Básico", btnNormal: "Normal", btnHard: "Difícil", descNormal: "(Múltiplos 2-9)", descHard: "(Múltiplos 10-99)", linkOther: "🎮 Más Juegos", btnRetry: "Jugar de nuevo", ruleSeq: "Cuenta desde 1", ruleSkip: "Cuenta de {n} en {n}", winDog: "🐶 ¡Gana Equipo Perro!", winCat: "🐱 ¡Gana Equipo Gato!", draw: "¡Empate!" },
+            fr: { title: "Roi des Bulles", metaDesc: "Transformez votre tableau interactif en outil mathématique ultime avec KingsMath ! Jeux d'entraînement gratuits.", metaKey: "tableau interactif, jeux de maths, KingsMath, jeux de réflexion, jeux gratuits", siteName: "KingsMath.com", gameTitle: "Roi des Bulles", slogan: "Devenez le Roi des Maths", teamDog: "🐶 Équipe Chien", teamCat: "🐱 Équipe Chat", rules1: "Vérifiez la", rules2: "règle", rules3: "en haut", rules4: "et éclatez dans l'ordre!", hintWarning: "Indice après 3 sec!", btnBasic: "Basique", btnNormal: "Normal", btnHard: "Difficile", descNormal: "(Multiples 2-9)", descHard: "(Multiples 10-99)", linkOther: "🎮 Autres Jeux", btnRetry: "Rejouer", ruleSeq: "Comptez à partir de 1", ruleSkip: "Comptez par {n}", winDog: "🐶 Victoire Chien!", winCat: "🐱 Victoire Chat!", draw: "Égalité!" },
+            ru: { title: "Король Пузырей", metaDesc: "Превратите интерактивную доску в лучший инструмент для математики с KingsMath! Бесплатные игры.", metaKey: "интерактивная доска, математические игры, KingsMath, игры для мозга", siteName: "KingsMath.com", gameTitle: "Король Пузырей", slogan: "Стань Королем Математики", teamDog: "🐶 Команда Собак", teamCat: "🐱 Команда Кошек", rules1: "Проверь", rules2: "правило", rules3: "сверху", rules4: "и лопай по порядку!", hintWarning: "Подсказка через 3 секунды!", btnBasic: "Базовый", btnNormal: "Обычный", btnHard: "Сложный", descNormal: "(Кратные 2-9)", descHard: "(Кратные 10-99)", linkOther: "🎮 Другие игры", btnRetry: "Играть снова", ruleSeq: "Считай от 1", ruleSkip: "Считай по {n}", winDog: "🐶 Победа Собак!", winCat: "🐱 Победа Кошек!", draw: "Ничья!" },
+            id: { title: "Raja Gelembung", metaDesc: "Jadikan papan interaktif sebagai alat matematika terbaik dengan KingsMath! Game gratis.", metaKey: "papan interaktif, game matematika, KingsMath, game otak", siteName: "KingsMath.com", gameTitle: "Raja Gelembung", slogan: "Jadilah Raja Matematika", teamDog: "🐶 Tim Anjing", teamCat: "🐱 Tim Kucing", rules1: "Cek", rules2: "Aturan", rules3: "di atas", rules4: "dan pecahkan berurutan!", hintWarning: "Petunjuk muncul setelah 3 detik!", btnBasic: "Dasar", btnNormal: "Normal", btnHard: "Sulit", descNormal: "(Kelipatan 2-9)", descHard: "(Kelipatan 10-99)", linkOther: "🎮 Game Lainnya", btnRetry: "Main Lagi", ruleSeq: "Hitung dari 1", ruleSkip: "Hitung lompat {n}", winDog: "🐶 Tim Anjing Menang!", winCat: "🐱 Tim Kucing Menang!", draw: "Seri!" },
+            vi: { title: "Vua Bong Bóng", metaDesc: "Biến bảng tương tác thành công cụ toán học tối thượng với KingsMath! Trò chơi miễn phí.", metaKey: "bảng tương tác, trò chơi toán học, KingsMath", siteName: "KingsMath.com", gameTitle: "Vua Bong Bóng", slogan: "Trở thành Vua Toán học", teamDog: "🐶 Đội Chó", teamCat: "🐱 Đội Mèo", rules1: "Xem", rules2: "Quy tắc", rules3: "ở trên", rules4: "và làm vỡ theo thứ tự!", hintWarning: "Gợi ý sau 3 giây!", btnBasic: "Cơ bản", btnNormal: "Thường", btnHard: "Khó", descNormal: "(Bội số 2-9)", descHard: "(Bội số 10-99)", linkOther: "🎮 Trò chơi khác", btnRetry: "Chơi lại", ruleSeq: "Đếm từ 1", ruleSkip: "Đếm cách {n}", winDog: "🐶 Đội Chó Thắng!", winCat: "🐱 Đội Mèo Thắng!", draw: "Hòa!" },
+            th: { title: "ราชาฟองสบู่", metaDesc: "เปลี่ยนกระดานโต้ตอบเป็นเครื่องมือคณิตศาสตร์ที่ดีที่สุดด้วย KingsMath! เกมฟรี", metaKey: "กระดานโต้ตอบ, เกมคณิตศาสตร์, KingsMath", siteName: "KingsMath.com", gameTitle: "ราชาฟองสบู่", slogan: "เป็นราชาคณิตศาสตร์", teamDog: "🐶 ทีมสุนัข", teamCat: "🐱 ทีมแมว", rules1: "ดู", rules2: "กฎ", rules3: "ด้านบน", rules4: "และเจาะตามลำดับ!", hintWarning: "คำใบ้ใน 3 วินาที!", btnBasic: "พื้นฐาน", btnNormal: "ปานกลาง", btnHard: "ยาก", descNormal: "(พหุคูณ 2-9)", descHard: "(พหุคูณ 10-99)", linkOther: "🎮 เกมอื่นๆ", btnRetry: "เล่นอีกครั้ง", ruleSeq: "นับจาก 1", ruleSkip: "นับทีละ {n}", winDog: "🐶 ทีมสุนัขชนะ!", winCat: "🐱 ทีมแมวชนะ!", draw: "เสมอ!" },
+            'pt-br': { title: "Rei das Bolhas", metaDesc: "Transforme sua lousa interativa na melhor ferramenta matemática com KingsMath! Jogos grátis.", metaKey: "lousa interativa, jogos de matemática, KingsMath", siteName: "KingsMath.com", gameTitle: "Rei das Bolhas", slogan: "Torne-se o Rei da Matemática", teamDog: "🐶 Equipe Cachorro", teamCat: "🐱 Equipe Gato", rules1: "Veja a", rules2: "Regra", rules3: "acima", rules4: "e estoure na ordem!", hintWarning: "Dica após 3 segundos!", btnBasic: "Básico", btnNormal: "Normal", btnHard: "Difícil", descNormal: "(Múltiplos 2-9)", descHard: "(Múltiplos 10-99)", linkOther: "🎮 Mais Jogos", btnRetry: "Jogar Novamente", ruleSeq: "Conte a partir de 1", ruleSkip: "Conte de {n} em {n}", winDog: "🐶 Equipe Cachorro Venceu!", winCat: "🐱 Equipe Gato Venceu!", draw: "Empate!" },
+            hi: { title: "बबल किंग", metaDesc: "KingsMath के साथ अपने इंटरैक्टिव व्हाइटबोर्ड को बेहतरीन गणित टूल बनाएं! मुफ़्त खेल।", metaKey: "इंटरैक्टिव व्हाइटबोर्ड, गणित के खेल, KingsMath", siteName: "KingsMath.com", gameTitle: "बबल किंग", slogan: "गणित के राजा बनें", teamDog: "🐶 डॉग टीम", teamCat: "🐱 कैट टीम", rules1: "ऊपर", rules2: "नियम", rules3: "देखें", rules4: "और क्रम से फोड़ें!", hintWarning: "3 सेकंड बाद संकेत!", btnBasic: "सरल", btnNormal: "सामान्य", btnHard: "कठिन", descNormal: "(2-9 के गुणज)", descHard: "(10-99 के गुणज)", linkOther: "🎮 अन्य गेम्स", btnRetry: "फिर से खेलें", ruleSeq: "1 से गिनें", ruleSkip: "{n} से गिनें", winDog: "🐶 डॉग टीम जीती!", winCat: "🐱 कैट टीम जीती!", draw: "टाई!" },
+            bn: { title: "বাবল কিং", metaDesc: "KingsMath দিয়ে আপনার বোর্ডকে সেরা গণিত টুলে পরিণত করুন! বিনামূল্যে খেলুন।", metaKey: "ইন্টারেক্টিভ বোর্ড, গণিত গেম, KingsMath", siteName: "KingsMath.com", gameTitle: "বাবল কিং", slogan: "অংকের রাজা হোন", teamDog: "🐶 কুকুর দল", teamCat: "🐱 বিড়াল দল", rules1: "উপরের", rules2: "নিয়ম", rules3: "দেখুন", rules4: "এবং ক্রমানুসারে ফাটান!", hintWarning: "৩ সেকেন্ড পর সংকেত!", btnBasic: "সহজ", btnNormal: "সাধারণ", btnHard: "কঠিন", descNormal: "(২-৯ এর গুণিতক)", descHard: "(১০-৯৯ এর গুণিতক)", linkOther: "🎮 আরও গেম", btnRetry: "আবার খেলুন", ruleSeq: "১ থেকে গুনুন", ruleSkip: "{n} করে গুনুন", winDog: "🐶 কুকুর দল জিতেছে!", winCat: "🐱 বিড়াল দল জিতেছে!", draw: "ড্র!" },
+            tr: { title: "Balon Kralı", metaDesc: "KingsMath ile akıllı tahtanızı en iyi matematik aracına dönüştürün! Ücretsiz oyunlar.", metaKey: "akıllı tahta, matematik oyunları, KingsMath", siteName: "KingsMath.com", gameTitle: "Balon Kralı", slogan: "Matematik Kralı Ol", teamDog: "🐶 Köpek Takımı", teamCat: "🐱 Kedi Takımı", rules1: "Yukarıdaki", rules2: "Kuralı", rules3: "kontrol et", rules4: "ve sırayla patlat!", hintWarning: "3 saniye sonra ipucu!", btnBasic: "Temel", btnNormal: "Normal", btnHard: "Zor", descNormal: "(2-9 Katları)", descHard: "(10-99 Katları)", linkOther: "🎮 Diğer Oyunlar", btnRetry: "Tekrar Oyna", ruleSeq: "1'den say", ruleSkip: "{n}'er say", winDog: "🐶 Köpek Takımı Kazandı!", winCat: "🐱 Kedi Takımı Kazandı!", draw: "Berabere!" },
+            de: { title: "Blasen-König", metaDesc: "Machen Sie Ihr interaktives Whiteboard mit KingsMath zum ultimativen Mathe-Tool! Kostenlos.", metaKey: "interaktives Whiteboard, Mathe-Spiele, KingsMath", siteName: "KingsMath.com", gameTitle: "Blasen-König", slogan: "Werde der Mathe-König", teamDog: "🐶 Hunde-Team", teamCat: "🐱 Katzen-Team", rules1: "Überprüfe die", rules2: "Regel", rules3: "oben", rules4: "und platze der Reihe nach!", hintWarning: "Hinweis nach 3 Sekunden!", btnBasic: "Basis", btnNormal: "Normal", btnHard: "Schwer", descNormal: "(Vielfache 2-9)", descHard: "(Vielfache 10-99)", linkOther: "🎮 Mehr Spiele", btnRetry: "Nochmal spielen", ruleSeq: "Zähle ab 1", ruleSkip: "Zähle in {n}-Schritten", winDog: "🐶 Hunde-Team gewinnt!", winCat: "🐱 Katzen-Team gewinnt!", draw: "Unentschieden!" },
+            it: { title: "Re delle Bolle", metaDesc: "Trasforma la tua lavagna interattiva nello strumento matematico definitivo con KingsMath!", metaKey: "lavagna interattiva, giochi di matematica, KingsMath", siteName: "KingsMath.com", gameTitle: "Re delle Bolle", slogan: "Diventa il Re della Matematica", teamDog: "🐶 Squadra Cane", teamCat: "🐱 Squadra Gatto", rules1: "Controlla la", rules2: "Regola", rules3: "in alto", rules4: "e scoppia in ordine!", hintWarning: "Suggerimento dopo 3 sec!", btnBasic: "Base", btnNormal: "Normale", btnHard: "Difficile", descNormal: "(Multipli 2-9)", descHard: "(Multipli 10-99)", linkOther: "🎮 Altri Giochi", btnRetry: "Gioca di nuovo", ruleSeq: "Conta da 1", ruleSkip: "Conta per {n}", winDog: "🐶 Vince la Squadra Cane!", winCat: "🐱 Vince la Squadra Gatto!", draw: "Pareggio!" }
+        },
+        init: function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramLang = urlParams.get('lang');
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            const navLang = navigator.language.slice(0, 2).toLowerCase();
+
+            if (paramLang && this.dict[paramLang]) {
+                this.current = paramLang;
+            } else if (storedLang && this.dict[storedLang]) {
+                this.current = storedLang;
+            } else if (this.dict[navLang]) {
+                this.current = navLang;
+            } else {
+                this.current = 'en'; 
+            }
+
+            this.apply();
+        },
+        setLanguage: function(lang) {
+            if (!this.dict[lang]) return;
+            this.current = lang;
+            localStorage.setItem('kingsmath_lang', lang);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('lang', lang);
+            window.history.pushState({}, '', url);
+
+            this.apply();
+        },
+        apply: function() {
+            const data = this.dict[this.current];
+            document.documentElement.lang = this.current;
+            
+            // SEO Tags Update
+            document.title = data.title;
+            document.querySelector('meta[name="description"]').setAttribute("content", data.metaDesc);
+            document.querySelector('meta[name="keywords"]').setAttribute("content", data.metaKey);
+            document.querySelector('meta[property="og:title"]').setAttribute("content", data.title + " | " + data.siteName);
+            document.querySelector('meta[property="og:description"]').setAttribute("content", data.metaDesc);
+
+            // DOM 텍스트 번역 및 폰트 크기 동적 할당
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (data[key]) {
+                    el.textContent = data[key];
+                    // 글자 수에 비례한 폰트 리사이징 로직
+                    if (el.parentElement && el.parentElement.classList.contains('btn')) {
+                        const len = data[key].length;
+                        if (len > 12) el.style.fontSize = '1.3rem';
+                        else el.style.fontSize = ''; // 원복
+                    }
+                    if (el.classList.contains('gameTitle')) {
+                        const len = data[key].length;
+                        if (len > 14) el.style.fontSize = '3.5rem';
+                        else el.style.fontSize = '';
+                    }
+                }
+            });
+
+            // Domain Hardcoding Logic
+            const mainLink = '/';
+            document.getElementById('promo-link-a').href = mainLink;
+            document.getElementById('other-game-link-a').href = mainLink;
+            document.getElementById('other-game-link-b').href = mainLink;
+        },
+        getText: function(key) {
+            return this.dict[this.current][key] || "";
+        },
+        format: function(key, val) {
+            let str = this.dict[this.current][key] || "";
+            return str.replace('{n}', val);
+        }
+    };
+
+    // UI 모달 로직 융합
+    const triggerBtn = document.getElementById('langTriggerBtn');
+    const modal = document.getElementById('langModal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const searchInput = document.getElementById('searchInput');
+    const grid = document.getElementById('languageGrid');
+    const noResult = document.getElementById('noResult');
+    const currentFlagImg = document.getElementById('currentFlag');
+    const currentLangSpan = document.getElementById('currentLangName');
+    const toast = document.getElementById('toastNotification');
+    const toastLangName = document.getElementById('toastLangName');
+    let toastTimeout;
+
+    function updateUIText(langCode) {
+        const t = uiTranslations[langCode] || uiTranslations['en'];
+        document.getElementById('ui-title').textContent = t.title;
+        document.getElementById('ui-desc').textContent = t.desc;
+        document.getElementById('searchInput').placeholder = t.search;
+        document.getElementById('ui-empty').textContent = t.empty;
+        document.getElementById('ui-toast').textContent = t.toast;
+    }
+
+    function renderLanguages(filterText = '') {
+        grid.innerHTML = '';
+        const lowerFilter = filterText.toLowerCase();
+        
+        const filteredLangs = languages.filter(lang => 
+            lang.name.toLowerCase().includes(lowerFilter) || 
+            lang.enName.toLowerCase().includes(lowerFilter) ||
+            lang.code.toLowerCase().includes(lowerFilter)
+        );
+
+        if (filteredLangs.length === 0) {
+            grid.classList.add('hidden');
+            noResult.classList.remove('hidden');
+            noResult.classList.add('flex');
+        } else {
+            grid.classList.remove('hidden');
+            noResult.classList.add('hidden');
+            noResult.classList.remove('flex');
+
+            filteredLangs.forEach(lang => {
+                const isSelected = lang.code === LangSys.current;
+                const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                const stateClasses = isSelected 
+                    ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                    : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                const btn = document.createElement('div');
+                btn.className = `${baseClasses} ${stateClasses}`;
+
+                btn.innerHTML = `
+                    <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                        <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col items-start">
+                        <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                        <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                    </div>
+                    ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                `;
+
+                btn.addEventListener('click', () => selectLanguage(lang));
+                grid.appendChild(btn);
+            });
+        }
+    }
+
+    function selectLanguage(lang) {
+        LangSys.setLanguage(lang.code);
+        
+        currentFlagImg.src = `https://flagcdn.com/w40/${lang.country}.png`;
+        currentLangSpan.textContent = lang.name;
+        
+        updateUIText(lang.code);
+        closeModal();
+        showToast(lang.name);
+        renderLanguages(searchInput.value);
+    }
+
+    function openModal() {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+        setTimeout(() => searchInput.focus(), 100); 
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function showToast(langName) {
+        toastLangName.textContent = langName;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    triggerBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+    searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+    // 초기 설정 실행
+    LangSys.init();
+    const initLangObj = languages.find(l => l.code === LangSys.current) || languages.find(l => l.code === 'en');
+    currentFlagImg.src = `https://flagcdn.com/w40/${initLangObj.country}.png`;
+    currentLangSpan.textContent = initLangObj.name;
+    updateUIText(initLangObj.code);
+    renderLanguages();
+
+
+    /* =========================================
+       Existing Game Logic (Preserved)
+       ========================================= */
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    
+    document.addEventListener('touchstart', function(){}, {passive: true});
+
+    function initBgBubbles() {
+        const container = document.getElementById('bg-bubbles');
+        const bubbleCount = 15;
+        for (let i = 0; i < bubbleCount; i++) {
+            const b = document.createElement('div');
+            b.classList.add('bg-bubble');
+            const size = Math.random() * 60 + 20;
+            b.style.setProperty('--size', `${size}px`);
+            b.style.setProperty('--left', `${Math.random() * 100}%`);
+            b.style.setProperty('--duration', `${Math.random() * 10 + 10}s`);
+            b.style.setProperty('--delay', `${Math.random() * 10}s`);
+            container.appendChild(b);
+        }
+    }
+    initBgBubbles();
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            });
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    }
+
+    const AudioSys = {
+        ctx: null,
+        init: function() {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+        },
+        play: function(type) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const now = this.ctx.currentTime;
+            
+            if (type === 'start') {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+                notes.forEach((freq, i) => {
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + i * 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.3);
+                    o.connect(g);
+                    g.connect(this.ctx.destination);
+                    o.start(now + i * 0.05);
+                    o.stop(now + i * 0.05 + 0.3);
+                });
+                return;
+            } else if (type === 'pop') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'error') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.1); osc.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'respawn') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'hint') {
+                const osc1 = this.ctx.createOscillator();
+                const gain1 = this.ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(400, now);
+                osc1.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gain1.gain.setValueAtTime(0.2, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc1.connect(gain1); gain1.connect(this.ctx.destination);
+                osc1.start(now); osc1.stop(now + 0.1);
+
+                const osc2 = this.ctx.createOscillator();
+                const gain2 = this.ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(600, now + 0.15);
+                osc2.frequency.exponentialRampToValueAtTime(900, now + 0.25);
+                gain2.gain.setValueAtTime(0.2, now + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc2.connect(gain2); gain2.connect(this.ctx.destination);
+                osc2.start(now + 0.15); osc2.stop(now + 0.25);
+                return;
+            } else if (type === 'win') {
+                const melody = [
+                    {f: 523.25, t: 0}, {f: 523.25, t: 0.1}, {f: 523.25, t: 0.2}, 
+                    {f: 659.25, t: 0.4}, {f: 783.99, t: 0.6}, {f: 1046.50, t: 0.8}
+                ];
+                melody.forEach(n => {
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'square';
+                    o.frequency.value = n.f;
+                    g.gain.setValueAtTime(0.1, now + n.t);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.4);
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.start(now + n.t); o.stop(now + n.t + 0.4);
+                });
+                const chord = [523.25, 659.25, 783.99, 1046.50];
+                chord.forEach(freq => {
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'triangle';
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + 0.8);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.start(now + 0.8); o.stop(now + 2.0);
+                });
+                return;
+            }
+            osc.connect(gain); gain.connect(this.ctx.destination);
+        }
+    };
+
+    const FX = {
+        canvas: document.getElementById('fx-canvas'), ctx: null, particles: [],
+        init: function() {
+            this.ctx = this.canvas.getContext('2d', { alpha: true }); 
+            this.resize(); window.addEventListener('resize', () => this.resize()); this.loop();
+        },
+        resize: function() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+        spawn: function(x, y, color) {
+            for (let i = 0; i < 10; i++) {
+                const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 6 + 2;
+                this.particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, color: color, size: Math.random() * 8 + 3 });
+            }
+        },
+        loop: function() {
+            const ctx = this.ctx; ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            if(this.particles.length > 0) { 
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    let p = this.particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.life -= 0.05; p.size *= 0.92;
+                    if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fill();
+                }
+            }
+            requestAnimationFrame(() => this.loop());
+        }
+    };
+
+    const game = {
+        config: {
+            basic: { min: 1, stepMin: 1, stepMax: 1, count: 50 },
+            normal: { min: 2, stepMin: 2, stepMax: 9, count: 50 },
+            hard: { min: 10, stepMin: 10, stepMax: 99, count: 50 }
+        },
+        state: {
+            p1: { current: 0, step: 0, bubbles: [], startNum: 0, lastAction: 0, isHinting: false },
+            p2: { current: 0, step: 0, bubbles: [], startNum: 0, lastAction: 0, isHinting: false },
+            isPlaying: false, timeLeft: 60, timerId: null, hintInterval: null
+        },
+        colors: ['#ffb7b2', '#ffdac1', '#e2f0cb', '#b5ead7', '#c7ceea', '#fdfd96', '#fab1a0', '#81ecec'],
+
+        init: function(mode) {
+            // 게임 시작 시 언어 선택 UI 숨기기
+            document.getElementById('lang-ui-container').style.display = 'none';
+
+            AudioSys.init(); FX.init();
+            AudioSys.play('start');
+
+            document.getElementById('intro-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'flex';
+                
+                const cfg = this.config[mode];
+                let commonStep = (mode === 'basic') ? 1 : Math.floor(Math.random() * (cfg.stepMax - cfg.stepMin + 1)) + cfg.stepMin;
+                
+                this.setupPlayer('p1', mode, commonStep);
+                this.setupPlayer('p2', mode, commonStep);
+            }, 500);
+            
+            this.state.isPlaying = true; this.state.timeLeft = 60; this.updateTimer();
+            if(this.state.timerId) clearInterval(this.state.timerId);
+            this.state.timerId = setInterval(() => {
+                this.state.timeLeft--; this.updateTimer();
+                if (this.state.timeLeft <= 0) this.endGame();
+            }, 1000);
+
+            if(this.state.hintInterval) clearInterval(this.state.hintInterval);
+            this.state.hintInterval = setInterval(() => this.checkHints(), 1000);
+
+            document.getElementById('board-p1').onpointerdown = (e) => this.handleBoardTouch(e, 'p1');
+            document.getElementById('board-p2').onpointerdown = (e) => this.handleBoardTouch(e, 'p2');
+        },
+
+        setupPlayer: function(pid, mode, step) {
+            const cfg = this.config[mode];
+            const board = document.getElementById(`board-${pid}`);
+            
+            let ruleText;
+            if (step === 1) ruleText = LangSys.getText('ruleSeq');
+            else ruleText = LangSys.format('ruleSkip', step);
+
+            board.innerHTML = `<div class="target-hint">${ruleText}</div>`;
+
+            const startNum = (mode === 'basic') ? 1 : step;
+            
+            this.state[pid].current = startNum; 
+            this.state[pid].startNum = startNum; 
+            this.state[pid].step = step; 
+            this.state[pid].bubbles = [];
+            this.state[pid].lastAction = Date.now();
+            this.state[pid].isHinting = false;
+
+            let numbers = []; 
+            for (let i = 0; i < cfg.count; i++) numbers.push(startNum + (i * step));
+            
+            const rect = board.getBoundingClientRect();
+            const bubbleSize = rect.width / 7; 
+
+            let positions = [];
+            numbers.forEach((num, index) => {
+                let pos = this.getSafePosition(positions, rect.width, rect.height, bubbleSize);
+                positions.push(pos);
+                let zIndex = 1000 + (cfg.count - index); 
+                this.createBubbleElement(pid, num, pos.x, pos.y, size=bubbleSize, zIndex);
+            });
+        },
+
+        getSafePosition: function(existing, w, h, size) {
+            let x, y, overlap; let tries = 0;
+            const padding = 4;
+            const topMargin = 10; 
+            do {
+                overlap = false;
+                x = Math.random() * (w - size - padding * 2) + padding;
+                y = Math.random() * (h - size - padding * 2 - topMargin) + topMargin;
+                for (let p of existing) {
+                    const dist = Math.sqrt((x - p.x)**2 + (y - p.y)**2);
+                    if (dist < size) { overlap = true; break; }
+                }
+                tries++;
+            } while (overlap && tries < 1000);
+            return {x, y};
+        },
+
+        createBubbleElement: function(pid, num, x, y, size, zIndex) {
+            const board = document.getElementById(`board-${pid}`);
+            const el = document.createElement('div');
+            el.className = 'bubble';
+            el.textContent = num;
+            el.dataset.val = num;
+            const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            el.style.setProperty('--bubble-bg', color);
+            el.style.width = size + 'px'; el.style.height = size + 'px';
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+            // 폰트 크기 비율을 살짝 더 줄임 (0.6 -> 0.5, 0.45 -> 0.35)
+            el.style.fontSize = (num > 99) ? (size * 0.35) + 'px' : (size * 0.5) + 'px';
+            el.style.zIndex = zIndex;
+            board.appendChild(el);
+            this.state[pid].bubbles.push({ num, el, x, y, size, color });
+        },
+
+        handleBoardTouch: function(e, pid) {
+            if (!this.state.isPlaying) return;
+            if (e.target.classList.contains('bubble')) {
+                const val = parseInt(e.target.dataset.val);
+                if (val === this.state[pid].current) this.handleCorrect(pid, e.target, val);
+                else this.handleWrong(pid, e.target);
+            } else if (!e.target.classList.contains('target-hint') && e.target.tagName !== 'B') {
+                this.handleWrong(pid, null);
+            }
+        },
+
+        handleCorrect: function(pid, el, val) {
+            AudioSys.play('pop');
+            const rect = el.getBoundingClientRect();
+            const color = getComputedStyle(el).getPropertyValue('--bubble-bg');
+            FX.spawn(rect.left + rect.width/2, rect.top + rect.height/2, color);
+            el.classList.add('popping');
+            setTimeout(() => el.remove(), 200); 
+            
+            const pState = this.state[pid];
+            pState.bubbles = pState.bubbles.filter(b => b.num !== val);
+            pState.current += pState.step;
+            
+            pState.lastAction = Date.now();
+            pState.isHinting = false;
+            pState.bubbles.forEach(b => b.el.classList.remove('hint-active'));
+
+            document.getElementById(`score-${pid}`).innerText = parseInt(document.getElementById(`score-${pid}`).innerText) + 100;
+            
+            if (pState.bubbles.length === 0) this.endGame();
+        },
+
+        handleWrong: function(pid, clickedEl) {
+            AudioSys.play('error');
+            const board = document.getElementById(`board-${pid}`);
+            board.classList.remove('shake-anim'); void board.offsetWidth; board.classList.add('shake-anim');
+            if (clickedEl) { clickedEl.style.transform = 'scale(0.8)'; setTimeout(() => clickedEl.style.transform = 'scale(1)', 100); }
+            
+            const pState = this.state[pid];
+            pState.lastAction = Date.now();
+            pState.isHinting = false;
+            pState.bubbles.forEach(b => b.el.classList.remove('hint-active'));
+
+            const scoreEl = document.getElementById(`score-${pid}`);
+            scoreEl.innerText = Math.max(0, parseInt(scoreEl.innerText) - 50);
+
+            if (pState.current > pState.startNum) {
+                setTimeout(() => {
+                    AudioSys.play('respawn');
+                    pState.current -= pState.step;
+                    
+                    const prevNum = pState.current;
+                    const boardRect = board.getBoundingClientRect();
+                    const existingPos = pState.bubbles.map(b => ({x: b.x, y: b.y}));
+                    const size = boardRect.width / 7; 
+                    
+                    const newPos = this.getSafePosition(existingPos, boardRect.width, boardRect.height, size);
+                    this.createBubbleElement(pid, prevNum, newPos.x, newPos.y, size, 2000);
+                    const newBubble = pState.bubbles[pState.bubbles.length-1].el;
+                    newBubble.classList.add('respawning');
+                }, 200);
+            }
+        },
+
+        checkHints: function() {
+            if (!this.state.isPlaying) return;
+            const now = Date.now();
+            ['p1', 'p2'].forEach(pid => {
+                const pState = this.state[pid];
+                if (now - pState.lastAction > 3000 && !pState.isHinting) {
+                    const targetBubble = pState.bubbles.find(b => b.num === pState.current);
+                    if (targetBubble) {
+                        pState.isHinting = true;
+                        targetBubble.el.classList.add('hint-active');
+                        AudioSys.play('hint');
+                    }
+                }
+            });
+        },
+
+        updateTimer: function() {
+            document.getElementById('timer-display').innerText = this.state.timeLeft;
+            document.getElementById('timer-bar').style.width = (this.state.timeLeft / 60) * 100 + '%';
+        },
+        endGame: function() {
+            this.state.isPlaying = false; 
+            clearInterval(this.state.timerId); 
+            clearInterval(this.state.hintInterval);
+            AudioSys.play('win');
+            const s1 = parseInt(document.getElementById('score-p1').innerText);
+            const s2 = parseInt(document.getElementById('score-p2').innerText);
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-p1').innerText = s1; document.getElementById('final-p2').innerText = s2;
+            const wTxt = document.getElementById('winner-text');
+            
+            if (s1 > s2) wTxt.innerHTML = `<span style='color:var(--p1-main)'>${LangSys.getText('winDog')}</span>`;
+            else if (s2 > s1) wTxt.innerHTML = `<span style='color:var(--p2-main)'>${LangSys.getText('winCat')}</span>`;
+            else wTxt.innerText = LangSys.getText('draw');
+        }
+    };
+</script>
+
+</body>
+</html>

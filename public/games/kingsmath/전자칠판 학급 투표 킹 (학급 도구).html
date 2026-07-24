@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="seo-title">👑 전자칠판 투표킹</title>
+    <meta name="description" id="seo-desc" content="선생님이 만든 안전한 수학 놀이터, 스마트한 전자칠판 투표 게임입니다.">
+    <meta name="keywords" id="seo-keys" content="투표킹, 전자칠판 게임, 초등수학, 학급경영, 킹수학">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* 폰트 및 아이콘 예외 처리: FontAwesome 아이콘(i 태그)에는 일반 폰트 강제 적용 방지 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        /* 전자칠판용 다크모드 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #1f2937; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* 학생 및 투표 버튼 애니메이션 및 터치 효과 */
+        .btn-press { transition: all 0.1s ease-in-out; }
+        .btn-press:active { transform: scale(0.95); }
+        
+        /* 선택된 학생의 반짝이는 효과 */
+        .selected-glow {
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+            border-color: #facc15 !important;
+        }
+
+        /* ========================================================
+           다국어 모달 및 UI 전용 독립 CSS (게임과 충돌 방지)
+           ======================================================== */
+        #langModal, #langModal * { box-sizing: border-box !important; }
+        #langModal i, #langTriggerBtn i, #btn-home, #toastNotification i { font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", sans-serif !important; }
+        
+        #langModal-container .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        #langModal-container .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        #langModal-container .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        #langModal-container .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        #langModal-container .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #langModal-container .modal-overlay.active { opacity: 1; visibility: visible; }
+        #langModal-container .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        #langModal-container .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        #toastNotification { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        #toastNotification.show { transform: translateY(0); opacity: 1; }
+
+        /* 홈 버튼 플로팅 디자인 */
+        .floating-btn {
+            position: fixed; top: 80px; right: 24px; z-index: 99998;
+            background: #374151; border: 2px solid #4b5563; border-radius: 50%;
+            width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif !important; /* 이모지 깨짐 방지 */
+        }
+        .floating-btn:hover { transform: scale(1.1); background: #4b5563; }
+        
+        /* 텍스트 크기 동적 조절용 (버튼 글자 넘침 방지) */
+        .dynamic-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 h-screen w-screen overflow-hidden flex flex-col font-sans select-none relative">
+
+    <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/80 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="btn-home" class="floating-btn" style="cursor:pointer;" title="홈으로 가기">🏠</div>
+
+    <header class="h-[100px] bg-gray-800 border-b border-gray-700 flex justify-between items-center px-10 shrink-0">
+        <div class="flex items-center gap-6">
+            <h1 class="text-4xl font-bold text-white tracking-wide" data-i18n="title">👑 전자칠판 투표킹</h1>
+            
+            <div class="ml-10 bg-gray-900 p-2 rounded-xl border border-gray-700 flex items-center gap-4 text-xl">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="resultMode" value="immediate" class="w-6 h-6 accent-blue-500" onchange="changeResultMode('immediate')">
+                    <span data-i18n="result_now">결과 바로 보기</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer ml-4">
+                    <input type="radio" name="resultMode" value="delayed" class="w-6 h-6 accent-blue-500" checked onchange="changeResultMode('delayed')">
+                    <span data-i18n="result_later">결과 나중 보기</span>
+                </label>
+                
+                <button id="revealBtn" onclick="revealResults()" class="ml-4 px-6 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg btn-press">
+                    <span data-i18n="reveal_btn">👀 결과 공개하기</span>
+                </button>
+            </div>
+        </div>
+
+        <button onclick="openSetup()" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold rounded-xl shadow-lg btn-press flex items-center gap-2 mr-48">
+            <span data-i18n="create_vote_btn">⚙️ 투표 만들기</span>
+        </button>
+    </header>
+
+    <main class="flex-1 flex flex-col p-8 gap-8 overflow-hidden relative">
+        <section class="flex flex-col h-[45%] bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-inner relative">
+            <h2 class="text-2xl text-gray-400 font-bold mb-4 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block"></span> 
+                <span data-i18n="step1">1. 투표할 학생을 먼저 선택하세요</span>
+            </h2>
+            <div id="studentContainer" class="flex-1 overflow-y-auto grid grid-cols-10 auto-rows-min gap-3 pr-2 pb-2">
+                </div>
+        </section>
+
+        <section class="flex flex-col h-[55%] bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-inner">
+            <h2 class="text-2xl text-gray-400 font-bold mb-4 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span> 
+                <span data-i18n="step2">2. 투표할 항목을 터치하세요</span>
+            </h2>
+            <div id="optionContainer" class="flex-1 grid gap-6">
+                </div>
+        </section>
+    </main>
+
+    <div id="setupModal" class="fixed inset-0 bg-black/80 flex justify-center items-center z-50 transition-opacity">
+        <div class="bg-gray-800 border border-gray-600 rounded-3xl p-10 w-[1200px] shadow-2xl flex flex-col gap-8">
+            <h2 class="text-4xl font-bold text-center text-white border-b border-gray-700 pb-6" data-i18n="setup_title">새로운 투표 만들기</h2>
+            
+            <div class="flex gap-10">
+                <div class="flex-1 flex flex-col gap-4">
+                    <div class="flex justify-between items-end h-[48px]">
+                        <label class="text-2xl font-bold text-blue-300" data-i18n="student_list_label">학생 명단</label>
+                        <button onclick="clearStudents()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg text-sm mb-1" data-i18n="reset_student_btn">🗑️ 학생 초기화</button>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        <span data-i18n="student_tip1">학생 이름을 줄바꿈(엔터) 또는 쉼표(,)로 구분하여 입력하세요.</span><br>
+                        <span class="text-blue-300" data-i18n="student_tip2">💡 꿀팁: <strong>'30'</strong>처럼 숫자(인원수)만 하나 입력하면 1번부터 자동 생성됩니다.</span>
+                    </p>
+                    <textarea id="inputStudents" class="w-full h-[380px] bg-gray-900 border border-gray-600 rounded-xl p-4 text-xl text-white focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                </div>
+
+                <div class="flex-1 flex flex-col gap-4">
+                    <div class="flex justify-between items-end h-[48px]">
+                        <label class="text-2xl font-bold text-green-300" data-i18n="option_list_label">투표 항목 (최대 10개)</label>
+                        <button onclick="clearOptions()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg text-sm mb-1" data-i18n="reset_option_btn">🗑️ 내용 초기화</button>
+                    </div>
+                    <p class="text-gray-400 text-sm" data-i18n="option_tip">줄바꿈(엔터) 또는 쉼표(,)로 구분하여 입력하세요.</p>
+                    <textarea id="inputOptions" class="w-full h-[380px] bg-gray-900 border border-gray-600 rounded-xl p-4 text-xl text-white focus:outline-none focus:border-green-500 resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-6 pt-4 border-t border-gray-700">
+                <button onclick="closeSetup()" class="px-10 py-4 bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold rounded-xl btn-press" data-i18n="cancel_btn">취소</button>
+                <button onclick="saveAndStart()" class="px-10 py-4 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold rounded-xl btn-press" data-i18n="start_vote_btn">투표 시작하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="langModal-container">
+        <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+            <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+                
+                <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-language text-yellow-500"></i>
+                            <span>Language / 언어</span>
+                        </h2>
+                    </div>
+                    <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 pb-2 bg-gray-900">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                            class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500 font-sans">
+                    </div>
+                </div>
+
+                <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                    <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        </div>
+                    <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                        <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                        <p>No results / 검색 결과 없음</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastNotification" class="fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999]">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+                <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 다국어 데이터베이스 (16개국 지원, 초등학생용 직관적 단어 사용)
+        // ==========================================
+        const translations = {
+            'ko': {
+                langName: '한국어',
+                title: '👑 전자칠판 투표킹', seo_desc: '선생님이 만든, 안전한 수학 놀이터 투표게임입니다.',
+                result_now: '결과 바로 보기', result_later: '결과 나중 보기', reveal_btn: '👀 결과 공개하기', create_vote_btn: '⚙️ 투표 만들기',
+                step1: '1. 투표할 학생을 먼저 선택하세요', step2: '2. 투표할 항목을 터치하세요', setup_title: '새로운 투표 만들기',
+                student_list_label: '학생 명단', reset_student_btn: '🗑️ 학생 초기화', student_tip1: '학생 이름을 줄바꿈(엔터) 또는 쉼표(,)로 구분하여 입력하세요.', student_tip2: "💡 꿀팁: <strong>'30'</strong>처럼 숫자(인원수)만 하나 입력하면 1번부터 자동 생성됩니다.",
+                option_list_label: '투표 항목 (최대 10개)', reset_option_btn: '🗑️ 내용 초기화', option_tip: '줄바꿈(엔터) 또는 쉼표(,)로 구분하여 입력하세요.',
+                cancel_btn: '취소', start_vote_btn: '투표 시작하기',
+                votes: '명', alert_count: '인원수는 1명 이상 100명 이하로 입력해주세요.', alert_min_stu: '최소 1명 이상의 학생을 입력해주세요.', alert_min_opt: '최소 1개 이상의 투표 항목을 입력해주세요.', alert_max_opt: '투표 항목은 최대 10개까지만 가능합니다.', alert_select_stu: '위에서 투표할 학생 이름(또는 번호)을 먼저 터치해주세요!',
+                toast: '언어가 변경되었습니다.'
+            },
+            'en': {
+                langName: 'English',
+                title: '👑 Vote King', seo_desc: 'A safe math playground made by a teacher. Smart voting game.',
+                result_now: 'See Results Now', result_later: 'See Results Later', reveal_btn: '👀 Reveal Results', create_vote_btn: '⚙️ Create Vote',
+                step1: '1. Select a student first', step2: '2. Touch an option to vote', setup_title: 'Create New Vote',
+                student_list_label: 'Student List', reset_student_btn: '🗑️ Reset Students', student_tip1: 'Enter student names separated by Enter or Comma.', student_tip2: "💡 Tip: Enter just a number like <strong>'30'</strong> to auto-generate from 1.",
+                option_list_label: 'Options (Max 10)', reset_option_btn: '🗑️ Reset Content', option_tip: 'Enter options separated by Enter or Comma.',
+                cancel_btn: 'Cancel', start_vote_btn: 'Start Voting',
+                votes: 'votes', alert_count: 'Please enter a number between 1 and 100.', alert_min_stu: 'Please enter at least 1 student.', alert_min_opt: 'Please enter at least 1 option.', alert_max_opt: 'Maximum of 10 options allowed.', alert_select_stu: 'Please touch a student name first!',
+                toast: 'Language changed.'
+            },
+            'zh': {
+                langName: '中文 (简体)',
+                title: '👑 投票大王', seo_desc: '老师制作的安全数学游乐场。智能投票游戏。',
+                result_now: '立即查看结果', result_later: '稍后查看结果', reveal_btn: '👀 公开结果', create_vote_btn: '⚙️ 创建投票',
+                step1: '1. 首先选择一名学生', step2: '2. 触摸选项进行投票', setup_title: '创建新投票',
+                student_list_label: '学生名单', reset_student_btn: '🗑️ 重置学生', student_tip1: '输入学生姓名，用回车或逗号分隔。', student_tip2: "💡 提示：只输入数字如 <strong>'30'</strong> 即可自动生成。",
+                option_list_label: '选项 (最多10个)', reset_option_btn: '🗑️ 重置内容', option_tip: '输入选项，用回车或逗号分隔。',
+                cancel_btn: '取消', start_vote_btn: '开始投票',
+                votes: '票', alert_count: '请输入1到100之间的数字。', alert_min_stu: '请至少输入1名学生。', alert_min_opt: '请至少输入1个选项。', alert_max_opt: '最多允许10个选项。', alert_select_stu: '请先触摸学生姓名！',
+                toast: '语言已更改。'
+            },
+            'ja': {
+                langName: '日本語',
+                title: '👑 投票キング', seo_desc: '先生が作った安全な数学の遊び場。スマート投票ゲーム。',
+                result_now: '結果をすぐ見る', result_later: '結果を後で見る', reveal_btn: '👀 結果を公開', create_vote_btn: '⚙️ 投票を作る',
+                step1: '1. まず生徒を選んでください', step2: '2. 項目をタッチして投票', setup_title: '新しい投票を作る',
+                student_list_label: '生徒リスト', reset_student_btn: '🗑️ リセット', student_tip1: '名前を改行またはカンマで区切って入力します。', student_tip2: "💡 ヒント: <strong>'30'</strong>のように数字を入力すると自動生成されます。",
+                option_list_label: '項目 (最大10)', reset_option_btn: '🗑️ 内容リセット', option_tip: '項目を改行またはカンマで区切って入力します。',
+                cancel_btn: 'キャンセル', start_vote_btn: '投票スタート',
+                votes: '票', alert_count: '1から100までの数字を入力してください。', alert_min_stu: '1人以上の生徒を入力してください。', alert_min_opt: '1つ以上の項目を入力してください。', alert_max_opt: '項目は最大10個までです。', alert_select_stu: '先に生徒の名前をタッチしてください！',
+                toast: '言語が変更されました。'
+            },
+            'es': {
+                langName: 'Español', title: '👑 Rey Voto', seo_desc: 'Un patio de matemáticas seguro hecho por un maestro.',
+                result_now: 'Ver Ahora', result_later: 'Ver Después', reveal_btn: '👀 Revelar Resultados', create_vote_btn: '⚙️ Crear Voto',
+                step1: '1. Elige un estudiante', step2: '2. Toca una opción', setup_title: 'Crear Nuevo Voto',
+                student_list_label: 'Estudiantes', reset_student_btn: '🗑️ Reiniciar', student_tip1: 'Nombres separados por coma o salto de línea.', student_tip2: "💡 Consejo: Escribe un número como <strong>'30'</strong> para generar automáticamente.",
+                option_list_label: 'Opciones (Máx 10)', reset_option_btn: '🗑️ Reiniciar', option_tip: 'Opciones separadas por coma o salto.',
+                cancel_btn: 'Cancelar', start_vote_btn: 'Empezar Voto',
+                votes: 'votos', alert_count: 'Ingresa un número de 1 a 100.', alert_min_stu: 'Al menos 1 estudiante.', alert_min_opt: 'Al menos 1 opción.', alert_max_opt: 'Máximo 10 opciones.', alert_select_stu: '¡Toca un estudiante primero!', toast: 'Idioma cambiado.'
+            },
+            'fr': {
+                langName: 'Français', title: '👑 Roi du Vote', seo_desc: 'Un jeu de vote intelligent pour la classe.',
+                result_now: 'Voir Maintenant', result_later: 'Voir Plus Tard', reveal_btn: '👀 Révéler', create_vote_btn: '⚙️ Créer',
+                step1: '1. Choisis un élève', step2: '2. Touche une option', setup_title: 'Nouveau Vote',
+                student_list_label: 'Élèves', reset_student_btn: '🗑️ Réinitialiser', student_tip1: 'Noms séparés par virgule ou entrée.', student_tip2: "💡 Astuce: Tape <strong>'30'</strong> pour créer 30 élèves.",
+                option_list_label: 'Options (Max 10)', reset_option_btn: '🗑️ Réinitialiser', option_tip: 'Options séparées par virgule ou entrée.',
+                cancel_btn: 'Annuler', start_vote_btn: 'Commencer',
+                votes: 'votes', alert_count: 'Entre 1 et 100.', alert_min_stu: 'Au moins 1 élève.', alert_min_opt: 'Au moins 1 option.', alert_max_opt: 'Max 10 options.', alert_select_stu: 'Touche un élève en premier!', toast: 'Langue modifiée.'
+            },
+            'de': { langName: 'Deutsch', title: '👑 Abstimmungskönig', seo_desc: 'Intelligentes Abstimmungsspiel.', result_now: 'Ergebnisse Jetzt', result_later: 'Ergebnisse Später', reveal_btn: '👀 Aufdecken', create_vote_btn: '⚙️ Erstellen', step1: '1. Schüler wählen', step2: '2. Option tippen', setup_title: 'Neue Abstimmung', student_list_label: 'Schülerliste', reset_student_btn: '🗑️ Zurücksetzen', student_tip1: 'Namen durch Komma/Enter trennen.', student_tip2: "💡 Tipp: <strong>'30'</strong> für automatische Liste.", option_list_label: 'Optionen (Max 10)', reset_option_btn: '🗑️ Zurücksetzen', option_tip: 'Optionen durch Komma/Enter trennen.', cancel_btn: 'Abbrechen', start_vote_btn: 'Start', votes: 'Stimmen', alert_count: 'Zahl 1-100 eingeben.', alert_min_stu: 'Mindestens 1 Schüler.', alert_min_opt: 'Mindestens 1 Option.', alert_max_opt: 'Max 10 Optionen.', alert_select_stu: 'Zuerst Schüler wählen!', toast: 'Sprache geändert.' },
+            'it': { langName: 'Italiano', title: '👑 Re del Voto', seo_desc: 'Gioco di voto intelligente.', result_now: 'Risultati Ora', result_later: 'Risultati Dopo', reveal_btn: '👀 Rivela', create_vote_btn: '⚙️ Crea', step1: '1. Scegli studente', step2: '2. Tocca un\'opzione', setup_title: 'Nuovo Voto', student_list_label: 'Studenti', reset_student_btn: '🗑️ Resetta', student_tip1: 'Nomi separati da virgola.', student_tip2: "💡 Suggerimento: digita <strong>'30'</strong> per auto-generare.", option_list_label: 'Opzioni (Max 10)', reset_option_btn: '🗑️ Resetta', option_tip: 'Opzioni separate da virgola.', cancel_btn: 'Annulla', start_vote_btn: 'Inizia', votes: 'voti', alert_count: 'Tra 1 e 100.', alert_min_stu: 'Minimo 1 studente.', alert_min_opt: 'Minimo 1 opzione.', alert_max_opt: 'Max 10 opzioni.', alert_select_stu: 'Scegli prima lo studente!', toast: 'Lingua cambiata.' },
+            'pt-br': { langName: 'Português', title: '👑 Rei da Votação', seo_desc: 'Jogo de votação inteligente.', result_now: 'Ver Agora', result_later: 'Ver Depois', reveal_btn: '👀 Revelar', create_vote_btn: '⚙️ Criar', step1: '1. Escolha o aluno', step2: '2. Toque na opção', setup_title: 'Nova Votação', student_list_label: 'Alunos', reset_student_btn: '🗑️ Limpar', student_tip1: 'Nomes separados por vírgula.', student_tip2: "💡 Dica: Digite <strong>'30'</strong> para gerar lista.", option_list_label: 'Opções (Máx 10)', reset_option_btn: '🗑️ Limpar', option_tip: 'Opções separadas por vírgula.', cancel_btn: 'Cancelar', start_vote_btn: 'Começar', votes: 'votos', alert_count: 'Entre 1 e 100.', alert_min_stu: 'Mínimo 1 aluno.', alert_min_opt: 'Mínimo 1 opção.', alert_max_opt: 'Máx 10 opções.', alert_select_stu: 'Escolha o aluno primeiro!', toast: 'Idioma alterado.' },
+            'ru': { langName: 'Русский', title: '👑 Король Голосования', seo_desc: 'Умная игра для голосования.', result_now: 'Результаты сейчас', result_later: 'Результаты позже', reveal_btn: '👀 Показать', create_vote_btn: '⚙️ Создать', step1: '1. Выберите ученика', step2: '2. Выберите вариант', setup_title: 'Новое голосование', student_list_label: 'Ученики', reset_student_btn: '🗑️ Сброс', student_tip1: 'Имена через запятую.', student_tip2: "💡 Подсказка: Введите <strong>'30'</strong> для списка.", option_list_label: 'Варианты (Макс 10)', reset_option_btn: '🗑️ Сброс', option_tip: 'Варианты через запятую.', cancel_btn: 'Отмена', start_vote_btn: 'Начать', votes: 'голосов', alert_count: 'От 1 до 100.', alert_min_stu: 'Минимум 1 ученик.', alert_min_opt: 'Минимум 1 вариант.', alert_max_opt: 'Макс 10 вариантов.', alert_select_stu: 'Сначала выберите ученика!', toast: 'Язык изменен.' },
+            'hi': { langName: 'हिन्दी', title: '👑 वोट किंग', seo_desc: 'स्मार्ट वोटिंग गेम।', result_now: 'अभी देखें', result_later: 'बाद में देखें', reveal_btn: '👀 परिणाम दिखाएं', create_vote_btn: '⚙️ वोट बनाएं', step1: '1. छात्र चुनें', step2: '2. विकल्प चुनें', setup_title: 'नया वोट', student_list_label: 'छात्र सूची', reset_student_btn: '🗑️ रीसेट', student_tip1: 'नाम कॉमा से अलग करें।', student_tip2: "💡 टिप: सूची के लिए <strong>'30'</strong> लिखें।", option_list_label: 'विकल्प (अधिकतम 10)', reset_option_btn: '🗑️ रीसेट', option_tip: 'विकल्प कॉमा से अलग करें।', cancel_btn: 'रद्द करें', start_vote_btn: 'शुरू करें', votes: 'वोट', alert_count: '1 से 100 तक।', alert_min_stu: 'कम से कम 1 छात्र।', alert_min_opt: 'कम से कम 1 विकल्प।', alert_max_opt: 'अधिकतम 10.', alert_select_stu: 'पहले छात्र चुनें!', toast: 'भाषा बदल दी गई है।' },
+            'bn': { langName: 'বাংলা', title: '👑 ভোট রাজা', seo_desc: 'স্মার্ট ভোটিং গেম।', result_now: 'এখনই দেখুন', result_later: 'পরে দেখুন', reveal_btn: '👀 ফলাফল দেখান', create_vote_btn: '⚙️ ভোট তৈরি করুন', step1: '1. ছাত্র নির্বাচন করুন', step2: '2. বিকল্প নির্বাচন করুন', setup_title: 'নতুন ভোট', student_list_label: 'ছাত্র তালিকা', reset_student_btn: '🗑️ রিসেট', student_tip1: 'কমা দিয়ে নাম লিখুন।', student_tip2: "💡 টিপ: তালিকার জন্য <strong>'30'</strong> লিখুন।", option_list_label: 'বিকল্প (সর্বোচ্চ ১০)', reset_option_btn: '🗑️ রিসেট', option_tip: 'কমা দিয়ে বিকল্প লিখুন।', cancel_btn: 'বাতিল', start_vote_btn: 'শুরু করুন', votes: 'ভোট', alert_count: '১ থেকে ১০০ এর মধ্যে।', alert_min_stu: 'অন্তত ১ জন ছাত্র।', alert_min_opt: 'অন্তত ১টি বিকল্প।', alert_max_opt: 'সর্বোচ্চ ১০টি।', alert_select_stu: 'প্রথমে ছাত্র নির্বাচন করুন!', toast: 'ভাষা পরিবর্তন করা হয়েছে।' },
+            'id': { langName: 'Bahasa Indonesia', title: '👑 Raja Voting', seo_desc: 'Game voting pintar.', result_now: 'Lihat Sekarang', result_later: 'Lihat Nanti', reveal_btn: '👀 Buka Hasil', create_vote_btn: '⚙️ Buat', step1: '1. Pilih siswa', step2: '2. Sentuh opsi', setup_title: 'Voting Baru', student_list_label: 'Siswa', reset_student_btn: '🗑️ Reset', student_tip1: 'Pisahkan dengan koma.', student_tip2: "💡 Tip: Ketik <strong>'30'</strong> untuk daftar otomatis.", option_list_label: 'Opsi (Maks 10)', reset_option_btn: '🗑️ Reset', option_tip: 'Pisahkan opsi dengan koma.', cancel_btn: 'Batal', start_vote_btn: 'Mulai', votes: 'suara', alert_count: 'Antara 1-100.', alert_min_stu: 'Minimal 1 siswa.', alert_min_opt: 'Minimal 1 opsi.', alert_max_opt: 'Maksimal 10 opsi.', alert_select_stu: 'Pilih siswa dulu!', toast: 'Bahasa telah diubah.' },
+            'vi': { langName: 'Tiếng Việt', title: '👑 Vua Bình Chọn', seo_desc: 'Trò chơi bình chọn thông minh.', result_now: 'Xem Ngay', result_later: 'Xem Sau', reveal_btn: '👀 Hiện Kết Quả', create_vote_btn: '⚙️ Tạo Mới', step1: '1. Chọn học sinh', step2: '2. Chạm vào tùy chọn', setup_title: 'Tạo Bình Chọn', student_list_label: 'Học Sinh', reset_student_btn: '🗑️ Đặt Lại', student_tip1: 'Tên cách nhau bằng dấu phẩy.', student_tip2: "💡 Mẹo: Nhập <strong>'30'</strong> để tự tạo danh sách.", option_list_label: 'Tùy chọn (Tối đa 10)', reset_option_btn: '🗑️ Đặt Lại', option_tip: 'Tùy chọn cách nhau bằng phẩy.', cancel_btn: 'Hủy', start_vote_btn: 'Bắt Đầu', votes: 'phiếu', alert_count: 'Từ 1 đến 100.', alert_min_stu: 'Ít nhất 1 học sinh.', alert_min_opt: 'Ít nhất 1 tùy chọn.', alert_max_opt: 'Tối đa 10 tùy chọn.', alert_select_stu: 'Chọn học sinh trước!', toast: 'Ngôn ngữ đã được thay đổi.' },
+            'th': { langName: 'ไทย', title: '👑 โหวตคิง', seo_desc: 'เกมโหวตอัจฉริยะ', result_now: 'ดูเลย', result_later: 'ดูทีหลัง', reveal_btn: '👀 เปิดผล', create_vote_btn: '⚙️ สร้าง', step1: '1. เลือกนักเรียน', step2: '2. เลือกตัวเลือก', setup_title: 'สร้างโหวตใหม่', student_list_label: 'รายชื่อนักเรียน', reset_student_btn: '🗑️ รีเซ็ต', student_tip1: 'คั่นชื่อด้วยลูกน้ำ', student_tip2: "💡 เคล็ดลับ: พิมพ์ <strong>'30'</strong> เพื่อสร้างอัตโนมัติ", option_list_label: 'ตัวเลือก (สูงสุด 10)', reset_option_btn: '🗑️ รีเซ็ต', option_tip: 'คั่นตัวเลือกด้วยลูกน้ำ', cancel_btn: 'ยกเลิก', start_vote_btn: 'เริ่มโหวต', votes: 'โหวต', alert_count: 'ใส่เลข 1-100', alert_min_stu: 'อย่างน้อย 1 คน', alert_min_opt: 'อย่างน้อย 1 ตัวเลือก', alert_max_opt: 'สูงสุด 10 ตัวเลือก', alert_select_stu: 'เลือกนักเรียนก่อน!', toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว' },
+            'tr': { langName: 'Türkçe', title: '👑 Oy Kralı', seo_desc: 'Akıllı oylama oyunu.', result_now: 'Şimdi Gör', result_later: 'Sonra Gör', reveal_btn: '👀 Sonuçları Aç', create_vote_btn: '⚙️ Oluştur', step1: '1. Öğrenci seç', step2: '2. Seçeneğe dokun', setup_title: 'Yeni Oylama', student_list_label: 'Öğrenciler', reset_student_btn: '🗑️ Sıfırla', student_tip1: 'İsimleri virgülle ayır.', student_tip2: "💡 İpucu: Otomatik liste için <strong>'30'</strong> yaz.", option_list_label: 'Seçenekler (Maks 10)', reset_option_btn: '🗑️ Sıfırla', option_tip: 'Seçenekleri virgülle ayır.', cancel_btn: 'İptal', start_vote_btn: 'Başla', votes: 'oy', alert_count: '1 ile 100 arası.', alert_min_stu: 'En az 1 öğrenci.', alert_min_opt: 'En az 1 seçenek.', alert_max_opt: 'Maksimum 10.', alert_select_stu: 'Önce öğrenciyi seç!', toast: 'Dil değiştirildi.' }
+        };
+
+        const languageList = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        let currentLang = 'ko'; // 기본값 세팅용 변수
+
+        // 1. 언어 감지 로직 (URL -> LocalStorage -> Browser -> Default)
+        function detectLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            const browserLang = navigator.language.slice(0, 2).toLowerCase();
+            const browserLangMatch = languageList.find(l => l.code === browserLang) ? browserLang : null;
+
+            if (urlLang && translations[urlLang]) return urlLang;
+            if (savedLang && translations[savedLang]) return savedLang;
+            if (browserLangMatch) return browserLangMatch;
+            return 'en';
+        }
+
+        // 2. 텍스트/UI 번역 적용 함수
+        function applyTranslations(lang) {
+            const data = translations[lang];
+            
+            // 모든 data-i18n 태그 텍스트 교체
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (data[key]) el.innerHTML = data[key]; // HTML 태그(strong 등) 유지를 위해 innerHTML
+            });
+
+            // 플레이스홀더 교체 (추가 UI가 있다면)
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (data[key]) el.placeholder = data[key];
+            });
+
+            // SEO 적용
+            if(data.title) {
+                document.title = data.title;
+                document.getElementById('seo-title').innerText = data.title;
+            }
+            if(data.seo_desc) document.getElementById('seo-desc').content = data.seo_desc;
+
+            // 버튼 동적 폰트 스케일링 (버튼 텍스트가 넘치면 폰트 축소)
+            setTimeout(() => {
+                document.querySelectorAll('.dynamic-text').forEach(el => {
+                    let fontSize = parseInt(window.getComputedStyle(el).fontSize);
+                    while (el.scrollWidth > el.clientWidth && fontSize > 10) {
+                        fontSize--;
+                        el.style.fontSize = fontSize + 'px';
+                    }
+                });
+            }, 50);
+        }
+
+        // 3. 언어 변경 실행 함수
+        function setLanguage(langCode, isUserClick = false) {
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            // URL 파라미터 업데이트 (history.pushState)
+            const url = new URL(window.location);
+            url.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', url);
+
+            // UI 상단 버튼 업데이트
+            const langInfo = languageList.find(l => l.code === langCode);
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langInfo.country}.png`;
+            document.getElementById('currentLangName').textContent = langInfo.name;
+
+            // 실제 텍스트 적용
+            applyTranslations(langCode);
+
+            // 언어 변경 시 게임 화면 다시 렌더링 (단위 '명/votes' 등 적용 위해)
+            render();
+
+            if(isUserClick) {
+                showToast(langInfo.name, langCode);
+                closeModal();
+            }
+        }
+
+        // ==========================================
+        // 다국어 모달 관련 컨트롤러
+        // ==========================================
+        const modal = document.getElementById('langModal');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const toast = document.getElementById('toastNotification');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languageList.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden font-sans";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => setLanguage(lang.code, true));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            renderLanguages(''); // 열때마다 리스트 갱신 (선택상태 표시 위해)
+            searchInput.value = '';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showToast(langName, langCode) {
+            document.getElementById('ui-toast').textContent = translations[langCode].toast;
+            document.getElementById('toastLangName').textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        // 이벤트 리스너 세팅
+        document.getElementById('langTriggerBtn').addEventListener('click', openModal);
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+        // ==========================================
+        // 4. 홈 이모지 전체 화면 지체 없이 첫 화면 가기 소스 적용
+        // ==========================================
+        document.getElementById('btn-home').addEventListener('click', () => {
+            // 원본 소스의 logic을 융합 (전체 화면일시 상태초기화, 아니면 새로고침)
+            if (document.fullscreenElement) {
+                // 게임오버 컨테이너가 없으므로 현재 상태(투표함) 초기화 모드로 세팅
+                state.isResultRevealed = false;
+                closeSetup(); // 모달 닫기 확인
+                location.reload(); // 투표킹은 별도 타이머가 없으므로 깔끔하게 리로드
+            } else {
+                location.reload();
+            }
+        });
+
+        // ==========================================
+        // 기존 전자칠판 투표킹 로직 (절대 수정/삭제 안함)
+        // ==========================================
+        let state = {
+            students: [],
+            options: [],
+            selectedStudentId: null,
+            resultMode: 'delayed',
+            isResultRevealed: false
+        };
+
+        // 초기 샘플 데이터 입력란 세팅
+        document.getElementById('inputStudents').value = "김민준, 이서연, 박도윤, 최지우\n정하준, 강서현, 조은우, 윤민서";
+        document.getElementById('inputOptions').value = "짜장면\n짬뽕\n볶음밥\n탕수육";
+
+        function openSetup() { document.getElementById('setupModal').classList.remove('hidden'); }
+        function closeSetup() { document.getElementById('setupModal').classList.add('hidden'); }
+        function clearStudents() { document.getElementById('inputStudents').value = ''; }
+        function clearOptions() { document.getElementById('inputOptions').value = ''; }
+
+        function parseInput(text) {
+            return text.split(/[\n,]+/).map(item => item.trim()).filter(item => item !== '');
+        }
+
+        function saveAndStart() {
+            const rawStudents = document.getElementById('inputStudents').value.trim();
+            const rawOptions = document.getElementById('inputOptions').value;
+
+            let parsedStudents = [];
+            
+            if (/^\d+$/.test(rawStudents)) {
+                const count = parseInt(rawStudents, 10);
+                if (count > 0 && count <= 100) {
+                    for (let i = 1; i <= count; i++) {
+                        parsedStudents.push(`${i}`);
+                    }
+                } else {
+                    alert(translations[currentLang].alert_count);
+                    return;
+                }
+            } else {
+                parsedStudents = parseInput(rawStudents);
+            }
+
+            const parsedOptions = parseInput(rawOptions);
+
+            if (parsedStudents.length === 0) { alert(translations[currentLang].alert_min_stu); return; }
+            if (parsedOptions.length === 0) { alert(translations[currentLang].alert_min_opt); return; }
+            if (parsedOptions.length > 10) { alert(translations[currentLang].alert_max_opt + ` (${parsedOptions.length})`); return; }
+
+            state.students = parsedStudents.map((name, idx) => ({ id: idx, name: name, voted: false }));
+            state.options = parsedOptions.map((name, idx) => ({ id: idx, name: name, count: 0 }));
+            state.selectedStudentId = null;
+            state.isResultRevealed = false;
+            
+            changeResultMode(document.querySelector('input[name="resultMode"]:checked').value);
+
+            closeSetup();
+            render();
+        }
+
+        function changeResultMode(mode) {
+            state.resultMode = mode;
+            const revealBtn = document.getElementById('revealBtn');
+            if (mode === 'delayed') {
+                revealBtn.classList.remove('hidden');
+                state.isResultRevealed = false;
+            } else {
+                revealBtn.classList.add('hidden');
+                state.isResultRevealed = true;
+            }
+            render();
+        }
+
+        function revealResults() {
+            state.isResultRevealed = true;
+            document.getElementById('revealBtn').classList.add('hidden');
+            render();
+        }
+
+        function selectStudent(id) {
+            const student = state.students.find(s => s.id === id);
+            if (student.voted) return; 
+            if (state.selectedStudentId === id) {
+                state.selectedStudentId = null;
+            } else {
+                state.selectedStudentId = id;
+            }
+            render();
+        }
+
+        function voteOption(id) {
+            if (state.selectedStudentId === null) {
+                alert(translations[currentLang].alert_select_stu);
+                return;
+            }
+            const option = state.options.find(o => o.id === id);
+            const student = state.students.find(s => s.id === state.selectedStudentId);
+
+            option.count++;
+            student.voted = true;
+            state.selectedStudentId = null;
+
+            render();
+        }
+
+        function render() {
+            const studentContainer = document.getElementById('studentContainer');
+            studentContainer.innerHTML = '';
+            
+            state.students.forEach(student => {
+                const btn = document.createElement('button');
+                btn.className = `px-2 py-4 text-xl font-bold rounded-xl border-2 btn-press flex items-center justify-center transition-all whitespace-nowrap overflow-hidden text-ellipsis dynamic-text ${
+                    student.voted 
+                    ? 'bg-green-700/50 text-green-200 border-green-600 cursor-not-allowed opacity-60' 
+                    : student.id === state.selectedStudentId
+                        ? 'bg-yellow-400 text-black border-yellow-400 selected-glow scale-105 z-10' 
+                        : 'bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600 hover:border-gray-500' 
+                }`;
+                btn.innerText = student.name;
+                if (!student.voted) {
+                    btn.onclick = () => selectStudent(student.id);
+                }
+                studentContainer.appendChild(btn);
+            });
+
+            const optionContainer = document.getElementById('optionContainer');
+            optionContainer.innerHTML = '';
+
+            const len = state.options.length;
+            let cols = 1;
+            if (len === 2) cols = 2; 
+            else if (len <= 4) cols = 2; 
+            else if (len <= 6) cols = 3; 
+            else if (len <= 8) cols = 4; 
+            else if (len <= 10) cols = 5; 
+            
+            optionContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+
+            state.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.onclick = () => voteOption(option.id);
+                btn.className = 'bg-slate-700 border-2 border-slate-600 hover:bg-slate-600 hover:border-blue-400 rounded-2xl p-6 flex flex-col items-center justify-center gap-4 btn-press relative overflow-hidden group';
+                
+                const showCount = state.resultMode === 'immediate' || state.isResultRevealed;
+                // 명칭에 다국어 적용 (명 / votes / 票 등)
+                const unitText = translations[currentLang].votes; 
+                const countText = showCount ? `${option.count} ${unitText}` : `? ${unitText}`;
+                const countColor = showCount && option.count > 0 ? 'text-pink-400' : 'text-gray-400';
+
+                btn.innerHTML = `
+                    <span class="text-2xl md:text-3xl font-bold text-white z-10 text-center break-keep w-full px-2 leading-tight flex-1 flex items-center justify-center dynamic-text">${option.name}</span>
+                    <span class="text-3xl font-bold ${countColor} z-10 tracking-wider mb-2 dynamic-text">${countText}</span>
+                    ${showCount && option.count > 0 ? `<div class="absolute bottom-0 left-0 h-2 bg-blue-500 transition-all duration-500" style="width: min(100%, ${option.count * 10}%);"></div>` : ''}
+                `;
+                optionContainer.appendChild(btn);
+            });
+            
+            // 폰트 사이즈 조정 헬퍼 한번 더 호출
+            setTimeout(() => applyTranslations(currentLang), 10);
+        }
+
+        // 초기 시작
+        window.onload = () => {
+            const initLang = detectLanguage();
+            setLanguage(initLang); // 언어 세팅 및 적용
+            renderLanguages();     // 모달 내 리스트 초기 생성
+            saveAndStart();        // 게임 화면 생성
+        };
+
+    </script>
+</body>
+</html>

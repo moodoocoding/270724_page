@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <meta name="description" content="방울 속에 있는 입체도형과 이름을 연결해보세요! 초등 수학 3D 입체도형 학습 게임." id="meta-desc">
+    <meta name="keywords" content="전자칠판, 수학게임, 킹수학, 두뇌게임, 무료게임, 입체도형, 각기둥, 각뿔, 교육용게임, 웹게임, 초등수학, 두뇌트레이닝, 수학퀴즈" id="meta-keywords">
+    <link rel="canonical" href="/" id="link-canonical">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="킹방울 입체도형 잇기 | 킹수학.com" id="og-title">
+    <meta property="og:description" content="방울 속에 있는 입체도형과 이름을 연결해보세요! 초등 수학 3D 입체도형 학습 게임." id="og-desc">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울도형잇기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="/" id="og-url">
+    <meta property="og:site_name" content="킹수학.com" id="og-site-name">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="킹방울 입체도형 잇기 | 킹수학.com" id="tw-title">
+    <meta name="twitter:description" content="방울 속에 있는 입체도형과 이름을 연결해보세요! 초등 수학 3D 입체도형 학습 게임." id="tw-desc">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울도형잇기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+    <meta name="theme-color" content="#0F4C3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="page-title">킹방울 입체도형 잇기 | 킹수학.com</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --p1-main: #ff9f43; 
+            --p2-main: #54a0ff;
+            --bg-color: #1e1e2e;
+            --accent: #feca57;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden;
+            font-family: 'Jua', sans-serif; /* 메인 게임 폰트 */
+            font-weight: 300;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2c3e50 100%);
+            color: white;
+            touch-action: none; user-select: none;
+        }
+
+        /* --- 인트로 화면 UI --- */
+        #intro-screen {
+            position: fixed; inset: 0; z-index: 2000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(30, 30, 46, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .title-area { text-align: center; margin-bottom: 20px; }
+        .main-title { 
+            font-size: 4.5rem; margin: 0; font-weight: normal;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(0,242,254,0.3);
+            white-space: nowrap;
+        }
+        .sub-title { font-size: 1.8rem; color: #a4b0be; margin-top: 10px; font-weight: 300; }
+        .sub-title a { color: var(--accent); text-decoration: none; border-bottom: 2px solid var(--accent); transition: 0.2s; }
+        .sub-title a:hover { color: #fff; border-color: #fff; }
+
+        .content-box {
+            display: flex; gap: 40px; align-items: stretch;
+            max-width: 1000px; width: 100%;
+        }
+
+        /* 설명 카드 */
+        .info-card {
+            flex: 1; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .info-item { margin-bottom: 25px; font-size: 1.5rem; line-height: 1.6; color: #dfe6e9; font-weight: 300; }
+        .info-highlight { color: var(--accent); font-size: 1.6rem; }
+        .info-icon { font-size: 2rem; vertical-align: middle; margin-right: 10px; }
+
+        /* 선택 카드 */
+        .select-card {
+            flex: 1; display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .option-group {
+            background: rgba(0,0,0,0.2); padding: 25px; border-radius: 15px;
+        }
+        .group-label { font-size: 1.4rem; color: #74b9ff; margin-bottom: 15px; display: block; }
+
+        .mode-buttons { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; /* 3열 배치 */
+            gap: 10px; 
+        }
+        @media (max-width: 800px) {
+            .mode-buttons { display: flex; flex-direction: column; }
+        }
+        
+        .mode-btn {
+            padding: 10px 5px; border: 2px solid rgba(255,255,255,0.2);
+            background: transparent; color: #fff; border-radius: 10px; cursor: pointer;
+            font-family: 'Jua', sans-serif; font-size: 1.2rem; transition: 0.2s; font-weight: normal;
+            
+            /* 줄바꿈 및 고정 크기 처리 */
+            white-space: normal; 
+            word-break: keep-all;
+            line-height: 1.2;
+            height: 85px; /* 높이를 고정하여 왼쪽 설명 카드 레이아웃이 밀리는 것 방지 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .mode-btn:hover { background: rgba(255,255,255,0.1); }
+        .mode-btn.selected {
+            background: var(--accent); color: #2d3436; border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(254, 202, 87, 0.4);
+        }
+
+        .start-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .action-btn {
+            padding: 20px; font-size: 2.2rem; border: none; border-radius: 50px; cursor: pointer;
+            font-family: 'Jua', sans-serif; color: white; transition: transform 0.1s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); font-weight: normal;
+        }
+        .action-btn:active { transform: scale(0.98); }
+        .btn-start { background: linear-gradient(45deg, #1dd1a1, #10ac84); }
+
+        /* --- 게임 메인 UI --- */
+        #game-screen { display: none; flex-direction: column; width: 100%; height: 100%; }
+        
+        .top-hud { 
+            height: 90px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 30px; background: rgba(0,0,0,0.3); z-index: 100; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .score-box { font-size: 3rem; min-width: 150px; display: flex; align-items: center; gap: 15px; }
+        .timer-display { font-size: 3rem; color: #feca57; letter-spacing: 2px; }
+
+        .play-area { flex: 1; display: flex; position: relative; padding-bottom: 10px; }
+        .player-zone { 
+            flex: 1; position: relative; display: flex; 
+            align-items: center; justify-content: center; 
+            border-right: 2px dashed rgba(255,255,255,0.1); 
+        }
+        .player-zone:last-child { border-right: none; }
+
+        /* 게임 구역 (크기 조절) */
+        .game-board { 
+            height: 80%; /* 95%에서 80%로 축소 */
+            aspect-ratio: 1 / 1; 
+            background: rgba(255,255,255,0.02); border-radius: 20px;
+            position: relative; border: 3px solid rgba(255,255,255,0.1); overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+            touch-action: none;
+            max-width: 80%; /* 95%에서 80%로 축소 */
+        }
+
+        /* 방울 디자인 */
+        .bubble {
+            position: absolute; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #2d3436; cursor: pointer; text-align: center;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--b-color));
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 2px 2px 5px rgba(255,255,255,0.5); 
+            transition: transform 0.1s; word-break: keep-all; padding: 5px; 
+            border: 2px solid rgba(255,255,255,0.8);
+            user-select: none; line-height: 1.1;
+            touch-action: none;
+        }
+        
+        .bubble.active-drag { transform: scale(1.15); box-shadow: 0 0 20px var(--accent); z-index: 999; }
+        .bubble.shape { border: 3px solid #fff; background: radial-gradient(circle at 30% 30%, #ffffff, #dfe6e9); }
+        .bubble svg { width: 65%; height: 65%; fill: none; stroke: #2d3436; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(2px 2px 1px rgba(0,0,0,0.1)); pointer-events: none; }
+        
+        .bubble svg.fill-shape { fill: rgba(45, 52, 54, 0.1); }
+
+        /* 결과 화면 */
+        #result-modal {
+            display: none; position: fixed; inset: 0; background: rgba(10,10,20,0.95);
+            z-index: 3000; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .result-title { font-size: 4rem; color: white; margin-bottom: 20px; text-align: center;}
+        .result-score { font-size: 2.5rem; color: var(--accent); margin-bottom: 50px; text-align: center;}
+
+        #line-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 500; }
+        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: #ff6b6b !important; }
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        
+        /* 알림 메시지 */
+        .toast-msg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8); color: #fff; padding: 15px 30px; border-radius: 30px;
+            font-size: 1.5rem; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 1001;
+            white-space: nowrap;
+        }
+
+        /* 전체화면 버튼 스타일 */
+        .fullscreen-btn {
+            position: fixed; bottom: 20px; right: 20px; 
+            width: 60px; height: 60px; 
+            background: rgba(0, 0, 0, 0.4); 
+            backdrop-filter: blur(5px);
+            border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; z-index: 2100;
+            font-size: 2rem; border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .fullscreen-btn:hover { background: rgba(0, 0, 0, 0.6); transform: scale(1.1); }
+
+        /* 홈 버튼 */
+        .home-btn {
+            position: fixed; bottom: 20px; left: 20px; 
+            width: 60px; height: 60px; 
+            background: rgba(0, 0, 0, 0.4); 
+            backdrop-filter: blur(5px);
+            border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center; 
+            cursor: pointer; z-index: 2100; 
+            font-size: 2rem; border: 2px solid rgba(255,255,255,0.3);
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .home-btn:hover { background: rgba(0, 0, 0, 0.6); transform: scale(1.1); }
+
+        /* 반응형 */
+        @media (max-width: 800px) {
+            .content-box { flex-direction: column; gap: 20px; }
+            .main-title { font-size: 3rem; white-space: normal; }
+            .info-item { font-size: 1.2rem; }
+        }
+
+        /* 이모지 깨짐 방지용 클래스 */
+        .emoji-fix {
+            -webkit-background-clip: initial;
+            -webkit-text-fill-color: initial;
+            color: initial;
+            font-family: "TossFace Font Mac", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+            display: inline-block;
+        }
+
+        /* --- 추가: 다국어 UI 모달용 스타일 (Tailwind와 호환 및 z-index 99999 보장) --- */
+        .modal-ui-font { font-family: 'Noto Sans KR', sans-serif; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal-content {
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="bg-[#1e1e2e] text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <div id="langTriggerContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999] modal-ui-font">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-800/80 hover:bg-gray-700 border border-gray-500 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg backdrop-blur-md">
+            <i class="fa-solid fa-globe text-gray-300"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block text-white">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-md pt-16 sm:pt-0 px-4 modal-ui-font">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999] modal-ui-font">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div id="intro-screen">
+        <div class="title-area">
+            <h1 class="main-title" id="t-main-title"><span class="emoji-fix">⚪</span> 킹방울 입체도형 잇기</h1>
+            <div class="sub-title">
+                <span id="t-sub-msg">게임으로 수학의 왕이 되어라.</span> 
+                <a href="/" target="_self" id="t-site-link">킹수학.com</a>
+            </div>
+        </div>
+
+        <div class="content-box">
+            <div class="info-card">
+                <div class="info-item">
+                    <span class="info-icon">📐</span>
+                    <span id="t-info-1">
+                        <span class="info-highlight">입체도형</span>과 <span class="info-highlight">이름</span>을 연결하세요!
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">💡</span>
+                    <span id="t-info-2">
+                        <span class="info-highlight">숨겨진 점선</span>을 보고 도형의 이름을 맞추는 것이 핵심입니다.
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">⚡</span>
+                    <span id="t-info-3">
+                        방울을 드래그해서 연결하면 <br><span class="info-highlight">즉시 판정</span> 됩니다.
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-icon">⚠️</span>
+                    <span id="t-info-4">
+                        이어질 짝이 없으면 방울이 <b>자동으로</b> 터지고 재생성됩니다!
+                    </span>
+                </div>
+            </div>
+
+            <div class="select-card">
+                <div class="option-group">
+                    <span class="group-label" id="t-label-topic">주제 선택</span>
+                    <div class="mode-buttons">
+                        <button class="mode-btn selected" id="btn-prism" onclick="Game.setTopic('prism', event)">🧊 각기둥·각뿔</button>
+                        <button class="mode-btn" id="btn-curve" onclick="Game.setTopic('curve', event)">🌀 원뿔·원기둥·구</button>
+                        <button class="mode-btn" id="btn-all" onclick="Game.setTopic('all', event)">🎲 모두</button>
+                    </div>
+                </div>
+
+                <div class="option-group" style="background:transparent; padding:0;">
+                    <div class="start-buttons">
+                        <button class="action-btn btn-start" id="btn-start" onclick="Game.start()">🚀 게임 시작 (2인용)</button>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <a href="/" target="_self" id="t-other-link" style="color: #a4b0be; text-decoration: none; font-size: 1.3rem; display: inline-flex; align-items: center; gap: 5px;">
+                                🎮 다른 게임 고르기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen">
+        <div class="top-hud">
+            <div class="score-box" style="color:var(--p1-main)"><span id="t-dog">🐶 강아지팀</span>: <span id="score-p1">0</span></div>
+            <div class="timer-display" id="timer">60</div>
+            <div class="score-box" style="color:var(--p2-main); text-align:right;"><span id="t-cat">🐱 고양이팀</span>: <span id="score-p2">0</span></div>
+        </div>
+        <div class="play-area" id="play-area">
+            <div class="player-zone" id="zone-p1">
+                <div class="game-board" id="board-p1">
+                    <div class="toast-msg" id="toast-p1">매칭 불가! 방울 재생성!</div>
+                </div>
+            </div>
+            <div class="player-zone" id="zone-p2">
+                <div class="game-board" id="board-p2">
+                    <div class="toast-msg" id="toast-p2">매칭 불가! 방울 재생성!</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="home-btn" onclick="location.reload()">🏠</div>
+    </div>
+
+    <div class="fullscreen-btn" onclick="toggleFullScreen()">⛶</div>
+
+    <canvas id="line-canvas"></canvas>
+
+    <div id="result-modal">
+        <h1 class="result-title" id="t-game-over">GAME OVER</h1>
+        <h2 id="winner-text" style="color:#dfe6e9; font-size:3rem; margin-bottom:30px;"></h2>
+        <div class="result-score" id="final-scores"></div>
+        <button class="action-btn btn-start" id="btn-retry" onclick="location.reload()">다시 하기</button>
+    </div>
+
+<script>
+    // --- 16개국 다국어 데이터베이스 ---
+    const VOCAB = {
+        ko: {
+            title: "킹방울 입체도형 잇기", siteName: "킹수학.com", subMsg: "게임으로 수학의 왕이 되어라.",
+            info1: "<span class='info-highlight'>입체도형</span>과 <span class='info-highlight'>이름</span>을 연결하세요!",
+            info2: "<span class='info-highlight'>숨겨진 점선</span>을 보고 도형의 이름을 맞추는 것이 핵심입니다.",
+            info3: "방울을 드래그해서 연결하면 <br><span class='info-highlight'>즉시 판정</span> 됩니다.",
+            info4: "이어질 짝이 없으면 방울이 <b>자동으로</b> 터지고 재생성됩니다!",
+            topic: "주제 선택", prism: "🧊 각기둥·각뿔", curve: "🌀 원기둥·원뿔·구", all: "🎲 모두",
+            start: "🚀 게임 시작 (2인용)", other: "🎮 다른 게임 고르기", dog: "🐶 강아지팀", cat: "🐱 고양이팀",
+            toast: "매칭 불가! 방울 재생성!", gameOver: "게임 종료", draw: "무승부!", win: "승리!", retry: "다시 하기",
+            metaDesc: "방울 속에 있는 입체도형과 이름을 연결해보세요! 초등 수학 3D 입체도형 학습 게임.",
+            tri_prism: "삼각기둥", quad_prism: "사각기둥", pent_prism: "오각기둥", hex_prism: "육각기둥",
+            tri_pyramid: "삼각뿔", quad_pyramid: "사각뿔", pent_pyramid: "오각뿔", hex_pyramid: "육각뿔",
+            cylinder: "원기둥", cone: "원뿔", sphere: "구",
+            ui_title: '언어 및 지역 선택', ui_desc: '선호하는 언어와 지역을 선택하세요.', ui_search: '언어 검색 (예: English, 한국어...)', ui_empty: '검색 결과가 없습니다.', ui_toast: '언어가 변경되었습니다.'
+        },
+        en: {
+            title: "Math King 3D Shapes", siteName: "KingsMath.com", subMsg: "Be the King of Math.",
+            info1: "Connect the <span class='info-highlight'>3D Shape</span> to its <span class='info-highlight'>Name</span>!",
+            info2: "Look closely at the <span class='info-highlight'>dashed hidden lines</span> to solve it.",
+            info3: "Drag to connect bubbles.<br><span class='info-highlight'>Instant Check!</span>",
+            info4: "If no match exists, bubbles <br>will <b>pop & respawn</b>!",
+            topic: "Select Topic", prism: "🧊 Prisms/Pyramids", curve: "🌀 Cylinders/Cones", all: "🎲 All",
+            start: "🚀 Start Game (2P)", other: "🎮 More Games", dog: "🐶 Dog Team", cat: "🐱 Cat Team",
+            toast: "No match! Respawning!", gameOver: "GAME OVER", draw: "Draw!", win: "Wins!", retry: "Play Again",
+            metaDesc: "Connect 3D shapes and names in bubbles! Elementary math geometry game.",
+            tri_prism: "Triangular\nPrism", quad_prism: "Rectangular\nPrism", pent_prism: "Pentagonal\nPrism", hex_prism: "Hexagonal\nPrism",
+            tri_pyramid: "Triangular\nPyramid", quad_pyramid: "Square\nPyramid", pent_pyramid: "Pentagonal\nPyramid", hex_pyramid: "Hexagonal\nPyramid",
+            cylinder: "Cylinder", cone: "Cone", sphere: "Sphere",
+            ui_title: 'Language & Region', ui_desc: 'Select your preferred language and region.', ui_search: 'Search language (e.g. English, Español...)', ui_empty: 'No results found.', ui_toast: 'Language changed.'
+        },
+        zh: {
+            title: "数学王立体图形", siteName: "KingsMath.com", subMsg: "玩游戏，成为数学之王。",
+            info1: "请连接<span class='info-highlight'>立体图形</span>和<span class='info-highlight'>名称</span>！",
+            info2: "通过观察<span class='info-highlight'>隐藏的虚线</span>来识别图形。",
+            info3: "拖动连接泡泡，<br><span class='info-highlight'>立即判定</span>！",
+            info4: "如果没有配对，泡泡会<br><b>自动</b>破裂并重新生成！",
+            topic: "选择主题", prism: "🧊 棱柱与棱锥", curve: "🌀 圆柱/圆锥/球", all: "🎲 全部",
+            start: "🚀 开始游戏 (双人)", other: "🎮 选择其他游戏", dog: "🐶 小狗队", cat: "🐱 小猫队",
+            toast: "无法匹配！重新生成！", gameOver: "游戏结束", draw: "平局！", win: "获胜！", retry: "重玩",
+            metaDesc: "连接泡泡中的3D形状和名称！小学数学几何游戏。",
+            tri_prism: "三棱柱", quad_prism: "四棱柱", pent_prism: "五棱柱", hex_prism: "六棱柱",
+            tri_pyramid: "三棱锥", quad_pyramid: "四棱锥", pent_pyramid: "五棱锥", hex_pyramid: "六棱锥",
+            cylinder: "圆柱", cone: "圆锥", sphere: "球",
+            ui_title: '语言和地区选择', ui_desc: '请选择您偏好的语言和地区。', ui_search: '搜索语言 (例如: English, 中文...)', ui_empty: '未找到结果。', ui_toast: '语言已更改。'
+        },
+        ja: {
+            title: "算数王の立体図形", siteName: "KingsMath.com", subMsg: "ゲームで数学の王様になろう。",
+            info1: "<span class='info-highlight'>立体図形</span>と<span class='info-highlight'>名前</span>をつなげよう！",
+            info2: "<span class='info-highlight'>隠れた点線</span>を見て図形を当てよう。",
+            info3: "バブルをドラッグしてつなぐと<br><span class='info-highlight'>すぐに判定</span>されます。",
+            info4: "ペアがない場合、バブルは<br><b>自動的に</b>割れて再生します！",
+            topic: "テーマ選択", prism: "🧊 角柱・角錐", curve: "🌀 円柱・円錐・球", all: "🎲 すべて",
+            start: "🚀 ゲーム開始 (2人用)", other: "🎮 他のゲームへ", dog: "🐶 イヌ・チーム", cat: "🐱 ネコ・チーム",
+            toast: "ペアなし！再生中！", gameOver: "ゲームオーバー", draw: "引き分け！", win: "の勝ち！", retry: "もう一度",
+            metaDesc: "バブルの中の立体図形と名前をつなげよう！小学生向け算数図形ゲーム。",
+            tri_prism: "三角柱", quad_prism: "四角柱", pent_prism: "五角柱", hex_prism: "六角柱",
+            tri_pyramid: "三角錐", quad_pyramid: "四角錐", pent_pyramid: "五角錐", hex_pyramid: "六角錐",
+            cylinder: "円柱", cone: "円錐", sphere: "球",
+            ui_title: '言語と地域の選択', ui_desc: '希望する言語と地域を選択してください。', ui_search: '言語を検索 (例: English, 日本語...)', ui_empty: '結果が見つかりません。', ui_toast: '言語が変更されました。'
+        },
+        es: {
+            title: "Rey Mates 3D", siteName: "KingsMath.com", subMsg: "Sé el Rey de las Matemáticas.",
+            info1: "¡Conecta la <span class='info-highlight'>Forma 3D</span> con su <span class='info-highlight'>Nombre</span>!",
+            info2: "Fíjate en las <span class='info-highlight'>líneas punteadas</span> para resolver.",
+            info3: "Arrastra para conectar.<br><span class='info-highlight'>¡Verificación Inmediata!</span>",
+            info4: "¡Si no hay pareja, las burbujas<br><b>explotan</b> y reaparecen!",
+            topic: "Tema", prism: "🧊 Prismas/Pirámides", curve: "🌀 Cilindros/Conos", all: "🎲 Todo",
+            start: "🚀 Iniciar (2 Jugadores)", other: "🎮 Más Juegos", dog: "🐶 Equipo Perro", cat: "🐱 Equipo Gato",
+            toast: "¡Sin pareja! ¡Regenerando!", gameOver: "JUEGO TERMINADO", draw: "¡Empate!", win: "¡Gana!", retry: "Jugar de nuevo",
+            metaDesc: "¡Conecta formas 3D y nombres! Juego de geometría para primaria.",
+            tri_prism: "Prisma\nTriangular", quad_prism: "Prisma\nRectangular", pent_prism: "Prisma\nPentagonal", hex_prism: "Prisma\nHexagonal",
+            tri_pyramid: "Pirámide\nTriangular", quad_pyramid: "Pirámide\nCuadrangular", pent_pyramid: "Pirámide\nPentagonal", hex_pyramid: "Pirámide\nHexagonal",
+            cylinder: "Cilindro", cone: "Cono", sphere: "Esfera",
+            ui_title: 'Idioma y Región', ui_desc: 'Selecciona tu idioma y región preferidos.', ui_search: 'Buscar idioma (ej. English, Español...)', ui_empty: 'No se encontraron resultados.', ui_toast: 'Idioma cambiado.'
+        },
+        fr: {
+            title: "Roi des Maths 3D", siteName: "KingsMath.com", subMsg: "Devenez le Roi des Maths.",
+            info1: "Reliez la <span class='info-highlight'>Forme 3D</span> à son <span class='info-highlight'>Nom</span> !",
+            info2: "Regardez les <span class='info-highlight'>lignes pointillées</span> pour résoudre.",
+            info3: "Glissez pour relier.<br><span class='info-highlight'>Vérification Immédiate !</span>",
+            info4: "S'il n'y a pas de paire, les bulles<br><b>éclatent</b> et reviennent !",
+            topic: "Sujet", prism: "🧊 Prismes/Pyramides", curve: "🌀 Cylindres/Cônes", all: "🎲 Tout",
+            start: "🚀 Start (2 Joueurs)", other: "🎮 Autres Jeux", dog: "🐶 Équipe Chien", cat: "🐱 Équipe Chat",
+            toast: "Pas de paire ! Régénération !", gameOver: "JEU TERMINÉ", draw: "Égalité !", win: "Gagne !", retry: "Rejouer",
+            metaDesc: "Reliez les formes 3D et les noms ! Jeu de géométrie pour l'école primaire.",
+            tri_prism: "Prisme\nTriang.", quad_prism: "Prisme\nRectang.", pent_prism: "Prisme\nPentag.", hex_prism: "Prisme\nHexag.",
+            tri_pyramid: "Pyramide\nTriang.", quad_pyramid: "Pyramide\nCarrée", pent_pyramid: "Pyramide\nPentag.", hex_pyramid: "Pyramide\nHexag.",
+            cylinder: "Cylindre", cone: "Cône", sphere: "Sphère",
+            ui_title: 'Langue et Région', ui_desc: 'Sélectionnez votre langue et région.', ui_search: 'Rechercher (ex: English, Français...)', ui_empty: 'Aucun résultat trouvé.', ui_toast: 'Langue modifiée.'
+        },
+        ru: {
+            title: "Король Фигур 3D", siteName: "KingsMath.com", subMsg: "Стань королем математики.",
+            info1: "Соедините <span class='info-highlight'>3D Фигуру</span> с <span class='info-highlight'>Именем</span>!",
+            info2: "Смотрите на <span class='info-highlight'>пунктирные линии</span>.",
+            info3: "Перетащите для соединения.<br><span class='info-highlight'>Мгновенная проверка!</span>",
+            info4: "Если пары нет, пузыри<br><b>лопнут</b> и появятся снова!",
+            topic: "Тема", prism: "🧊 Призмы/Пирамиды", curve: "🌀 Цилиндры/Конусы", all: "🎲 Все",
+            start: "🚀 Старт (2 Игрока)", other: "🎮 Другие игры", dog: "🐶 Собаки", cat: "🐱 Кошки",
+            toast: "Нет пары! Обновление!", gameOver: "КОНЕЦ ИГРЫ", draw: "Ничья!", win: "Победа!", retry: "Играть снова",
+            metaDesc: "Соедините 3D фигуры и названия! Геометрическая игра для начальной школы.",
+            tri_prism: "Треуг.\nПризма", quad_prism: "Прямоуг.\nПризма", pent_prism: "Пятиуг.\nПризма", hex_prism: "Шестиуг.\nПризма",
+            tri_pyramid: "Треуг.\nПирам.", quad_pyramid: "Четырёх.\nПирам.", pent_pyramid: "Пятиуг.\nПирам.", hex_pyramid: "Шестиуг.\nПирам.",
+            cylinder: "Цилиндр", cone: "Конус", sphere: "Сфера",
+            ui_title: 'Язык и Регион', ui_desc: 'Выберите предпочитаемый язык и регион.', ui_search: 'Поиск языка (напр. English, Русский...)', ui_empty: 'Ничего не найдено.', ui_toast: 'Язык изменен.'
+        },
+        id: {
+            title: "Raja Bentuk 3D", siteName: "KingsMath.com", subMsg: "Jadilah Raja Matematika.",
+            info1: "Hubungkan <span class='info-highlight'>Bentuk 3D</span> ke <span class='info-highlight'>Namanya</span>!",
+            info2: "Perhatikan <span class='info-highlight'>garis putus-putus</span> untuk menebak.",
+            info3: "Tarik untuk menghubungkan.<br><span class='info-highlight'>Cek Langsung!</span>",
+            info4: "Jika tidak ada pasangan, gelembung <br>akan <b>meledak & muncul lagi</b>!",
+            topic: "Pilih Topik", prism: "🧊 Prisma & Limas", curve: "🌀 Silinder & Kerucut", all: "🎲 Semua",
+            start: "🚀 Mulai Game (2P)", other: "🎮 Game Lainnya", dog: "🐶 Tim Anjing", cat: "🐱 Tim Kucing",
+            toast: "Tidak cocok! Diulang!", gameOver: "GAME OVER", draw: "Seri!", win: "Menang!", retry: "Main Lagi",
+            metaDesc: "Hubungkan bentuk 3D dan nama! Game geometri SD.",
+            tri_prism: "Prisma\nSegitiga", quad_prism: "Prisma\nSegiempat", pent_prism: "Prisma\nSegilima", hex_prism: "Prisma\nSegienam",
+            tri_pyramid: "Limas\nSegitiga", quad_pyramid: "Limas\nSegiempat", pent_pyramid: "Limas\nSegilima", hex_pyramid: "Limas\nSegienam",
+            cylinder: "Silinder", cone: "Kerucut", sphere: "Bola",
+            ui_title: 'Bahasa & Wilayah', ui_desc: 'Pilih bahasa dan wilayah pilihan Anda.', ui_search: 'Cari bahasa (Mis: English, Indonesia...)', ui_empty: 'Tidak ada hasil yang ditemukan.', ui_toast: 'Bahasa telah diubah.'
+        },
+        vi: {
+            title: "Vua Hình Khối 3D", siteName: "KingsMath.com", subMsg: "Trở thành Vua Toán Học.",
+            info1: "Nối <span class='info-highlight'>Hình Khối</span> với <span class='info-highlight'>Tên</span> của nó!",
+            info2: "Nhìn kỹ <span class='info-highlight'>đường đứt nét</span> để giải đố.",
+            info3: "Kéo để nối.<br><span class='info-highlight'>Kiểm tra ngay lập tức!</span>",
+            info4: "Nếu không có cặp, bong bóng<br>sẽ <b>nổ & hồi sinh</b>!",
+            topic: "Chọn Chủ Đề", prism: "🧊 Lăng Trụ/Chóp", curve: "🌀 Trụ/Nón/Cầu", all: "🎲 Tất cả",
+            start: "🚀 Bắt Đầu (2P)", other: "🎮 Trò Chơi Khác", dog: "🐶 Đội Chó", cat: "🐱 Đội Mèo",
+            toast: "Không khớp! Tạo lại!", gameOver: "KẾT THÚC", draw: "Hòa!", win: "Thắng!", retry: "Chơi Lại",
+            metaDesc: "Nối hình khối và tên! Trò chơi hình học cho tiểu học.",
+            tri_prism: "Lăng Trụ\nTam Giác", quad_prism: "Lăng Trụ\nTứ Giác", pent_prism: "Lăng Trụ\nNgũ Giác", hex_prism: "Lăng Trụ\nLục Giác",
+            tri_pyramid: "Hình Chóp\nTam Giác", quad_pyramid: "Hình Chóp\nTứ Giác", pent_pyramid: "Hình Chóp\nNgũ Giác", hex_pyramid: "Hình Chóp\nLục Giác",
+            cylinder: "Hình Trụ", cone: "Hình Nón", sphere: "Hình Cầu",
+            ui_title: 'Ngôn ngữ & Khu vực', ui_desc: 'Chọn ngôn ngữ và khu vực của bạn.', ui_search: 'Tìm kiếm (VD: English, Tiếng Việt...)', ui_empty: 'Không tìm thấy kết quả.', ui_toast: 'Ngôn ngữ đã được thay đổi.'
+        },
+        th: {
+            title: "ราชาคณิตทรง 3 มิติ", siteName: "KingsMath.com", subMsg: "เป็นราชาแห่งคณิตศาสตร์",
+            info1: "จับคู่ <span class='info-highlight'>ทรง 3 มิติ</span> กับ <span class='info-highlight'>ชื่อ</span>!",
+            info2: "ดูที่ <span class='info-highlight'>เส้นประที่ซ่อนอยู่</span> ให้ดี.",
+            info3: "ลากเพื่อจับคู่.<br><span class='info-highlight'>ตรวจสอบทันที!</span>",
+            info4: "หากไม่มีคู่ ฟองอากาศ<br>จะ <b>แตก & เกิดใหม่</b>!",
+            topic: "เลือกหัวข้อ", prism: "🧊 ปริซึม/พีระมิด", curve: "🌀 ทรงกระบอก/กรวย", all: "🎲 ทั้งหมด",
+            start: "🚀 เริ่มเกม (2P)", other: "🎮 เกมเพิ่มเติม", dog: "🐶 ทีมสุนัข", cat: "🐱 ทีมแมว",
+            toast: "ไม่ตรงกัน! กำลังเกิดใหม่!", gameOver: "จบเกม", draw: "เสมอ!", win: "ชนะ!", retry: "เล่นอีกครั้ง",
+            metaDesc: "เชื่อมโยงรูปทรง 3 มิติกับชื่อ! เกมเรขาคณิตคณิตศาสตร์ประถมศึกษา",
+            tri_prism: "ปริซึม\nสามเหลี่ยม", quad_prism: "ปริซึม\nสี่เหลี่ยม", pent_prism: "ปริซึม\nห้าเหลี่ยม", hex_prism: "ปริซึม\nหกเหลี่ยม",
+            tri_pyramid: "พีระมิด\nสามเหลี่ยม", quad_pyramid: "พีระมิด\nสี่เหลี่ยม", pent_pyramid: "พีระมิด\nห้าเหลี่ยม", hex_pyramid: "พีระมิด\nหกเหลี่ยม",
+            cylinder: "ทรงกระบอก", cone: "ทรงกรวย", sphere: "ทรงกลม",
+            ui_title: 'ภาษาและภูมิภาค', ui_desc: 'เลือกภาษาและภูมิภาคที่คุณต้องการ', ui_search: 'ค้นหาภาษา (เช่น English, ไทย...)', ui_empty: 'ไม่พบผลลัพธ์', ui_toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว'
+        },
+        'pt-br': {
+            title: "Rei das Formas 3D", siteName: "KingsMath.com", subMsg: "Seja o Rei da Matemática.",
+            info1: "Ligue a <span class='info-highlight'>Forma 3D</span> ao seu <span class='info-highlight'>Nome</span>!",
+            info2: "Olhe para as <span class='info-highlight'>linhas pontilhadas</span> para resolver.",
+            info3: "Arraste para conectar.<br><span class='info-highlight'>Verificação Imediata!</span>",
+            info4: "Se não houver par, as bolhas<br>vão <b>estourar e renascer</b>!",
+            topic: "Selecionar Tópico", prism: "🧊 Prismas/Pirâmides", curve: "🌀 Cilindros/Cones", all: "🎲 Todos",
+            start: "🚀 Iniciar (2 Jogadores)", other: "🎮 Mais Jogos", dog: "🐶 Equipe Cão", cat: "🐱 Equipe Gato",
+            toast: "Sem par! Recriando!", gameOver: "FIM DE JOGO", draw: "Empate!", win: "Venceu!", retry: "Jogar Novamente",
+            metaDesc: "Conecte formas 3D aos nomes! Jogo de geometria escolar.",
+            tri_prism: "Prisma\nTriangular", quad_prism: "Prisma\nRetangular", pent_prism: "Prisma\nPentagonal", hex_prism: "Prisma\nHexagonal",
+            tri_pyramid: "Pirâmide\nTriangular", quad_pyramid: "Pirâmide\nQuadrada", pent_pyramid: "Pirâmide\nPentagonal", hex_pyramid: "Pirâmide\nHexagonal",
+            cylinder: "Cilindro", cone: "Cone", sphere: "Esfera",
+            ui_title: 'Idioma e Região', ui_desc: 'Selecione seu idioma e região preferidos.', ui_search: 'Buscar idioma (ex: English, Português...)', ui_empty: 'Nenhum resultado encontrado.', ui_toast: 'Idioma alterado.'
+        },
+        hi: {
+            title: "मैथ किंग 3D आकार", siteName: "KingsMath.com", subMsg: "गणित के राजा बनें।",
+            info1: "<span class='info-highlight'>3D आकार</span> को उसके <span class='info-highlight'>नाम</span> से जोड़ें!",
+            info2: "छिपी हुई <span class='info-highlight'>बिंदीदार रेखाओं</span> को ध्यान से देखें।",
+            info3: "जोड़ने के लिए खींचें।<br><span class='info-highlight'>तुरंत जांच!</span>",
+            info4: "यदि कोई जोड़ा नहीं है, बुलबुले<br><b>फूटेंगे और फिर बनेंगे</b>!",
+            topic: "विषय चुनें", prism: "🧊 प्रिज्म/पिरामिड", curve: "🌀 बेलन/शंकु/गोला", all: "🎲 सभी",
+            start: "🚀 शुरू करें (2P)", other: "🎮 अधिक खेल", dog: "🐶 कुत्ता टीम", cat: "🐱 बिल्ली टीम",
+            toast: "कोई मेल नहीं! फिर से बन रहे हैं!", gameOver: "खेल खत्म", draw: "बराबर!", win: "जीत!", retry: "फिर से खेलें",
+            metaDesc: "बुलबुलों में 3D आकार और नाम जोड़ें! प्राथमिक गणित ज्यामिति खेल।",
+            tri_prism: "त्रिकोणीय\nप्रिज्म", quad_prism: "आयताकार\nप्रिज्म", pent_prism: "पंचकोणीय\nप्रिज्म", hex_prism: "षट्कोणीय\nप्रिज्म",
+            tri_pyramid: "त्रिकोणीय\nपिरामिड", quad_pyramid: "वर्गाकार\nपिरामिड", pent_pyramid: "पंचकोणीय\nपिरामिड", hex_pyramid: "षट्कोणीय\nपिरामिड",
+            cylinder: "बेलन", cone: "शंकु", sphere: "गोला",
+            ui_title: 'भाषा और क्षेत्र', ui_desc: 'अपनी पसंदीदा भाषा और क्षेत्र चुनें।', ui_search: 'भाषा खोजें (उदा: English, हिन्दी...)', ui_empty: 'कोई परिणाम नहीं मिला।', ui_toast: 'भाषा बदल दी गई है।'
+        },
+        bn: {
+            title: "ম্যাথ কিং 3D শেপস", siteName: "KingsMath.com", subMsg: "গণিতের রাজা হও।",
+            info1: "<span class='info-highlight'>3D আকৃতির</span> সাথে এর <span class='info-highlight'>নাম</span> মেলাও!",
+            info2: "লুকানো <span class='info-highlight'>বিন্দুযুক্ত রেখাগুলি</span> লক্ষ্য করো।",
+            info3: "যোগ করতে টেনে আনো।<br><span class='info-highlight'>তাত্ক্ষণিক যাচাই!</span>",
+            info4: "কোনো জোড়া না থাকলে, বুদবুদ<br><b>ফাটবে এবং আবার তৈরি হবে</b>!",
+            topic: "বিষয় নির্বাচন", prism: "🧊 প্রিজম/পিরামিড", curve: "🌀 সিলিন্ডার/শঙ্কু", all: "🎲 সব",
+            start: "🚀 শুরু (2P)", other: "🎮 আরও গেম", dog: "🐶 কুকুর দল", cat: "🐱 বিড়াল দল",
+            toast: "কোনো মিল নেই! আবার তৈরি হচ্ছে!", gameOver: "খেলা শেষ", draw: "ড্র!", win: "জয়ী!", retry: "আবার খেলো",
+            metaDesc: "প্রাথমিক গণিত জ্যামিতি গেম। 3D আকৃতি এবং নাম সংযুক্ত করুন!",
+            tri_prism: "ত্রিভুজাকার\nপ্রিজম", quad_prism: "আয়তাকার\nপ্রিজম", pent_prism: "পঞ্চভুজ\nপ্রিজম", hex_prism: "ষড়ভুজ\nপ্রিজম",
+            tri_pyramid: "ত্রিভুজাকার\nপিরামিড", quad_pyramid: "বর্গাকার\nপিরামিড", pent_pyramid: "পঞ্চভুজ\nপিরামিড", hex_pyramid: "ষড়ভুজ\nপিরামিড",
+            cylinder: "সিলিন্ডার", cone: "শঙ্কু", sphere: "গোলক",
+            ui_title: 'ভাষা এবং অঞ্চল', ui_desc: 'আপনার পছন্দের ভাষা এবং অঞ্চল নির্বাচন করুন।', ui_search: 'ভাষা খুঁজুন (যেমন: English, বাংলা...)', ui_empty: 'কোন ফলাফল পাওয়া যায়নি।', ui_toast: 'ভাষা পরিবর্তন করা হয়েছে।'
+        },
+        tr: {
+            title: "Matematik Kralı 3B Şekiller", siteName: "KingsMath.com", subMsg: "Matematiğin Kralı Ol.",
+            info1: "<span class='info-highlight'>3B Şekli</span> <span class='info-highlight'>Adıyla</span> eşleştirin!",
+            info2: "Gizli <span class='info-highlight'>kesik çizgilere</span> dikkat et.",
+            info3: "Birleştirmek için sürükle.<br><span class='info-highlight'>Anında Kontrol!</span>",
+            info4: "Eşleşme yoksa baloncuklar<br><b>patlar ve yeniden doğar</b>!",
+            topic: "Konu Seç", prism: "🧊 Prizmalar/Piramitler", curve: "🌀 Silindirler/Koniler", all: "🎲 Tümü",
+            start: "🚀 Başla (2 Oyuncu)", other: "🎮 Diğer Oyunlar", dog: "🐶 Köpek Takımı", cat: "🐱 Kedi Takımı",
+            toast: "Eşleşme yok! Yenileniyor!", gameOver: "OYUN BİTTİ", draw: "Berabere!", win: "Kazandı!", retry: "Tekrar Oyna",
+            metaDesc: "3B şekilleri ve isimleri birleştirin! İlkokul geometri oyunu.",
+            tri_prism: "Üçgen\nPrizma", quad_prism: "Dikdörtgen\nPrizma", pent_prism: "Beşgen\nPrizma", hex_prism: "Altıgen\nPrizma",
+            tri_pyramid: "Üçgen\nPiramit", quad_pyramid: "Kare\nPiramit", pent_pyramid: "Beşgen\nPiramit", hex_pyramid: "Altıgen\nPiramit",
+            cylinder: "Silindir", cone: "Koni", sphere: "Küre",
+            ui_title: 'Dil ve Bölge', ui_desc: 'Tercih ettiğiniz dili ve bölgeyi seçin.', ui_search: 'Dil ara (Örn: English, Türkçe...)', ui_empty: 'Sonuç bulunamadı.', ui_toast: 'Dil değiştirildi.'
+        },
+        de: {
+            title: "Mathekönig 3D-Formen", siteName: "KingsMath.com", subMsg: "Werde der König der Mathematik.",
+            info1: "Verbinde die <span class='info-highlight'>3D-Form</span> mit ihrem <span class='info-highlight'>Namen</span>!",
+            info2: "Achte auf die <span class='info-highlight'>gestrichelten Linien</span>.",
+            info3: "Ziehen zum Verbinden.<br><span class='info-highlight'>Sofortige Prüfung!</span>",
+            info4: "Wenn kein Paar vorhanden ist,<br>platzen die Blasen und <b>erscheinen neu</b>!",
+            topic: "Thema Wählen", prism: "🧊 Prismen/Pyramiden", curve: "🌀 Zylinder/Kegel/Kugeln", all: "🎲 Alle",
+            start: "🚀 Start (2 Spieler)", other: "🎮 Weitere Spiele", dog: "🐶 Team Hund", cat: "🐱 Team Katze",
+            toast: "Kein Paar! Neu laden!", gameOver: "SPIEL VORBEI", draw: "Unentschieden!", win: "Gewinnt!", retry: "Nochmal spielen",
+            metaDesc: "Verbinden Sie 3D-Formen und Namen! Geometriespiel für Grundschulen.",
+            tri_prism: "Dreiecks-\nprisma", quad_prism: "Rechteck-\nprisma", pent_prism: "Fünfeck-\nprisma", hex_prism: "Sechseck-\nprisma",
+            tri_pyramid: "Dreiecks-\npyramide", quad_pyramid: "Vierecks-\npyramide", pent_pyramid: "Fünfeck-\npyramide", hex_pyramid: "Sechseck-\npyramide",
+            cylinder: "Zylinder", cone: "Kegel", sphere: "Kugel",
+            ui_title: 'Sprache & Region', ui_desc: 'Wählen Sie Ihre bevorzugte Sprache und Region.', ui_search: 'Sprache suchen (z.B. English, Deutsch...)', ui_empty: 'Keine Ergebnisse gefunden.', ui_toast: 'Sprache geändert.'
+        },
+        it: {
+            title: "Re della Mate Forme 3D", siteName: "KingsMath.com", subMsg: "Diventa il Re della Matematica.",
+            info1: "Collega la <span class='info-highlight'>Forma 3D</span> al suo <span class='info-highlight'>Nome</span>!",
+            info2: "Guarda le <span class='info-highlight'>linee tratteggiate</span> nascoste.",
+            info3: "Trascina per collegare.<br><span class='info-highlight'>Verifica Istantanea!</span>",
+            info4: "Se non c'è una coppia, le bolle<br>scoppiano e <b>ricompaiono</b>!",
+            topic: "Scegli Argomento", prism: "🧊 Prismi/Piramidi", curve: "🌀 Cilindri/Coni/Sfere", all: "🎲 Tutti",
+            start: "🚀 Inizia (2 Giocatori)", other: "🎮 Altri Giochi", dog: "🐶 Squadra Cane", cat: "🐱 Squadra Gatto",
+            toast: "Nessuna coppia! Ricaricando!", gameOver: "FINE PARTITA", draw: "Pareggio!", win: "Vince!", retry: "Gioca di nuovo",
+            metaDesc: "Collega le forme 3D ai loro nomi! Gioco di geometria per la scuola.",
+            tri_prism: "Prisma\nTriangolare", quad_prism: "Prisma\nRettangolare", pent_prism: "Prisma\nPentagonale", hex_prism: "Prisma\nEsagonale",
+            tri_pyramid: "Piramide\nTriangolare", quad_pyramid: "Piramide\nQuadrata", pent_pyramid: "Piramide\nPentagonale", hex_pyramid: "Piramide\nEsagonale",
+            cylinder: "Cilindro", cone: "Cono", sphere: "Sfera",
+            ui_title: 'Lingua e Regione', ui_desc: 'Seleziona la tua lingua e regione preferita.', ui_search: 'Cerca lingua (es. English, Italiano...)', ui_empty: 'Nessun risultato trovato.', ui_toast: 'Lingua cambiata.'
+        }
+    };
+
+    // --- 언어 목록 및 모달 UI 로직 ---
+    const languagesList = [
+        { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+        { code: 'en', country: 'us', name: 'English', enName: 'English' },
+        { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+        { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+        { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+        { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+        { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+        { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+        { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+        { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+        { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+        { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+        { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+        { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+        { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+        { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+    ];
+
+    let currentLang = 'en';
+
+    // UI DOM
+    const triggerBtn = document.getElementById('langTriggerBtn');
+    const modal = document.getElementById('langModal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const searchInput = document.getElementById('searchInput');
+    const grid = document.getElementById('languageGrid');
+    const noResult = document.getElementById('noResult');
+    const currentFlagImg = document.getElementById('currentFlag');
+    const currentLangSpan = document.getElementById('currentLangName');
+    const toast = document.getElementById('toastNotification');
+    const toastLangName = document.getElementById('toastLangName');
+    let toastTimeout;
+
+    function renderLanguageGrid(filterText = '') {
+        grid.innerHTML = '';
+        const lowerFilter = filterText.toLowerCase();
+        
+        const filteredLangs = languagesList.filter(lang => 
+            lang.name.toLowerCase().includes(lowerFilter) || 
+            lang.enName.toLowerCase().includes(lowerFilter) ||
+            lang.code.toLowerCase().includes(lowerFilter)
+        );
+
+        if (filteredLangs.length === 0) {
+            grid.classList.add('hidden');
+            noResult.classList.remove('hidden');
+            noResult.classList.add('flex');
+        } else {
+            grid.classList.remove('hidden');
+            noResult.classList.add('hidden');
+            noResult.classList.remove('flex');
+
+            filteredLangs.forEach(lang => {
+                const isSelected = lang.code === currentLang;
+                const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                const stateClasses = isSelected 
+                    ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                    : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                const btn = document.createElement('div');
+                btn.className = `${baseClasses} ${stateClasses}`;
+
+                btn.innerHTML = `
+                    <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                        <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col items-start">
+                        <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                        <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                    </div>
+                    ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                `;
+
+                btn.addEventListener('click', () => {
+                    setLanguage(lang.code);
+                    closeModal();
+                    showToast(lang.name);
+                    renderLanguageGrid(searchInput.value);
+                });
+                grid.appendChild(btn);
+            });
+        }
+    }
+
+    function openModal() {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => searchInput.focus(), 100);
+    }
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    function showToast(langName) {
+        toastLangName.textContent = langName;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    }
+
+    triggerBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+    searchInput.addEventListener('input', (e) => { renderLanguageGrid(e.target.value); });
+
+    // --- 다국어 적용 핵심 로직 ---
+    function initLanguage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLang = urlParams.get('lang')?.toLowerCase();
+        const storedLang = localStorage.getItem('kingsmath_lang');
+        const browserLang = navigator.language.slice(0, 2).toLowerCase();
+
+        if (urlLang && VOCAB[urlLang]) currentLang = urlLang;
+        else if (storedLang && VOCAB[storedLang]) currentLang = storedLang;
+        else if (VOCAB[browserLang]) currentLang = browserLang;
+        else currentLang = 'en';
+
+        applyLanguage(currentLang);
+        renderLanguageGrid();
+    }
+
+    function setLanguage(langCode) {
+        if (!VOCAB[langCode]) return;
+        currentLang = langCode;
+        localStorage.setItem('kingsmath_lang', langCode);
+        
+        // URL 파라미터 즉시 업데이트 (새로고침 없이)
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('lang', langCode);
+        window.history.pushState({}, '', newUrl);
+
+        applyLanguage(langCode);
+        if(Game.isPlaying) location.reload();
+    }
+
+    function applyLanguage(lang) {
+        const v = VOCAB[lang];
+        document.documentElement.lang = lang;
+        
+        // SEO 메타 태그 업데이트
+        document.title = v.title + " | " + v.siteName;
+        document.querySelector('meta[name="description"]').setAttribute("content", v.metaDesc);
+        document.querySelector('meta[property="og:title"]').setAttribute("content", v.title);
+        document.querySelector('meta[property="og:description"]').setAttribute("content", v.metaDesc);
+
+        // 게임 텍스트 업데이트
+        document.getElementById('t-main-title').innerHTML = `<span class="emoji-fix">⚪</span> ${v.title}`;
+        document.getElementById('t-sub-msg').innerText = v.subMsg;
+        
+        // 하이퍼링크 및 도메인 텍스트 처리 (11ukul 고정, 현재 창)
+        const siteLink = document.getElementById('t-site-link');
+        const otherLink = document.getElementById('t-other-link');
+        siteLink.href = "/";
+        otherLink.href = "/";
+        siteLink.innerText = (lang === 'ko') ? "킹수학.com" : "KingsMath.com";
+        
+        document.getElementById('t-info-1').innerHTML = v.info1;
+        document.getElementById('t-info-2').innerHTML = v.info2;
+        document.getElementById('t-info-3').innerHTML = v.info3;
+        document.getElementById('t-info-4').innerHTML = v.info4;
+        
+        document.getElementById('t-label-topic').innerText = v.topic;
+        document.getElementById('btn-prism').innerText = v.prism;
+        document.getElementById('btn-curve').innerText = v.curve;
+        document.getElementById('btn-all').innerText = v.all;
+        document.getElementById('btn-start').innerText = v.start;
+        document.getElementById('t-other-link').innerHTML = "🎮 " + v.other;
+        
+        document.getElementById('t-dog').innerText = v.dog;
+        document.getElementById('t-cat').innerText = v.cat;
+        document.getElementById('toast-p1').innerText = v.toast;
+        document.getElementById('toast-p2').innerText = v.toast;
+        document.getElementById('t-game-over').innerText = v.gameOver;
+        document.getElementById('btn-retry').innerText = v.retry;
+
+        // 상단 언어 선택 UI 업데이트
+        const langInfo = languagesList.find(l => l.code === lang);
+        if (langInfo) {
+            currentFlagImg.src = `https://flagcdn.com/w40/${langInfo.country}.png`;
+            currentLangSpan.textContent = langInfo.name;
+        }
+
+        // 모달 내부 텍스트 업데이트
+        document.getElementById('ui-title').textContent = v.ui_title;
+        document.getElementById('ui-desc').textContent = v.ui_desc;
+        document.getElementById('searchInput').placeholder = v.ui_search;
+        document.getElementById('ui-empty').textContent = v.ui_empty;
+        document.getElementById('ui-toast').textContent = v.ui_toast;
+
+        adjustFontSizeForUI();
+    }
+
+    // 버튼 텍스트가 넘치지 않도록 동적 폰트 크기 조절
+    function adjustFontSizeForUI() {
+        const els = document.querySelectorAll('.mode-btn');
+        els.forEach(el => {
+            el.style.fontSize = ''; // 초기화
+            let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+            while((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) && currentSize > 10) {
+                currentSize -= 1;
+                el.style.fontSize = currentSize + 'px';
+            }
+        });
+    }
+
+    // --- 이하 게임 코어 로직 (원본 유지) ---
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch((e) => {
+                console.log(`Error attempting to enable full-screen mode: ${e.message} (${e.name})`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    const AudioSys = {
+        ctx: null,
+        init() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContext();
+        },
+        playTone(freq, type, duration, vol=0.1) {
+            if(!this.ctx) this.init();
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        },
+        playPop() { 
+            this.playTone(800, 'sine', 0.1, 0.2);
+            setTimeout(() => this.playTone(1200, 'sine', 0.1, 0.2), 50);
+        },
+        playWrong() { 
+            this.playTone(880, 'square', 0.15, 0.1); 
+        },
+        playStart() { 
+            [440, 554, 659].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.2), i*100));
+        },
+        playEnd() { 
+             this.playTone(300, 'triangle', 1.0, 0.2);
+        },
+        playTick() { 
+             this.playTone(800, 'square', 0.05, 0.05);
+        },
+        playRefresh() { 
+             [600, 700, 800, 900].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.1), i*50));
+        }
+    };
+
+    function getShapesDB() {
+        const v = VOCAB[currentLang];
+        const t = (key) => v[key] || key;
+        
+        return [
+            { 
+                id: 'tri_prism', cat: 'prism', name: t('tri_prism'), tags: [t('tri_prism')], 
+                svg: `<path d="M40,20 L20,40 L70,40 Z M20,40 L20,90 L70,90 L70,40 Z" class="fill-shape"/>
+                      <path d="M40,20 L40,70 L20,90 M40,70 L70,90" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'quad_prism', cat: 'prism', name: t('quad_prism'), tags: [t('quad_prism')], 
+                svg: `<path d="M20,40 L60,40 L80,20 L40,20 Z M20,40 L20,80 L60,80 L60,40 M60,80 L80,60 L80,20" class="fill-shape"/>
+                      <path d="M20,80 L40,60 L80,60 M40,60 L40,20" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'pent_prism', cat: 'prism', name: t('pent_prism'), tags: [t('pent_prism')], 
+                svg: `<path d="M20,25 L30,40 L70,40 L80,25 L50,10 Z M20,25 L20,75 L30,90 L70,90 L80,75 L80,25 M30,40 L30,90 M70,40 L70,90" class="fill-shape"/>
+                      <path d="M50,10 L50,60 L20,75 M50,60 L80,75" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'hex_prism', cat: 'prism', name: t('hex_prism'), tags: [t('hex_prism')], 
+                svg: `<path d="M35,15 L20,25 L35,35 L65,35 L80,25 L65,15 Z M20,25 L20,80 L35,90 L65,90 L80,80 L80,25 M35,35 L35,90 M65,35 L65,90" class="fill-shape"/>
+                      <path d="M35,15 L35,70 M65,15 L65,70 L80,80 M35,70 L20,80 M35,70 L65,70" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            {
+                id: 'tri_pyramid', cat: 'prism', name: t('tri_pyramid'), tags: [t('tri_pyramid')],
+                svg: `
+                  <path d="M50,10 L15,70 L50,90 Z" class="fill-shape"/>
+                  <path d="M50,10 L50,90 L85,70 Z" class="fill-shape"/>
+                  <path d="M50,10 L15,70" />
+                  <path d="M50,10 L85,70" />
+                  <path d="M50,10 L50,90" />
+                  <path d="M50,90 L15,70" />
+                  <path d="M50,90 L85,70" />
+                  <path d="M15,70 L85,70" stroke-dasharray="8,8" stroke-width="2" />
+                `
+            },
+            { 
+                id: 'quad_pyramid', cat: 'prism', name: t('quad_pyramid'), tags: [t('quad_pyramid')], 
+                svg: `<path d="M50,15 L25,80 L75,80 L85,60 M50,15 L75,80 M50,15 L85,60 M50,15 L25,80" class="fill-shape"/>
+                      <path d="M25,80 L35,60 L85,60 M50,15 L35,60" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'pent_pyramid', cat: 'prism', name: t('pent_pyramid'), tags: [t('pent_pyramid')], 
+                svg: `<path d="M50,15 L30,85 L70,85 M50,15 L70,85 L85,65 M50,15 L85,65 M50,15 L15,65 L30,85 M50,15 L15,65 M50,15 L30,85" class="fill-shape"/>
+                      <path d="M15,65 L50,55 L85,65 M50,15 L50,55" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'hex_pyramid', cat: 'prism', name: t('hex_pyramid'), tags: [t('hex_pyramid')], 
+                svg: `<path d="M50,15 L15,70 L35,85 L65,85 L85,70 M50,15 L35,85 M50,15 L65,85 M50,15 L85,70 M50,15 L15,70" class="fill-shape"/>
+                      <path d="M15,70 L35,55 L65,55 L85,70 M50,15 L35,55 M50,15 L65,55" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'cylinder', cat: 'curve', name: t('cylinder'), tags: [t('cylinder')], 
+                svg: `<ellipse cx="50" cy="25" rx="30" ry="10" class="fill-shape"/>
+                      <path d="M 20,25 L 20,75 A 30 10 0 0 0 80 75 L 80,25" class="fill-shape"/>
+                      <path d="M 20,75 A 30 10 0 0 1 80 75" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'cone', cat: 'curve', name: t('cone'), tags: [t('cone')], 
+                svg: `<path d="M 15,80 L 50,20 L 85,80 A 35 12 0 0 1 15 80 Z" class="fill-shape"/>
+                      <path d="M 15,80 A 35 12 0 0 0 85 80" stroke-dasharray="4,4" stroke-width="2"/>` 
+            },
+            { 
+                id: 'sphere', cat: 'curve', name: t('sphere'), tags: [t('sphere')], 
+                svg: `<circle cx="50" cy="50" r="40" class="fill-shape"/>
+                      <path d="M 10,50 A 40 15 0 0 0 90 50" />
+                      <path d="M 10,50 A 40 15 0 0 1 90 50" stroke-dasharray="4,4" stroke-width="2"/>` 
+            }
+        ];
+    }
+
+    const Game = {
+        mode: 2,
+        topic: 'prism', 
+        isPlaying: false,
+        timer: 60,
+        scores: { p1: 0, p2: 0 },
+        activePointers: new Map(),
+        bubbles: { p1: [], p2: [] },
+        
+        currentShapes: [],
+        currentNames: [],
+
+        setTopic(t, e) {
+            this.topic = t;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            if (e && e.target) {
+                e.target.classList.add('selected');
+            }
+        },
+
+        start() {
+            try {
+                AudioSys.init();
+                if(AudioSys.ctx.state === 'suspended') AudioSys.ctx.resume();
+                AudioSys.playStart();
+            } catch(e) {
+                console.log("Audio init failed, but starting game anyway.");
+            }
+
+            this.mode = 2;
+            this.prepareData();
+            
+            this.isPlaying = true;
+            document.getElementById('play-area').classList.remove('single-player');
+            document.getElementById('intro-screen').style.display = 'none';
+            
+            // 게임 몰입을 위해 언어 선택기 UI 숨김 처리
+            document.getElementById('langTriggerContainer').style.display = 'none';
+            
+            const gameScreen = document.getElementById('game-screen');
+            gameScreen.style.display = 'flex';
+            
+            requestAnimationFrame(() => {
+                this.initBoard('p1');
+                this.initBoard('p2');
+                this.canvas = document.getElementById('line-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                
+                this.tick();
+                this.renderLines();
+            });
+
+            window.addEventListener('resize', () => this.resize());
+        },
+
+        prepareData() {
+            const db = getShapesDB();
+            
+            if (this.topic === 'all') {
+                this.currentShapes = [...db];
+            } else if (this.topic === 'prism') {
+                this.currentShapes = db.filter(s => s.cat === 'prism');
+            } else if (this.topic === 'curve') {
+                this.currentShapes = db.filter(s => s.cat === 'curve');
+            }
+
+            const nameSet = new Set();
+            this.currentShapes.forEach(s => {
+                s.tags.forEach(tag => nameSet.add(tag));
+            });
+            this.currentNames = Array.from(nameSet);
+        },
+
+        initBoard(pid) {
+            const v = VOCAB[currentLang];
+            const board = document.getElementById(`board-${pid}`);
+            board.innerHTML = `<div class="toast-msg" id="toast-${pid}">${v.toast}</div>`;
+            this.bubbles[pid] = [];
+            
+            this.spawnPairs(pid, 7);
+            
+            board.onpointerdown = (e) => this.onDown(e, pid);
+            board.onpointermove = (e) => this.onMove(e, pid);
+            board.onpointerup = (e) => this.onUp(e, pid);
+
+            this.checkDeadlock(pid);
+        },
+
+        spawnPairs(pid, count) {
+            let availableIndices = this.currentShapes.map((_, i) => i);
+            
+            for (let i = availableIndices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
+            }
+
+            for(let i = 0; i < count; i++) {
+                let idx;
+                if (availableIndices.length > 0) {
+                    idx = availableIndices.pop();
+                } else {
+                    idx = Math.floor(Math.random() * this.currentShapes.length);
+                }
+                this.spawnBubble(pid, 'shape', idx);
+                this.spawnBubble(pid, 'name', idx);
+            }
+        },
+
+        spawnBubble(pid, forceType = null, forceIndex = -1) {
+            const board = document.getElementById(`board-${pid}`);
+            const isShape = forceType !== null ? (forceType === 'shape') : (Math.random() > 0.5);
+            
+            let shapeData, nameData;
+            if (forceIndex !== -1) {
+                shapeData = this.currentShapes[forceIndex];
+                nameData = shapeData.tags[0]; 
+            } else {
+                shapeData = this.currentShapes[Math.floor(Math.random() * this.currentShapes.length)];
+                nameData = this.currentNames[Math.floor(Math.random() * this.currentNames.length)];
+            }
+
+            const el = document.createElement('div');
+            el.className = `bubble ${isShape ? 'shape' : 'text'}`;
+            
+            const boardW = board.clientWidth || 300;
+            const boardH = board.clientHeight || 400;
+            const baseSize = Math.min(boardW, boardH) * 0.18; 
+            const size = Math.max(45, Math.min(95, baseSize)); 
+            
+            let x, y;
+            let safe = false;
+            let tries = 0;
+            
+            while(!safe && tries < 100) {
+                x = Math.random() * (boardW - size);
+                y = Math.random() * (boardH - size);
+                safe = true;
+                for(let b of this.bubbles[pid]) {
+                    const dx = x - b.x;
+                    const dy = y - b.y;
+                    if(Math.sqrt(dx*dx + dy*dy) < size + 5) safe = false;
+                }
+                tries++;
+            }
+            
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            
+            const colors = ['#fab1a0', '#81ecec', '#74b9ff', '#a29bfe', '#55efc4', '#ffeaa7'];
+            const color = colors[Math.floor(Math.random()*colors.length)];
+            el.style.setProperty('--b-color', color);
+
+            if(isShape) {
+                const rotations = [0, 90, 45, -45];
+                const rot = rotations[Math.floor(Math.random() * rotations.length)];
+                
+                el.innerHTML = `<svg viewBox="0 0 100 100" style="transform: rotate(${rot}deg); transition: transform 0.3s;">${shapeData.svg}</svg>`;
+                el.dataset.type = 'shape';
+                el.dataset.id = shapeData.id;
+                el.dataset.tags = JSON.stringify(shapeData.tags);
+            } else {
+                let displayName = nameData.replace('\n', '<br>'); 
+                
+                el.innerHTML = displayName;
+                el.dataset.type = 'name'; 
+                el.dataset.name = nameData;
+
+                let fontSize = size * 0.35; 
+                const len = displayName.replace('<br>', '').length;
+                if (displayName.includes('<br>')) {
+                    fontSize = size * 0.25;
+                    if (len > 8) fontSize = size * 0.2;
+                } else {
+                    if (len > 10) fontSize = size * 0.18;
+                    else if (len > 6) fontSize = size * 0.22;
+                    else if (len > 4) fontSize = size * 0.28;
+                }
+                
+                fontSize = fontSize * 0.7;
+                el.style.fontSize = fontSize + 'px';
+            }
+
+            board.appendChild(el);
+            this.bubbles[pid].push({ el, x, y, size });
+            
+            el.animate([{transform: 'scale(0)'}, {transform: 'scale(1)'}], {duration: 400, easing: 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'});
+        },
+
+        checkDeadlock(pid) {
+            const allBubbles = this.bubbles[pid];
+            const shapes = allBubbles.filter(b => b.el.dataset.type === 'shape');
+            const names = allBubbles.filter(b => b.el.dataset.type === 'name');
+            
+            let possible = false;
+
+            for(let s of shapes) {
+                const tags = JSON.parse(s.el.dataset.tags);
+                for(let n of names) {
+                    const targetName = n.el.dataset.name;
+                    if(tags.includes(targetName)) {
+                        possible = true;
+                        break;
+                    }
+                }
+                if(possible) break;
+            }
+
+            if(!possible && allBubbles.length > 0) {
+                const toast = document.getElementById(`toast-${pid}`);
+                toast.style.opacity = 1;
+                AudioSys.playRefresh();
+
+                setTimeout(() => {
+                    toast.style.opacity = 0;
+                    allBubbles.forEach(b => b.el.remove());
+                    this.bubbles[pid] = [];
+                    this.spawnPairs(pid, 7); 
+                    this.checkDeadlock(pid);
+                }, 1000);
+            }
+        },
+
+        onDown(e, pid) {
+            if(!this.isPlaying) return;
+            const bubble = e.target.closest('.bubble');
+            if(bubble) {
+                e.currentTarget.setPointerCapture(e.pointerId);
+                bubble.classList.add('active-drag');
+                
+                this.activePointers.set(e.pointerId, {
+                    id: e.pointerId, 
+                    pid, startEl: bubble, path: [{x: e.clientX, y: e.clientY}]
+                });
+                
+                AudioSys.playTone(600, 'sine', 0.1); 
+            }
+        },
+
+        onMove(e, pid) {
+            const drag = this.activePointers.get(e.pointerId);
+            if(!drag) return;
+            
+            const pos = {x: e.clientX, y: e.clientY};
+            drag.path.push(pos);
+
+            const hit = this.getBubbleAt(pos.x, pos.y, pid);
+            if(hit && hit !== drag.startEl) {
+                this.checkMatch(drag, hit);
+            }
+        },
+
+        onUp(e, pid) {
+            const drag = this.activePointers.get(e.pointerId);
+            if(drag) {
+                drag.startEl.classList.remove('active-drag');
+                this.activePointers.delete(e.pointerId);
+                if(e.currentTarget && e.currentTarget.releasePointerCapture) {
+                    e.currentTarget.releasePointerCapture(e.pointerId);
+                }
+            }
+        },
+
+     checkMatch(drag, target) {
+            const s = drag.startEl;
+            const t = target;
+            let isCorrect = false;
+
+            if(s.dataset.type !== t.dataset.type) {
+                const shape = s.dataset.type === 'shape' ? s : t;
+                const name = s.dataset.type === 'name' ? s : t;
+                
+                if (shape.dataset.tags && name.dataset.name) {
+                    const tags = JSON.parse(shape.dataset.tags);
+                    const targetName = name.dataset.name;
+
+                    if(tags.includes(targetName)) {
+                        isCorrect = true;
+                    } 
+                }
+            }
+
+            if(isCorrect) {
+                this.addScore(drag.pid, 100);
+                AudioSys.playPop(); 
+                
+                s.remove(); t.remove();
+                this.bubbles[drag.pid] = this.bubbles[drag.pid].filter(b => b.el !== s && b.el !== t);
+                this.activePointers.delete(drag.id); 
+
+                setTimeout(() => {
+                    if(this.isPlaying) {
+                        // 수정된 부분: 무조건 짝이 맞는 쌍(spawnPairs)을 생성하지 않고 각각 랜덤하게 생성
+                        this.spawnBubble(drag.pid, 'shape');
+                        this.spawnBubble(drag.pid, 'name');
+                        this.checkDeadlock(drag.pid);
+                    }
+                }, 300);
+            } else {
+                this.activePointers.delete(drag.id); 
+                s.classList.remove('active-drag');
+
+                this.addScore(drag.pid, -30);
+                AudioSys.playWrong(); 
+                
+                const board = document.getElementById(`board-${drag.pid}`);
+                board.classList.remove('shake');
+                void board.offsetWidth; 
+                board.classList.add('shake');
+                
+                if(board.releasePointerCapture) {
+                    try { board.releasePointerCapture(drag.id); } catch(err) {}
+                }
+            }
+        },
+
+        getBubbleAt(x, y, pid) {
+            for(let b of this.bubbles[pid]) {
+                const rect = b.el.getBoundingClientRect();
+                const r = rect.width/2;
+                const cx = rect.left + r;
+                const cy = rect.top + r;
+                if(Math.hypot(x-cx, y-cy) < r * 0.8) return b.el;
+            }
+            return null;
+        },
+
+        addScore(pid, val) {
+            this.scores[pid] = Math.max(0, this.scores[pid] + val);
+            const el = document.getElementById(`score-${pid}`);
+            el.style.transform = "scale(1.3)";
+            el.style.color = val > 0 ? "#55efc4" : "#ff7675";
+            setTimeout(() => {
+                el.textContent = this.scores[pid];
+                el.style.transform = "scale(1)";
+                el.style.color = pid === 'p1' ? 'var(--p1-main)' : 'var(--p2-main)';
+            }, 200);
+        },
+
+        tick() {
+            if(!this.isPlaying) return;
+            this.timer--;
+            
+            if(this.timer <= 5 && this.timer > 0) AudioSys.playTick();
+            
+            document.getElementById('timer').textContent = this.timer;
+            if(this.timer <= 0) this.end();
+            else setTimeout(() => this.tick(), 1000);
+        },
+
+        renderLines() {
+            this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+            
+            this.activePointers.forEach(drag => {
+                if(drag.path.length < 2) return;
+                if(!drag.startEl.isConnected) return;
+
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = drag.pid === 'p1' ? '#ff9f43' : '#54a0ff';
+                this.ctx.lineWidth = 5;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                this.ctx.setLineDash([15, 10]);
+                
+                this.ctx.moveTo(drag.path[0].x, drag.path[0].y);
+                for(let i=1; i<drag.path.length; i++) this.ctx.lineTo(drag.path[i].x, drag.path[i].y);
+                this.ctx.stroke();
+                
+                const last = drag.path[drag.path.length-1];
+                this.ctx.beginPath();
+                this.ctx.fillStyle = '#fff';
+                this.ctx.setLineDash([]);
+                this.ctx.arc(last.x, last.y, 8, 0, Math.PI*2);
+                this.ctx.fill();
+            });
+            
+            if(this.isPlaying) requestAnimationFrame(() => this.renderLines());
+        },
+
+        resize() { 
+            if(this.canvas) {
+                this.canvas.width = window.innerWidth; 
+                this.canvas.height = window.innerHeight; 
+            }
+        },
+
+        end() {
+            const v = VOCAB[currentLang];
+            this.isPlaying = false;
+            AudioSys.playEnd();
+
+            if(this.ctx && this.canvas) {
+                this.ctx.clearRect(0,0,this.canvas.width, this.canvas.height);
+            }
+            this.activePointers.clear();
+            
+            document.getElementById('result-modal').style.display = 'flex';
+            const {p1, p2} = this.scores;
+            let winMsg = "";
+            let scoreDetail = "";
+            
+            if(p1 > p2) winMsg = `${v.dog} ${v.win}`;
+            else if(p2 > p1) winMsg = `${v.cat} ${v.win}`;
+            else winMsg = v.draw;
+            scoreDetail = `🐶 ${p1}  vs  🐱 ${p2}`;
+            
+            document.getElementById('winner-text').textContent = winMsg;
+            document.getElementById('final-scores').textContent = scoreDetail;
+        }
+    };
+
+    // 초기 실행
+    initLanguage();
+
+</script>
+
+</body>
+</html>

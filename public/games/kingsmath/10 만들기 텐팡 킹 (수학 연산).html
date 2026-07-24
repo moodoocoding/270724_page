@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5YW0T2C109');
+    </script>
+   
+
+    <meta name="description" content="Play Ten Pang King for free! The best math action puzzle for electronic blackboards.">
+    <meta name="keywords" content="Ten Pang King, Math Game, Brain Training, Kids Math, KingsMath">
+    <link rel="canonical" href="/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Ten Pang King | KingsMath.com">
+    <meta property="og:description" content="Free Math Battle for Electronic Blackboards">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/텐팡킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="/">
+    <meta property="og:site_name" content="KingsMath">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ten Pang King | KingsMath.com">
+    <meta name="twitter:description" content="Free Math Battle for Electronic Blackboards">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/텐팡킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+    <meta name="theme-color" content="#2b2b2b">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ten Pang King 👑</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* =========================================
+           [1] 다국어 모달 전용 독립 CSS
+           ========================================= */
+        #langSelectorWrapper {
+            font-family: 'Noto Sans KR', sans-serif;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99999;
+        }
+        #langSelectorWrapper * { box-sizing: border-box !important; pointer-events: auto; }
+        #langSelectorWrapper i.fa-solid, #langSelectorWrapper i.fa-regular { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
+        .lang-trigger-container { position: absolute; top: 1rem; right: 1rem; }
+        @media (min-width: 640px) { .lang-trigger-container { top: 1.5rem; right: 1.5rem; } }
+        .lang-trigger-btn {
+            display: flex; align-items: center; gap: 0.5rem; background-color: rgba(55, 65, 81, 0.5); border: 1px solid #4b5563;
+            border-radius: 9999px; padding: 0.5rem 1rem; color: #d1d5db; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s; text-shadow: none !important;
+        }
+        .lang-trigger-btn:hover { background-color: rgba(55, 65, 81, 1); }
+        .lang-trigger-btn img { width: 1.25rem; height: auto; border-radius: 2px; }
+        .lang-trigger-btn .lang-name { display: none; }
+        @media (min-width: 640px) { .lang-trigger-btn .lang-name { display: inline-block; } }
+        .lang-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: flex-start; padding-top: 4rem; padding-left: 1rem; padding-right: 1rem;
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @media (min-width: 640px) { .lang-modal-overlay { align-items: center; padding-top: 0; } }
+        .lang-modal-overlay.active { opacity: 1; visibility: visible; }
+        .lang-modal-content {
+            background-color: #111827; border: 1px solid #374151; border-radius: 1rem; width: 100%; max-width: 56rem; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lang-modal-overlay.active .lang-modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .lang-modal-header {
+            display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; border-bottom: 1px solid #1f2937;
+            background-color: rgba(17, 24, 39, 0.95); position: sticky; top: 0; z-index: 10;
+        }
+        .lang-modal-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: white; display: flex; align-items: center; gap: 0.5rem; text-shadow: none !important; }
+        .lang-modal-close {
+            width: 2.5rem; height: 2.5rem; border-radius: 9999px; background-color: #1f2937; color: #9ca3af; border: none;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
+        }
+        .lang-modal-close:hover { background-color: #374151; color: white; }
+        .lang-modal-search { padding: 1.25rem; padding-bottom: 0.5rem; background-color: #111827; position: relative; }
+        .lang-modal-search input {
+            width: 100%; background-color: #1f2937; border: 1px solid #374151; color: white; font-size: 0.875rem; border-radius: 0.75rem;
+            padding: 0.875rem 0.875rem 0.875rem 2.75rem; outline: none; transition: all 0.2s;
+        }
+        .lang-modal-search input:focus { border-color: #eab308; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.5); }
+        .lang-modal-search i { position: absolute; left: 2.25rem; top: 50%; transform: translateY(-50%); color: #9ca3af; margin-top: 3px; }
+        .lang-modal-body { padding: 1.25rem; overflow-y: auto; flex: 1; }
+        .lang-modal-body::-webkit-scrollbar { width: 8px; }
+        .lang-modal-body::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .lang-modal-body::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .lang-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 0.75rem; }
+        @media (min-width: 640px) { .lang-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .lang-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        @media (min-width: 1280px) { .lang-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        .lang-item {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-radius: 0.75rem; border: 1px solid #374151;
+            background-color: rgba(31, 41, 55, 0.4); cursor: pointer; transition: all 0.2s; overflow: hidden;
+        }
+        .lang-item:hover { background-color: #374151; border-color: #6b7280; }
+        .lang-item.selected { background-color: #1f2937; border-color: #eab308; box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.5); }
+        .lang-item-flag { flex-shrink: 0; width: 2rem; height: 1.5rem; border-radius: 0.25rem; overflow: hidden; border: 1px solid rgba(55,65,81,0.5); }
+        .lang-item-flag img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .lang-item-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+        .lang-item-name { font-size: 0.875rem; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .lang-item.selected .lang-item-name { color: #facc15; }
+        .lang-item-en { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .lang-item-check { color: #eab308; font-size: 1.125rem; margin-left: 0.5rem; }
+        .lang-no-result { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 3rem 0; color: #6b7280; }
+        .lang-no-result i { font-size: 2.25rem; margin-bottom: 0.75rem; }
+        .lang-toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 99999; background-color: #1f2937; border: 1px solid #374151; border-radius: 0.75rem;
+            padding: 1rem; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transform: translateY(150%); opacity: 0; transition: all 0.3s ease;
+        }
+        .lang-toast.show { transform: translateY(0); opacity: 1; }
+        .lang-toast-icon { width: 2rem; height: 2rem; border-radius: 9999px; background-color: rgba(34, 197, 94, 0.2); color: #4ade80; display: flex; align-items: center; justify-content: center; }
+        .lang-toast-text { font-size: 0.875rem; font-weight: 500; color: white; margin: 0; }
+        .lang-toast-sub { font-size: 0.75rem; color: #9ca3af; margin: 0; margin-top: 0.1rem; }
+
+        /* =========================================
+           [2] 메인 게임 CSS (다크 테마 + 텐팡킹 엔진)
+           ========================================= */
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            --board-border: #666;
+            --cell-border: #888;
+            --user-num: #00cec9;
+            --grid-bg: #2b2b2b;
+        }
+
+        body {
+            margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-color); color: var(--text-color);
+            font-family: 'Jua', 'Noto Sans KR', sans-serif; touch-action: none; user-select: none; -webkit-user-select: none;
+            height: 100vh; display: flex; flex-direction: column;
+        }
+        body:not(.lang-ko) { font-family: 'Noto Sans KR', sans-serif; }
+    body:not(.lang-ko) .guide-box h3, body:not(.lang-ko) #btn-start { font-weight: 700; }
+body:not(.lang-ko) h1 { font-weight: 400; } /* 제목은 굵기 해제 */
+        
+        body.lang-ru .btn-option, body.lang-fr .btn-option, body.lang-es .btn-option, body.lang-de .btn-option, body.lang-pt-br .btn-option { font-size: 0.85rem; padding: 6px 10px; }
+        body.lang-ru h1, body.lang-fr h1, body.lang-de h1, body.lang-pt-br h1 { font-size: 1.6rem; }
+        body.lang-hi .btn-option, body.lang-bn .btn-option, body.lang-th .btn-option { font-size: 0.85rem; }
+
+        header {
+            flex-shrink: 0; background-color: #1e1e1e; color: var(--accent-color); padding: 3px 30px; display: flex;
+            justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 10; height: 76px; box-sizing: border-box;
+        }
+        header a { color: var(--accent-color); text-decoration: none; text-shadow: 1px 1px 0 #000; font-size: 1.8rem; }
+        
+        #timer-display {
+            font-size: 2rem; color: #fff; background: #444; padding: 10px 30px; border-radius: 25px;
+            border: 3px solid #666; min-width: 140px; text-align: center; display: none; font-weight: bold;
+        }
+        #timer-display.time-urgent { color: #ff7675; border-color: #ff7675; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.7; } }
+
+        #app-container { flex: 1; height: 0; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; }
+
+        /* 시작 화면 */
+        #start-screen {
+            display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--card-bg);
+            padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 3px solid #444;
+            overflow-y: auto; max-height: 90vh; width: fit-content; min-width: 340px; max-width: 90%;
+        }
+     h1 { 
+    margin: 0; 
+    color: #fff; 
+    font-size: 3.5rem; /* 2.2rem에서 3.5rem으로 확대 (원하시는 만큼 조절 가능) */
+    font-weight: 400;  /* 굵은 글씨 제거 (Normal 상태) */
+    text-shadow: 3px 3px 0 #000; 
+    margin-bottom: 5px; 
+    text-align: center; 
+}
+        .guide-box { background-color: rgba(0, 0, 0, 0.2); border: 2px dashed #888; border-radius: 15px; padding: 15px; width: 100%; box-sizing: border-box; text-align: left; margin-bottom: 5px; }
+        .guide-box h3 { margin: 0 0 8px 0; font-size: 1.3rem; color: var(--accent-color); text-align: center; text-shadow: 1px 1px 0 #000; }
+        .guide-box p { margin: 4px 0; font-size: 1.0rem; color: #ddd; line-height: 1.4; word-break: keep-all; }
+        .guide-box b { color: #fff; text-decoration: underline; text-decoration-color: var(--accent-color); }
+        .option-section { width: 100%; text-align: center; }
+        .label-text { color: #aaa; margin-bottom: 3px; font-size: 1.0rem; }
+        .option-group { display: flex; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; justify-content: center; }
+        .btn-option { padding: 8px 16px; font-size: 1.0rem; border: 2px solid #555; background: #222; color: #aaa; border-radius: 20px; cursor: pointer; transition: all 0.2s; min-width: 50px; font-weight:bold; }
+        .btn-option.selected { background-color: var(--btn-active); color: white; border-color: var(--btn-active); box-shadow: 0 0 10px var(--btn-active); transform: translateY(-2px); }
+        #btn-start { margin-top: 15px; padding: 8px 60px; font-size: 1.8rem; background-color: #ff7675; color: white; border: none; border-radius: 50px; box-shadow: 0 5px 0 #d63031; transition: transform 0.1s; cursor: pointer; }
+        #btn-start:active { transform: translateY(5px); box-shadow: none; }
+        .other-game-link { margin-top: 15px; font-size: 1.0rem; color: #888; text-decoration: none; border-bottom: 1px dashed #888; transition: color 0.3s; }
+        .other-game-link:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+        /* 게임 화면 레이아웃 (전자칠판 멀티 뷰) */
+        #game-screen { display: none; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; flex-direction: row; justify-content: center; align-items: center; gap: 20px; flex-wrap: nowrap; }
+        
+        .player-board-container {
+            background: var(--card-bg); padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; position: relative; border: 3px solid var(--board-border);
+            box-sizing: border-box; width: 23%; min-width: 240px; max-width: 400px; justify-content: center;
+        }
+        
+        .crown-icon { position: absolute; top: -140px; left: 50%; transform: translateX(-50%) scale(0.5); font-size: 7rem; opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; text-shadow: 0 4px 10px rgba(0,0,0,0.5); pointer-events: none; }
+        .crown-icon.show { opacity: 1; transform: translateX(-50%) scale(1); }
+
+        .player-board-container.theme-0 { --board-border: #2980b9; --user-num: #00ffff; }
+        .player-board-container.theme-1 { --board-border: #d35400; --user-num: #ffff00; }
+        .player-board-container.theme-2 { --board-border: #c2185b; --user-num: #FF1493; }
+        .player-board-container.theme-3 { --board-border: #27ae60; --user-num: #00FF00; }
+        
+        .player-label { font-size: 2.2rem; margin-bottom: 0px; color: var(--user-num); font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        
+        /* 점수 및 콤보 헤더 */
+        .stats-row { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 12px; box-sizing: border-box; border: 1px solid #555; }
+        .stat-box { display: flex; flex-direction: column; align-items: center; width: 45%; }
+        .stat-lbl { font-size: 0.9rem; color: #aaa; text-transform: uppercase; }
+        .stat-val { font-size: 2rem; color: #fff; font-weight: 900; line-height: 1; text-shadow: 1px 1px 2px #000; }
+        .stat-val.score-val { color: var(--accent-color); }
+
+        /* 텐팡킹 애니팡 그리드 (Absolute 기반) */
+        .grid {
+            position: relative; background-color: var(--grid-bg); border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 4px 8px rgba(0,0,0,0.5);
+            width: 100%; aspect-ratio: 1/1; overflow: hidden; touch-action: none; border: 3px solid var(--board-border);
+        }
+
+        .cell {
+            position: absolute; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; font-weight: 900; color: #222;
+            border-radius: 10px; cursor: pointer; user-select: none;
+            transition: top 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.15s ease, opacity 0.15s ease;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), inset 0 2px 2px rgba(255,255,255,0.3); box-sizing: border-box;
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+        }
+        .cell.selected { transform: scale(1.1); filter: brightness(1.2); z-index: 10; border: 3px solid #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 4px 0 rgba(0,0,0,0.2); }
+        
+        @keyframes cellPop {
+            0% { transform: scale(1); filter: brightness(1); }
+            40% { transform: scale(1.3); filter: brightness(1.5); }
+            100% { transform: scale(0); filter: brightness(2); opacity: 0; }
+        }
+        .cell.popping { animation: cellPop 0.25s ease-out forwards; z-index: 20; }
+
+        /* 파티클 폭발 효과 */
+        .particle {
+            position: absolute; width: 14px; height: 14px; border-radius: 50%; pointer-events: none; z-index: 50; transform: translate(-50%, -50%);
+            animation: particleExplode 0.4s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; box-shadow: 0 0 6px rgba(255,255,255,0.8);
+        }
+        @keyframes particleExplode {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(0); opacity: 0; }
+        }
+
+        /* 숫자별 색상 (파스텔톤 유지하여 다크 테마에서 눈에 띄게 함) */
+        .num-1 { background-color: #ffadad; } .num-2 { background-color: #ffd6a5; } .num-3 { background-color: #fdffb6; }
+        .num-4 { background-color: #caffbf; } .num-5 { background-color: #9bf6ff; } .num-6 { background-color: #a0c4ff; }
+        .num-7 { background-color: #bdb2ff; } .num-8 { background-color: #ffc6ff; } .num-9 { background-color: #e5e5e5; }
+
+        .combo-text {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 2.5rem; font-weight: 900;
+            color: #ffeb3b; text-shadow: 0 0 10px #ff5722, 2px 2px 0 #000; opacity: 0; pointer-events: none; z-index: 100;
+            font-family: 'Noto Sans KR', sans-serif; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center; white-space: nowrap; width: 100%;
+        }
+        .show-combo { transform: translate(-50%, -50%) scale(1) !important; opacity: 1 !important; }
+
+        /* 결과 오버레이 */
+        .win-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); display: none;
+            flex-direction: column; justify-content: center; align-items: center; border-radius: 20px; z-index: 200;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); backdrop-filter: blur(5px); text-align: center;
+        }
+        .win-msg { font-size: 3rem; color: var(--accent-color); margin-bottom: 10px; text-shadow: 0 0 20px rgba(255, 217, 61, 0.5); }
+        .win-score { font-size: 4rem; color: #fff; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* 플로팅 버튼 */
+        .floating-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px; border-radius: 50%; background: #444; color: white;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 300; border: 2px solid #666;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;
+        }
+        .floating-btn:active { transform: scale(0.9); }
+        #btn-home { left: 20px; }
+        #btn-fullscreen { right: 20px; }
+
+        /* =========================================
+           [3] 반응형 최적화 (1920x1080, 1334x800, 1280x800)
+           ========================================= */
+        @media (max-width: 1400px), (max-height: 850px) {
+            header { height: 60px; padding: 5px 20px; }
+            header a { font-size: 1.4rem; }
+            #timer-display { font-size: 1.4rem; padding: 5px 20px; min-width: 120px; }
+            #game-screen { padding: 10px; gap: 15px; }
+            .player-board-container { padding: 12px; min-width: 220px; border-width: 2px; }
+            .player-label { font-size: 1.6rem; }
+            .stats-row { padding: 4px 10px; margin-bottom: 8px; }
+            .stat-lbl { font-size: 0.8rem; }
+            .stat-val { font-size: 1.6rem; }
+            .cell { font-size: 1.5rem; }
+            .crown-icon { font-size: 5rem; top: -100px; }
+            .combo-text { font-size: 2rem; }
+            .win-msg { font-size: 2.2rem; }
+            .win-score { font-size: 2.8rem; }
+            #start-screen { padding: 20px; gap: 8px; }
+            h1 { font-size: 1.8rem; }
+            .guide-box h3 { font-size: 1.1rem; }
+            .guide-box p { font-size: 0.9rem; }
+            .btn-option { padding: 6px 12px; font-size: 0.9rem; }
+            #btn-start { padding: 6px 40px; font-size: 1.5rem; margin-top: 10px; }
+        }
+
+        @media (max-width: 1200px) {
+            #game-screen { gap: 10px; }
+            .player-board-container { min-width: 190px; padding: 10px; }
+            .player-label { font-size: 1.4rem; }
+            .stat-val { font-size: 1.4rem; }
+            .crown-icon { font-size: 4rem; top: -80px; }
+        }
+    </style>
+</head>
+<body class="lang-en">
+
+    <div id="langSelectorWrapper" class="lang-ui-wrapper">
+        <div class="lang-trigger-container" id="langSelectorContainer">
+            <button id="langTriggerBtn" class="lang-trigger-btn">
+                <i class="fa-solid fa-globe text-gray-400"></i>
+                <img id="currentFlag" src="https://flagcdn.com/w40/us.png" alt="US">
+                <span id="currentLangName" class="lang-name">English</span>
+                <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color:#9ca3af; margin-left: 0.25rem;"></i>
+            </button>
+        </div>
+
+        <div id="langModal" class="lang-modal-overlay">
+            <div class="lang-modal-content">
+                <div class="lang-modal-header">
+                    <h2><i class="fa-solid fa-language" style="color:#eab308;"></i> <span>Language / 언어</span></h2>
+                    <button id="closeModalBtn" class="lang-modal-close"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="lang-modal-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ...">
+                </div>
+                <div class="lang-modal-body">
+                    <div id="languageGrid" class="lang-grid"></div>
+                    <div id="noResult" class="lang-no-result"><i class="fa-regular fa-face-frown-open"></i><p>No results / 검색 결과 없음</p></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastNotification" class="lang-toast">
+            <div class="lang-toast-icon"><i class="fa-solid fa-check"></i></div>
+            <div>
+                <p id="ui-toast" class="lang-toast-text">Language changed.</p>
+                <p id="toastLangName" class="lang-toast-sub">English</p>
+            </div>
+        </div>
+    </div>
+    
+    <header>
+        <a href="/" target="_self" id="header-link">Ten Pang King 👑 KingsMath.com</a>
+        <div id="timer-display">00:00</div>
+    </header>
+
+    <div id="app-container">
+        <div id="start-screen">
+            <h1 data-i18n="gameTitle">👑 Ten Pang King</h1>
+            
+            <div class="guide-box">
+                <h3 data-i18n="guideTitle">🐣 How to play?</h3>
+                <p data-i18n="guide1">1️⃣ Swipe blocks to make a <b>sum of 10</b>!</p>
+                <p data-i18n="guide2">2️⃣ Match continuously to trigger <b>combos</b>!</p>
+                <p data-i18n="guide3">💡 Achieve the highest score before time runs out!</p>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="lblTime">Time Limit</div>
+                <div class="option-group" id="time-options">
+                    <div class="btn-option selected" data-value="60" data-i18n="time1m">1 Min</div>
+                    <div class="btn-option" data-value="120" data-i18n="time2m">2 Min</div>
+                    <div class="btn-option" data-value="180" data-i18n="time3m">3 Min</div>
+                </div>
+            </div>
+
+            <div class="option-section">
+                <div class="label-text" data-i18n="lblPlayers">Players</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" data-value="1" data-i18n="p1">1P 👤</div>
+                    <div class="btn-option" data-value="2" data-i18n="p2">2P 👥</div>
+                    <div class="btn-option" data-value="3" data-i18n="p3">3P 👨‍👩‍👧</div>
+                    <div class="btn-option selected" data-value="4" data-i18n="p4">4P 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <button id="btn-start" data-i18n="btnStart">Start Game! 🚀</button>
+            <a href="/" target="_self" class="other-game-link" id="more-games-link" data-i18n="linkMore">🎮 More Games</a>
+        </div>
+
+        <div id="game-screen"></div>
+    </div>
+
+    <div id="btn-home" class="floating-btn">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+
+    <script>
+        /* ========================================================
+           [1] DOM & 다국어 변수 설정
+           ======================================================== */
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const langGrid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const langContainer = document.getElementById('langSelectorContainer');
+        
+        let toastTimeout;
+        let currentLang = 'en';
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' }
+        ];
+
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'id': 'Bahasa telah diubah.',
+            'vi': 'Ngôn ngữ đã được thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.',
+            'hi': 'भाषा बदल दी गई है।', 'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.',
+            'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+        };
+
+        const translations = {
+            ko: {
+                pageTitle: "텐팡킹 👑", metaDesc: "전자칠판을 위한 최고의 두뇌 퍼즐 배틀! 텐팡킹을 무료로 즐기세요.", metaKeywords: "전자칠판, 텐팡킹, 수학게임, 킹수학", headerTitle: "게임으로 수학의 왕이 되어라 👑 킹수학.com", gameTitle: "👑 텐팡킹",
+                guideTitle: "🐣 게임 방법", guide1: "1️⃣ <b>합이 10</b>이 되도록 블록을 스와이프 하세요!", guide2: "2️⃣ 연속 매칭 시 <b>콤보 폭발!</b>", guide3: "💡 제한 시간 내에 가장 높은 점수를 달성하세요!",
+                lblTime: "제한 시간", time1m: "1분", time2m: "2분", time3m: "3분",
+                lblPlayers: "참여 인원", p1: "1인 👤", p2: "2인 👥", p3: "3인 👨‍👩‍👧", p4: "4인 👨‍👩‍👧‍👦",
+                btnStart: "게임 시작! 🚀", linkMore: "🎮 다른 게임 고르기",
+                timeRemaining: "남은 시간: ",
+                msgTimeOver: "⌛ 타임 오버!", msgWin: "👑 승리!", msgScore: "최종 점수",
+                playerNames: ['🐶 강아지', '🐱 고양이', '🐰 토끼', '🐹 햄스터'],
+                lblScore: "점수", lblCombo: "콤보"
+            },
+            en: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Play Ten Pang King for free! Action math puzzle for interactive boards.", metaKeywords: "Ten Pang King, Math Game, KingsMath", headerTitle: "Become the King of Math 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 How to play?", guide1: "1️⃣ Swipe blocks to make a <b>sum of 10</b>!", guide2: "2️⃣ Match continuously to trigger <b>combos</b>!", guide3: "💡 Achieve the highest score before time runs out!",
+                lblTime: "Time Limit", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Players", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Start Game! 🚀", linkMore: "🎮 More Games",
+                timeRemaining: "Time Left: ",
+                msgTimeOver: "⌛ Time Over!", msgWin: "👑 Winner!", msgScore: "Final Score",
+                playerNames: ['🐶 Dog', '🐱 Cat', '🐰 Rabbit', '🐹 Hamster'],
+                lblScore: "Score", lblCombo: "Combo"
+            },
+            zh: {
+                pageTitle: "凑十王者 👑", metaDesc: "免费玩凑十王者！互动白板的动作数学拼图。", metaKeywords: "凑十王者, 数学游戏, KingsMath", headerTitle: "成为数学之王 👑 KingsMath.com", gameTitle: "👑 凑十王者",
+                guideTitle: "🐣 怎么玩？", guide1: "1️⃣ 滑动方块使<b>和为 10</b>！", guide2: "2️⃣ 连续匹配以触发<b>连击</b>！", guide3: "💡 在时间结束前获得最高分！",
+                lblTime: "时间限制", time1m: "1分钟", time2m: "2分钟", time3m: "3分钟",
+                lblPlayers: "玩家人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btnStart: "开始游戏! 🚀", linkMore: "🎮 更多游戏",
+                timeRemaining: "剩余时间: ",
+                msgTimeOver: "⌛ 时间到！", msgWin: "👑 获胜！", msgScore: "最终得分",
+                playerNames: ['🐶 小狗', '🐱 小猫', '🐰 兔子', '🐹 仓鼠'],
+                lblScore: "得分", lblCombo: "连击"
+            },
+            ja: {
+                pageTitle: "テンパンキング 👑", metaDesc: "テンパンキングを無料でプレイ！電子黒板用アクションパズル。", metaKeywords: "テンパンキング, 数学ゲーム, KingsMath", headerTitle: "数学の王様になろう 👑 KingsMath.com", gameTitle: "👑 テンパンキング",
+                guideTitle: "🐣 遊び方", guide1: "1️⃣ スワイプして<b>合計 10</b> を作ろう！", guide2: "2️⃣ 連続マッチで<b>コンボ</b>発生！", guide3: "💡 時間内に最高得点を目指せ！",
+                lblTime: "制限時間", time1m: "1分", time2m: "2分", time3m: "3分",
+                lblPlayers: "参加人数", p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                btnStart: "ゲーム開始! 🚀", linkMore: "🎮 他のゲーム",
+                timeRemaining: "残り時間: ",
+                msgTimeOver: "⌛ タイムオーバー！", msgWin: "👑 勝利！", msgScore: "最終スコア",
+                playerNames: ['🐶 イヌ', '🐱 ネコ', '🐰 ウサギ', '🐹 ハムスター'],
+                lblScore: "スコア", lblCombo: "コンボ"
+            },
+            es: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "¡Juega Ten Pang King gratis!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Conviértete en el Rey de las Matemáticas 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 ¿Cómo jugar?", guide1: "1️⃣ ¡Desliza para <b>sumar 10</b>!", guide2: "2️⃣ ¡Empareja para hacer <b>combos</b>!", guide3: "💡 ¡Consigue la puntuación más alta!",
+                lblTime: "Tiempo", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Jugadores", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "¡Empezar! 🚀", linkMore: "🎮 Más Juegos",
+                timeRemaining: "Tiempo: ",
+                msgTimeOver: "⌛ ¡Tiempo Terminado!", msgWin: "👑 ¡Ganador!", msgScore: "Puntaje Final",
+                playerNames: ['🐶 Perro', '🐱 Gato', '🐰 Conejo', '🐹 Hámster'],
+                lblScore: "Puntos", lblCombo: "Combo"
+            },
+            fr: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Jouez à Ten Pang King gratuitement !", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Devenez le Roi des Maths 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Comment jouer ?", guide1: "1️⃣ Glissez pour <b>faire 10</b> !", guide2: "2️⃣ Associez pour des <b>combos</b> !", guide3: "💡 Obtenez le meilleur score !",
+                lblTime: "Temps", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Joueurs", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Commencer ! 🚀", linkMore: "🎮 Plus de jeux",
+                timeRemaining: "Reste : ",
+                msgTimeOver: "⌛ Temps écoulé !", msgWin: "👑 Gagnant !", msgScore: "Score Final",
+                playerNames: ['🐶 Chien', '🐱 Chat', '🐰 Lapin', '🐹 Hamster'],
+                lblScore: "Score", lblCombo: "Combo"
+            },
+            ru: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Играйте в Ten Pang King бесплатно!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Стань королем математики 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Как играть?", guide1: "1️⃣ Свайп, чтобы <b>собрать 10</b>!", guide2: "2️⃣ Цепочки для <b>комбо</b>!", guide3: "💡 Набери больше всех очков!",
+                lblTime: "Время", time1m: "1 Мин", time2m: "2 Мин", time3m: "3 Мин",
+                lblPlayers: "Игроки", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Начать! 🚀", linkMore: "🎮 Другие игры",
+                timeRemaining: "Время: ",
+                msgTimeOver: "⌛ Время вышло!", msgWin: "👑 Победитель!", msgScore: "Итоговый счет",
+                playerNames: ['🐶 Пес', '🐱 Кот', '🐰 Заяц', '🐹 Хомяк'],
+                lblScore: "Счет", lblCombo: "Комбо"
+            },
+            id: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Mainkan Ten Pang King gratis!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Jadilah Raja Matematika 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Cara main?", guide1: "1️⃣ Geser blok untuk <b>jumlah 10</b>!", guide2: "2️⃣ Cocokkan terus untuk <b>combo</b>!", guide3: "💡 Capai skor tertinggi!",
+                lblTime: "Waktu", time1m: "1 Mnt", time2m: "2 Mnt", time3m: "3 Mnt",
+                lblPlayers: "Pemain", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Mulai! 🚀", linkMore: "🎮 Game Lain",
+                timeRemaining: "Sisa Waktu: ",
+                msgTimeOver: "⌛ Waktu Habis!", msgWin: "👑 Pemenang!", msgScore: "Skor Akhir",
+                playerNames: ['🐶 Anjing', '🐱 Kucing', '🐰 Kelinci', '🐹 Hamster'],
+                lblScore: "Skor", lblCombo: "Combo"
+            },
+            vi: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Chơi Ten Pang King miễn phí!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Trở thành Vua Toán Học 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Cách chơi?", guide1: "1️⃣ Vuốt để tạo <b>tổng 10</b>!", guide2: "2️⃣ Ghép liên tục để có <b>combo</b>!", guide3: "💡 Đạt điểm cao nhất nhé!",
+                lblTime: "Thời gian", time1m: "1 Phút", time2m: "2 Phút", time3m: "3 Phút",
+                lblPlayers: "Người chơi", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Bắt đầu! 🚀", linkMore: "🎮 Trò chơi khác",
+                timeRemaining: "Còn lại: ",
+                msgTimeOver: "⌛ Hết giờ!", msgWin: "👑 Người thắng!", msgScore: "Điểm Cuối",
+                playerNames: ['🐶 Chó', '🐱 Mèo', '🐰 Thỏ', '🐹 Chuột'],
+                lblScore: "Điểm", lblCombo: "Combo"
+            },
+            th: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "เล่น Ten Pang King ฟรี!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "มาเป็นราชาคณิตศาสตร์ 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 วิธีเล่น?", guide1: "1️⃣ ปัดบล็อกให้ <b>รวมได้ 10</b>!", guide2: "2️⃣ จับคู่ต่อเนื่องเพื่อ <b>คอมโบ</b>!", guide3: "💡 ทำคะแนนให้สูงที่สุด!",
+                lblTime: "เวลา", time1m: "1 นาที", time2m: "2 นาที", time3m: "3 นาที",
+                lblPlayers: "ผู้เล่น", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "เริ่มเกม! 🚀", linkMore: "🎮 เกมอื่นๆ",
+                timeRemaining: "เหลือ: ",
+                msgTimeOver: "⌛ หมดเวลา!", msgWin: "👑 ผู้ชนะ!", msgScore: "คะแนนรวม",
+                playerNames: ['🐶 หมา', '🐱 แมว', '🐰 กระต่าย', '🐹 แฮมสเตอร์'],
+                lblScore: "คะแนน", lblCombo: "คอมโบ"
+            },
+            'pt-br': {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Jogue Ten Pang King de graça!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Torne-se o Rei da Matemática 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Como jogar?", guide1: "1️⃣ Deslize para <b>somar 10</b>!", guide2: "2️⃣ Combine para <b>combos</b>!", guide3: "💡 Faça a maior pontuação!",
+                lblTime: "Tempo", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Jogadores", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Começar! 🚀", linkMore: "🎮 Mais Jogos",
+                timeRemaining: "Tempo: ",
+                msgTimeOver: "⌛ Fim do Tempo!", msgWin: "👑 Vencedor!", msgScore: "Pontuação",
+                playerNames: ['🐶 Cão', '🐱 Gato', '🐰 Coelho', '🐹 Hamster'],
+                lblScore: "Pontos", lblCombo: "Combo"
+            },
+            hi: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Ten Pang King मुफ्त में खेलें!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "गणित का राजा बनें 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 कैसे खेलें?", guide1: "1️⃣ <b>10 जोड़ने</b> के लिए स्वाइप करें!", guide2: "2️⃣ <b>कॉम्बो</b> के लिए मिलाते रहें!", guide3: "💡 उच्चतम स्कोर बनाएं!",
+                lblTime: "समय सीमा", time1m: "1 मिनट", time2m: "2 मिनट", time3m: "3 मिनट",
+                lblPlayers: "खिलाड़ी", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "शुरू करें! 🚀", linkMore: "🎮 अन्य गेम",
+                timeRemaining: "शेष समय: ",
+                msgTimeOver: "⌛ समय समाप्त!", msgWin: "👑 विजेता!", msgScore: "अंतिम स्कोर",
+                playerNames: ['🐶 कुत्ता', '🐱 बिल्ली', '🐰 खरगोश', '🐹 हम्सटर'],
+                lblScore: "स्कोर", lblCombo: "कॉम्बो"
+            },
+            bn: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Ten Pang King বিনামূল্যে খেলুন!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "গণিতের রাজা হও 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 কীভাবে খেলবেন?", guide1: "1️⃣ <b>১০ যোগ</b> করতে সোয়াইপ করুন!", guide2: "2️⃣ <b>কম্বো</b> এর জন্য মেলাতে থাকুন!", guide3: "💡 সর্বোচ্চ স্কোর করুন!",
+                lblTime: "সময় সীমা", time1m: "১ মিনিট", time2m: "২ মিনিট", time3m: "৩ মিনিট",
+                lblPlayers: "খেলোয়াড়", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "শুরু করুন! 🚀", linkMore: "🎮 আরও গেম",
+                timeRemaining: "বাকি সময়: ",
+                msgTimeOver: "⌛ সময় শেষ!", msgWin: "👑 বিজয়ী!", msgScore: "চূড়ান্ত স্কোর",
+                playerNames: ['🐶 কুকুর', '🐱 বিড়াল', '🐰 খরগোশ', '🐹 হ্যামস্টার'],
+                lblScore: "স্কোর", lblCombo: "কম্বো"
+            },
+            tr: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Ten Pang King'i ücretsiz oyna!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Matematik Kralı Ol 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Nasıl oynanır?", guide1: "1️⃣ <b>Toplam 10</b> için kaydır!", guide2: "2️⃣ <b>Kombo</b> için eşleştirmeye devam et!", guide3: "💡 En yüksek puanı al!",
+                lblTime: "Süre", time1m: "1 Dk", time2m: "2 Dk", time3m: "3 Dk",
+                lblPlayers: "Oyuncular", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Başla! 🚀", linkMore: "🎮 Daha Fazla",
+                timeRemaining: "Kalan: ",
+                msgTimeOver: "⌛ Süre Bitti!", msgWin: "👑 Kazanan!", msgScore: "Son Puan",
+                playerNames: ['🐶 Köpek', '🐱 Kedi', '🐰 Tavşan', '🐹 Hamster'],
+                lblScore: "Puan", lblCombo: "Kombo"
+            },
+            de: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Spiele Ten Pang King kostenlos!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Werde der Mathe-König 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Wie man spielt?", guide1: "1️⃣ Wische, um <b>Summe 10</b> zu machen!", guide2: "2️⃣ Matche für <b>Kombos</b>!", guide3: "💡 Erreiche die höchste Punktzahl!",
+                lblTime: "Zeitlimit", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Spieler", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Starten! 🚀", linkMore: "🎮 Mehr Spiele",
+                timeRemaining: "Zeit: ",
+                msgTimeOver: "⌛ Zeit abgelaufen!", msgWin: "👑 Gewinner!", msgScore: "Endstand",
+                playerNames: ['🐶 Hund', '🐱 Katze', '🐰 Hase', '🐹 Hamster'],
+                lblScore: "Punkte", lblCombo: "Kombo"
+            },
+            it: {
+                pageTitle: "Ten Pang King 👑", metaDesc: "Gioca a Ten Pang King gratis!", metaKeywords: "Ten Pang King, KingsMath", headerTitle: "Diventa il Re della Matematica 👑 KingsMath.com", gameTitle: "👑 Ten Pang King",
+                guideTitle: "🐣 Come si gioca?", guide1: "1️⃣ Scorri per <b>sommare 10</b>!", guide2: "2️⃣ Abbina per fare <b>combo</b>!", guide3: "💡 Ottieni il punteggio massimo!",
+                lblTime: "Tempo", time1m: "1 Min", time2m: "2 Min", time3m: "3 Min",
+                lblPlayers: "Giocatori", p1: "1P 👤", p2: "2P 👥", p3: "3P 👨‍👩‍👧", p4: "4P 👨‍👩‍👧‍👦",
+                btnStart: "Inizia! 🚀", linkMore: "🎮 Altri Giochi",
+                timeRemaining: "Tempo: ",
+                msgTimeOver: "⌛ Tempo Scaduto!", msgWin: "👑 Vincitore!", msgScore: "Punteggio",
+                playerNames: ['🐶 Cane', '🐱 Gatto', '🐰 Coniglio', '🐹 Criceto'],
+                lblScore: "Punti", lblCombo: "Combo"
+            }
+        };
+
+        function detectLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('lang') && translations[urlParams.get('lang')]) return urlParams.get('lang');
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            if (savedLang && translations[savedLang]) return savedLang;
+            const browserLang = navigator.language.slice(0, 2);
+            if (translations[browserLang]) return browserLang;
+            return 'en';
+        }
+
+        function setLanguage(lang) {
+            if (!translations[lang]) lang = 'en';
+            currentLang = lang;
+            localStorage.setItem('kingsmath_lang', lang);
+
+            const url = new URL(window.location);
+            url.searchParams.set('lang', lang);
+            window.history.pushState({}, '', url);
+
+            document.body.className = `lang-${lang}`;
+            const langData = languages.find(l => l.code === lang);
+            if (langData) {
+                currentFlagImg.src = `https://flagcdn.com/w40/${langData.country}.png`;
+                currentLangSpan.textContent = langData.name;
+            }
+
+            const t = translations[lang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerHTML = t[key];
+            });
+
+            document.title = t.pageTitle;
+            document.querySelector('meta[name="description"]').setAttribute("content", t.metaDesc);
+            document.querySelector('meta[name="keywords"]').setAttribute("content", t.metaKeywords);
+            document.querySelector('meta[property="og:title"]').setAttribute("content", t.pageTitle);
+            document.querySelector('meta[property="og:description"]').setAttribute("content", t.metaDesc);
+            
+            const headerLink = document.getElementById('header-link');
+            if(headerLink) headerLink.innerHTML = (lang === 'ko') ? "게임으로 수학의 왕이 되어라 👑 킹수학.com" : t.headerTitle;
+
+            if(gameScreen.style.display === 'flex' && timerInterval) updateTimerDisplay(remainingTime, true);
+        }
+
+        function openModal() { searchInput.value = ''; renderLanguages(); modal.classList.add('active'); setTimeout(() => searchInput.focus(), 100); }
+        function closeModal() { modal.classList.remove('active'); }
+
+        function renderLanguages(filterText = '') {
+            langGrid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languages.filter(l => l.name.toLowerCase().includes(lowerFilter) || l.enName.toLowerCase().includes(lowerFilter) || l.code.toLowerCase().includes(lowerFilter));
+            if (filteredLangs.length === 0) {
+                langGrid.style.display = 'none'; noResult.style.display = 'flex';
+            } else {
+                langGrid.style.display = 'grid'; noResult.style.display = 'none';
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const btn = document.createElement('div');
+                    btn.className = `lang-item ${isSelected ? 'selected' : ''}`;
+                    btn.innerHTML = `<div class="lang-item-flag"><img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}"></div>
+                                     <div class="lang-item-text"><span class="lang-item-name">${lang.name}</span><span class="lang-item-en">${lang.enName}</span></div>
+                                     ${isSelected ? '<i class="fa-solid fa-circle-check lang-item-check"></i>' : ''}`;
+                    btn.addEventListener('click', () => { setLanguage(lang.code); closeModal(); showToast(lang.name, lang.code); renderLanguages(searchInput.value); });
+                    langGrid.appendChild(btn);
+                });
+            }
+        }
+
+        function showToast(langName, langCode) {
+            document.getElementById('ui-toast').textContent = toastTranslations[langCode] || toastTranslations['en'];
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        /* ========================================================
+           [2] 게임 변수 및 오디오 API
+           ======================================================== */
+        let playerCount = 4;
+        let timeLimit = 60; 
+        let timerInterval = null;
+        let remainingTime = 0; 
+        let isGameOver = false;
+
+        const boardSize = 7;
+        let cellGapPx = 4;
+        let gameStates = []; // Per-player state
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function initAudio() { if (audioCtx.state === 'suspended') audioCtx.resume(); }
+
+        function playTone(freq, type, duration, vol) {
+            if (!audioCtx) return;
+            try {
+                const t = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type; osc.frequency.setValueAtTime(freq, t);
+                gain.gain.setValueAtTime(vol, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(t); osc.stop(t + duration);
+            } catch(e) {}
+        }
+
+        const sfx = {
+            start: () => playTone(880, 'sine', 0.15, 0.3),
+            go: () => playTone(1320, 'sine', 0.4, 0.4),
+            swap: () => playTone(300, 'sine', 0.1, 0.4),
+            pop: (comboLevel) => {
+                if (!audioCtx) return;
+                try {
+                    const t = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator(); 
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine'; 
+                    const baseFreq = 500 + (comboLevel * 50);
+                    osc.frequency.setValueAtTime(baseFreq, t);
+                    osc.frequency.exponentialRampToValueAtTime(baseFreq + 300, t + 0.1); 
+                    gain.gain.setValueAtTime(0.4, t); 
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(t); osc.stop(t + 0.1);
+                } catch(e) {}
+            },
+            fall: () => playTone(150, 'square', 0.05, 0.1),
+            error: () => playTone(200, 'sawtooth', 0.15, 0.4),
+            timeup: () => playTone(400, 'sawtooth', 1, 0.5)
+        };
+
+        /* ========================================================
+           [3] 텐팡킹 엔진 및 로직
+           ======================================================== */
+        document.querySelectorAll('#player-options .btn-option').forEach(opt => {
+            opt.addEventListener('pointerdown', (e) => {
+                initAudio();
+                document.querySelectorAll('#player-options .btn-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected'); playerCount = parseInt(opt.dataset.value);
+            });
+        });
+
+        document.querySelectorAll('#time-options .btn-option').forEach(opt => {
+            opt.addEventListener('pointerdown', (e) => {
+                initAudio();
+                document.querySelectorAll('#time-options .btn-option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected'); timeLimit = parseInt(opt.dataset.value);
+            });
+        });
+
+        document.getElementById('btn-start').addEventListener('pointerdown', () => { initAudio(); initGame(); });
+        document.getElementById('btn-fullscreen').addEventListener('pointerdown', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.log(err));
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
+
+        // [수정] 홈 버튼: 풀스크린 상태 유지하며 첫 화면으로 돌아가기 기능
+        document.getElementById('btn-home').addEventListener('pointerdown', () => {
+            if (document.fullscreenElement) {
+                if (timerInterval) clearInterval(timerInterval);
+                langContainer.style.display = 'block'; 
+                gameScreen.style.display = 'none';
+                startScreen.style.display = 'flex';
+                timerDisplay.style.display = 'none';
+                timerDisplay.innerText = "00:00"; 
+                timerDisplay.classList.remove('time-urgent');
+            } else {
+                location.reload();
+            }
+        });
+
+        window.addEventListener('resize', handleResize);
+
+        function calculateCellSize(pIdx) {
+            const gridEl = document.getElementById(`grid-${pIdx}`);
+            if (!gridEl) return { pad: 0, px: 0 };
+            const gridW = gridEl.clientWidth;
+            const pad = 10;
+            const px = (gridW - (pad * 2) - (cellGapPx * (boardSize - 1))) / boardSize;
+            return { pad, px };
+        }
+
+        function getPosition(r, c, pad, px) {
+            return { top: pad + r * (px + cellGapPx), left: pad + c * (px + cellGapPx) };
+        }
+
+        function handleResize() {
+            if (isGameOver) return;
+            for (let p = 0; p < playerCount; p++) {
+                const state = gameStates[p];
+                if (!state || !state.board) continue;
+                const { pad, px } = calculateCellSize(p);
+                state.cellPx = px; state.pad = pad;
+                for (let r = 0; r < boardSize; r++) {
+                    for (let c = 0; c < boardSize; c++) {
+                        // [수정] 애니메이션 중이어서 객체가 null일 때 발생하는 resize 오류 방어
+                        if (state.board[r] && state.board[r][c] && state.board[r][c].el) {
+                            const el = state.board[r][c].el;
+                            el.style.width = px + 'px'; el.style.height = px + 'px';
+                            const pos = getPosition(r, c, pad, px);
+                            el.style.top = pos.top + 'px'; el.style.left = pos.left + 'px';
+                        }
+                    }
+                }
+            }
+        }
+
+        // [수정] TypeError 해결을 위해 현재 생성중인 currentRow를 매개변수로 받도록 변경
+        function getSafeRandomNumber(r, c, boardArr, currentRow) {
+            let valid = [1,2,3,4,5,6,7,8,9];
+            if (r > 0 && boardArr[r-1] && boardArr[r-1][c]) valid = valid.filter(n => n + boardArr[r-1][c].val !== 10);
+            if (c > 0 && currentRow && currentRow[c-1]) valid = valid.filter(n => n + currentRow[c-1].val !== 10);
+            if (valid.length === 0) return Math.floor(Math.random() * 9) + 1;
+            return valid[Math.floor(Math.random() * valid.length)];
+        }
+
+        function checkValidMovesExist(boardArr) {
+            for(let r = 0; r < boardSize; r++) {
+                for(let c = 0; c < boardSize; c++) {
+                    if(c < boardSize - 1) {
+                        if(boardArr[r][c].val + boardArr[r][c+1].val === 10) return true;
+                    }
+                    if(r < boardSize - 1) {
+                        if(boardArr[r][c].val + boardArr[r+1][c].val === 10) return true;
+                    }
+                }
+            }
+            for(let r = 0; r < boardSize; r++) {
+                for(let c = 0; c < boardSize; c++) {
+                    if (c < boardSize - 1) {
+                        let temp = boardArr[r][c]; boardArr[r][c] = boardArr[r][c+1]; boardArr[r][c+1] = temp;
+                        if (internalCheckMatches(boardArr)) { temp = boardArr[r][c]; boardArr[r][c] = boardArr[r][c+1]; boardArr[r][c+1] = temp; return true; }
+                        temp = boardArr[r][c]; boardArr[r][c] = boardArr[r][c+1]; boardArr[r][c+1] = temp;
+                    }
+                    if (r < boardSize - 1) {
+                        let temp = boardArr[r][c]; boardArr[r][c] = boardArr[r+1][c]; boardArr[r+1][c] = temp;
+                        if (internalCheckMatches(boardArr)) { temp = boardArr[r][c]; boardArr[r][c] = boardArr[r+1][c]; boardArr[r+1][c] = temp; return true; }
+                        temp = boardArr[r][c]; boardArr[r][c] = boardArr[r+1][c]; boardArr[r+1][c] = temp;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function internalCheckMatches(boardArr) {
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize - 1; c++) {
+                    if (boardArr[r][c].val + boardArr[r][c+1].val === 10) return true;
+                }
+            }
+            for (let r = 0; r < boardSize - 1; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (boardArr[r][c].val + boardArr[r+1][c].val === 10) return true;
+                }
+            }
+            return false;
+        }
+
+        function initGame() {
+            isGameOver = false; gameStates = [];
+            startScreen.style.display = 'none'; langContainer.style.display = 'none';
+            gameScreen.style.display = 'flex'; timerDisplay.style.display = 'block';
+            
+            sfx.start(); setTimeout(() => sfx.go(), 800);
+
+            gameScreen.innerHTML = '';
+            const t = translations[currentLang];
+            const pNames = t.playerNames;
+
+            for (let p = 0; p < playerCount; p++) {
+                gameStates[p] = { board: [], score: 0, combo: 0, isAnimating: false, cellPx: 0, pad: 0 };
+                
+                const pContainer = document.createElement('div');
+                pContainer.className = `player-board-container theme-${p}`;
+                pContainer.id = `player-${p}`;
+
+                pContainer.innerHTML = `
+                    <div class="crown-icon" id="crown-${p}">👑</div>
+                    <div class="player-label">${pNames[p]}</div>
+                    <div class="stats-row">
+                        <div class="stat-box"><div class="stat-lbl" data-i18n="lblScore">${t.lblScore}</div><div class="stat-val score-val" id="score-${p}">0</div></div>
+                        <div class="stat-box"><div class="stat-lbl" data-i18n="lblCombo">${t.lblCombo}</div><div class="stat-val" id="combo-${p}">0</div></div>
+                    </div>
+                    <div class="grid" id="grid-${p}">
+                        <div class="combo-text" id="combo-txt-${p}"></div>
+                    </div>
+                    <div class="win-overlay" id="overlay-${p}">
+                        <div class="win-msg" id="msg-${p}"></div>
+                        <div class="win-score" id="fscore-${p}"></div>
+                    </div>
+                `;
+                gameScreen.appendChild(pContainer);
+            }
+
+            for (let p = 0; p < playerCount; p++) {
+                const { pad, px } = calculateCellSize(p);
+                gameStates[p].cellPx = px; gameStates[p].pad = pad;
+                createInitialBoard(p, pad, px);
+                
+                const gridEl = document.getElementById(`grid-${p}`);
+                gridEl.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
+            }
+
+            startTimer();
+        }
+
+        function createInitialBoard(p, pad, px) {
+            const gridEl = document.getElementById(`grid-${p}`);
+            const state = gameStates[p];
+            let validBoard = false;
+
+            while(!validBoard) {
+                gridEl.querySelectorAll('.cell').forEach(el => el.remove());
+                state.board = [];
+                for (let r = 0; r < boardSize; r++) {
+                    let row = [];
+                    for (let c = 0; c < boardSize; c++) {
+                        // [수정] 생성중인 배열 row를 같이 전달
+                        const val = getSafeRandomNumber(r, c, state.board, row);
+                        const cell = document.createElement('div');
+                        cell.className = `cell num-${val}`; cell.textContent = val;
+                        cell.style.width = px + 'px'; cell.style.height = px + 'px';
+                        const pos = getPosition(r, c, pad, px);
+                        cell.style.top = pos.top + 'px'; cell.style.left = pos.left + 'px';
+                        cell.dataset.p = p; cell.dataset.r = r; cell.dataset.c = c;
+                        gridEl.appendChild(cell);
+                        row.push({ val, el: cell });
+                    }
+                    state.board.push(row);
+                }
+                validBoard = checkValidMovesExist(state.board);
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            remainingTime = timeLimit;
+            updateTimerDisplay(remainingTime, true);
+            
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                updateTimerDisplay(remainingTime, true);
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    handleGameOver();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds, isCountDown) {
+            const t = translations[currentLang];
+            const m = Math.floor(seconds / 60); const s = seconds % 60;
+            const str = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+            timerDisplay.innerText = t.timeRemaining + str;
+            if (seconds <= 10 && seconds > 0) {
+                timerDisplay.classList.add('time-urgent'); sfx.start();
+            } else {
+                timerDisplay.classList.remove('time-urgent');
+            }
+        }
+
+        function handleGameOver() {
+            isGameOver = true; sfx.timeup();
+            const t = translations[currentLang];
+            let maxScore = -1;
+            
+            for(let p=0; p<playerCount; p++) {
+                if(gameStates[p].score > maxScore) maxScore = gameStates[p].score;
+            }
+
+            for(let p=0; p<playerCount; p++) {
+                const overlay = document.getElementById(`overlay-${p}`);
+                const msg = document.getElementById(`msg-${p}`);
+                const fscore = document.getElementById(`fscore-${p}`);
+                
+                overlay.style.display = 'flex';
+                fscore.innerText = `${t.msgScore}: ${gameStates[p].score}`;
+                
+                if (gameStates[p].score === maxScore && maxScore > 0) {
+                    msg.innerText = t.msgWin;
+                    msg.style.color = '#FFD93D';
+                    document.getElementById(`crown-${p}`).classList.add('show');
+                } else {
+                    msg.innerText = t.msgTimeOver;
+                    msg.style.color = '#ff7675';
+                }
+            }
+        }
+
+        /* 멀티 터치 스와이프 로직 */
+        let activePointers = {};
+
+        document.addEventListener('pointerdown', (e) => {
+            if (isGameOver) return;
+            const target = e.target.closest('.cell');
+            if (!target) return;
+
+            const pIdx = parseInt(target.dataset.p);
+            if (gameStates[pIdx].isAnimating) return;
+            initAudio();
+
+            activePointers[e.pointerId] = {
+                pIdx: pIdx,
+                startX: e.clientX, startY: e.clientY,
+                r: parseInt(target.dataset.r), c: parseInt(target.dataset.c),
+                target: target
+            };
+            target.classList.add('selected');
+        });
+
+        document.addEventListener('pointerup', (e) => {
+            const ptr = activePointers[e.pointerId];
+            if (!ptr) return;
+
+            const { pIdx, startX, startY, r: startR, c: startC, target } = ptr;
+            delete activePointers[e.pointerId];
+            target.classList.remove('selected');
+
+            const state = gameStates[pIdx];
+            if (isGameOver || state.isAnimating) return;
+
+            const diffX = e.clientX - startX;
+            const diffY = e.clientY - startY;
+
+            let targetR = startR, targetC = startC;
+            if (Math.abs(diffX) > 20 || Math.abs(diffY) > 20) {
+                if (Math.abs(diffX) > Math.abs(diffY)) targetC += (diffX > 0) ? 1 : -1;
+                else targetR += (diffY > 0) ? 1 : -1;
+
+                if (targetR >= 0 && targetR < boardSize && targetC >= 0 && targetC < boardSize) {
+                    trySwap(pIdx, startR, startC, targetR, targetC);
+                }
+            }
+        });
+
+        document.addEventListener('pointercancel', (e) => {
+            const ptr = activePointers[e.pointerId];
+            if (ptr) { ptr.target.classList.remove('selected'); delete activePointers[e.pointerId]; }
+        });
+
+        function trySwap(p, r1, c1, r2, c2) {
+            const state = gameStates[p];
+            state.isAnimating = true; state.combo = 0; updateScoreUI(p); sfx.swap();
+            swapBlocks(p, r1, c1, r2, c2);
+
+            setTimeout(() => {
+                const matches = findMatches(p);
+                if (matches.length > 0) processMatches(p, matches);
+                else {
+                    sfx.error(); swapBlocks(p, r1, c1, r2, c2);
+                    setTimeout(() => { state.isAnimating = false; }, 250);
+                }
+            }, 250);
+        }
+
+        function swapBlocks(p, r1, c1, r2, c2) {
+            const state = gameStates[p];
+            const b1 = state.board[r1][c1], b2 = state.board[r2][c2];
+            state.board[r1][c1] = b2; state.board[r2][c2] = b1;
+            b1.el.dataset.r = r2; b1.el.dataset.c = c2; b2.el.dataset.r = r1; b2.el.dataset.c = c1;
+            
+            const pos1 = getPosition(r2, c2, state.pad, state.cellPx), pos2 = getPosition(r1, c1, state.pad, state.cellPx);
+            b1.el.style.top = pos1.top + 'px'; b1.el.style.left = pos1.left + 'px';
+            b2.el.style.top = pos2.top + 'px'; b2.el.style.left = pos2.left + 'px';
+        }
+
+        function findMatches(p) {
+            const state = gameStates[p];
+            let matchedSet = new Set();
+            for (let r = 0; r < boardSize; r++) {
+                for (let c = 0; c < boardSize - 1; c++) {
+                    if (!state.board[r][c] || !state.board[r][c+1]) continue;
+                    if (state.board[r][c].val + state.board[r][c+1].val === 10) { matchedSet.add(`${r},${c}`); matchedSet.add(`${r},${c+1}`); }
+                }
+            }
+            for (let r = 0; r < boardSize - 1; r++) {
+                for (let c = 0; c < boardSize; c++) {
+                    if (!state.board[r][c] || !state.board[r+1][c]) continue;
+                    if (state.board[r][c].val + state.board[r+1][c].val === 10) { matchedSet.add(`${r},${c}`); matchedSet.add(`${r+1},${c}`); }
+                }
+            }
+            return Array.from(matchedSet).map(str => { const [r, c] = str.split(',').map(Number); return {r, c}; });
+        }
+
+        function createExplosion(p, r, c, colorClass) {
+            const state = gameStates[p];
+            const gridEl = document.getElementById(`grid-${p}`);
+            const pos = getPosition(r, c, state.pad, state.cellPx);
+            const centerX = pos.left + state.cellPx / 2;
+            const centerY = pos.top + state.cellPx / 2;
+            
+            for(let i=0; i<8; i++) {
+                const particle = document.createElement('div');
+                particle.className = `particle ${colorClass}`;
+                particle.style.left = centerX + 'px'; particle.style.top = centerY + 'px';
+                const angle = (Math.PI * 2 / 8) * i + (Math.random()*0.5);
+                const velocity = state.cellPx * (0.6 + Math.random()*0.4);
+                particle.style.setProperty('--tx', `${Math.cos(angle) * velocity}px`);
+                particle.style.setProperty('--ty', `${Math.sin(angle) * velocity}px`);
+                gridEl.appendChild(particle);
+                setTimeout(() => { if(particle.parentNode) particle.remove(); }, 400);
+            }
+        }
+
+        function processMatches(p, matches) {
+            const state = gameStates[p];
+            state.combo++; sfx.pop(state.combo);
+            state.score += matches.length * 10 * state.combo; updateScoreUI(p);
+
+            if (state.combo >= 2) {
+                const cText = document.getElementById(`combo-txt-${p}`);
+                cText.textContent = `${state.combo} COMBO!`; cText.classList.add('show-combo');
+                setTimeout(() => cText.classList.remove('show-combo'), 700);
+            }
+
+            matches.forEach(m => {
+                const block = state.board[m.r][m.c];
+                if (block) {
+                    const colorClass = Array.from(block.el.classList).find(c => c.startsWith('num-'));
+                    if(colorClass) createExplosion(p, m.r, m.c, colorClass);
+                    block.el.classList.add('popping');
+                    setTimeout(() => { if (block.el.parentNode) block.el.parentNode.removeChild(block.el); }, 250);
+                    state.board[m.r][m.c] = null;
+                }
+            });
+            setTimeout(() => applyGravity(p), 250);
+        }
+
+        function applyGravity(p) {
+            const state = gameStates[p];
+            const gridEl = document.getElementById(`grid-${p}`);
+            let movedAny = false;
+
+            for (let c = 0; c < boardSize; c++) {
+                let emptySpots = 0;
+                for (let r = boardSize - 1; r >= 0; r--) {
+                    if (state.board[r][c] === null) emptySpots++;
+                    else if (emptySpots > 0) {
+                        const targetR = r + emptySpots; const block = state.board[r][c];
+                        state.board[targetR][c] = block; state.board[r][c] = null;
+                        block.el.dataset.r = targetR;
+                        const pos = getPosition(targetR, c, state.pad, state.cellPx);
+                        block.el.style.top = pos.top + 'px';
+                        movedAny = true;
+                    }
+                }
+                
+                for (let i = 0; i < emptySpots; i++) {
+                    const targetR = emptySpots - 1 - i; 
+                    let valid = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    if (i > 0 && state.board[targetR + 1][c]) valid = valid.filter(n => n + state.board[targetR + 1][c].val !== 10);
+                    
+                    const val = valid.length > 0 ? valid[Math.floor(Math.random() * valid.length)] : Math.floor(Math.random() * 9) + 1;
+                    const cell = document.createElement('div');
+                    cell.className = `cell num-${val}`; cell.textContent = val;
+                    cell.style.width = state.cellPx + 'px'; cell.style.height = state.cellPx + 'px';
+                    cell.dataset.p = p; cell.dataset.r = targetR; cell.dataset.c = c;
+                    
+                    const startPos = getPosition(-emptySpots + i, c, state.pad, state.cellPx);
+                    cell.style.top = startPos.top + 'px'; cell.style.left = startPos.left + 'px';
+                    state.board[targetR][c] = { val: val, el: cell };
+                    gridEl.appendChild(cell);
+                    movedAny = true;
+                    
+                    setTimeout(() => {
+                        const targetPos = getPosition(targetR, c, state.pad, state.cellPx);
+                        cell.style.top = targetPos.top + 'px';
+                    }, 20 + i * 40);
+                }
+            }
+
+            if (movedAny) setTimeout(sfx.fall, 250);
+            
+            setTimeout(() => {
+                const newMatches = findMatches(p);
+                if (newMatches.length > 0) processMatches(p, newMatches); 
+                else {
+                    if (!checkValidMovesExist(state.board)) shuffleBoard(p);
+                    else {
+                        state.isAnimating = false;
+                        updateLeaderCrown();
+                    }
+                }
+            }, 400);
+        }
+
+        function shuffleBoard(p) {
+            const state = gameStates[p];
+            const gridEl = document.getElementById(`grid-${p}`);
+            
+            do {
+                gridEl.querySelectorAll('.cell').forEach(el => el.remove());
+                state.board = [];
+                for (let r = 0; r < boardSize; r++) {
+                    let row = [];
+                    for (let c = 0; c < boardSize; c++) {
+                        // [수정] 셔플 시에도 배열 row 전달
+                        const val = getSafeRandomNumber(r, c, state.board, row);
+                        const cell = document.createElement('div');
+                        cell.className = `cell num-${val}`; cell.textContent = val;
+                        cell.style.width = state.cellPx + 'px'; cell.style.height = state.cellPx + 'px';
+                        cell.dataset.p = p; cell.dataset.r = r; cell.dataset.c = c;
+                        
+                        const pos = getPosition(r, c, state.pad, state.cellPx);
+                        cell.style.top = pos.top + 'px'; cell.style.left = pos.left + 'px';
+                        cell.style.transform = 'scale(0)';
+                        gridEl.appendChild(cell);
+                        row.push({ val, el: cell });
+                        
+                        setTimeout(() => cell.style.transform = '', 50 + Math.random() * 200);
+                    }
+                    state.board.push(row);
+                }
+            } while(!checkValidMovesExist(state.board));
+            
+            setTimeout(() => { state.isAnimating = false; }, 400);
+        }
+
+        function updateScoreUI(p) {
+            document.getElementById(`score-${p}`).textContent = gameStates[p].score;
+            document.getElementById(`combo-${p}`).textContent = gameStates[p].combo;
+        }
+
+        function updateLeaderCrown() {
+            let maxScore = -1;
+            for(let p=0; p<playerCount; p++) {
+                if(gameStates[p].score > maxScore) maxScore = gameStates[p].score;
+            }
+            for(let p=0; p<playerCount; p++) {
+                const crown = document.getElementById(`crown-${p}`);
+                if (gameStates[p].score === maxScore && maxScore > 0) crown.classList.add('show');
+                else crown.classList.remove('show');
+            }
+        }
+
+        /* 최초 로드 처리 */
+        setLanguage(detectLanguage());
+        renderLanguages();
+    </script>
+</body>
+</html>

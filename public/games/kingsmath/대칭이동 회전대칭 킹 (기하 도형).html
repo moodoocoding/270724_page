@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Fredoka:wght@500;700&family=Noto+Sans+SC:wght@700&family=Noto+Sans+JP:wght@700&family=Rubik:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title id="meta-title">KingsMath - SpinKing vs FlipKing</title>
+    <meta id="meta-desc" name="description" content="Play the best math geometry battle game on KingsMath!">
+    <meta id="meta-keywords" name="keywords" content="KingsMath, Math Game, Geometry, Education, Brain Training">
+    
+    <link rel="canonical" href="/">
+    <meta property="og:type" content="website">
+    <meta id="og-title" property="og:title" content="KingsMath - SpinKing vs FlipKing">
+    <meta id="og-desc" property="og:description" content="Interactive Geometry Battle for Kids">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/돌리킹뒤집킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta id="og-url" property="og:url" content="/">
+    <meta id="og-site-name" property="og:site_name" content="KingsMath">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta id="tw-title" name="twitter:title" content="KingsMath - SpinKing vs FlipKing">
+    <meta id="tw-desc" name="twitter:description" content="Interactive Geometry Battle for Kids">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/돌리킹뒤집킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+    <meta name="theme-color" content="#0F4C3A">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        /* [필수 최적화 설정] */
+        body {
+            margin: 0; padding: 0;
+            background-color: #020617;
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.1) 1px, transparent 1px),
+                radial-gradient(white, rgba(255,255,255,.05) 1px, transparent 1px);
+            background-size: 80px 80px, 40px 40px;
+            touch-action: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            /* 기본 폰트 설정 (언어별 클래스로 덮어씌움) */
+            font-family: 'Fredoka', 'Jua', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+            overflow: hidden;
+            color: white;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* 언어별 폰트 적용 클래스 */
+        body.lang-ko { font-family: 'Jua', sans-serif; }
+        body.lang-zh { font-family: 'Noto Sans SC', sans-serif; }
+        body.lang-ja { font-family: 'Noto Sans JP', sans-serif; }
+        body.lang-ru { font-family: 'Rubik', sans-serif; }
+
+        canvas {
+            image-rendering: crisp-edges;
+            border-radius: 1.5rem;
+            display: block;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 터치 버튼 스타일 */
+        .touch-btn {
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.1s; 
+            background-color: #1e293b;
+            border-bottom: 4px solid #020617;
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 16px; font-size: 28px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        .touch-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+        }
+        
+        .btn-move { background-color: #334155; border-color: #0f172a; }
+        .btn-rot { background-color: #4f46e5; border-color: #312e81; }
+        .btn-flip { background-color: #7c3aed; border-color: #4c1d95; }
+
+        .p1-area .touch-btn:active { border-color: #3b82f6; }
+        .p2-area .touch-btn:active { border-color: #f43f5e; }
+
+        /* 플로팅 버튼 */
+        .floating-btn {
+            position: fixed; top: 50%; transform: translateY(-50%);
+            padding: 1rem; background-color: rgba(30, 41, 59, 0.9);
+            border-radius: 9999px; border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white; z-index: 9998; font-size: 2rem; cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+        }
+        #homeBtn { left: 20px; }
+        #fullScreenBtn { right: 20px; }
+
+        /* 텍스트 글로우 효과 */
+        .glow-text-blue { text-shadow: 0 0 20px rgba(59, 130, 246, 0.6); }
+        .glow-text-red { text-shadow: 0 0 20px rgba(244, 63, 94, 0.6); }
+
+        /* 언어 모달 전용 스타일 */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* 자동 폰트 리사이징을 위한 클래스 (JS에서 제어) */
+        .auto-resize-text { white-space: nowrap; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between min-h-screen overflow-hidden">
+
+    <div id="langBtnContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999]">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-800/80 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg backdrop-blur-md">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block font-sans">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4 font-sans">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500 font-sans">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999] font-sans">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div id="start-screen" class="fixed inset-0 z-[250] bg-slate-950/98 backdrop-blur-xl flex flex-col items-center justify-center w-full">
+        <a id="mainLink" href="/" target="_self" class="text-indigo-400 text-2xl font-bold tracking-tight mb-4 hover:text-indigo-300 transition-colors">
+            KingsMath.com
+        </a>
+        
+        <h1 class="text-7xl font-black text-white mb-8 italic tracking-tighter text-center px-4 w-full flex justify-center items-center overflow-hidden" style="text-shadow: 0 0 30px #4f46e5; max-width: 90vw;">
+            <span id="gameTitleP1" class="auto-resize-text block">SpinKing</span> 
+            <span class="text-slate-600 mx-2 shrink-0">vs</span> 
+            <span id="gameTitleP2" class="auto-resize-text block">FlipKing</span>
+        </h1>
+        
+        <div class="bg-slate-900/50 p-8 rounded-[2rem] border border-white/5 backdrop-blur-sm mb-12 text-center max-w-4xl w-[90%]">
+            <p id="gameDesc" class="text-slate-300 text-3xl font-medium leading-relaxed auto-resize-text w-full">
+            </p>
+        </div>
+        
+        <button id="startGameBtn" class="auto-resize-text px-24 py-6 bg-indigo-600 text-white font-black text-5xl rounded-[2rem] shadow-[0_15px_0_rgb(49,46,129)] active:translate-y-2 active:shadow-none transition-all hover:bg-indigo-500 border-t-8 border-indigo-400 max-w-[80vw]">
+            PLAY
+        </button>
+        
+        <a id="moreGamesLink" href="/" target="_self" class="text-slate-500 text-xl underline decoration-slate-600 hover:text-slate-300 transition-colors mt-10 block font-medium">
+            🎮 More Games
+        </a>
+    </div>
+
+    <div id="game-container" class="hidden flex-col items-center justify-between w-full h-full py-2">
+        
+        <div class="w-full flex justify-around items-center px-10 flex-none h-[15vh]">
+            <div class="flex items-center justify-center h-full w-1/3 overflow-hidden">
+                <span id="ingameP1" class="text-[4rem] xl:text-[5rem] font-black text-blue-500 tracking-widest uppercase glow-text-blue leading-none text-center auto-resize-text w-full">SPINKING</span>
+            </div>
+            
+            <div class="flex items-center justify-center h-full w-1/3">
+                <div id="timerDisplay" class="text-[8rem] font-black text-rose-500 bg-rose-500/10 px-4 rounded-full border-[4px] border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.5)] leading-none min-w-[280px] text-center">60</div>
+            </div>
+
+            <div class="flex items-center justify-center h-full w-1/3 overflow-hidden">
+                <span id="ingameP2" class="text-[4rem] xl:text-[5rem] font-black text-rose-500 tracking-widest uppercase glow-text-red leading-none text-center auto-resize-text w-full">FLIPKING</span>
+            </div>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center w-full relative px-4 overflow-hidden">
+            <div class="relative bg-slate-900 p-4 rounded-[2rem] border-4 border-slate-800 shadow-[0_0_60px_rgba(0,0,0,0.9)] w-full max-w-[1200px] h-auto max-h-[60vh] aspect-[2/1] flex items-center justify-center">
+                <canvas id="gameCanvas" width="1200" height="620"></canvas>
+                
+                <div id="endOverlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-[1.8rem] flex flex-col items-center justify-center z-[100]">
+                    <div id="winnerIcon" class="w-32 h-32 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl animate-bounce">
+                    </div>
+                    <h2 id="winnerText" class="text-8xl font-black text-white mb-4 italic tracking-tighter drop-shadow-2xl leading-none text-center auto-resize-text w-[90%] flex justify-center">WINNER!</h2>
+                    <p id="resultDesc" class="text-4xl text-slate-300 mb-10 font-bold text-center auto-resize-text w-[80%] flex justify-center">Result Message</p>
+                    <button id="restartBtn" class="auto-resize-text px-20 py-6 bg-indigo-600 text-white font-black text-4xl rounded-[2rem] shadow-[0_12px_0_rgb(49,46,129)] active:translate-y-2 active:shadow-none transition-all hover:bg-indigo-500 border-t-4 border-indigo-400 max-w-[80vw]">
+                        RESTART
+                    </button>
+                    <a id="endMoreGamesLink" href="/" target="_self" class="text-slate-500 text-2xl underline decoration-slate-600 hover:text-slate-300 transition-colors mt-8 block font-medium">🎮 More Games</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full flex justify-center items-center gap-16 flex-none h-[20vh] pb-4 px-10">
+            <div class="flex flex-col gap-2 p-4 rounded-[2rem] bg-slate-900/95 border-2 border-blue-600/50 shadow-2xl items-center justify-center p1-area w-full max-w-[400px]">
+                <div id="controlP1" class="text-blue-500 text-xl font-black mb-1 uppercase tracking-widest auto-resize-text w-[90%] text-center">SpinKing</div>
+                <div class="flex gap-4">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-start-2"><button id="p1-up" class="touch-btn btn-move">🔼</button></div>
+                        <div class="col-start-1 row-start-2"><button id="p1-left" class="touch-btn btn-move">◀️</button></div>
+                        <div class="col-start-2 row-start-2"><button id="p1-down" class="touch-btn btn-move">🔽</button></div>
+                        <div class="col-start-3 row-start-2"><button id="p1-right" class="touch-btn btn-move">▶️</button></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pl-3 border-l border-white/10">
+                        <button id="p1-rotL" class="touch-btn btn-rot" title="Rotate Left">↺</button>
+                        <button id="p1-rotR" class="touch-btn btn-rot" title="Rotate Right">↻</button>
+                        <button id="p1-flipV" class="touch-btn btn-flip" title="Flip V">↕</button>
+                        <button id="p1-flipH" class="touch-btn btn-flip" title="Flip H">↔</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2 p-4 rounded-[2rem] bg-slate-900/95 border-2 border-rose-600/50 shadow-2xl items-center justify-center p2-area w-full max-w-[400px]">
+                <div id="controlP2" class="text-rose-500 text-xl font-black mb-1 uppercase tracking-widest auto-resize-text w-[90%] text-center">FlipKing</div>
+                <div class="flex gap-4">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-start-2"><button id="p2-up" class="touch-btn btn-move">🔼</button></div>
+                        <div class="col-start-1 row-start-2"><button id="p2-left" class="touch-btn btn-move">◀️</button></div>
+                        <div class="col-start-2 row-start-2"><button id="p2-down" class="touch-btn btn-move">🔽</button></div>
+                        <div class="col-start-3 row-start-2"><button id="p2-right" class="touch-btn btn-move">▶️</button></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 pl-3 border-l border-white/10">
+                        <button id="p2-rotL" class="touch-btn btn-rot">↺</button>
+                        <button id="p2-rotR" class="touch-btn btn-rot">↻</button>
+                        <button id="p2-flipV" class="touch-btn btn-flip">↕</button>
+                        <button id="p2-flipH" class="touch-btn btn-flip">↔</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="homeBtn" class="floating-btn" title="Home">🏠</button>
+    <button id="fullScreenBtn" class="floating-btn" title="Fullscreen">⛶</button>
+
+    <script>
+        /* =========================================
+           I18N (16개국 언어 지원 데이터)
+           ========================================= */
+        const translations = {
+            'ko': {
+                siteName: "킹수학.com", siteUrl: "/", slogan: "게임으로 수학의 킹이 되어라.",
+                titleP1: "돌리킹", titleP2: "뒤집킹",
+                desc: `도형을 <span class="text-indigo-400 font-bold">이동, 뒤집기, 돌리기</span> 해서<br>가운데 <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">회색 정답칸</span>에 골인 시키세요.`,
+                startBtn: "게임 시작", restartBtn: "다시 하기", moreGames: "🎮 다른 게임 고르기",
+                winP1: "돌리킹 승리!", winP2: "뒤집킹 승리!", draw: "시간 종료!",
+                winDescP1: "완벽한 공간 감각!", winDescP2: "놀라운 순발력!", drawDesc: "둘 다 아쉽네요! 무승부",
+                metaTitle: "돌리킹 뒤집킹 | 킹수학.com", metaDesc: "전자칠판 전용 수학 놀이, 무료·무설치", metaKeywords: "전자칠판, 수학게임, 킹수학, 돌리기, 뒤집기",
+                uiTitle: '언어 및 지역 선택', uiDesc: '선호하는 언어와 지역을 선택하세요.', uiSearch: '언어 검색 (예: English, 한국어...)', uiEmpty: '검색 결과가 없습니다.', uiToast: '언어가 변경되었습니다.'
+            },
+            'en': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Be the King of Math!",
+                titleP1: "SpinKing", titleP2: "FlipKing",
+                desc: `<span class="text-indigo-400 font-bold">Move, Rotate, and Flip</span> your shape<br>to fit into the <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Grey Target</span>.`,
+                startBtn: "PLAY", restartBtn: "RESTART", moreGames: "🎮 More Games",
+                winP1: "SpinKing Wins!", winP2: "FlipKing Wins!", draw: "Time's Up!",
+                winDescP1: "Perfect Spatial Sense!", winDescP2: "Amazing Reflexes!", drawDesc: "It's a Draw! Good try.",
+                metaTitle: "SpinKing vs FlipKing | KingsMath.com", metaDesc: "Free Math Battle Game for Smartboards.", metaKeywords: "Math Game, Geometry, Rotation, Reflection, Kids Math",
+                uiTitle: 'Language & Region', uiDesc: 'Select your preferred language and region.', uiSearch: 'Search language (e.g. English, Español...)', uiEmpty: 'No results found.', uiToast: 'Language changed.'
+            },
+            'zh': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "成为数学之王！",
+                titleP1: "转转王", titleP2: "翻翻王",
+                desc: `<span class="text-indigo-400 font-bold">移动、旋转、翻转</span> 你的图形<br>使其完全放入中间的 <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">灰色目标</span> 区域。`,
+                startBtn: "开始游戏", restartBtn: "再玩一次", moreGames: "🎮 更多游戏",
+                winP1: "转转王 获胜！", winP2: "翻翻王 获胜！", draw: "时间到！",
+                winDescP1: "完美空间感！", winDescP2: "惊人的反应！", drawDesc: "平局！再试一次吧。",
+                metaTitle: "转转王 vs 翻翻王 | KingsMath", metaDesc: "免费儿童数学几何对战游戏。", metaKeywords: "数学游戏, 几何, 旋转, 翻转, 儿童教育",
+                uiTitle: '语言和地区选择', uiDesc: '请选择您偏好的语言和地区。', uiSearch: '搜索语言 (例如: English, 中文...)', uiEmpty: '未找到结果。', uiToast: '语言已更改。'
+            },
+            'ja': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "数学のキングになろう！",
+                titleP1: "まわるキング", titleP2: "かえすキング",
+                desc: `図形を <span class="text-indigo-400 font-bold">動かす・回す・裏返す</span> して<br>真ん中の <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">灰色のゴール</span> に入れてね。`,
+                startBtn: "スタート", restartBtn: "もう一回", moreGames: "🎮 他のゲーム",
+                winP1: "まわるキングの勝ち！", winP2: "かえすキングの勝ち！", draw: "時間切れ！",
+                winDescP1: "完璧な空間センス！", winDescP2: "すごい瞬発力！", drawDesc: "引き分け！おしい！",
+                metaTitle: "まわるキング vs かえすキング | KingsMath", metaDesc: "電子黒板対応の無料算数バトルゲーム。", metaKeywords: "算数ゲーム, 図形, 回転, 対称, 知育",
+                uiTitle: '言語と地域の選択', uiDesc: '希望する言語と地域を選択してください。', uiSearch: '言語を検索 (例: English, 日本語...)', uiEmpty: '結果が見つかりません。', uiToast: '言語が変更されました。'
+            },
+            'es': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "¡Sé el Rey de las Matemáticas!",
+                titleP1: "Rey Giro", titleP2: "Rey Volteo",
+                desc: `<span class="text-indigo-400 font-bold">Mueve, Gira y Voltea</span> tu forma<br>para encajar en el <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Objetivo Gris</span>.`,
+                startBtn: "JUGAR", restartBtn: "REINICIAR", moreGames: "🎮 Más Juegos",
+                winP1: "¡Rey Giro Gana!", winP2: "¡Rey Volteo Gana!", draw: "¡Tiempo!",
+                winDescP1: "¡Sentido Espacial Perfecto!", winDescP2: "¡Reflejos Increíbles!", drawDesc: "¡Empate! Buen intento.",
+                metaTitle: "Rey Giro vs Rey Volteo | KingsMath", metaDesc: "Juego de batalla de geometría gratuito.", metaKeywords: "Juego de Matemáticas, Geometría, Rotación, Niños",
+                uiTitle: 'Idioma y Región', uiDesc: 'Selecciona tu idioma y región preferidos.', uiSearch: 'Buscar idioma (ej. English, Español...)', uiEmpty: 'No se encontraron resultados.', uiToast: 'Idioma cambiado.'
+            },
+            'fr': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Devenez le Roi des Maths !",
+                titleP1: "Roi Rotation", titleP2: "Roi Miroir",
+                desc: `<span class="text-indigo-400 font-bold">Bouge, Tourne et Retourne</span> ta forme<br>pour entrer dans la <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Cible Grise</span> au centre.`,
+                startBtn: "JOUER", restartBtn: "REJOUER", moreGames: "🎮 Autres Jeux",
+                winP1: "Roi Rotation Gagne !", winP2: "Roi Miroir Gagne !", draw: "Temps Écoulé !",
+                winDescP1: "Sens Spatial Parfait !", winDescP2: "Réflexes Incroyables !", drawDesc: "Match Nul ! Bien joué.",
+                metaTitle: "Roi Rotation vs Roi Miroir | KingsMath", metaDesc: "Jeu de bataille de géométrie gratuit.", metaKeywords: "Jeu de Maths, Géométrie, Rotation, Éducation",
+                uiTitle: 'Langue et Région', uiDesc: 'Sélectionnez votre langue et région.', uiSearch: 'Rechercher (ex: English, Français...)', uiEmpty: 'Aucun résultat trouvé.', uiToast: 'Langue modifiée.'
+            },
+            'ru': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Стань Королем Математики!",
+                titleP1: "Круть-Король", titleP2: "Зеркал-Король",
+                desc: `<span class="text-indigo-400 font-bold">Двигай, Крути и Отражай</span> фигуру,<br>чтобы попасть в <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Серую Цель</span>.`,
+                startBtn: "ИГРАТЬ", restartBtn: "ЗАНОВО", moreGames: "🎮 Другие Игры",
+                winP1: "Круть-Король Победил!", winP2: "Зеркал-Король Победил!", draw: "Время Вышло!",
+                winDescP1: "Отличное Чувство!", winDescP2: "Быстрая Реакция!", drawDesc: "Ничья! Хорошая попытка.",
+                metaTitle: "Круть-Король vs Зеркал-Король | KingsMath", metaDesc: "Бесплатная геометрическая битва.", metaKeywords: "Математика, Геометрия, Игра, Обучение",
+                uiTitle: 'Язык и Регион', uiDesc: 'Выберите предпочитаемый язык и регион.', uiSearch: 'Поиск языка (напр. English, Русский...)', uiEmpty: 'Ничего не найдено.', uiToast: 'Язык изменен.'
+            },
+            'id': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Jadilah Raja Matematika!",
+                titleP1: "Raja Putar", titleP2: "Raja Balik",
+                desc: `<span class="text-indigo-400 font-bold">Gerak, Putar, dan Balik</span> bentukmu<br>ke <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Target Abu-abu</span> di tengah.`,
+                startBtn: "MAIN", restartBtn: "ULANGI", moreGames: "🎮 Game Lainnya",
+                winP1: "Raja Putar Menang!", winP2: "Raja Balik Menang!", draw: "Waktu Habis!",
+                winDescP1: "Akurasi Sempurna!", winDescP2: "Refleks Hebat!", drawDesc: "Seri! Coba lagi.",
+                metaTitle: "Raja Putar vs Raja Balik | KingsMath", metaDesc: "Game Matematika Gratis.", metaKeywords: "Matematika, Geometri, Putar, Edukasi",
+                uiTitle: 'Bahasa & Wilayah', uiDesc: 'Pilih bahasa dan wilayah pilihan Anda.', uiSearch: 'Cari bahasa (Mis: English, Indonesia...)', uiEmpty: 'Tidak ada hasil yang ditemukan.', uiToast: 'Bahasa telah diubah.'
+            },
+            'vi': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Trở thành Vua Toán Học!",
+                titleP1: "Vua Xoay", titleP2: "Vua Lật",
+                desc: `<span class="text-indigo-400 font-bold">Di chuyển, Xoay và Lật</span> hình<br>vào <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Ô Xám</span> ở giữa.`,
+                startBtn: "CHƠI", restartBtn: "CHƠI LẠI", moreGames: "🎮 Thêm Trò Chơi",
+                winP1: "Vua Xoay Thắng!", winP2: "Vua Lật Thắng!", draw: "Hết Giờ!",
+                winDescP1: "Cảm giác Không gian Hoàn hảo!", winDescP2: "Phản xạ Tuyệt vời!", drawDesc: "Hòa! Thử lại nhé.",
+                metaTitle: "Vua Xoay vs Vua Lật | KingsMath", metaDesc: "Trò chơi toán học miễn phí.", metaKeywords: "Toán học, Hình học, Trẻ em",
+                uiTitle: 'Ngôn ngữ & Khu vực', uiDesc: 'Chọn ngôn ngữ và khu vực của bạn.', uiSearch: 'Tìm kiếm (VD: English, Tiếng Việt...)', uiEmpty: 'Không tìm thấy kết quả.', uiToast: 'Ngôn ngữ đã được thay đổi.'
+            },
+            'th': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "เป็นราชาแห่งคณิตศาสตร์!",
+                titleP1: "ราชาหมุน", titleP2: "ราชาพลิก",
+                desc: `<span class="text-indigo-400 font-bold">เลื่อน หมุน และ พลิก</span> รูปร่าง<br>ให้เข้ากับ <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">เป้าหมายสีเทา</span>.`,
+                startBtn: "เล่นเลย", restartBtn: "เริ่มใหม่", moreGames: "🎮 เกมเพิ่มเติม",
+                winP1: "ราชาหมุน ชนะ!", winP2: "ราชาพลิก ชนะ!", draw: "หมดเวลา!",
+                winDescP1: "แม่นยำมาก!", winDescP2: "ตอบสนองไว!", drawDesc: "เสมอ! พยายามได้ดี",
+                metaTitle: "ราชาหมุน vs ราชาพลิก | KingsMath", metaDesc: "เกมคณิตศาสตร์เรขาคณิตฟรี", metaKeywords: "คณิตศาสตร์, เกม, หมุน, การศึกษา",
+                uiTitle: 'ภาษาและภูมิภาค', uiDesc: 'เลือกภาษาและภูมิภาคที่คุณต้องการ', uiSearch: 'ค้นหาภาษา (เช่น English, ไทย...)', uiEmpty: 'ไม่พบผลลัพธ์', uiToast: 'เปลี่ยนภาษาเรียบร้อยแล้ว'
+            },
+            'pt-br': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Seja o Rei da Matemática!",
+                titleP1: "Rei Giro", titleP2: "Rei Tombo",
+                desc: `<span class="text-indigo-400 font-bold">Mova, Gire e Inverta</span> sua forma<br>para encaixar no <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Alvo Cinza</span>.`,
+                startBtn: "JOGAR", restartBtn: "REINICIAR", moreGames: "🎮 Mais Jogos",
+                winP1: "Rei Giro Vence!", winP2: "Rei Tombo Vence!", draw: "Tempo Esgotado!",
+                winDescP1: "Visão Espacial Perfeita!", winDescP2: "Reflexos Incríveis!", drawDesc: "Empate! Bom trabalho.",
+                metaTitle: "Rei Giro vs Rei Tombo | KingsMath", metaDesc: "Jogo de batalha matemática grátis.", metaKeywords: "Matemática, Geometria, Rotação",
+                uiTitle: 'Idioma e Região', uiDesc: 'Selecione seu idioma e região preferidos.', uiSearch: 'Buscar idioma (ex: English, Português...)', uiEmpty: 'Nenhum resultado encontrado.', uiToast: 'Idioma alterado.'
+            },
+            'hi': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "गणित के राजा बनें!",
+                titleP1: "स्पिन किंग", titleP2: "फ्लिप किंग",
+                desc: `अपनी आकृति को <span class="text-indigo-400 font-bold">खिसकाएं, घुमाएं और पलटें</span><br>ताकि वह <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">ग्रे लक्ष्य</span> में फिट हो जाए।`,
+                startBtn: "खेलें", restartBtn: "फिर से खेलें", moreGames: "🎮 अधिक खेल",
+                winP1: "स्पिन किंग की जीत!", winP2: "फ्लिप किंग की जीत!", draw: "समय समाप्त!",
+                winDescP1: "उत्तम स्थानिक समझ!", winDescP2: "गजब की फुर्ती!", drawDesc: "मैच ड्रा! अच्छी कोशिश।",
+                metaTitle: "स्पिन किंग vs फ्लिप किंग | KingsMath", metaDesc: "बच्चों के लिए मुफ्त गणित खेल।", metaKeywords: "गणित, खेल, ज्यामिति",
+                uiTitle: 'भाषा और क्षेत्र', uiDesc: 'अपनी पसंदीदा भाषा और क्षेत्र चुनें।', uiSearch: 'भाषा खोजें (उदा: English, हिन्दी...)', uiEmpty: 'कोई परिणाम नहीं मिला।', uiToast: 'भाषा बदल दी गई है।'
+            },
+            'bn': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "গণিতের রাজা হও!",
+                titleP1: "স্পিন কিং", titleP2: "ফ্লিপ কিং",
+                desc: `তোমার আকৃতিকে <span class="text-indigo-400 font-bold">সরাও, ঘোরাও এবং উল্টাও</span><br>যাতে মাঝের <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">ধূসর নিশানায়</span> বসে।`,
+                startBtn: "খেলুন", restartBtn: "আবার খেলুন", moreGames: "🎮 আরও গেম",
+                winP1: "স্পিন কিং জিতেছে!", winP2: "ফ্লিপ কিং জিতেছে!", draw: "সময় শেষ!",
+                winDescP1: "দুর্দান্ত দক্ষতা!", winDescP2: "চমৎকার দ্রুততা!", drawDesc: "ড্র! দারুণ চেষ্টা।",
+                metaTitle: "স্পিন কিং vs ফ্লিপ কিং | KingsMath", metaDesc: "বিনামূল্যে গণিত গেম।", metaKeywords: "গণিত, জ্যামিতি, শিক্ষা",
+                uiTitle: 'ভাষা ও অঞ্চল', uiDesc: 'আপনার পছন্দের ভাষা ও অঞ্চল নির্বাচন করুন।', uiSearch: 'ভাষা খুঁজুন (যেমন: English, বাংলা...)', uiEmpty: 'কোন ফলাফল পাওয়া যায়নি।', uiToast: 'ভাষা পরিবর্তন করা হয়েছে।'
+            },
+            'tr': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Matematiğin Kralı Ol!",
+                titleP1: "Döndürme Kralı", titleP2: "Çevirme Kralı",
+                desc: `Şeklini <span class="text-indigo-400 font-bold">Taşı, Döndür ve Çevir</span><br>ortadaki <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Gri Hedefe</span> yerleştir.`,
+                startBtn: "OYNA", restartBtn: "TEKRAR OYNA", moreGames: "🎮 Diğer Oyunlar",
+                winP1: "Döndürme Kralı Kazandı!", winP2: "Çevirme Kralı Kazandı!", draw: "Süre Bitti!",
+                winDescP1: "Harika Uzamsal Zeka!", winDescP2: "İnanılmaz Refleks!", drawDesc: "Berabere! İyi deneme.",
+                metaTitle: "Döndürme Kralı vs Çevirme Kralı | KingsMath", metaDesc: "Ücretsiz geometri savaş oyunu.", metaKeywords: "Matematik, Geometri, Çocuk Eğitimi",
+                uiTitle: 'Dil ve Bölge', uiDesc: 'Tercih ettiğiniz dili ve bölgeyi seçin.', uiSearch: 'Dil ara (ör. English, Türkçe...)', uiEmpty: 'Sonuç bulunamadı.', uiToast: 'Dil değiştirildi.'
+            },
+            'de': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Werde der Mathe-König!",
+                titleP1: "DrehKönig", titleP2: "WendeKönig",
+                desc: `<span class="text-indigo-400 font-bold">Bewege, Drehe und Wende</span> deine Form,<br>um das <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Graue Ziel</span> zu treffen.`,
+                startBtn: "SPIELEN", restartBtn: "NEUSTART", moreGames: "🎮 Mehr Spiele",
+                winP1: "DrehKönig Gewinnt!", winP2: "WendeKönig Gewinnt!", draw: "Zeit Abgelaufen!",
+                winDescP1: "Perfektes räumliches Denken!", winDescP2: "Erstaunliche Reflexe!", drawDesc: "Unentschieden! Gut gemacht.",
+                metaTitle: "DrehKönig vs WendeKönig | KingsMath", metaDesc: "Kostenloses Geometrie-Spiel.", metaKeywords: "Mathe, Spiel, Geometrie",
+                uiTitle: 'Sprache und Region', uiDesc: 'Wählen Sie Ihre bevorzugte Sprache.', uiSearch: 'Sprache suchen (z.B. English, Deutsch...)', uiEmpty: 'Keine Ergebnisse gefunden.', uiToast: 'Sprache geändert.'
+            },
+            'it': {
+                siteName: "KingsMath.com", siteUrl: "/", slogan: "Diventa il Re della Matematica!",
+                titleP1: "Re Rotazione", titleP2: "Re Ribalto",
+                desc: `<span class="text-indigo-400 font-bold">Sposta, Ruota e Ribalta</span> la tua forma<br>per centrare il <span class="text-slate-500 font-bold bg-white/10 px-2 rounded">Bersaglio Grigio</span>.`,
+                startBtn: "GIOCA", restartBtn: "RIPROVA", moreGames: "🎮 Altri Giochi",
+                winP1: "Re Rotazione Vince!", winP2: "Re Ribalto Vince!", draw: "Tempo Scaduto!",
+                winDescP1: "Senso Spaziale Perfetto!", winDescP2: "Riflessi Incredibili!", drawDesc: "Pareggio! Bel tentativo.",
+                metaTitle: "Re Rotazione vs Re Ribalto | KingsMath", metaDesc: "Gioco di geometria gratuito.", metaKeywords: "Matematica, Geometria, Bambini",
+                uiTitle: 'Lingua e Area', uiDesc: 'Seleziona la tua lingua preferita.', uiSearch: 'Cerca lingua (es. English, Italiano...)', uiEmpty: 'Nessun risultato.', uiToast: 'Lingua cambiata.'
+            }
+        };
+
+        // 16개국 언어 리스트 데이터
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        /* =========================================
+           UI 로직 (모달, 토스트, 버튼)
+           ========================================= */
+        let currentLang = 'en';
+        
+        const langBtnContainer = document.getElementById('langBtnContainer');
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        // 글자 수 기반 폰트 리사이징 함수 (텍스트가 영역을 넘어가면 폰트 축소)
+        function autoResizeText() {
+            const elements = document.querySelectorAll('.auto-resize-text');
+            elements.forEach(el => {
+                if(!el) return;
+                el.style.fontSize = ''; // CSS 기본값으로 초기화
+                let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+                // 스크롤 너비가 실제 클라이언트 너비보다 크면 폰트를 1px씩 줄임 (최소 12px)
+                while (el.scrollWidth > el.clientWidth && currentSize > 12) {
+                    currentSize -= 1;
+                    el.style.fontSize = currentSize + 'px';
+                }
+            });
+        }
+
+        // 초기 언어 가져오기 (1. URL -> 2. localStorage -> 3. Device -> 4. Base)
+        function getInitialLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryLang = urlParams.get('lang');
+            if (queryLang && translations[queryLang]) return queryLang;
+
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            if (savedLang && translations[savedLang]) return savedLang;
+
+            const navLang = navigator.language.toLowerCase().slice(0, 2);
+            if (translations[navLang]) return navLang;
+            
+            // 브라질 포르투갈어 등 세부 매칭
+            if (navigator.language.toLowerCase() === 'pt-br' && translations['pt-br']) return 'pt-br';
+
+            return 'en';
+        }
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => changeLanguage(lang.code, lang));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function changeLanguage(langCode, langObj = null) {
+            if (!translations[langCode]) return;
+            currentLang = langCode;
+            const t = translations[langCode];
+            if(!langObj) langObj = languages.find(l => l.code === langCode) || languages[0];
+
+            // Update HTML Lang & Body Class (for fonts)
+            document.documentElement.lang = langCode;
+            document.body.className = document.body.className.replace(/lang-\w+(-\w+)?/g, '');
+            document.body.classList.add(`lang-${langCode}`);
+
+            // Update Meta Tags (SEO)
+            document.title = t.metaTitle;
+            document.getElementById('meta-title').innerText = t.metaTitle;
+            document.getElementById('meta-desc').setAttribute('content', t.metaDesc);
+            document.getElementById('meta-keywords').setAttribute('content', t.metaKeywords);
+            document.getElementById('og-title').setAttribute('content', t.metaTitle);
+            document.getElementById('og-desc').setAttribute('content', t.metaDesc);
+            document.getElementById('og-site-name').setAttribute('content', t.siteName);
+            document.getElementById('og-url').setAttribute('content', t.siteUrl);
+            document.getElementById('tw-title').setAttribute('content', t.metaTitle);
+            document.getElementById('tw-desc').setAttribute('content', t.metaDesc);
+
+            // Update DOM Elements
+            const updateText = (id, text) => { const el = document.getElementById(id); if(el) el.innerText = text; };
+            const updateHtml = (id, html) => { const el = document.getElementById(id); if(el) el.innerHTML = html; };
+            const updateLink = (id, text, url) => { const el = document.getElementById(id); if(el) { el.innerText = text; el.href = url; } };
+
+            // Game UI
+            updateLink('mainLink', `${t.slogan} ${t.siteName}`, t.siteUrl);
+            updateText('gameTitleP1', t.titleP1);
+            updateText('gameTitleP2', t.titleP2);
+            updateHtml('gameDesc', t.desc);
+            updateText('startGameBtn', t.startBtn);
+            updateLink('moreGamesLink', t.moreGames, t.siteUrl);
+            updateText('ingameP1', t.titleP1);
+            updateText('ingameP2', t.titleP2);
+            updateText('controlP1', t.titleP1);
+            updateText('controlP2', t.titleP2);
+            updateText('restartBtn', t.restartBtn);
+            updateLink('endMoreGamesLink', t.moreGames, t.siteUrl);
+
+            // Selector UI update
+            updateText('ui-title', t.uiTitle);
+            updateText('ui-desc', t.uiDesc);
+            document.getElementById('searchInput').placeholder = t.uiSearch;
+            updateText('ui-empty', t.uiEmpty);
+            updateText('ui-toast', t.uiToast);
+            
+            currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            currentLangSpan.textContent = langObj.name;
+
+            // Persistence & URL sharing
+            localStorage.setItem('kingsmath_lang', langCode);
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', newUrl);
+
+            // DOM 업데이트 후 폰트 자동 리사이징 호출
+            setTimeout(autoResizeText, 50);
+
+            closeModal();
+            showToast(langObj.name);
+            renderLanguages(searchInput.value);
+        }
+
+        // 창 크기가 변경될 때도 폰트 자동 조절
+        window.addEventListener('resize', autoResizeText);
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; 
+            setTimeout(() => searchInput.focus(), 100);
+        }
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        function showToast(langName) {
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+        // 초기화
+        changeLanguage(getInitialLanguage());
+
+
+        /* =========================================
+           게임 기존 로직 (수정 및 삭제 금지)
+           ========================================= */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startScreen = document.getElementById('start-screen');
+        const gameContainer = document.getElementById('game-container');
+        const endOverlay = document.getElementById('endOverlay');
+        
+        window.addEventListener('contextmenu', e => e.preventDefault());
+        window.addEventListener('dragstart', e => e.preventDefault());
+        window.addEventListener('touchmove', e => { if(e.touches.length > 1) e.preventDefault(); }, { passive: false });
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) { e.preventDefault(); }
+            lastTouchEnd = now;
+        }, false);
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'move') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'rotate') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2); osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'flip') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(400, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'start') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.linearRampToValueAtTime(600, now + 0.1); osc.frequency.linearRampToValueAtTime(900, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.2); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'win') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.15); osc.frequency.setValueAtTime(783.99, now + 0.3); osc.frequency.setValueAtTime(1046.50, now + 0.45);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.2, now + 0.6); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2); osc.start(now); osc.stop(now + 1.2);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15);
+            }
+        }
+
+        const GRID_W = 35, GRID_H = 18;
+        const CELL_SIZE = canvas.width / GRID_W;
+        let timeLeft = 60, isGameOver = false, isGameStarted = false;
+        let obstacles = [], timerInterval = null, particles = [], isWinSequence = false;
+        let p1 = { points: [], pos: {x:0,y:0}, vPos: {x:0,y:0}, rotation: 0, vRot: 0, flipH: 1, flipV: 1, vFlipH: 1, vFlipV: 1, color: '#3b82f6', glow: '#60a5fa' };
+        let p2 = { points: [], pos: {x:0,y:0}, vPos: {x:0,y:0}, rotation: 0, vRot: 0, flipH: 1, flipV: 1, vFlipH: 1, vFlipV: 1, color: '#f43f5e', glow: '#fb7185' };
+        let target = { points: [], pos: {x:0,y:0}, rotation: 0, flipH: 1, flipV: 1, color: '#1e293b' };
+
+        function generateRandomShape() {
+            const blocks = []; const count = Math.floor(Math.random() * 6) + 3;
+            while (blocks.length < count) {
+                const x = Math.floor(Math.random() * 3), y = Math.floor(Math.random() * 3);
+                if (!blocks.some(b => b[0] === x && b[1] === y)) blocks.push([x, y]);
+            }
+            return blocks;
+        }
+
+        function initLevel() {
+            let solvable = false; let attempts = 0; isWinSequence = false; particles = [];
+            while (!solvable) {
+                attempts++; const baseShape = generateRandomShape();
+                const getNormKey = (r, fh, fv) => { const pts = getTransformedPoints(baseShape, {x:0, y:0}, r, fh, fv); return pts.map(p => `${Math.round(p[0])},${Math.round(p[1])}`).sort().join('|'); };
+                const startKey = getNormKey(0, 1, 1); const isSymmetric = (startKey === getNormKey(90, 1, 1));
+                p1.points = JSON.parse(JSON.stringify(baseShape)); p2.points = JSON.parse(JSON.stringify(baseShape)); target.points = JSON.parse(JSON.stringify(baseShape));
+                p1.pos = { x: 3, y: Math.floor(GRID_H / 2) - 1 }; p2.pos = { x: GRID_W - 6, y: Math.floor(GRID_H / 2) - 1 };
+                p1.vPos = { ...p1.pos }; p1.rotation = 0; p1.vRot = 0; p1.flipH = 1; p1.flipV = 1; p1.vFlipH = 1; p1.vFlipV = 1;
+                p2.vPos = { ...p2.pos }; p2.rotation = 0; p2.vRot = 0; p2.flipH = 1; p2.flipV = 1; p2.vFlipH = 1; p2.vFlipV = 1;
+                const centerCol = Math.floor(GRID_W / 2); const targetX = centerCol - 1; const ty = Math.floor(Math.random() * (GRID_H - 6)) + 3;
+                target.pos = { x: targetX, y: ty };
+                let distinctFound = false; let tTry = 0;
+                while(!distinctFound && tTry < 20) {
+                    tTry++; const rots = [0, 90, 180, 270]; target.rotation = rots[Math.floor(Math.random() * rots.length)];
+                    target.flipH = Math.random() > 0.5 ? 1 : -1; target.flipV = Math.random() > 0.5 ? 1 : -1;
+                    if (isSymmetric) { distinctFound = true; } else { const tKey = getNormKey(target.rotation, target.flipH, target.flipV); if (tKey !== startKey) distinctFound = true; }
+                }
+                const occupied = new Set();
+                const addOccupied = (obj) => { const pts = getTransformedPoints(obj.points, obj.pos, obj.rotation, obj.flipH, obj.flipV); pts.forEach(p => occupied.add(`${Math.round(p[0])},${Math.round(p[1])}`)); };
+                addOccupied(p1); addOccupied(target);
+                obstacles = []; const obsCount = 28; 
+                for (let i = 0; i < obsCount; i++) {
+                    const ox = Math.floor(Math.random() * (centerCol - 1)), oy = Math.floor(Math.random() * GRID_H);
+                    const distP1 = Math.abs(ox - p1.pos.x) + Math.abs(oy - p1.pos.y), distT = Math.abs(ox - target.pos.x) + Math.abs(oy - target.pos.y);
+                    if (distP1 > 3 && distT > 3) { if (!occupied.has(`${ox},${oy}`) && !occupied.has(`${(GRID_W - 1) - ox},${oy}`)) { obstacles.push(`${ox},${oy}`); obstacles.push(`${(GRID_W - 1) - ox},${oy}`); } }
+                }
+                const solutionMask = checkSolvable(p1, target);
+                if (solutionMask !== null) { const hasAll = (solutionMask & 1) && (solutionMask & 2) && (solutionMask & 4) && (solutionMask & 8); if (hasAll) { solvable = true; } else if (attempts > 50) { solvable = true; } }
+            }
+        }
+
+        function checkSolvable(startObj, targetObj) {
+            const queue = []; const visited = new Set();
+            const startState = { x: startObj.pos.x, y: startObj.pos.y, r: startObj.rotation, fh: startObj.flipH, fv: startObj.flipV, mask: 0 };
+            queue.push(startState); visited.add(`${startState.x},${startState.y},${startState.r},${startState.fh},${startState.fv}`);
+            let nodes = 0;
+            while(queue.length > 0) {
+                const curr = queue.shift(); nodes++; if(nodes > 3500) return null; 
+                if(curr.x === targetObj.pos.x && curr.y === targetObj.pos.y && curr.r === targetObj.rotation && curr.fh === targetObj.flipH && curr.fv === targetObj.flipV) { return curr.mask; }
+                const moves = [ {dx:0, dy:-1, bit:1}, {dx:0, dy:1, bit:2}, {dx:-1, dy:0, bit:4}, {dx:1, dy:0, bit:8}, {dr:-90}, {dr:90}, {dfh:-1}, {dfv:-1} ];
+                for(let i=0; i<moves.length; i++) {
+                    const m = moves[i];
+                    const next = { x: curr.x + (m.dx||0), y: curr.y + (m.dy||0), r: (curr.r + (m.dr||0) + 360)%360, fh: curr.fh*(m.dfh||1), fv: curr.fv*(m.dfv||1), mask: curr.mask | (m.bit || 0) };
+                    if(isValidState(next, startObj.points)) {
+                        const key = `${next.x},${next.y},${next.r},${next.fh},${next.fv}`;
+                        if(!visited.has(key)) { visited.add(key); queue.push(next); }
+                    }
+                }
+            }
+            return null; 
+        }
+
+        function isValidState(state, points) {
+            const pts = points.map(p => {
+                let x = p[0]-1, y = p[1]-1;
+                const rad = (state.r * Math.PI) / 180;
+                const cos = Math.round(Math.cos(rad)), sin = Math.round(Math.sin(rad));
+                let nx = x*cos - y*sin, ny = x*sin + y*cos;
+                nx *= state.fh; ny *= state.fv;
+                return [nx+1 + state.x, ny+1 + state.y];
+            });
+            for (let p of pts) {
+                if (p[0] < 0 || p[0] >= GRID_W || p[1] < 0 || p[1] >= GRID_H) return false;
+                if (obstacles.includes(`${p[0]},${p[1]}`)) return false;
+            }
+            return true;
+        }
+        
+        function getTransformedPoints(points, pos, rot, fh, fv) {
+            return points.map(p => {
+                let x = p[0] - 1, y = p[1] - 1;
+                const rad = (rot * Math.PI) / 180;
+                const cos = Math.cos(rad), sin = Math.sin(rad); 
+                let nx = x * cos - y * sin, ny = x * sin + y * cos;
+                nx *= fh; ny *= fv;
+                return [nx + 1 + pos.x, ny + 1 + pos.y];
+            });
+        }
+
+        function lerp(start, end, t) { return start * (1 - t) + end * t; }
+
+        function gameLoop() {
+            const moveSpeed = 0.2; const actionSpeed = 0.15; 
+            [p1, p2].forEach(p => {
+                p.vPos.x = lerp(p.vPos.x, p.pos.x, moveSpeed); p.vPos.y = lerp(p.vPos.y, p.pos.y, moveSpeed);
+                let diff = p.rotation - p.vRot;
+                while (diff < -180) diff += 360; while (diff > 180) diff -= 360;
+                p.vRot += diff * actionSpeed;
+                p.vFlipH = lerp(p.vFlipH, p.flipH, actionSpeed); p.vFlipV = lerp(p.vFlipV, p.flipV, actionSpeed);
+            });
+            updateParticles(); draw();
+            if (isGameStarted) requestAnimationFrame(gameLoop);
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 60; i++) { particles.push({ x: x * CELL_SIZE + CELL_SIZE/2, y: y * CELL_SIZE + CELL_SIZE/2, vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15, life: 1.0, color: color, size: Math.random() * 8 + 4 }); }
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) { let p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02; p.size *= 0.95; if (p.life <= 0) particles.splice(i, 1); }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_W; i++) { ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height); ctx.stroke(); }
+            for (let i = 0; i <= GRID_H; i++) { ctx.beginPath(); ctx.moveTo(0, i * CELL_SIZE); ctx.lineTo(canvas.width, i * CELL_SIZE); ctx.stroke(); }
+
+            obstacles.forEach(o => { const [ox, oy] = o.split(',').map(Number); drawBlock(ox, oy, '#1e1b4b', '#6366f1', true); });
+            const targetPts = getTransformedPoints(target.points, target.pos, target.rotation, target.flipH, target.flipV);
+            targetPts.forEach(p => drawBlock(p[0], p[1], '#1e293b', '#475569', false, true));
+
+            particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); });
+            ctx.globalAlpha = 1.0;
+
+            const drawPlayer = (p) => {
+                const pts = getTransformedPoints(p.points, p.vPos, p.vRot, p.vFlipH, p.vFlipV);
+                ctx.fillStyle = p.color; ctx.shadowBlur = 12; ctx.shadowColor = p.glow;
+                pts.forEach(pt => { ctx.beginPath(); ctx.roundRect(pt[0] * CELL_SIZE + 4, pt[1] * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8, 8); ctx.fill(); });
+                ctx.shadowBlur = 0;
+            };
+
+            drawPlayer(p1);
+            ctx.globalCompositeOperation = 'lighten'; drawPlayer(p2); ctx.globalCompositeOperation = 'source-over'; 
+            checkWin();
+        }
+
+        function drawBlock(gx, gy, color, glow, isNeon, isTarget = false) {
+            ctx.fillStyle = color; if (isNeon) { ctx.shadowBlur = 12; ctx.shadowColor = glow; }
+            if (isTarget) ctx.globalAlpha = 0.8;
+            ctx.beginPath(); ctx.roundRect(gx * CELL_SIZE + 4, gy * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8, 8);
+            ctx.fill(); ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+        }
+
+        function isColliding(shape, dx, dy, dr=0, dfh=1, dfv=1) {
+            const temp = { points: shape.points, pos: {x: shape.pos.x+dx, y:shape.pos.y+dy}, rotation: (shape.rotation+dr+360)%360, flipH: shape.flipH*dfh, flipV: shape.flipV*dfv };
+            const pts = shape.points.map(p => {
+                let x = p[0]-1, y = p[1]-1;
+                const rad = (temp.rotation * Math.PI) / 180;
+                const cos = Math.round(Math.cos(rad)), sin = Math.round(Math.sin(rad));
+                let nx = x*cos - y*sin, ny = x*sin + y*cos;
+                nx *= temp.flipH; ny *= temp.flipV;
+                return [nx+1 + temp.pos.x, ny+1 + temp.pos.y];
+            });
+
+            for (let p of pts) {
+                if (p[0]<0 || p[0]>=GRID_W || p[1]<0 || p[1]>=GRID_H) return true;
+                if (obstacles.includes(`${p[0]},${p[1]}`)) return true;
+            }
+            return false;
+        }
+
+        function executeAction(p, type) {
+            if (isGameOver || !isGameStarted || isWinSequence) return; 
+            switch(type) {
+                case 'up': if(!isColliding(p,0,-1)) { p.pos.y--; playSound('move'); } else { playSound('error'); } break;
+                case 'down': if(!isColliding(p,0,1)) { p.pos.y++; playSound('move'); } else { playSound('error'); } break;
+                case 'left': if(!isColliding(p,-1,0)) { p.pos.x--; playSound('move'); } else { playSound('error'); } break;
+                case 'right': if(!isColliding(p,1,0)) { p.pos.x++; playSound('move'); } else { playSound('error'); } break;
+                case 'rotL': if(!isColliding(p,0,0,-90)) { p.rotation = (p.rotation-90+360)%360; playSound('rotate'); } else { playSound('error'); } break;
+                case 'rotR': if(!isColliding(p,0,0,90)) { p.rotation = (p.rotation+90)%360; playSound('rotate'); } else { playSound('error'); } break;
+                case 'flipV': if(!isColliding(p,0,0,0,1,-1)) { p.flipV *= -1; playSound('flip'); } else { playSound('error'); } break;
+                case 'flipH': if(!isColliding(p,0,0,0,-1,1)) { p.flipH *= -1; playSound('flip'); } else { playSound('error'); } break;
+            }
+        }
+
+        function triggerWinEffect(winner, color) {
+            if(isWinSequence) return;
+            isWinSequence = true; playSound('win');
+            const targetPts = getTransformedPoints(target.points, target.pos, target.rotation, target.flipH, target.flipV);
+            targetPts.forEach(p => { createExplosion(p[0], p[1], color); });
+            setTimeout(() => { endGame(winner); }, 1500);
+        }
+
+        function checkWin() {
+            if (isGameOver || !isGameStarted || isWinSequence) return;
+            const getLogicPoints = (obj) => {
+                return obj.points.map(p => {
+                    let x = p[0]-1, y = p[1]-1;
+                    const rad = (obj.rotation * Math.PI) / 180;
+                    const cos = Math.round(Math.cos(rad)), sin = Math.round(Math.sin(rad));
+                    let nx = x*cos - y*sin, ny = x*sin + y*cos;
+                    nx *= obj.flipH; ny *= obj.flipV;
+                    return [nx+1 + obj.pos.x, ny+1 + obj.pos.y];
+                });
+            };
+            const tKey = getLogicPoints(target).map(p=>`${p[0]},${p[1]}`).sort().join('|');
+            const p1Key = getLogicPoints(p1).map(p=>`${p[0]},${p[1]}`).sort().join('|');
+            const p2Key = getLogicPoints(p2).map(p=>`${p[0]},${p[1]}`).sort().join('|');
+
+            if (p1Key === tKey) triggerWinEffect('P1', '#3b82f6');
+            else if (p2Key === tKey) triggerWinEffect('P2', '#f43f5e');
+        }
+
+        function endGame(winner) {
+            isGameOver = true; isGameStarted = false; isWinSequence = false;
+            clearInterval(timerInterval);
+            const wTxt = document.getElementById('winnerText');
+            const descTxt = document.getElementById('resultDesc');
+            const wIcon = document.getElementById('winnerIcon');
+            const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" /></svg>`;
+            
+            const t = translations[currentLang];
+
+            if (winner === 'P1') {
+                wTxt.innerText = t.winP1; wTxt.className = "text-8xl font-black text-blue-500 mb-6 italic drop-shadow-2xl leading-none text-center auto-resize-text w-[90%] flex justify-center";
+                descTxt.innerText = t.winDescP1;
+                wIcon.className = "w-32 h-32 rounded-[2rem] flex items-center justify-center mb-6 bg-blue-600 shadow-blue-500/50 shadow-2xl";
+                wIcon.innerHTML = iconSvg;
+            } else if (winner === 'P2') {
+                wTxt.innerText = t.winP2; wTxt.className = "text-8xl font-black text-rose-500 mb-6 italic drop-shadow-2xl leading-none text-center auto-resize-text w-[90%] flex justify-center";
+                descTxt.innerText = t.winDescP2;
+                wIcon.className = "w-32 h-32 rounded-[2rem] flex items-center justify-center mb-6 bg-rose-600 shadow-rose-500/50 shadow-2xl";
+                wIcon.innerHTML = iconSvg;
+            } else {
+                wTxt.innerText = t.draw; wTxt.className = "text-8xl font-black text-slate-400 mb-6 italic drop-shadow-2xl leading-none text-center auto-resize-text w-[90%] flex justify-center";
+                descTxt.innerText = t.drawDesc;
+                wIcon.className = "w-32 h-32 rounded-[2rem] flex items-center justify-center mb-6 bg-slate-600 shadow-2xl";
+                wIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            }
+            document.getElementById('endOverlay').classList.remove('hidden');
+            setTimeout(autoResizeText, 50); // 결과창 뜬 후 폰트 사이즈 조정
+        }
+
+        function startTimer() {
+            timeLeft = 60; document.getElementById('timerDisplay').innerText = 60;
+            timerInterval = setInterval(() => {
+                if(isWinSequence) return;
+                timeLeft--; document.getElementById('timerDisplay').innerText = timeLeft;
+                if (timeLeft <= 0) endGame('DRAW');
+            }, 1000);
+        }
+
+        const inputs = [
+            ['p1-up', p1, 'up'], ['p1-down', p1, 'down'], ['p1-left', p1, 'left'], ['p1-right', p1, 'right'],
+            ['p1-rotL', p1, 'rotL'], ['p1-rotR', p1, 'rotR'], ['p1-flipV', p1, 'flipV'], ['p1-flipH', p1, 'flipH'],
+            ['p2-up', p2, 'up'], ['p2-down', p2, 'down'], ['p2-left', p2, 'left'], ['p2-right', p2, 'right'],
+            ['p2-rotL', p2, 'rotL'], ['p2-rotR', p2, 'rotR'], ['p2-flipV', p2, 'flipV'], ['p2-flipH', p2, 'flipH']
+        ];
+        inputs.forEach(([id, p, a]) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); executeAction(p, a); }));
+
+        document.getElementById('startGameBtn').addEventListener('pointerdown', () => {
+            playSound('start'); 
+            langBtnContainer.classList.add('hidden'); // 게임 시작 시 언어 선택기 숨김
+            startScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            gameContainer.classList.add('flex');
+            isGameStarted = true; isGameOver = false;
+            initLevel(); startTimer();
+            gameLoop();
+            setTimeout(autoResizeText, 50);
+        });
+        document.getElementById('restartBtn').addEventListener('pointerdown', () => {
+            playSound('start'); 
+            endOverlay.classList.add('hidden'); isGameStarted = true; isGameOver = false;
+            initLevel(); startTimer();
+            gameLoop(); 
+            setTimeout(autoResizeText, 50);
+        });
+        document.getElementById('homeBtn').addEventListener('pointerdown', () => {
+            endOverlay.classList.add('hidden');
+            gameContainer.classList.add('hidden');
+            gameContainer.classList.remove('flex');
+            startScreen.classList.remove('hidden');
+            langBtnContainer.classList.remove('hidden'); // 메인 화면으로 돌아가면 다시 보이게
+            isGameStarted = false;
+            clearInterval(timerInterval);
+            setTimeout(autoResizeText, 50);
+        });
+        document.getElementById('fullScreenBtn').addEventListener('pointerdown', () => {
+            if(!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(e => console.log(e));
+            }
+        });
+
+        window.onload = () => { initLevel(); draw(); setTimeout(autoResizeText, 50); };
+    </script>
+
+</body>
+</html>

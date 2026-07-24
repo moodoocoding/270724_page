@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+    
+    <meta name="description" content="킹수학으로 전자칠판을 최고의 수학 학습 도구로 만드세요! 게임으로 즐기는 무료 수학 트레이닝.">
+    <meta name="keywords" content="전자칠판, 수학게임, 킹수학, 두뇌게임, 무료게임, 연산게임, KingsMath">
+    <link rel="canonical" href="https://킹수학.com">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="약수킹vs배수킹 | 킹수학.com">
+    <meta property="og:description" content="전자칠판 전용 수학 놀이, 무료·무설치">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/약수킹배수킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="https://킹수학.com">
+    <meta property="og:site_name" content="킹수학">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="약수킹vs배수킹 | 킹수학.com">
+    <meta name="twitter:description" content="전자칠판 전용 수학 놀이">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/약수킹배수킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta name="theme-color" content="#0F4C3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>약수킹vs배수킹</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 */
+        i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+
+        :root {
+            --bg-dark: #1a1a2e;
+            --p1-main: #4cc9f0;
+            --p1-dark: #1e3a8a;
+            --p2-main: #f72585;
+            --p2-dark: #831843;
+            --accent: #ffd60a;
+            --text-white: #e9ecef;
+        }
+
+        /* [필수 최적화 설정] CSS */
+        * { 
+            box-sizing: border-box; 
+            user-select: none; 
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            background-color: var(--bg-dark);
+            font-family: 'Jua', sans-serif;
+            color: var(--text-white);
+            overflow: hidden;
+            display: flex; flex-direction: column;
+            touch-action: none; 
+        }
+
+        /* 커스텀 스크롤바 (모달 내부 스크롤용) */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* 모달 등장 애니메이션 */
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        /* 토스트 알림 애니메이션 */
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* === 시작 화면 === */
+        #start-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #2e2e4e 0%, #0f0f1a 100%);
+            z-index: 100;
+        }
+        
+        .top-header {
+            margin-bottom: 10px; font-size: 1.2rem; color: #888;
+            font-family: 'Jua', sans-serif; text-align: center; width: 100%;
+        }
+
+        .main-title {
+            font-family: 'Do Hyeon', sans-serif; 
+            font-size: 4.5rem; 
+            background: linear-gradient(to right, #4cc9f0, #f72585);
+            -webkit-background-clip: text; color: transparent;
+            margin-bottom: 20px; animation: pulse 2s infinite;
+            text-align: center; line-height: 1.2; padding: 0 20px;
+            transition: font-size 0.3s ease; /* 동적 폰트 조절 트랜지션 */
+        }
+
+        .mode-container {
+            background: rgba(255,255,255,0.05); padding: 30px 50px; border-radius: 20px;
+            text-align: center; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); max-width: 90%;
+        }
+        
+        .topic-btn {
+            background: transparent; border: 2px solid #555; color: #aaa;
+            padding: 10px 25px; font-size: 1.4rem; 
+            border-radius: 12px; margin: 8px;
+            font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s;
+        }
+        
+        .topic-btn.active {
+            background: linear-gradient(135deg, var(--p1-main), var(--p2-main));
+            border: none; color: white; transform: scale(1.05); font-weight: bold; box-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        
+        #start-btn {
+            background: var(--accent); color: #000; padding: 15px 60px;
+            font-size: 2rem; 
+            border-radius: 40px; border: none; margin-top: 30px;
+            font-family: 'Do Hyeon', sans-serif; cursor: pointer;
+            box-shadow: 0 8px 0 #b59800;
+        }
+        #start-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #b59800; }
+
+        .more-games-link {
+            display: block; margin-top: 20px; color: #888; font-size: 1.1rem; 
+            text-decoration: underline; cursor: pointer; transition: color 0.3s;
+        }
+        .more-games-link:hover { color: #ccc; }
+
+        /* === 게임 화면 === */
+        #game-screen { display: none; width: 100%; height: 100%; }
+
+        .header-area {
+            height: 30%; width: 100%; background: rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-bottom: 4px solid rgba(255,255,255,0.1); position: relative;
+        }
+        .timer-display { font-size: 3rem; color: #ff6b6b; font-family: 'Do Hyeon', sans-serif; margin-bottom: 10px; text-shadow: 0 0 10px rgba(107, 107, 107, 0.5); }
+        .question-text { font-size: 4.5rem; color: var(--accent); font-family: 'Do Hyeon', sans-serif; text-shadow: 0 0 20px rgba(255, 214, 10, 0.3); line-height: 1.2; padding: 0 20px; text-align: center; }
+
+        .battle-field { height: 70%; width: 100%; display: flex; }
+        .player-zone { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; border-right: 2px dashed rgba(255,255,255,0.1); padding-top: 20px; }
+        .p1-zone { background: radial-gradient(circle at center, var(--p1-dark) 0%, #0a0a1a 150%); }
+        .p2-zone { background: radial-gradient(circle at center, var(--p2-dark) 0%, #0a0a1a 150%); border-right: none; }
+
+        .player-label { font-size: 2rem; margin-bottom: 10px; font-family: 'Do Hyeon', sans-serif; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .p1-zone .player-label { color: var(--p1-main); }
+        .p2-zone .player-label { color: var(--p2-main); }
+
+        .grid-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 20px; width: 85%; max-width: 420px; aspect-ratio: 1/1; }
+        .cell { background: rgba(0,0,0,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #ccc; cursor: pointer; border: 4px solid rgba(255,255,255,0.1); transition: 0.1s; font-family: 'Do Hyeon', sans-serif; }
+        .cell.selected { background: white; color: #000; font-weight: bold; transform: none; }
+        .p1-zone .cell.selected { border-color: var(--p1-main); box-shadow: 0 0 15px var(--p1-main); }
+        .p2-zone .cell.selected { border-color: var(--p2-main); box-shadow: 0 0 15px var(--p2-main); }
+
+        .control-panel { margin-top: auto; margin-bottom: 30px; text-align: center; width: 100%; }
+        .count-info { font-size: 1.8rem; margin-bottom: 15px; color: #aaa; }
+        .submit-btn { padding: 15px 50px; font-size: 2.2rem; border-radius: 40px; border: none; font-family: 'Jua', sans-serif; cursor: pointer; opacity: 0.5; pointer-events: none; transition: 0.3s; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .submit-btn.ready { opacity: 1; pointer-events: auto; transform: scale(1.05); }
+        .submit-btn:active { transform: scale(0.95); }
+        .p1-zone .submit-btn { background: var(--p1-main); color: #000; }
+        .p2-zone .submit-btn { background: var(--p2-main); color: #000; }
+
+        .feedback-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.95); padding: 30px 50px; border-radius: 20px; font-size: 3rem; color: white; pointer-events: none; opacity: 0; transition: 0.3s; z-index: 50; border: 4px solid; white-space: nowrap; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .feedback-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+
+        /* === 결과 화면 === */
+        #result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; }
+        .winner-text { font-size: 6rem; margin-bottom: 20px; font-family: 'Do Hyeon', sans-serif; animation: pulse 1s infinite; text-align: center; }
+        .answer-reveal-box { background: rgba(255,255,255,0.1); padding: 20px 40px; border-radius: 20px; text-align: center; margin-bottom: 30px; max-width: 80%; }
+        .answer-title { font-size: 2rem; color: var(--accent); margin-bottom: 10px; font-family: 'Do Hyeon', sans-serif; }
+        .answer-list { font-size: 1.5rem; color: #ddd; word-break: keep-all; line-height: 1.6; }
+
+        .floating-btn { position: fixed; bottom: 20px; width: 60px; height: 60px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: white; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1000; backdrop-filter: blur(5px); transition: 0.2s; }
+        .floating-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        #home-btn { left: 20px; }
+        #fs-btn { right: 20px; }
+        
+        @media (max-height: 900px) { .question-text { font-size: 3.5rem; } .grid-board { width: 85%; max-width: 350px; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <div id="langSwitcherContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6" style="z-index: 99999 !important;">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="font-family: 'Noto Sans KR', sans-serif;">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4" style="z-index: 99999 !important; font-family: 'Noto Sans KR', sans-serif;">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3" style="z-index: 99999 !important; font-family: 'Noto Sans KR', sans-serif;">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <div class="top-header" id="top-header">게임으로 수학의 킹이 되어라. 킹수학.com</div>
+        <div class="main-title" id="main-title">약수킹 vs 배수킹</div> 
+        <div class="mode-container">
+            <div style="margin-bottom:20px;">
+                <button class="topic-btn active" id="btn-divisor" onpointerdown="setTopic('divisor', this)">약수</button>
+                <button class="topic-btn" id="btn-multiple" onpointerdown="setTopic('multiple', this)">배수</button> <br>
+                <button class="topic-btn" id="btn-common-div" onpointerdown="setTopic('commonDivisor', this)">공약수</button>
+                <button class="topic-btn" id="btn-common-mult" onpointerdown="setTopic('commonMultiple', this)">공배수</button>
+            </div>
+            <p style="color:#aaa; font-size: 1.1rem;" id="game-desc">제한시간 60초! 정답 10개를 먼저 찾아 제출하세요.</p>
+            <button id="start-btn" onpointerdown="startGame()">배틀 시작</button>
+            <a href="/" target="_self" class="more-games-link" id="more-games-link">🎮다른 게임 고르기</a>
+        </div>
+    </div>
+
+    <div id="game-screen">
+        <div class="header-area">
+            <div class="timer-display">⏰ <span id="timer">60</span></div>
+            <div class="question-text" id="question-text">문제 준비 중...</div>
+        </div>
+
+        <div class="battle-field">
+            <div class="player-zone p1-zone">
+                <div class="player-label" id="p1-label">약수킹</div>
+                <div class="grid-board" id="p1-board"></div>
+                <div class="control-panel">
+                    <div class="count-info"><span class="txt-select">선택</span>: <span id="p1-count">0</span> / 10</div>
+                    <button class="submit-btn p1-submit-btn dynamic-font" id="p1-submit" onpointerdown="submitAnswer('p1')">제출하기</button>
+                </div>
+                <div class="feedback-msg" id="p1-msg"></div>
+            </div>
+
+            <div class="player-zone p2-zone">
+                <div class="player-label" id="p2-label">배수킹</div>
+                <div class="grid-board" id="p2-board"></div>
+                <div class="control-panel">
+                    <div class="count-info"><span class="txt-select">선택</span>: <span id="p2-count">0</span> / 10</div>
+                    <button class="submit-btn p2-submit-btn dynamic-font" id="p2-submit" onpointerdown="submitAnswer('p2')">제출하기</button>
+                </div>
+                <div class="feedback-msg" id="p2-msg"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <div class="winner-text" id="winner-text">약수킹 승!</div>
+        <div style="font-size: 1.5rem; color: #aaa; margin-bottom: 20px;" id="win-reason"></div>
+        
+        <div class="answer-reveal-box">
+            <div class="answer-title" id="final-question-text"></div>
+            <div class="answer-list" id="final-answer-list"></div>
+        </div>
+
+        <button id="restart-btn" style="background: var(--accent); color: #000; padding: 15px 60px; font-size: 2rem; border-radius: 40px; border: none; font-family: 'Do Hyeon', sans-serif; cursor: pointer; box-shadow: 0 8px 0 #b59800;" onpointerdown="resetToHome()">다시 대결하기</button>
+        <a href="/" target="_self" class="more-games-link" style="color:white; margin-top: 15px;" id="result-more-games">🎮다른 게임 고르기</a>
+    </div>
+
+    <div id="home-btn" class="floating-btn" onpointerdown="resetToHome()">🏠</div>
+    <div id="fs-btn" class="floating-btn" onpointerdown="toggleFullScreen()">⛶</div>
+
+    <script>
+        /* ==============================================================
+           다국어 (16개국) 지원 데이터 및 통합 로직
+        ============================================================== */
+        const uiTranslations = {
+            'ko': { title: '언어 및 지역 선택', desc: '선호하는 언어와 지역을 선택하세요.', search: '언어 검색 (예: English, 한국어...)', empty: '검색 결과가 없습니다.', toast: '언어가 변경되었습니다.' },
+            'en': { title: 'Language & Region', desc: 'Select your preferred language and region.', search: 'Search (e.g. English, Español...)', empty: 'No results found.', toast: 'Language changed.' },
+            'zh': { title: '语言和地区选择', desc: '请选择您偏好的语言和地区。', search: '搜索语言 (例如: English, 中文...)', empty: '未找到结果。', toast: '语言已更改。' },
+            'ja': { title: '言語と地域の選択', desc: '希望する言語と地域を選択してください。', search: '言語を検索 (例: English, 日本語...)', empty: '結果が見つかりません。', toast: '言語が変更されました。' },
+            'es': { title: 'Idioma y Región', desc: 'Selecciona tu idioma y región.', search: 'Buscar idioma (ej. English, Español...)', empty: 'No se encontraron resultados.', toast: 'Idioma cambiado.' },
+            'fr': { title: 'Langue et Région', desc: 'Sélectionnez votre langue et région.', search: 'Rechercher (ex: English, Français...)', empty: 'Aucun résultat trouvé.', toast: 'Langue modifiée.' },
+            'ru': { title: 'Язык и Регион', desc: 'Выберите язык и регион.', search: 'Поиск языка (напр. English, Русский...)', empty: 'Ничего не найдено.', toast: 'Язык изменен.' },
+            'vi': { title: 'Ngôn ngữ & Khu vực', desc: 'Chọn ngôn ngữ và khu vực.', search: 'Tìm kiếm (VD: English, Tiếng Việt...)', empty: 'Không tìm thấy kết quả.', toast: 'Đã thay đổi ngôn ngữ.' },
+            'id': { title: 'Bahasa & Wilayah', desc: 'Pilih bahasa dan wilayah.', search: 'Cari bahasa (Mis: English, Indonesia...)', empty: 'Tidak ditemukan.', toast: 'Bahasa telah diubah.' },
+            'th': { title: 'ภาษาและภูมิภาค', desc: 'เลือกภาษาและภูมิภาคของคุณ', search: 'ค้นหา (เช่น English, ไทย...)', empty: 'ไม่พบผลลัพธ์', toast: 'เปลี่ยนภาษาแล้ว' },
+            'pt-br': { title: 'Idioma e Região', desc: 'Selecione seu idioma.', search: 'Buscar (ex: English, Português...)', empty: 'Nenhum resultado.', toast: 'Idioma alterado.' },
+            'hi': { title: 'भाषा और क्षेत्र', desc: 'अपनी पसंदीदा भाषा चुनें।', search: 'भाषा खोजें (उदा: English, हिन्दी...)', empty: 'कुछ नहीं मिला।', toast: 'भाषा बदल दी गई है।' },
+            'bn': { title: 'ভাষা এবং অঞ্চল', desc: 'আপনার ভাষা নির্বাচন করুন।', search: 'ভাষা খুঁজুন...', empty: 'কোন ফলাফল নেই।', toast: 'ভাষা পরিবর্তন করা হয়েছে।' },
+            'tr': { title: 'Dil ve Bölge', desc: 'Tercih ettiğiniz dili seçin.', search: 'Dil ara (Örn: English, Türkçe...)', empty: 'Sonuç bulunamadı.', toast: 'Dil değiştirildi.' },
+            'de': { title: 'Sprache und Region', desc: 'Wählen Sie Ihre Sprache.', search: 'Sprache suchen (z.B. English, Deutsch...)', empty: 'Keine Ergebnisse.', toast: 'Sprache geändert.' },
+            'it': { title: 'Lingua e Regione', desc: 'Seleziona la tua lingua.', search: 'Cerca lingua (es. English, Italiano...)', empty: 'Nessun risultato.', toast: 'Lingua cambiata.' }
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        const dict = {
+            ko: { title: "약수킹 vs 배수킹 | 킹수학.com", desc: "킹수학으로 전자칠판을 최고의 수학 학습 도구로 만드세요! 게임으로 즐기는 무료 수학 트레이닝.", keywords: "전자칠판, 수학게임, 킹수학, KingsMath, 무료게임, 초등수학", siteName: "킹수학", topHeader: "게임으로 수학의 킹이 되어라. 킹수학.com", mainTitle: "약수킹 vs 배수킹", btnDivisor: "약수", btnMultiple: "배수", btnCommonDiv: "공약수", btnCommonMult: "공배수", gameDesc: "제한시간 60초! 정답 10개를 먼저 찾아 제출하세요.", startBtn: "배틀 시작", moreGames: "🎮다른 게임 고르기", p1Name: "약수킹", p2Name: "배수킹", selectTxt: "선택", submitBtn: "제출하기", restartBtn: "다시 대결하기", waiting: "문제 준비 중...", feedSelected: "10개 선택 완료!", feedWrong: "오답이 {n}개 있습니다", feedPerfect: "PERFECT!", winReasonTime: "시간 종료! (더 많이 찾음)", winReasonDraw: "시간 종료! 동점!", draw: "무승부!", winSuffix: " 승!", probDiv: "{n}의 약수", probMult: "{n}의 배수", probComDiv: "{n}, {m}의 공약수", probComMult: "{n}, {m}의 공배수", homeLink: "/" },
+            en: { title: "Divisor King vs Multiple King | KingsMath.com", desc: "Turn your interactive whiteboard into the best math tool with KingsMath! Free educational games.", keywords: "Interactive Whiteboard, Math Games, KingsMath, Brain Training, Free Games", siteName: "KingsMath", topHeader: "Become a Math King! KingsMath.com", mainTitle: "Divisor King vs Multiple King", btnDivisor: "Divisor", btnMultiple: "Multiple", btnCommonDiv: "C. Divisor", btnCommonMult: "C. Multiple", gameDesc: "60 Seconds! Find 10 correct numbers first.", startBtn: "Start Battle", moreGames: "🎮 More Games", p1Name: "Divisor King", p2Name: "Multiple King", selectTxt: "Selected", submitBtn: "Submit", restartBtn: "Play Again", waiting: "Preparing...", feedSelected: "10 Selected!", feedWrong: "{n} Wrong", feedPerfect: "PERFECT!", winReasonTime: "Time's up! (Higher Score)", winReasonDraw: "Time's up! Tie!", draw: "Draw!", winSuffix: " Wins!", probDiv: "Divisors of {n}", probMult: "Multiples of {n}", probComDiv: "Common Divisors of {n}, {m}", probComMult: "Common Multiples of {n}, {m}", homeLink: "/" },
+            zh: { title: "因数大王 vs 倍数大王 | KingsMath.com", desc: "使用KingsMath将电子白板变成最佳数学学习工具！免费的数学训练游戏。", keywords: "电子白板, 数学游戏, KingsMath", siteName: "KingsMath", topHeader: "通过游戏成为数学之王。 KingsMath.com", mainTitle: "因数大王 vs 倍数大王", btnDivisor: "因数", btnMultiple: "倍数", btnCommonDiv: "公因数", btnCommonMult: "公倍数", gameDesc: "限时60秒！请先找到10个正确答案。", startBtn: "开始战斗", moreGames: "🎮 更多游戏", p1Name: "因数大王", p2Name: "倍数大王", selectTxt: "已选", submitBtn: "提交", restartBtn: "再玩一次", waiting: "准备中...", feedSelected: "已选10个！", feedWrong: "错误 {n} 个", feedPerfect: "完美！", winReasonTime: "时间到！（分数更高）", winReasonDraw: "时间到！平局！", draw: "平局！", winSuffix: " 获胜！", probDiv: "{n} 的因数", probMult: "{n} 的倍数", probComDiv: "{n}, {m} 的公因数", probComMult: "{n}, {m} 的公倍数", homeLink: "/" },
+            ja: { title: "約数キング vs 倍数キング | KingsMath.com", desc: "KingsMathで電子黒板を最高の数学学習ツールにしましょう！無料ゲーム。", keywords: "電子黒板, 数学ゲーム, KingsMath", siteName: "KingsMath", topHeader: "ゲームで数学の王になろう。 KingsMath.com", mainTitle: "約数キング vs 倍数キング", btnDivisor: "約数", btnMultiple: "倍数", btnCommonDiv: "公約数", btnCommonMult: "公倍数", gameDesc: "制限時間60秒！正解を10個先に見つけてください。", startBtn: "バトル開始", moreGames: "🎮 他のゲーム", p1Name: "約数キング", p2Name: "倍数キング", selectTxt: "選択", submitBtn: "提出", restartBtn: "もう一度対戦", waiting: "準備中...", feedSelected: "10個選択！", feedWrong: "間違い {n} 個", feedPerfect: "パーフェクト！", winReasonTime: "時間切れ！（高得点）", winReasonDraw: "時間切れ！引き分け！", draw: "引き分け！", winSuffix: " 勝利！", probDiv: "{n} の約数", probMult: "{n} の倍数", probComDiv: "{n}, {m} の公約数", probComMult: "{n}, {m} の公倍数", homeLink: "/" },
+            es: { title: "Rey Divisor vs Rey Múltiplo | KingsMath.com", desc: "¡Convierte tu pizarra digital en la mejor herramienta con KingsMath!", keywords: "Pizarra Digital, Juegos Matemáticos", siteName: "KingsMath", topHeader: "¡Conviértete en el Rey! KingsMath.com", mainTitle: "Rey Divisor vs Rey Múltiplo", btnDivisor: "Divisor", btnMultiple: "Múltiplo", btnCommonDiv: "Div. Común", btnCommonMult: "Múl. Común", gameDesc: "¡60 segundos! Encuentra 10 correctas.", startBtn: "Empezar", moreGames: "🎮 Más Juegos", p1Name: "Rey Divisor", p2Name: "Rey Múltiplo", selectTxt: "Elegido", submitBtn: "Enviar", restartBtn: "Jugar de Nuevo", waiting: "Preparando...", feedSelected: "¡10 Elegidos!", feedWrong: "{n} Incorrectas", feedPerfect: "¡PERFECTO!", winReasonTime: "¡Tiempo! (Puntaje Alto)", winReasonDraw: "¡Empate!", draw: "¡Empate!", winSuffix: " Gana!", probDiv: "Divisores de {n}", probMult: "Múltiplos de {n}", probComDiv: "Div. Comunes de {n}, {m}", probComMult: "Múl. Comunes de {n}, {m}", homeLink: "/" },
+            fr: { title: "Roi Diviseur vs Roi Multiple | KingsMath.com", desc: "Tableau interactif mathématique !", keywords: "KingsMath, Jeux Mathématiques", siteName: "KingsMath", topHeader: "Devenez le Roi des Maths ! KingsMath.com", mainTitle: "Roi Diviseur vs Roi Multiple", btnDivisor: "Diviseur", btnMultiple: "Multiple", btnCommonDiv: "Div. Commun", btnCommonMult: "Mul. Commun", gameDesc: "60 secondes ! Trouvez 10 bonnes réponses.", startBtn: "Commencer", moreGames: "🎮 Plus de Jeux", p1Name: "Roi Diviseur", p2Name: "Roi Multiple", selectTxt: "Choix", submitBtn: "Valider", restartBtn: "Rejouer", waiting: "Préparation...", feedSelected: "10 Sélectionnés !", feedWrong: "{n} Erreurs", feedPerfect: "PARFAIT !", winReasonTime: "Temps écoulé !", winReasonDraw: "Égalité !", draw: "Égalité !", winSuffix: " Gagne !", probDiv: "Diviseurs de {n}", probMult: "Multiples de {n}", probComDiv: "Div. Communs de {n}, {m}", probComMult: "Mul. Communs de {n}, {m}", homeLink: "/" },
+            ru: { title: "Король Делителей vs Король Кратных | KingsMath.com", desc: "Математика для интерактивной доски.", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Стань королем математики! KingsMath.com", mainTitle: "Король Делителей vs Кратных", btnDivisor: "Делитель", btnMultiple: "Кратное", btnCommonDiv: "Общ. Делитель", btnCommonMult: "Общ. Кратное", gameDesc: "60 секунд! Найди 10 ответов.", startBtn: "Начать", moreGames: "🎮 Другие Игры", p1Name: "Король Делителей", p2Name: "Король Кратных", selectTxt: "Выбор", submitBtn: "Отправить", restartBtn: "Заново", waiting: "Загрузка...", feedSelected: "10 выбрано!", feedWrong: "{n} Ошибок", feedPerfect: "ИДЕАЛЬНО!", winReasonTime: "Время вышло!", winReasonDraw: "Ничья!", draw: "Ничья!", winSuffix: " Победил!", probDiv: "Делители {n}", probMult: "Кратные {n}", probComDiv: "Общие делители {n}, {m}", probComMult: "Общие кратные {n}, {m}", homeLink: "/" },
+            id: { title: "Raja Pembagi vs Raja Kelipatan | KingsMath.com", desc: "Matematika mudah dengan KingsMath.", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Jadilah Raja Matematika! KingsMath.com", mainTitle: "Raja Pembagi vs Kelipatan", btnDivisor: "Pembagi", btnMultiple: "Kelipatan", btnCommonDiv: "Pembagi Bersama", btnCommonMult: "Kelipatan Bersama", gameDesc: "60 Detik! Temukan 10 jawaban benar.", startBtn: "Mulai", moreGames: "🎮 Game Lain", p1Name: "Raja Pembagi", p2Name: "Raja Kelipatan", selectTxt: "Dipilih", submitBtn: "Kirim", restartBtn: "Main Lagi", waiting: "Persiapan...", feedSelected: "10 Dipilih!", feedWrong: "{n} Salah", feedPerfect: "SEMPURNA!", winReasonTime: "Waktu Habis!", winReasonDraw: "Seri!", draw: "Seri!", winSuffix: " Menang!", probDiv: "Pembagi dari {n}", probMult: "Kelipatan dari {n}", probComDiv: "Pembagi bersama {n}, {m}", probComMult: "Kelipatan bersama {n}, {m}", homeLink: "/" },
+            vi: { title: "Vua Ước Số vs Vua Bội Số | KingsMath.com", desc: "Trò chơi Toán học miễn phí.", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Trở thành Vua Toán Học! KingsMath.com", mainTitle: "Vua Ước Số vs Bội Số", btnDivisor: "Ước Số", btnMultiple: "Bội Số", btnCommonDiv: "Ước Chung", btnCommonMult: "Bội Chung", gameDesc: "60 Giây! Tìm 10 số đúng.", startBtn: "Bắt đầu", moreGames: "🎮 Trò chơi khác", p1Name: "Vua Ước Số", p2Name: "Vua Bội Số", selectTxt: "Đã chọn", submitBtn: "Gửi", restartBtn: "Chơi lại", waiting: "Chuẩn bị...", feedSelected: "Đã chọn 10!", feedWrong: "Sai {n}", feedPerfect: "HOÀN HẢO!", winReasonTime: "Hết giờ!", winReasonDraw: "Hòa!", draw: "Hòa!", winSuffix: " Thắng!", probDiv: "Ước số của {n}", probMult: "Bội số của {n}", probComDiv: "Ước chung của {n}, {m}", probComMult: "Bội chung của {n}, {m}", homeLink: "/" },
+            th: { title: "ราชาตัวหาร vs ราชาพหุคูณ | KingsMath.com", desc: "เกมคณิตศาสตร์ฟรี", keywords: "KingsMath", siteName: "KingsMath", topHeader: "มาเป็นราชาคณิตศาสตร์! KingsMath.com", mainTitle: "ราชาตัวหาร vs ราชาพหุคูณ", btnDivisor: "ตัวหาร", btnMultiple: "พหุคูณ", btnCommonDiv: "หารร่วม", btnCommonMult: "คูณร่วม", gameDesc: "60 วินาที! หาคำตอบ 10 ข้อ", startBtn: "เริ่มเกม", moreGames: "🎮 เกมอื่นๆ", p1Name: "ราชาตัวหาร", p2Name: "ราชาพหุคูณ", selectTxt: "เลือก", submitBtn: "ส่งคำตอบ", restartBtn: "เล่นอีกครั้ง", waiting: "กำลังเตรียม...", feedSelected: "เลือก 10 แล้ว!", feedWrong: "ผิด {n} ข้อ", feedPerfect: "ยอดเยี่ยม!", winReasonTime: "หมดเวลา!", winReasonDraw: "เสมอ!", draw: "เสมอ!", winSuffix: " ชนะ!", probDiv: "ตัวหารของ {n}", probMult: "พหุคูณของ {n}", probComDiv: "หารร่วมของ {n}, {m}", probComMult: "คูณร่วมของ {n}, {m}", homeLink: "/" },
+            'pt-br': { title: "Rei Divisor vs Rei Múltiplo | KingsMath.com", desc: "Jogos educativos gratuitos.", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Seja o Rei da Matemática! KingsMath.com", mainTitle: "Rei Divisor vs Rei Múltiplo", btnDivisor: "Divisor", btnMultiple: "Múltiplo", btnCommonDiv: "Div. Comum", btnCommonMult: "Múl. Comum", gameDesc: "60 segundos! Encontre 10 corretas.", startBtn: "Começar", moreGames: "🎮 Mais Jogos", p1Name: "Rei Divisor", p2Name: "Rei Múltiplo", selectTxt: "Escolhidos", submitBtn: "Enviar", restartBtn: "Jogar Novamente", waiting: "Preparando...", feedSelected: "10 Escolhidos!", feedWrong: "{n} Incorretas", feedPerfect: "PERFEITO!", winReasonTime: "Acabou o tempo!", winReasonDraw: "Empate!", draw: "Empate!", winSuffix: " Venceu!", probDiv: "Divisores de {n}", probMult: "Múltiplos de {n}", probComDiv: "Divisores Comuns de {n}, {m}", probComMult: "Múltiplos Comuns de {n}, {m}", homeLink: "/" },
+            hi: { title: "भाजक राजा vs गुणक राजा | KingsMath.com", desc: "मुफ्त गणित का खेल", keywords: "KingsMath", siteName: "KingsMath", topHeader: "गणित के राजा बनें! KingsMath.com", mainTitle: "भाजक राजा vs गुणक राजा", btnDivisor: "भाजक", btnMultiple: "गुणक", btnCommonDiv: "सामान्य भाजक", btnCommonMult: "सामान्य गुणक", gameDesc: "60 सेकंड! 10 सही खोजें।", startBtn: "शुरू करें", moreGames: "🎮 और खेल", p1Name: "भाजक राजा", p2Name: "गुणक राजा", selectTxt: "चयनित", submitBtn: "जमा करें", restartBtn: "फिर से खेलें", waiting: "तैयारी...", feedSelected: "10 चयनित!", feedWrong: "{n} गलत", feedPerfect: "उत्तम!", winReasonTime: "समय समाप्त!", winReasonDraw: "टाई!", draw: "टाई!", winSuffix: " की जीत!", probDiv: "{n} के भाजक", probMult: "{n} के गुणक", probComDiv: "{n}, {m} के सामान्य भाजक", probComMult: "{n}, {m} के सामान्य गुणक", homeLink: "/" },
+            bn: { title: "ভাজক রাজা vs গুণিতক রাজা | KingsMath.com", desc: "বিনামূল্যে গণিত গেম", keywords: "KingsMath", siteName: "KingsMath", topHeader: "গণিতের রাজা হোন! KingsMath.com", mainTitle: "ভাজক রাজা vs গুণিতক রাজা", btnDivisor: "ভাজক", btnMultiple: "গুণিতক", btnCommonDiv: "সাধারণ ভাজক", btnCommonMult: "সাধারণ গুণিতক", gameDesc: "৬০ সেকেন্ড! ১০টি সঠিক খুঁজুন।", startBtn: "শুরু করুন", moreGames: "🎮 আরও গেম", p1Name: "ভাজক রাজা", p2Name: "গুণিতক রাজা", selectTxt: "নির্বাচিত", submitBtn: "জমা দিন", restartBtn: "আবার খেলুন", waiting: "প্রস্তুত হচ্ছে...", feedSelected: "১০ নির্বাচিত!", feedWrong: "{n} ভুল", feedPerfect: "নিখুঁত!", winReasonTime: "সময় শেষ!", winReasonDraw: "টাই!", draw: "টাই!", winSuffix: " জিতেছে!", probDiv: "{n} এর ভাজক", probMult: "{n} এর গুণিতক", probComDiv: "{n}, {m} এর সাধারণ ভাজক", probComMult: "{n}, {m} এর সাধারণ গুণিতক", homeLink: "/" },
+            tr: { title: "Bölen Kralı vs Kat Kralı | KingsMath.com", desc: "Ücretsiz Matematik Oyunu", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Matematik Kralı Ol! KingsMath.com", mainTitle: "Bölen Kralı vs Kat Kralı", btnDivisor: "Bölen", btnMultiple: "Kat", btnCommonDiv: "Ortak Bölen", btnCommonMult: "Ortak Kat", gameDesc: "60 Saniye! 10 doğru bul.", startBtn: "Başla", moreGames: "🎮 Diğer Oyunlar", p1Name: "Bölen Kralı", p2Name: "Kat Kralı", selectTxt: "Seçilen", submitBtn: "Gönder", restartBtn: "Tekrar Oyna", waiting: "Hazırlanıyor...", feedSelected: "10 Seçildi!", feedWrong: "{n} Yanlış", feedPerfect: "MÜKEMMEL!", winReasonTime: "Süre Doldu!", winReasonDraw: "Berabere!", draw: "Berabere!", winSuffix: " Kazandı!", probDiv: "{n} Bölenleri", probMult: "{n} Katları", probComDiv: "{n}, {m} Ortak Bölenleri", probComMult: "{n}, {m} Ortak Katları", homeLink: "/" },
+            de: { title: "Teiler-König vs Vielfachen-König | KingsMath.com", desc: "Kostenloses Mathe-Spiel", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Werde der Mathe-König! KingsMath.com", mainTitle: "Teiler-König vs Vielfachen-König", btnDivisor: "Teiler", btnMultiple: "Vielfaches", btnCommonDiv: "Gem. Teiler", btnCommonMult: "Gem. Vielfaches", gameDesc: "60 Sekunden! Finde 10.", startBtn: "Starten", moreGames: "🎮 Mehr Spiele", p1Name: "Teiler-König", p2Name: "Vielfachen-König", selectTxt: "Ausgewählt", submitBtn: "Senden", restartBtn: "Nochmal spielen", waiting: "Wird geladen...", feedSelected: "10 Ausgewählt!", feedWrong: "{n} Falsch", feedPerfect: "PERFEKT!", winReasonTime: "Zeit abgelaufen!", winReasonDraw: "Unentschieden!", draw: "Unentschieden!", winSuffix: " Gewinnt!", probDiv: "Teiler von {n}", probMult: "Vielfache von {n}", probComDiv: "Gemeinsame Teiler von {n}, {m}", probComMult: "Gemeinsame Vielfache von {n}, {m}", homeLink: "/" },
+            it: { title: "Re Divisore vs Re Multiplo | KingsMath.com", desc: "Gioco di matematica", keywords: "KingsMath", siteName: "KingsMath", topHeader: "Diventa il Re della Matematica! KingsMath.com", mainTitle: "Re Divisore vs Re Multiplo", btnDivisor: "Divisore", btnMultiple: "Multiplo", btnCommonDiv: "Div. Comune", btnCommonMult: "Mul. Comune", gameDesc: "60 Secondi! Trova 10 giuste.", startBtn: "Inizia", moreGames: "🎮 Altri Giochi", p1Name: "Re Divisore", p2Name: "Re Multiplo", selectTxt: "Scelti", submitBtn: "Invia", restartBtn: "Gioca di nuovo", waiting: "Preparazione...", feedSelected: "10 Scelti!", feedWrong: "{n} Sbagliate", feedPerfect: "PERFETTO!", winReasonTime: "Tempo Scaduto!", winReasonDraw: "Pareggio!", draw: "Pareggio!", winSuffix: " Vince!", probDiv: "Divisori di {n}", probMult: "Multipli di {n}", probComDiv: "Divisori Comuni di {n}, {m}", probComMult: "Multipli Comuni di {n}, {m}", homeLink: "/" }
+        };
+
+        let currentLang = 'en';
+
+        // 요소 가져오기
+        const langTriggerBtn = document.getElementById('langTriggerBtn');
+        const langModal = document.getElementById('langModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const languageGrid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        const langSwitcherContainer = document.getElementById('langSwitcherContainer');
+        let toastTimeout;
+
+        // 글자 수 기반 동적 폰트 조절 로직
+        function adjustFontSizeByLength(elementId, baseSize, maxLength) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const len = el.innerText.length;
+            if (len > maxLength) {
+                const newSize = baseSize * (maxLength / len);
+                el.style.fontSize = Math.max(newSize, baseSize * 0.45) + 'rem';
+            } else {
+                el.style.fontSize = baseSize + 'rem';
+            }
+        }
+
+        function getInitialLang() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && dict[urlLang]) return urlLang;
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            if (storedLang && dict[storedLang]) return storedLang;
+            const navLang = navigator.language.slice(0, 2);
+            if (dict[navLang]) return navLang;
+            return 'en';
+        }
+
+        function changeLanguage(langCode) {
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            // URL 업데이트 (상태 유지 및 공유 기능)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', newUrl);
+
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const data = dict[currentLang];
+            const uiData = uiTranslations[currentLang] || uiTranslations['en'];
+            const langObj = languages.find(l => l.code === currentLang) || languages[1];
+            
+            // 버튼 및 UI 텍스트 업데이트
+            currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            currentLangSpan.textContent = langObj.name;
+            document.getElementById('ui-title').textContent = uiData.title;
+            document.getElementById('ui-desc').textContent = uiData.desc;
+            document.getElementById('searchInput').placeholder = uiData.search;
+            document.getElementById('ui-empty').textContent = uiData.empty;
+            document.getElementById('ui-toast').textContent = uiData.toast;
+
+            // SEO & Title 업데이트
+            document.title = data.title;
+            document.querySelector('meta[name="description"]').setAttribute("content", data.desc);
+            document.querySelector('meta[name="keywords"]').setAttribute("content", data.keywords);
+            document.querySelector('meta[property="og:title"]').setAttribute("content", data.title);
+            document.querySelector('meta[property="og:description"]').setAttribute("content", data.desc);
+            document.querySelector('meta[property="og:site_name"]').setAttribute("content", data.siteName);
+
+            // 게임 내 텍스트 업데이트
+            document.getElementById('top-header').innerText = data.topHeader;
+            document.getElementById('main-title').innerText = data.mainTitle;
+            document.getElementById('btn-divisor').innerText = data.btnDivisor;
+            document.getElementById('btn-multiple').innerText = data.btnMultiple;
+            document.getElementById('btn-common-div').innerText = data.btnCommonDiv;
+            document.getElementById('btn-common-mult').innerText = data.btnCommonMult;
+            document.getElementById('game-desc').innerText = data.gameDesc;
+            document.getElementById('start-btn').innerText = data.startBtn;
+            document.getElementById('question-text').innerText = data.waiting;
+            document.getElementById('p1-label').innerText = data.p1Name;
+            document.getElementById('p2-label').innerText = data.p2Name;
+            document.querySelectorAll('.txt-select').forEach(el => el.innerText = data.selectTxt);
+            document.querySelectorAll('.submit-btn').forEach(el => el.innerText = data.submitBtn);
+            document.getElementById('restart-btn').innerText = data.restartBtn;
+
+            // 하이퍼링크 (전체 새 창이 아닌 현재창 self)
+            document.querySelectorAll('.more-games-link').forEach(link => {
+                link.innerText = data.moreGames;
+                link.href = data.homeLink;
+            });
+
+            // 문제 진행 중 언어 변경 시
+            if(document.getElementById('question-text').innerText !== data.waiting && state && state.problemInfo) {
+                document.getElementById('question-text').innerText = getLocalizedProblemText(state.problemInfo);
+                document.getElementById('final-question-text').innerText = getLocalizedProblemText(state.problemInfo);
+            }
+
+            // 동적 폰트 사이즈 조절 로직 적용 (메인 타이틀 12자 이상, 버튼 8자 이상 시 축소)
+            adjustFontSizeByLength('main-title', 4.5, 12);
+            document.querySelectorAll('.dynamic-font').forEach(el => adjustFontSizeByLength(el.id, 2.2, 8));
+        }
+
+        // 언어 목록 렌더링 함수 (UI)
+        function renderLanguages(filterText = '') {
+            languageGrid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                languageGrid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                languageGrid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => {
+                        changeLanguage(lang.code);
+                        closeModal();
+                        showToast(lang.name);
+                        renderLanguages(searchInput.value);
+                    });
+                    languageGrid.appendChild(btn);
+                });
+            }
+        }
+
+        // 모달 및 토스트 알림 제어
+        function openModal() { langModal.classList.add('active'); document.body.style.overflow = 'hidden'; setTimeout(() => searchInput.focus(), 100); }
+        function closeModal() { langModal.classList.remove('active'); document.body.style.overflow = ''; }
+        function showToast(langName) {
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // 이벤트 리스너
+        langTriggerBtn.addEventListener('click', openModal);
+        closeModalBtn.addEventListener('click', closeModal);
+        langModal.addEventListener('click', (e) => { if (e.target === langModal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && langModal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        /* ==============================================================
+           기존 게임 로직
+        ============================================================== */
+        function getLocalizedProblemText(info) {
+            const data = dict[currentLang];
+            if (config.topic === 'divisor') return data.probDiv.replace('{n}', info.n1);
+            if (config.topic === 'multiple') return data.probMult.replace('{n}', info.n1);
+            if (config.topic === 'commonDivisor') return data.probComDiv.replace('{n}', info.n1).replace('{m}', info.n2);
+            if (config.topic === 'commonMultiple') return data.probComMult.replace('{n}', info.n1).replace('{m}', info.n2);
+            return "";
+        }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('touchmove', event => { if (event.scale !== 1) event.preventDefault(); }, { passive: false });
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', event => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) event.preventDefault();
+            lastTouchEnd = now;
+        }, false);
+        document.ondragstart = function() { return false; };
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // 홈으로 이동 시 상태 및 UI 복구
+        function resetToHome() {
+            if (state.timerId) clearInterval(state.timerId);
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'flex';
+            // 홈화면에서 언어 선택기 노출
+            langSwitcherContainer.style.display = 'block'; 
+            SFX.select();
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, type, duration, vol=1) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.setValueAtTime(vol * 0.1, audioCtx.currentTime); 
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const SFX = {
+            select: () => playTone(800, 'sine', 0.1),
+            start: () => {
+                playTone(400, 'triangle', 0.1);
+                setTimeout(() => playTone(600, 'triangle', 0.1), 100);
+                setTimeout(() => playTone(800, 'triangle', 0.3), 200);
+            },
+            correct: () => {
+                setTimeout(() => playTone(523.25, 'sine', 0.4), 0); 
+                setTimeout(() => playTone(659.25, 'sine', 0.4), 200); 
+                setTimeout(() => playTone(783.99, 'sine', 0.8), 400); 
+            },
+            wrong: () => {
+                playTone(150, 'sawtooth', 0.4);
+                setTimeout(() => playTone(100, 'sawtooth', 0.4), 100);
+            },
+            win: () => {
+                const now = audioCtx.currentTime;
+                [523, 659, 783, 1046].forEach((f, i) => {
+                    setTimeout(() => playTone(f, 'square', 0.2), i*100);
+                });
+                setTimeout(() => playTone(1046, 'square', 1.0), 400);
+            },
+            tick: () => playTone(1200, 'square', 0.05, 0.5)
+        };
+
+        let config = { topic: 'divisor' };
+        let state = { gridData: [], correctNumbers: [], p1Selection: new Set(), p2Selection: new Set(), isGameOver: false, timer: 60, timerId: null, problemInfo: {} };
+
+        function setTopic(topic, btn) {
+            config.topic = topic;
+            document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            SFX.select();
+        }
+
+        function startGame() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            // 게임 몰입을 위해 언어 선택기 숨김
+            langSwitcherContainer.style.display = 'none'; 
+            SFX.start();
+            initGame();
+        }
+
+        function initGame() {
+            state.p1Selection.clear();
+            state.p2Selection.clear();
+            state.isGameOver = false;
+            state.timer = 60;
+            updateUI('p1');
+            updateUI('p2');
+            document.getElementById('timer').innerText = state.timer;
+
+            const problem = generateProblem();
+            state.gridData = problem.gridData;
+            state.correctNumbers = problem.correctPool;
+            state.problemInfo = { n1: problem.n1, n2: problem.n2 };
+            
+            const localizedText = getLocalizedProblemText(state.problemInfo);
+            document.getElementById('question-text').innerText = localizedText;
+            document.getElementById('final-question-text').innerText = localizedText;
+
+            renderBoard('p1', state.gridData);
+            renderBoard('p2', state.gridData);
+
+            if (state.timerId) clearInterval(state.timerId);
+            state.timerId = setInterval(() => {
+                state.timer--;
+                document.getElementById('timer').innerText = state.timer;
+                if(state.timer <= 5 && state.timer > 0) SFX.tick(); 
+                if(state.timer <= 0) timeOver();
+            }, 1000);
+        }
+
+        function generateProblem() {
+            let n1, n2;
+            let correctPool = []; 
+            let maxRange = 100;
+
+            if (config.topic === 'divisor') {
+                while(true) {
+                    n1 = Math.floor(Math.random() * 80) + 20; 
+                    correctPool = [];
+                    for(let i=1; i<=n1; i++) if(n1%i===0) correctPool.push(i);
+                    if(correctPool.length >= 4) break;
+                }
+            } else if (config.topic === 'multiple') {
+                while(true) {
+                    n1 = Math.floor(Math.random() * 14) + 2; 
+                    correctPool = [];
+                    for(let i=1; i*n1<=100; i++) correctPool.push(i*n1);
+                    if(correctPool.length >= 4) break;
+                }
+            } else if (config.topic === 'commonDivisor') {
+                while(true) {
+                    n1 = Math.floor(Math.random() * 90) + 10;
+                    n2 = Math.floor(Math.random() * 90) + 10;
+                    correctPool = [];
+                    for(let i=1; i<=Math.min(n1,n2); i++) {
+                        if(n1%i===0 && n2%i===0) correctPool.push(i);
+                    }
+                    if(correctPool.length >= 4) break;
+                }
+            } else if (config.topic === 'commonMultiple') {
+                maxRange = 200; 
+                while(true) {
+                    n1 = Math.floor(Math.random() * 8) + 2;
+                    n2 = Math.floor(Math.random() * 8) + 2;
+                    if(n1===n2) continue;
+                    const gcd = (a, b) => b ? gcd(b, a%b) : a;
+                    const lcm = (n1 * n2) / gcd(n1, n2);
+                    correctPool = [];
+                    for(let i=1; i*lcm<=maxRange; i++) correctPool.push(i*lcm);
+                    if(correctPool.length >= 4) break;
+                }
+            }
+
+            let finalCorrects = [...correctPool]; 
+            if (finalCorrects.length > 10) {
+                for (let i = finalCorrects.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [finalCorrects[i], finalCorrects[j]] = [finalCorrects[j], finalCorrects[i]];
+                }
+                finalCorrects = finalCorrects.slice(0, 10);
+            } else {
+                while(finalCorrects.length < 10) {
+                    const pick = correctPool[Math.floor(Math.random() * correctPool.length)];
+                    finalCorrects.push(pick);
+                }
+            }
+            
+            state.correctNumbers = correctPool.sort((a,b)=>a-b);
+
+            let finalWrongs = [];
+            while(finalWrongs.length < 15) {
+                const r = Math.floor(Math.random() * maxRange) + 1;
+                let isActuallyCorrect = false;
+                if (config.topic === 'divisor' && n1 % r === 0) isActuallyCorrect = true;
+                if (config.topic === 'multiple' && r % n1 === 0) isActuallyCorrect = true;
+                if (config.topic === 'commonDivisor' && n1 % r === 0 && n2 % r === 0) isActuallyCorrect = true;
+                if (config.topic === 'commonMultiple' && r % n1 === 0 && r % n2 === 0) isActuallyCorrect = true;
+                if (!isActuallyCorrect) finalWrongs.push(r);
+            }
+
+            let gridData = [...finalCorrects.map(n => ({val: n, isAns: true})), 
+                            ...finalWrongs.map(n => ({val: n, isAns: false}))];
+            
+            for (let i = gridData.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gridData[i], gridData[j]] = [gridData[j], gridData[i]];
+            }
+            return { n1, n2, gridData, correctPool };
+        }
+
+        function renderBoard(player, data) {
+            const board = document.getElementById(`${player}-board`);
+            board.innerHTML = '';
+            data.forEach((item, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.innerText = item.val;
+                cell.onpointerdown = () => toggleSelect(player, idx, cell);
+                board.appendChild(cell);
+            });
+        }
+
+        function toggleSelect(player, idx, cell) {
+            if(state.isGameOver) return;
+            const selection = player === 'p1' ? state.p1Selection : state.p2Selection;
+            if (selection.has(idx)) {
+                selection.delete(idx);
+                cell.classList.remove('selected');
+                SFX.select();
+            } else {
+                if(selection.size >= 10) {
+                    showFeedback(player, dict[currentLang].feedSelected, "#ffd60a");
+                    SFX.wrong(); 
+                    return;
+                }
+                selection.add(idx);
+                cell.classList.add('selected');
+                SFX.select();
+            }
+            updateUI(player);
+        }
+
+        function updateUI(player) {
+            const selection = player === 'p1' ? state.p1Selection : state.p2Selection;
+            document.getElementById(`${player}-count`).innerText = selection.size;
+            const btn = document.getElementById(`${player}-submit`);
+            if(selection.size === 10) btn.classList.add('ready');
+            else btn.classList.remove('ready');
+        }
+
+        function submitAnswer(player) {
+            if(state.isGameOver) return;
+            const selection = player === 'p1' ? state.p1Selection : state.p2Selection;
+            if(selection.size !== 10) return; 
+            let wrongCount = 0;
+            selection.forEach(idx => {
+                if (!state.gridData[idx].isAns) wrongCount++;
+            });
+            if (wrongCount === 0) {
+                state.isGameOver = true;
+                endGame(player, dict[currentLang].feedPerfect);
+            } else {
+                SFX.wrong();
+                showFeedback(player, dict[currentLang].feedWrong.replace('{n}', wrongCount), "#ff4757");
+            }
+        }
+
+        function showFeedback(player, msg, color) {
+            const el = document.getElementById(`${player}-msg`);
+            el.innerText = msg;
+            el.style.borderColor = color; el.style.color = color;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 1500);
+        }
+
+        function timeOver() {
+            state.isGameOver = true;
+            clearInterval(state.timerId);
+            SFX.wrong(); 
+            const p1Score = countCorrect(state.p1Selection);
+            const p2Score = countCorrect(state.p2Selection);
+            if (p1Score > p2Score) endGame('p1', dict[currentLang].winReasonTime);
+            else if (p2Score > p1Score) endGame('p2', dict[currentLang].winReasonTime);
+            else endGame('draw', dict[currentLang].winReasonDraw);
+        }
+
+        function countCorrect(selection) {
+            let cnt = 0;
+            selection.forEach(idx => { if(state.gridData[idx].isAns) cnt++; });
+            return cnt;
+        }
+
+        function endGame(winner, reason) {
+            clearInterval(state.timerId);
+            const resultScreen = document.getElementById('result-screen');
+            const winnerText = document.getElementById('winner-text');
+            const reasonText = document.getElementById('win-reason');
+            const uniqueAnswers = [...new Set(state.correctNumbers)].sort((a,b)=>a-b);
+            let answerString = uniqueAnswers.join(', ');
+            if(config.topic === 'multiple' || config.topic === 'commonMultiple') answerString += ', ...';
+            document.getElementById('final-answer-list').innerText = answerString;
+
+            if (winner === 'draw') {
+                winnerText.innerText = dict[currentLang].draw; winnerText.style.color = "#fff"; SFX.wrong();
+            } else {
+                SFX.win();
+                const name = winner === 'p1' ? dict[currentLang].p1Name : dict[currentLang].p2Name;
+                const color = winner === 'p1' ? "#4cc9f0" : "#f72585";
+                winnerText.innerText = `${name}${dict[currentLang].winSuffix}`; winnerText.style.color = color;
+            }
+            reasonText.innerText = reason;
+            resultScreen.style.display = 'flex';
+        }
+
+        // 초기화 실행
+        currentLang = getInitialLang();
+        applyLanguage();
+        renderLanguages();
+
+    </script>
+
+</body>
+</html>

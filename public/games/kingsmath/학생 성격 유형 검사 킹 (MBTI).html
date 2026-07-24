@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+   
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5YW0T2C109');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16성격 검사 킹 / 16 Personality Test King</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* 공통 스타일 (Dark Mode 기본) */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
+        body { background-color: #121212; color: #E0E0E0; padding: 20px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; position: relative; }
+        
+        /* 상단 헤더 & 언어선택 & 톱니바퀴 */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        h1 { color: #FFFFFF; font-weight: 800; font-size: 1.8em; margin: 0; }
+        
+        .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .lang-select-wrapper { display: flex; flex-direction: column; font-size: 0.8em; color: #A0A0A0; }
+        .lang-select { background: #1E1E1E; color: #FFF; border: 1px solid #444; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 1rem; cursor: pointer; }
+        .lang-select:focus { border-color: #3B82F6; }
+
+        .teacher-mode-btn { background: none; border: none; font-size: 1.8em; cursor: pointer; color: #888; transition: transform 0.3s, color 0.3s; margin-left: 5px; }
+        .teacher-mode-btn:hover { color: #3B82F6; transform: rotate(90deg); }
+
+        .lang2-text { color: #FCD34D; font-size: 1em; display: block; margin-top: 6px; opacity: 0.9; font-weight: 500; }
+        .btn-lang2-text { color: #FCD34D; font-size: 0.85em; display: block; margin-top: 2px; font-weight: normal; }
+
+        /* 문항 버튼 네비게이션 */
+        #button-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 10px; scrollbar-width: thin; scrollbar-color: #333 #121212;    justify-content: center; }
+        .question-btn { background-color: #1E1E1E; border: 1px solid #333; color: #A0A0A0; padding: 8px 16px; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; font-weight: 600; }
+        .question-btn:hover { background-color: #2C2C2C; color: #FFF; }
+        .question-btn.active { background-color: #3B82F6; color: #FFF; border-color: #3B82F6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+        .question-btn.completed { background-color: #10B981; color: #FFF; border-color: #059669; }
+        .question-btn.active.completed { box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); border-color: #FFF; }
+
+        /* 전체보기 전용 보라색 버튼 */
+        #btn-view-all { background-color: #8B5CF6; color: white; border-color: #8B5CF6; }
+        #btn-view-all:hover { background-color: #7C3AED; }
+        #btn-view-all.active { box-shadow: 0 0 12px rgba(139, 92, 246, 0.6); border-color: #FFF; }
+
+        /* 문항 표시부 */
+        #question-display { background: linear-gradient(145deg, #1A1A1A, #252525); padding: 40px 30px; border-radius: 12px; margin-bottom: 10px; font-size: 1.4em; font-weight: bold; text-align: center; color: #FFF; border: 1px solid #333; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; word-break: keep-all; line-height: 1.5; }
+        
+        /* 평균바 스타일 */
+        #average-display { text-align: center; margin-bottom: 20px; min-height: 45px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .avg-bar-wrapper { width: 100%; max-width: 400px; margin: 15px auto 5px auto; position: relative; }
+        .avg-bar-bg { height: 12px; background: linear-gradient(to right, #EF4444, #D946EF, #A855F7, #6366F1, #3B82F6); border-radius: 10px; position: relative; border: 1px solid #444; }
+        .avg-marker { position: absolute; top: -6px; bottom: -6px; width: 4px; background: #FFF; box-shadow: 0 0 5px rgba(0,0,0,0.8); border-radius: 2px; transition: left 0.3s ease; }
+        .avg-marker-label { position: absolute; top: -25px; transform: translateX(-50%); background: #FFF; color: #000; font-size: 0.8em; padding: 2px 6px; border-radius: 4px; font-weight: bold; white-space: nowrap; transition: left 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .avg-marker-label::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border-width: 4px 4px 0; border-style: solid; border-color: #FFF transparent transparent transparent; }
+        .avg-text-info { font-size: 0.9em; color: #10B981; font-weight: bold; margin-top: 8px; }
+
+        /* 학생 리스트 Grid */
+        #student-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(95px, 1fr)); gap: 12px; }
+        .student-card { background-color: #1E1E1E; border: 1px solid #2A2A2A; border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .student-card:hover { transform: translateY(-3px); background-color: #252525; border-color: #444; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .student-avatar { width: 50px; height: 50px; border-radius: 50%; background-color: #2C2C2C; margin-bottom: 8px; object-fit: cover; border: 2px solid #333; }
+        .student-name { font-weight: bold; font-size: 1.05em; color: #FFF; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .status-badge { font-size: 0.75em; font-weight: bold; padding: 4px 6px; border-radius: 10px; background-color: #333; color: #888; }
+        .status-badge.completed { background-color: #10B981; color: #FFF; box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+
+        /* ---------------- 양자택일형 색상 버튼 스타일 ---------------- */
+        .balance-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px; margin: 25px 0; }
+        .balance-text { flex: 1; text-align: center; font-size: 1.2em; word-break: keep-all; line-height: 1.4; font-weight: bold; }
+        .balance-text.left-text { text-align: right; color: #FCA5A5; }
+        .balance-text.right-text { text-align: left; color: #93C5FD; }
+        
+        .scale-group { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; align-items: center; }
+        .scale-btn { width: 35px; height: 35px; border-radius: 50%; border: 3px solid #222; cursor: pointer; transition: all 0.2s ease; outline: none; padding: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        .scale-btn:hover { transform: scale(1.1); border-color: #FFF; }
+        .scale-btn.selected { border-color: #FFF; box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); transform: scale(1.15); }
+
+        /* 스펙트럼 색상 정의 */
+        .scale-color-1 { background-color: #EF4444; } /* 빨강 */
+        .scale-color-2 { background-color: #D946EF; } /* 자주 */
+        .scale-color-3 { background-color: #A855F7; } /* 보라 */
+        .scale-color-4 { background-color: #6366F1; } /* 남색 */
+        .scale-color-5 { background-color: #3B82F6; } /* 파랑 */
+
+        /* 모바일 최적화 */
+        @media (max-width: 650px) {
+            .balance-row { flex-direction: column; margin: 15px 0; gap: 12px; }
+            .balance-text.left-text, .balance-text.right-text { text-align: center; font-size: 1.1em; }
+            .scale-btn { width: 30px; height: 30px; }
+        }
+
+        /* ---------------- MBTI 전체 보기 뷰 (5단계 구조) ---------------- */
+        #mbti-view { display: none; margin-top: 10px; animation: fadeIn 0.4s ease; }
+        .mbti-nav { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .mbti-nav-btn { background: #1E1E1E; border: 2px solid #444; color: #A0A0A0; font-size: 1.1em; font-weight: bold; padding: 10px 20px; border-radius: 30px; cursor: pointer; transition: 0.3s; }
+        .mbti-nav-btn:hover { border-color: #8B5CF6; color: #FFF; }
+        .mbti-nav-btn.active { background: #8B5CF6; color: #FFF; border-color: #8B5CF6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
+        
+        .mbti-desc-container { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 20px; flex-wrap: wrap; }
+        .mbti-desc-box { flex: 1; min-width: 250px; background: #252525; padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 1.05em; color: #FCD34D; word-break: keep-all; border: 1px solid #444; }
+
+        .mbti-arena { display: flex; gap: 10px; width: 100%; overflow-x: auto; padding-bottom: 15px; flex-wrap: nowrap; scrollbar-width: thin; }
+        .mbti-col { flex: 1 0 120px; background: #1A1A1A; border: 1px solid #333; border-radius: 12px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; }
+        .mbti-col-header { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #333; width: 100%; text-align: center; }
+        .mbti-col-students { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; align-content: flex-start; flex-grow: 1; min-height: 150px; }
+
+        .col-1-header { color: #EF4444; border-bottom-color: #EF4444; }
+        .col-2-header { color: #FCA5A5; border-bottom-color: #FCA5A5; }
+        .col-3-header { color: #A855F7; border-bottom-color: #A855F7; }
+        .col-4-header { color: #93C5FD; border-bottom-color: #93C5FD; }
+        .col-5-header { color: #3B82F6; border-bottom-color: #3B82F6; }
+        
+        .mbti-st-card { background: #252525; border: 1px solid #444; border-radius: 8px; padding: 8px; width: 80px; text-align: center; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .mbti-st-card img { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #8B5CF6; margin-bottom: 5px; }
+        .mbti-st-type { color: #8B5CF6; font-weight: 900; font-size: 0.9em; margin-top: 3px; background: rgba(139, 92, 246, 0.1); border-radius: 5px; padding: 2px 0; }
+
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .mbti-result-big { text-align: center; font-size: 4em; font-weight: 900; letter-spacing: 5px; background: -webkit-linear-gradient(#8B5CF6, #3B82F6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
+        
+        /* ---------------- 기존 모달/버튼 스타일 ---------------- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-content { background-color: #1E1E1E; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #333; position: relative; transform: translateY(20px); transition: transform 0.3s ease; }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+        .modal-content.large { max-width: 900px; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.8em; color: #888; cursor: pointer; border: none; background: none; line-height: 1; }
+        .close-btn:hover { color: #FFF; }
+
+        .btn-block { width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .btn-primary { background-color: #3B82F6; color: white; }
+        .btn-primary:hover { background-color: #2563EB; }
+        .btn-success { background-color: #10B981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-warning { background-color: #F59E0B; color: white; }
+        .btn-warning:hover { background-color: #D97706; }
+        .btn-danger { background-color: #EF4444; color: white; }
+        .btn-danger:hover { background-color: #DC2626; }
+        .btn-dark { background-color: #333; color: white; }
+        .btn-dark:hover { background-color: #444; }
+
+        .tab-container { display: flex; border-bottom: 1px solid #333; margin-bottom: 20px; gap: 10px; overflow-x: auto; padding-bottom: 5px; }
+        .tab-btn { background: none; border: none; color: #888; padding: 10px 15px; font-size: 1.1em; cursor: pointer; font-weight: bold; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .tab-btn.active { color: #FFF; border-bottom-color: #3B82F6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .input-group input[type="text"], .input-group select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #121212; color: #FFF; font-size: 1em; min-width: 200px; }
+        .list-group { list-style: none; max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; background: #252525; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #333; }
+        
+        .backup-card { background: #252525; border: 1px solid #333; padding: 20px; border-radius: 10px; margin-bottom: 15px; }
+        
+        table.result-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #FFF; color: #000; border-radius: 8px; overflow: hidden; font-size: 0.95em; }
+        table.result-table th, table.result-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        table.result-table th { background-color: #f4f7f6; font-weight: bold; }
+        table.result-table td.text-left { text-align: left; }
+        
+        #ind-detail-table-wrapper { margin-top: 25px; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; }
+        #ind-detail-table-wrapper table { margin-top: 0; border-radius: 0; }
+        #ind-detail-table-wrapper th { position: sticky; top: 0; z-index: 10; border-top: none; }
+        
+        .mt-2 { margin-top: 15px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 id="ui-title">👑 16성격 검사 킹</h1>
+        <div class="header-controls">
+            <div class="lang-select-wrapper">
+                <label for="lang1" id="ui-label-lang1">1언어 (기본)</label>
+                <select id="lang1" class="lang-select" onchange="changeLanguage()"></select>
+            </div>
+            <div class="lang-select-wrapper">
+                <label for="lang2" id="ui-label-lang2">2언어 (다문화용)</label>
+                <select id="lang2" class="lang-select" onchange="changeLanguage()">
+                    <option value="none" id="ui-opt-none">선택 안함</option>
+                </select>
+            </div>
+            <button class="teacher-mode-btn" onclick="openTeacherModal()" title="Settings">⚙️</button>
+        </div>
+    </div>
+
+    <div id="button-container"></div>
+
+    <div id="normal-view-wrapper">
+        <div id="question-display">
+            <div id="qd-lang1"></div>
+            <div id="qd-lang2" class="lang2-text" style="font-size: 1em; margin-top:15px; text-align:center;"></div>
+        </div>
+        <div id="average-display"></div>
+        <div id="student-list"></div>
+    </div>
+
+    <div id="mbti-view">
+        <div class="mbti-nav">
+            <button class="mbti-nav-btn active" onclick="renderMBTIArena('EI')">E vs I (에너지 방향)</button>
+            <button class="mbti-nav-btn" onclick="renderMBTIArena('SN')">S vs N (인식 방식)</button>
+            <button class="mbti-nav-btn" onclick="renderMBTIArena('TF')">T vs F (판단 방식)</button>
+            <button class="mbti-nav-btn" onclick="renderMBTIArena('JP')">J vs P (생활 양식)</button>
+        </div>
+        
+        <div class="mbti-desc-container">
+            <div class="mbti-desc-box" id="mbti-desc-left" style="border-left: 4px solid #EF4444;"></div>
+            <div class="mbti-desc-box" id="mbti-desc-right" style="border-right: 4px solid #3B82F6;"></div>
+        </div>
+
+        <div class="mbti-arena">
+            <div class="mbti-col">
+                <div class="mbti-col-header col-1-header" id="arena-col-1-title">매우 E</div>
+                <div class="mbti-col-students" id="arena-col-1-students"></div>
+            </div>
+            <div class="mbti-col">
+                <div class="mbti-col-header col-2-header" id="arena-col-2-title">조금 E</div>
+                <div class="mbti-col-students" id="arena-col-2-students"></div>
+            </div>
+            <div class="mbti-col">
+                <div class="mbti-col-header col-3-header" id="arena-col-3-title">반반</div>
+                <div class="mbti-col-students" id="arena-col-3-students"></div>
+            </div>
+            <div class="mbti-col">
+                <div class="mbti-col-header col-4-header" id="arena-col-4-title">조금 I</div>
+                <div class="mbti-col-students" id="arena-col-4-students"></div>
+            </div>
+            <div class="mbti-col">
+                <div class="mbti-col-header col-5-header" id="arena-col-5-title">매우 I</div>
+                <div class="mbti-col-students" id="arena-col-5-students"></div>
+            </div>
+        </div>
+
+        <div id="mbti-disclaimer" style="margin-top: 30px; padding: 20px; text-align: center; color: #A0A0A0; font-size: 0.9em; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid #333; word-break: keep-all; line-height: 1.6;">
+        </div>
+    </div>
+
+    <div id="footer-warning" style="text-align: center; color: #888; font-size: 0.9em; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #333; line-height: 1.6;">
+    </div>
+
+    <div style="margin-top: 50px; margin-bottom: 100px; text-align: center;">
+        <a href="/" id="btn-other-games" class="btn-block" style="text-decoration: none; background: linear-gradient(135deg, #6366F1, #A855F7); color: white; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">
+            <span id="ui-other-games-text" style="font-size: 1.2em;">다른 게임 고르기</span>
+            <span style="font-size: 0.8em; opacity: 0.8;">kingsmath.com</span>
+        </a>
+    </div>
+</div>
+
+<div id="student-input-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('student-input-modal')">&times;</button>
+        <h2 id="modal-student-name" style="color: #3B82F6; text-align: center; margin-bottom: 20px; font-size: 1.5em;"></h2>
+        
+        <div id="single-input-view">
+            <div style="text-align:center; color:#A0A0A0; font-size:0.9em; margin-bottom:10px;"><span id="ui-mq-num"></span></div>
+            
+            <div class="balance-row">
+                <div class="balance-text left-text">
+                    <div id="mq-left-lang1"></div>
+                    <div id="mq-left-lang2" class="lang2-text"></div>
+                </div>
+                <div class="scale-group">
+                    <button class="scale-btn scale-color-1" data-score="1" onclick="selectScore(1)" title="매우 왼쪽"></button>
+                    <button class="scale-btn scale-color-2" data-score="2" onclick="selectScore(2)" title="조금 왼쪽"></button>
+                    <button class="scale-btn scale-color-3" data-score="3" onclick="selectScore(3)" title="가운데"></button>
+                    <button class="scale-btn scale-color-4" data-score="4" onclick="selectScore(4)" title="조금 오른쪽"></button>
+                    <button class="scale-btn scale-color-5" data-score="5" onclick="selectScore(5)" title="매우 오른쪽"></button>
+                </div>
+                <div class="balance-text right-text">
+                    <div id="mq-right-lang1"></div>
+                    <div id="mq-right-lang2" class="lang2-text"></div>
+                </div>
+            </div>
+            
+            <button class="btn-block btn-success" onclick="saveSingleData()">
+                <span id="ui-btn-save">저장 후 닫기</span>
+                <span id="ui-btn-save-l2" class="btn-lang2-text"></span>
+            </button>
+            <hr style="border-color: #333; margin: 20px 0;">
+            <button class="btn-block btn-dark" onclick="toggleBulkInputView()">
+                <span id="ui-btn-batch">이 학생 12문항 일괄 입력하기 ➡️</span>
+                <span id="ui-btn-batch-l2" class="btn-lang2-text"></span>
+            </button>
+        </div>
+
+        <div id="bulk-input-view" style="display: none;">
+            <p style="text-align: center; color: #A0A0A0; margin-bottom: 15px;">
+                <span id="ui-msg-score">어느 쪽 성향에 더 가까운지 색깔 버튼을 선택하세요.</span><br>
+                <span id="ui-msg-score-l2" class="lang2-text"></span>
+            </p>
+            <div id="bulk-questions-container" style="max-height: 55vh; overflow-y: auto; border: 1px solid #333; padding: 10px; border-radius: 8px; margin-bottom: 15px; background: #121212; overflow-x: hidden;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-block" style="background: #444; color: #FFF; width: 30%; flex-direction: column;" onclick="toggleBulkInputView()">
+                    <span id="ui-btn-cancel">⬅️ 취소</span>
+                    <span id="ui-btn-cancel-l2" class="btn-lang2-text"></span>
+                </button>
+                <button class="btn-block btn-primary" style="width: 70%; flex-direction: column;" onclick="saveBulkData()">
+                    <span id="ui-btn-batch-save">12문항 일괄 저장</span>
+                    <span id="ui-btn-batch-save-l2" class="btn-lang2-text"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="teacher-modal" class="modal-overlay">
+    <div class="modal-content large">
+        <button class="close-btn" onclick="closeModal('teacher-modal')">&times;</button>
+        <h2 style="color: #FFF; margin-bottom: 20px; font-size: 1.6em;">⚙️ <span id="ui-dash-title">교사 대시보드   </span><a href="https://indischool.com/boards/libCurriculum/37559750" target="_blank" 
+   style="display: inline-block; margin-left: 10px; padding: 6px 12px; border: 1.5px solid #4A90E2; color: #4A90E2; text-decoration: none; border-radius: 4px; font-weight: 500; font-size: 13px;">
+  성격 검사 활용 방법(indischool.com 링크)
+</a></h2>
+        
+        <div class="tab-container">
+            <button id="ui-tab-guide" class="tab-btn active" onclick="switchTab('tab-guide')">📖 이용 안내</button>
+            <button id="ui-tab-manage" class="tab-btn" onclick="switchTab('tab-manage')">👥 학생 관리</button>
+            <button id="ui-tab-ind" class="tab-btn" onclick="switchTab('tab-result-ind')">📊 개별 결과</button>
+            <button id="ui-tab-all" class="tab-btn" onclick="switchTab('tab-result-all')">📈 전체 결과</button>
+            <button id="ui-tab-backup" class="tab-btn" onclick="switchTab('tab-backup')">💾 백업/복구</button>
+        </div>
+
+        <div id="tab-guide" class="tab-content active">
+            <div class="backup-card" style="margin-bottom: 15px;" id="guide-content-area"></div>
+        </div>
+
+        <div id="tab-manage" class="tab-content">
+            <div class="input-group">
+                <input type="text" id="new-student-input" placeholder="새 학생 이름 입력 (예: 25홍길동)" onkeypress="if(event.key==='Enter') addStudent()">
+                <button id="btn-add-st" class="btn-block btn-primary" style="width: auto; margin: 0; padding: 12px 20px;" onclick="addStudent()">추가</button>
+            </div>
+            <p id="ui-msg-avatar" style="color: #888; font-size: 0.9em; margin-bottom: 10px;">※ 학생을 추가하면 아바타 캐릭터가 자동으로 생성됩니다.</p>
+            <ul id="manage-student-list" class="list-group"></ul>
+        </div>
+
+        <div id="tab-result-ind" class="tab-content">
+            <div class="input-group" style="flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px;">
+                <select id="student-select" onchange="renderIndividualResult()"></select>
+                <button id="btn-copy" class="btn-block btn-warning" style="width: auto; margin: 0; white-space: nowrap;" onclick="copyIndividualResult()">📋 복사하기</button>
+                <button id="btn-save-txt-ind" class="btn-block btn-success" style="width: auto; margin: 0; white-space: nowrap;" onclick="exportIndividualTXT()">📄 TXT 저장</button>
+            </div>
+            <div id="ind-result-area" style="display: none; background: #FFF; padding: 20px; border-radius: 12px; margin-top: 15px;">
+                <div id="ind-mbti-display" class="mbti-result-big"></div>
+                <div id="ind-scores-display" style="text-align: center; margin-bottom: 15px; color: #000; font-weight: bold;"></div>
+                <div id="ind-detail-table-wrapper"></div>
+            </div>
+        </div>
+
+        <div id="tab-result-all" class="tab-content">
+            <div class="flex-between">
+                <p id="ui-msg-allsum" style="color: #A0A0A0;">전체 학생의 MBTI 요약입니다.</p>
+                <button id="btn-save-txt-all" class="btn-block btn-success" style="width: auto; margin: 0;" onclick="exportAllTXT()">📑 TXT 저장</button>
+            </div>
+            <div style="overflow-x: auto; margin-top: 15px;">
+                <div id="all-result-table-container"></div>
+            </div>
+        </div>
+
+        <div id="tab-backup" class="tab-content">
+            <div class="backup-card">
+                <h3 style="color: #3B82F6; margin-bottom: 10px;">💾 <span id="ui-bk-down-title">데이터 백업 (다운로드)</span></h3>
+                <button id="btn-bk-down" class="btn-block btn-primary" onclick="exportBackupData()">JSON 다운로드</button>
+            </div>
+            <div class="backup-card">
+                <h3 style="color: #10B981; margin-bottom: 10px;">📂 <span id="ui-bk-up-title">백업 복구 (불러오기)</span></h3>
+                <input type="file" id="backup-file-input" accept=".json" style="margin-bottom: 10px;">
+                <button id="btn-bk-up" class="btn-block btn-success" onclick="importBackupData()">파일 선택 후 데이터 복구</button>
+            </div>
+            <div class="backup-card" style="border-color: #7f1d1d;">
+                <h3 style="color: #EF4444; margin-bottom: 10px;">🗑️ <span id="ui-bk-del-title">데이터 초기화</span></h3>
+                <button id="btn-bk-del" class="btn-block btn-danger" onclick="clearAllData()">모든 데이터 삭제</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const dict = {
+    'ko': {
+        name: '🇰🇷 한국어', 
+        ui: { 
+            title: "16성격 검사 킹", lang1: "1언어 (기본)", lang2: "2언어 (다문화용)", none: "선택 안함", dashTitle: "교사 대시보드",
+            wait: "대기중", entered: "입력됨", completed: "전체완료", avgPrefix: "평균 점수:", avgSuffix: "명 참여", noData: "아직 등록된 학생이 없습니다.",
+            guide: "이용 안내", manage: "학생 관리", indRes: "개별 결과", allRes: "전체 결과", backup: "백업/복구",
+            add: "추가", del: "삭제", phName: "새 학생 이름 입력", msgAvatar: "※ 학생을 추가하면 아바타 캐릭터가 자동으로 생성됩니다.",
+            selTarget: "결과를 볼 학생을 선택하세요", copy: "복사하기", saveTxt: "TXT 저장", msgAllSum: "전체 학생의 MBTI 유형 요약입니다.",
+            bkDownTitle: "데이터 백업 (다운로드)", bkUpTitle: "백업 복구 (불러오기)", bkDelTitle: "데이터 초기화", btnBkDown: "JSON 다운로드", btnBkUp: "파일 선택 후 복구", btnBkDel: "모든 데이터 삭제",
+            saveClose: "저장 후 닫기", batchInput: "이 학생 12문항 일괄 입력하기 ➡️", batchSave: "12문항 일괄 저장", cancel: "⬅️ 취소", selectScore: "내 마음과 더 비슷한 색깔 버튼을 꾹 눌러주세요.", qNum: "번 문항",
+            noResp: "미응답", sumTitle: "유형 결과", detailTitle: "문항별 응답 상세",
+            nameCol: "이름", noCol: "번호", traitCol: "지표", qCol: "문항", scoreCol: "점수", scorePt: "점",
+            alertNoSt: "학생을 선택해주세요.", alertNoData: "데이터가 없습니다.", alertDel: "학생을 삭제할까요?", alertInit: "정말로 모든 데이터를 삭제하시겠습니까?", alertCopyOk: "결과가 복사되었습니다.", alertBkOk: "데이터 복구가 완료되었습니다!",
+            gTitle: "📌 프로그램 기본 사용 순서", g1: "학생 등록: [학생 관리] 탭에서 이름을 추가합니다.", g2: "점수 기준: 빨간색은 왼쪽 성향, 파란색은 오른쪽 성향에 가깝습니다.", g3: "검사 진행: 학생 카드를 눌러 점수를 입력합니다.", g4: "전체 보기: 문항 우측 끝 [전체 보기] 버튼을 누르면 반 전체 학생이 이동하는 화면을 볼 수 있습니다.",
+            discTitle: "⚠️ 참고해주세요!", disc1: "MBTI는 비과학적인 검사이며, 본 사이트의 검사는 매우 간단하게 구성되어 있어 정확하지 않습니다.", disc2: "또한 사람의 성향은 상황이나 오늘의 기분에 따라 언제든 쉽게 바뀔 수 있습니다.", disc3: "이 결과표는 정답이 아니니 <strong>나를 이해하고 서로 다름을 존중하기 위한 가벼운 도구</strong>로만 활용해 주세요.",
+            footTitle: "⚠️ 데이터 저장 안내 및 주의사항", foot1: "입력되는 모든 데이터는 외부 서버로 전송되지 않고 <strong>현재 사용 중인 브라우저(로컬 스토리지)</strong>에만 안전하게 저장됩니다.", foot2: "단, 학교 컴퓨터 등에서 재부팅(복구 프로그램)을 하거나 브라우저 기록을 삭제하면 저장 데이터가 초기화될 수 있습니다.", foot3: "데이터를 잃지 않으려면 브라우저 창을 닫거나 컴퓨터를 끄기 전 <strong>반드시 백업을 해두세요.</strong>", foot4: "(💾 저장 방법 : 우측 상단 ⚙️톱니바퀴 클릭 -> 백업/복구 -> JSON 다운로드)",
+            vVery: "매우", vLittle: "조금", vHalf: "반반", vEnergy: "에너지 방향", vRecognize: "인식 방식", vJudge: "판단 방식", vLife: "생활 양식",
+            otherGames: "다른 게임 고르기"
+        },
+        q: { 
+            1: ["친구들과 왁자지껄 신나게 뛰놀기", "조용히 책을 읽거나 혼자만의 시간 갖기"],
+            5: ["처음 보는 친구에게 내가 먼저 인사하기", "친구가 먼저 말 걸어줄 때까지 기다리기"],
+            9: ["내 생각이나 기분을 바로바로 입 밖으로 말하기", "마음속으로 곰곰이 생각하고 나서 말하기"],
+            2: ["사과를 보면 '빨갛다, 달콤하겠다' 진짜 모습부터 생각하기", "사과를 보면 '백설공주가 먹은 독사과?' 상상부터 하기"],
+            6: ["미술 시간, 눈에 보이는 그대로 똑같이 그리기", "미술 시간, 내 상상력을 듬뿍 넣어서 마음대로 그리기"],
+            10: ["무인도에 갇히면 '물은 어디 있지?' 현실적인 걱정부터", "무인도에 갇히면 '내가 타잔이다!' 영화 주인공처럼 상상하기"],
+            3: ["친구가 우울해서 화분 샀다고 하면 → '무슨 꽃 샀어?'", "친구가 우울해서 화분 샀다고 하면 → '무슨 일 있어? 왜 우울해?'"],
+            7: ["친구가 선생님께 혼나면 '왜 혼났어?' 이유부터 궁금해하기", "친구가 선생님께 혼나면 '많이 속상하겠다' 먼저 위로해주기"],
+            11: ["모둠 활동할 때 결과가 완벽하고 규칙을 잘 지키는 게 중요해", "모둠 활동할 때 친구들과 싸우지 않고 사이좋게 하는 게 중요해"],
+            4: ["방학 숙제나 준비물은 미리미리 계획 세워서 챙기기", "방학 숙제는 개학 전날 몰아서, 준비물은 아침에 챙기기"],
+            8: ["친구랑 놀 때 언제, 어디서, 뭐 할지 정확하게 정하기", "일단 만나서 그때그때 재미있어 보이는 거 하고 놀기"],
+            12: ["내 책상이나 사물함은 항상 깨끗하게 정리정돈 하기", "조금 어질러져 있어도 내 물건만 잘 찾으면 괜찮아"]
+        },
+        desc: {
+            E: "나는 에너지가 넘쳐! 친구들과 왁자지껄 신나게 노는 게 제일 좋아!",
+            I: "나는 나만의 시간이 필요해. 조용히 내 할 일을 하거나 쉬는 게 좋아.",
+            S: "나는 내 눈으로 직접 보고 겪은 진짜 사실이 중요해. 있는 그대로 관찰을 잘해.",
+            N: "나는 기발한 상상력과 통통 튀는 아이디어가 넘쳐! 상상하는 게 제일 재밌어.",
+            T: "나는 '왜 그럴까?' 하는 정확한 이유와 규칙이 중요해. 공평하고 맞는 것을 잘 찾아내.",
+            F: "나는 친구들의 마음과 기분이 중요해. 따뜻하게 안아주고 공감하는 걸 잘해.",
+            J: "나는 미리미리 계획을 세우고, 순서대로 차근차근 해내는 게 마음이 편해.",
+            P: "나는 그때그때 상황에 맞춰서 자유롭게 하는 게 좋아. 끌리는 대로 하는 게 재밌어!"
+        }
+    },
+    'en': {
+        name: '🇺🇸 English', 
+        ui: { 
+            title: "16 Personality Test King", lang1: "Primary Lang", lang2: "Secondary Lang", none: "None", dashTitle: "Teacher Dashboard",
+            wait: "Waiting", entered: "Entered", completed: "Completed", avgPrefix: "Average Score:", avgSuffix: "Students", noData: "No students registered yet.",
+            guide: "Guide", manage: "Manage Students", indRes: "Individual Results", allRes: "All Results", backup: "Backup/Restore",
+            add: "Add", del: "Delete", phName: "Enter student name", msgAvatar: "※ Avatars are generated automatically.",
+            selTarget: "Select a student to view", copy: "Copy", saveTxt: "Save TXT", msgAllSum: "Summary of MBTI types for all students.",
+            bkDownTitle: "Data Backup (Download)", bkUpTitle: "Data Restore (Upload)", bkDelTitle: "Initialize Data", btnBkDown: "Download JSON", btnBkUp: "Restore Data", btnBkDel: "Delete All Data",
+            saveClose: "Save & Close", batchInput: "Batch Input 12 Questions ➡️", batchSave: "Save 12 Questions", cancel: "⬅️ Cancel", selectScore: "Pick the color button that feels most like you.", qNum: " Question",
+            noResp: "No Response", sumTitle: "Result Type", detailTitle: "Response Details",
+            nameCol: "Name", noCol: "No.", traitCol: "Trait", qCol: "Question", scoreCol: "Score", scorePt: "pt",
+            alertNoSt: "Please select a student.", alertNoData: "No data available.", alertDel: "Delete this student?", alertInit: "Delete all data?", alertCopyOk: "Copied!", alertBkOk: "Restored!",
+            gTitle: "📌 How to Use", g1: "Registration: Add names in [Manage Students].", g2: "Scoring: Red is Left, Blue is Right.", g3: "Testing: Click cards to input scores.", g4: "View All: Click [View All] for class distribution.",
+            discTitle: "⚠️ Note!", disc1: "MBTI is not a scientific test and this version is simplified.", disc2: "Personalities can change based on situations or moods.", disc3: "Use this as a <strong>tool for understanding and respecting differences</strong>.",
+            footTitle: "⚠️ Data Storage", foot1: "Data is saved only in your <strong>browser's local storage</strong>.", foot2: "Resetting browser or using public PCs may delete data.", foot3: "<strong>Backup regularly</strong> before closing the window.", foot4: "(💾 Gear icon -> Backup/Restore -> Download JSON)",
+            vVery: "Very", vLittle: "Slightly", vHalf: "Neutral", vEnergy: "Energy", vRecognize: "Sensation/Intuition", vJudge: "Thinking/Feeling", vLife: "Lifestyle",
+            otherGames: "Choose Other Games"
+        },
+        q: { 
+            1: ["Playing loudly with friends", "Reading quietly alone"],
+            5: ["Greeting new friends first", "Waiting for others to say hi"],
+            9: ["Speaking thoughts out loud", "Thinking quietly first"],
+            2: ["Focusing on real facts (Red apple)", "Imagining stories (Poison apple)"],
+            6: ["Drawing exactly what I see", "Drawing with my imagination"],
+            10: ["Worrying about survival (Water)", "Pretending to be a hero"],
+            3: ["Asking 'What plant?'", "Asking 'Why are you sad?'"],
+            7: ["Asking 'Why did you get in trouble?'", "Comforting with 'You must be upset'"],
+            11: ["Rules and perfect results", "Harmony and teamwork"],
+            4: ["Planning and preparing early", "Doing things last minute"],
+            8: ["Deciding when and where to meet", "Deciding things as they happen"],
+            12: ["Keeping desk clean", "Messy but I can find things"]
+        },
+        desc: {
+            E: "Full of energy! I love playing with friends!",
+            I: "I need alone time to rest and recharge.",
+            S: "I value real facts and what I see with my eyes.",
+            N: "I have creative ideas and love imagining things.",
+            T: "Reasons and rules are important to me.",
+            F: "Feelings and empathy are important to me.",
+            J: "I feel relaxed when following a plan.",
+            P: "I like acting freely based on the situation."
+        }
+    },
+    'zh': {
+        name: '🇨🇳 中文 (简体)',
+        ui: {
+            title: "16人格测试王", lang1: "第一语言", lang2: "第二语言", none: "不选择", dashTitle: "教师控制板",
+            wait: "等待中", entered: "已录入", completed: "完成", avgPrefix: "平均分:", avgSuffix: "人参与", noData: "尚无注册学生。",
+            guide: "使用说明", manage: "学生管理", indRes: "个人结果", allRes: "整体结果", backup: "备份/恢复",
+            add: "添加", del: "删除", phName: "输入学生姓名", msgAvatar: "※ 添加学生后将自动生成头像。",
+            selTarget: "选择要查看结果的学生", copy: "复制", saveTxt: "保存TXT", msgAllSum: "全体学生的MBTI类型摘要。",
+            bkDownTitle: "数据备份 (下载)", bkUpTitle: "备份恢复 (上传)", bkDelTitle: "数据初始化", btnBkDown: "下载JSON", btnBkUp: "恢复数据", btnBkDel: "删除所有数据",
+            saveClose: "保存并关闭", batchInput: "批量输入 ➡️", batchSave: "批量保存", cancel: "⬅️ 取消", selectScore: "请选择符合您性格的颜色按钮。", qNum: " 题",
+            noResp: "未回答", sumTitle: "类型结果", detailTitle: "详细回答",
+            nameCol: "姓名", noCol: "编号", traitCol: "指标", qCol: "题目", scoreCol: "分数", scorePt: "分",
+            alertNoSt: "请选择学生。", alertNoData: "暂无数据。", alertDel: "确认删除？", alertInit: "确认清除所有数据吗？", alertCopyOk: "已复制到剪贴板。", alertBkOk: "数据恢复成功！",
+            gTitle: "📌 基本使用步骤", g1: "学生注册：在[学生管理]中添加名单。", g2: "评分标准：红色偏向左侧，蓝色偏向右侧。", g3: "进行测试：点击学生卡片输入分数。", g4: "查看全体：点击[查看全体]观察班级分布。",
+            discTitle: "⚠️ 注意事项！", disc1: "MBTI并非科学测试，此版本为简易版。", disc2: "性格会随环境或心情而改变。", disc3: "请将其作为<strong>理解和尊重差异的工具</strong>。",
+            footTitle: "⚠️ 데이터 저장 안내 및 주의사항", foot1: "数据仅保存在<strong>当前浏览器</strong>中。", foot2: "清除浏览器记录可能会导致数据丢失。", foot3: "关闭窗口前<strong>请务必备份数据</strong>。", foot4: "(💾 点击 ⚙️ -> 备份/恢复 -> 下载JSON)",
+            vVery: "非常", vLittle: "稍微", vHalf: "一半一半", vEnergy: "能量方向", vRecognize: "感知方式", vJudge: "判断方式", vLife: "生活方式",
+            otherGames: "选择其他游戏"
+        },
+        q: {
+            1: ["和朋友们一起玩耍", "独自安静读书或休息"],
+            5: ["主动向新同学打招呼", "等待别人主动找我"],
+            9: ["直接说出想法和感受", "先在心里考虑后再说"],
+            2: ["关注现实（红苹果）", "关注想象（毒苹果）"],
+            6: ["画出看到的真实样子", "加入想象力自由创作"],
+            10: ["担心生存问题（寻找水源）", "幻想成为电影主角"],
+            3: ["询问'买了什么花？'", "询问'为什么难过？'"],
+            7: ["询问'为什么挨批评？'", "先安慰说'一定很难受'"],
+            11: ["结果和规则更重要", "和谐与关系更重要"],
+            4: ["提前计划并做好准备", "最后时刻突击完成"],
+            8: ["明确约定时间地点", "见面后根据情况决定"],
+            12: ["保持桌面整洁", "虽然乱但能找到东西"]
+        },
+        desc: {
+            E: "充满能量！我喜欢和朋友们一起玩！",
+            I: "我需要独处的时间来充电。",
+            S: "我重视看到的真实事实。",
+            N: "我有丰富的想象力和奇思妙想。",
+            T: "原因和规则对我来说很重要。",
+            F: "他人的感受和共鸣很重要。",
+            J: "按计划行事让我感到轻松。",
+            P: "我喜欢根据情况自由发挥。"
+        }
+    },
+    'ja': {
+        name: '🇯🇵 日本語',
+        ui: {
+            title: "16性格診断キング", lang1: "第1言語", lang2: "第2言語", none: "選択なし", dashTitle: "管理画面",
+            wait: "待機中", entered: "入力済", completed: "完了", avgPrefix: "平均:", avgSuffix: "名参加", noData: "登録された生徒がいません。",
+            guide: "ガイド", manage: "生徒管理", indRes: "個別結果", allRes: "全体結果", backup: "バックアップ",
+            add: "추가", del: "削除", phName: "名前を入力", msgAvatar: "※ アバターは自動生成されます。",
+            selTarget: "生徒を選択してください", copy: "コピー", saveTxt: "TXT保存", msgAllSum: "全体のMBTI集計です。",
+            bkDownTitle: "데이터 백업 (다운로드)", bkUpTitle: "데이터 복구 (불러오기)", bkDelTitle: "데이터 초기화", btnBkDown: "JSON 다운로드", btnBkUp: "파일 선택 후 복구", btnBkDel: "모든 데이터 삭제",
+            saveClose: "保存して閉じる", batchInput: "一括入力 ➡️", batchSave: "一括保存", cancel: "⬅️ キャンセル", selectScore: "自分の気持ちに近い色を選んでください。", qNum: "番目の質問",
+            noResp: "未回答", sumTitle: "診断結果", detailTitle: "回答詳細",
+            nameCol: "名前", noCol: "No.", traitCol: "指標", qCol: "質問", scoreCol: "スコア", scorePt: "点",
+            alertNoSt: "生徒を選択してください。", alertNoData: "데이터가 없습니다.", alertDel: "削除しますか？", alertInit: "全て削除しますか？", alertCopyOk: "コピーしました。", alertBkOk: "復元しました！",
+            gTitle: "📌 基本的な使い方", g1: "生徒登録：生徒の名前を追加します。", g2: "スコア：赤は左、青は右の傾向です。", g3: "テスト：生徒を選択して入力します。", g4: "全体表示：分布図を確認できます。",
+            discTitle: "⚠️ 注意点", disc1: "MBTIは非科学的なテストです。", disc2: "性格は状況や気分で変わることがあります。", disc3: "<strong>互いの違いを尊重するための道具</strong>として使ってください。",
+            footTitle: "⚠️ 데이터 저장 안내 및 주의사항", foot1: "데이터는 사용중인 브라우저에만 저장됩니다.", foot2: "기록 삭제 시 데이터가 초기화될 수 있습니다.", foot3: "반드시 백업을 해두세요.", foot4: "(💾 Gear 아이콘 -> 백업 -> JSON 다운로드)",
+            vVery: "とても", vLittle: "少し", vHalf: "中間", vEnergy: "エネルギー", vRecognize: "認識", vJudge: "判断", vLife: "ライフスタイル",
+            otherGames: "다른 게임 고르기"
+        },
+        q: {
+            1: ["友達と元気に遊ぶ", "静かに本を読む"],
+            5: ["自分から挨拶する", "話しかけられるのを待つ"],
+            9: ["すぐに口に出す", "よく考えてから話す"],
+            2: ["現実を見る（赤いりんご）", "想像する（毒りんご）"],
+            6: ["見たままを描く", "想像力を加えて描く"],
+            10: ["水を心配する", "主人公になりきる"],
+            3: ["'何の花を買った？'と聞く", "'どうしたの？'と聞く"],
+            7: ["理由を聞く", "まず共感する"],
+            11: ["完璧な結果とルール", "仲良く協力すること"],
+            4: ["計画的に準備する", "期限ギリギリにする"],
+            8: ["予定をしっかり決める", "その時の気分で決める"],
+            12: ["机를 綺麗にする", "少し散らかっていても平気"]
+        },
+        desc: {
+            E: "元気いっぱい！友達と遊ぶのが大好き！",
+            I: "一人の時間でリラックスしたいタイプ。",
+            S: "実際に見た事実を大切にします。",
+            N: "想像力豊かでアイデアが溢れます。",
+            T: "理由とルールが何より重要です。",
+            F: "友達の気持ちや共感を大切にします。",
+            J: "計画通りに進むと安心します。",
+            P: "状況に合わせて自由に行動したいです。"
+        }
+    },
+    'es': {
+        name: '🇪🇸 Español',
+        ui: {
+            title: "Rey del Test de Personalidad", lang1: "Idioma 1", lang2: "Idioma 2", none: "Ninguno", dashTitle: "Panel del Profesor",
+            wait: "Esperando", entered: "Ingresado", completed: "Completado", avgPrefix: "Promedio:", avgSuffix: "Alumnos", noData: "Sin alumnos registrados.",
+            guide: "Guía", manage: "Alumnos", indRes: "Individual", allRes: "General", backup: "Copia/Restaurar",
+            add: "Añadir", del: "Borrar", phName: "Nombre del alumno", msgAvatar: "※ Avatar automático.",
+            selTarget: "Selecciona un alumno", copy: "Copiar", saveTxt: "Guardar TXT", msgAllSum: "Resumen de MBTI del grupo.",
+            bkDownTitle: "Backup JSON", bkUpTitle: "Restaurar", bkDelTitle: "Borrar Todo", btnBkDown: "Descargar", btnBkUp: "Subir Archivo", btnBkDel: "Limpiar Datos",
+            saveClose: "Guardar y Cerrar", batchInput: "Entrada Masiva ➡️", batchSave: "Guardar Todo", cancel: "⬅️ Cancelar", selectScore: "Elige el color que más te identifique.", qNum: " Pregunta",
+            noResp: "Sin respuesta", sumTitle: "Resultado", detailTitle: "Detalles",
+            nameCol: "Nombre", noCol: "No.", traitCol: "Rasgo", qCol: "Pregunta", scoreCol: "Puntos", scorePt: "pt",
+            alertNoSt: "Elige un alumno.", alertNoData: "Sin datos.", alertDel: "¿Borrar?", alertInit: "¿Borrar todo?", alertCopyOk: "Copiado.", alertBkOk: "Restaurado.",
+            gTitle: "📌 Uso Básico", g1: "Registro: Añade nombres en [Alumnos].", g2: "Puntos: Rojo es Izquierda, Azul es Derecha.", g3: "Test: Pulsa en la tarjeta para puntuar.", g4: "Vista General: Mira la distribución del grupo.",
+            discTitle: "⚠️ ¡Atención!", disc1: "El MBTI no es científico y este test es simplificado.", disc2: "La personalidad cambia con el humor.", disc3: "Usa esto para <strong>respetar las diferencias</strong>.",
+            footTitle: "⚠️ Almacenamiento", foot1: "Los datos se guardan solo en tu navegador.", foot2: "Si borras el historial, los datos desaparecerán.", foot3: "Haz backup antes de cerrar.", foot4: "(💾 Icono Gear -> Backup -> Download JSON)",
+            vVery: "Muy", vLittle: "Poco", vHalf: "Mitad", vEnergy: "Energía", vRecognize: "Percepción", vJudge: "Juicio", vLife: "Estilo de vida",
+            otherGames: "Elegir otros juegos"
+        },
+        q: {
+            1: ["Jugar con amigos", "Leer solo"],
+            5: ["Saludar primero", "Esperar saludo"],
+            9: ["Decir lo que pienso", "Pensar primero"],
+            2: ["Hechos reales", "Imaginación"],
+            6: ["Dibujar la realidad", "Dibujar fantasía"],
+            10: ["Buscar agua (Realidad)", "Ser el héroe (Ficción)"],
+            3: ["¿Qué flor compraste?", "¿Por qué estás triste?"],
+            7: ["¿Por qué te regañaron?", "Lo siento mucho"],
+            11: ["Reglas y resultados", "Armonía y equipo"],
+            4: ["Planear con tiempo", "Hacerlo al final"],
+            8: ["Decidir hora y lugar", "Decidir al momento"],
+            12: ["Mesa limpia", "Un poco de lío"]
+        },
+        desc: {
+            E: "¡Energía total! ¡Amo jugar con amigos!",
+            I: "Necesito tiempo a solas para descansar.",
+            S: "Valoro los hechos reales que veo.",
+            N: "Tengo ideas creativas e imaginación.",
+            T: "Las razones y reglas son clave.",
+            F: "La empatía es lo más importante.",
+            J: "Me relaja seguir un plan.",
+            P: "Prefiero ser libre según el momento."
+        }
+    },
+    'fr': {
+        name: '🇫🇷 Français',
+        ui: {
+            title: "Roi du Test de Personnalité", lang1: "Langue 1", lang2: "Langue 2", none: "Aucune", dashTitle: "Tableau de Bord",
+            wait: "Attente", entered: "Saisi", completed: "Terminé", avgPrefix: "Moyenne:", avgSuffix: "Élèves", noData: "Aucun élève.",
+            guide: "Guide", manage: "Élèves", indRes: "Individuel", allRes: "Général", backup: "Sauvegarde",
+            add: "Ajouter", del: "Supprimer", phName: "Nom de l'élève", msgAvatar: "※ Avatar automatique.",
+            selTarget: "Choisir un élève", copy: "Copier", saveTxt: "Sauver TXT", msgAllSum: "Résumé MBTI du groupe.",
+            bkDownTitle: "Sauvegarde JSON", bkUpTitle: "Restaurer", bkDelTitle: "Initialiser", btnBkDown: "Télécharger", btnBkUp: "Restaurer Fichier", btnBkDel: "Supprimer Tout",
+            saveClose: "Sauver et Fermer", batchInput: "Saisie Rapide ➡️", batchSave: "Sauver Tout", cancel: "⬅️ Annuler", selectScore: "Choisis la couleur qui te ressemble.", qNum: " Question",
+            noResp: "Pas de réponse", sumTitle: "Résultat", detailTitle: "Détails",
+            nameCol: "Nom", noCol: "No.", traitCol: "Trait", qCol: "Question", scoreCol: "Points", scorePt: "pt",
+            alertNoSt: "Choisir un élève.", alertNoData: "Aucune donnée.", alertDel: "Supprimer ?", alertInit: "Tout supprimer ?", alertCopyOk: "Copié.", alertBkOk: "Restauré.",
+            gTitle: "📌 Utilisation", g1: "Inscription: Ajoutez les noms dans [Élèves].", g2: "Score: Rouge = Gauche, Bleu = Droite.", g3: "Test: Cliquez sur l'élève.", g4: "Vue Globale: Voir la distribution.",
+            discTitle: "⚠️ Attention!", disc1: "Le MBTI n'est pas scientifique.", disc2: "La personnalité change selon l'humeur.", disc3: "Utilisez ceci pour <strong>comprendre les autres</strong>.",
+            footTitle: "⚠️ Stockage", foot1: "Données sauvées sur ce navigateur uniquement.", foot2: "L'effacement de l'historique supprime les données.", foot3: "Sauvegardez avant de quitter.", foot4: "(💾 Icone Gear -> Backup -> Download JSON)",
+            vVery: "Très", vLittle: "Un peu", vHalf: "Moitié", vEnergy: "Énergie", vRecognize: "Perception", vJudge: "Jugement", vLife: "Style de vie",
+            otherGames: "Choisir d'autres jeux"
+        },
+        q: {
+            1: ["Jouer avec des amis", "Lire seul"],
+            5: ["Dire bonjour en premier", "Attendre l'autre"],
+            9: ["Dire tout haut", "Réfléchir d'abord"],
+            2: ["Faits réels", "Imagination"],
+            6: ["Dessiner la réalité", "Dessiner l'imaginaire"],
+            10: ["Chercher de l'eau", "Être le héros"],
+            3: ["Quelle fleur ?", "Pourquoi es-tu triste ?"],
+            7: ["Pourquoi le reproche ?", "Je compatis"],
+            11: ["Règles et résultats", "Harmonie et équipe"],
+            4: ["Planifier tôt", "Faire à la fin"],
+            8: ["Préciser le lieu", "Décider sur le moment"],
+            12: ["Bureau propre", "Un peu de désordre"]
+        },
+        desc: {
+            E: "Plein d'énergie ! J'adore jouer !",
+            I: "J'ai besoin de calme pour me reposer.",
+            S: "Je privilégie les faits concrets.",
+            N: "J'ai beaucoup d'idées créatives.",
+            T: "Les règles sont primordiales.",
+            F: "L'empathie est ma priorité.",
+            J: "J'aime suivre un plan.",
+            P: "J'aime improviser librement."
+        }
+    },
+    'ru': {
+        name: '🇷🇺 Русский',
+        ui: {
+            title: "Король Теста 16 Личностей", lang1: "Язык 1", lang2: "Язык 2", none: "Нет", dashTitle: "Панель Учителя",
+            wait: "Ожидание", entered: "Введено", completed: "Готово", avgPrefix: "Среднее:", avgSuffix: "Учеников", noData: "Нет учеников.",
+            guide: "Инструкция", manage: "Ученики", indRes: "Личный", allRes: "Общий", backup: "Бэкап",
+            add: "Добавить", del: "Удалить", phName: "Имя ученика", msgAvatar: "※ Авто-аватар.",
+            selTarget: "Выберите ученика", copy: "Копировать", saveTxt: "Сохранить TXT", msgAllSum: "Итоги группы.",
+            bkDownTitle: "Скачать JSON", bkUpTitle: "Загрузить", bkDelTitle: "Сброс", btnBkDown: "Скачать", btnBkUp: "Восстановить", btnBkDel: "Удалить всё",
+            saveClose: "Сохранить", batchInput: "Массовый ввод ➡️", batchSave: "Сохранить всё", cancel: "⬅️ Отмена", selectScore: "Выбери подходящий цвет.", qNum: " Вопрос",
+            noResp: "Нет ответа", sumTitle: "Результат", detailTitle: "Детали",
+            nameCol: "Имя", noCol: "№", traitCol: "Тип", qCol: "Вопрос", scoreCol: "Баллы", scorePt: "б",
+            alertNoSt: "Выберите ученика.", alertNoData: "Нет данных.", alertDel: "Удалить?", alertInit: "Сбросить всё?", alertCopyOk: "Скопировано.", alertBkOk: "Восстановлено.",
+            gTitle: "📌 Как пользоваться", g1: "Регистрация: Добавьте имена.", g2: "Баллы: Красный - Лево, Синий - Право.", g3: "Тест: Нажмите на карту.", g4: "Обзор: Посмотрите распределение.",
+            discTitle: "⚠️ Внимание!", disc1: "MBTI не является строгой наукой.", disc2: "Личность может меняться.", disc3: "Используйте для <strong>понимания друг друга</strong>.",
+            footTitle: "⚠️ Хранение данных", foot1: "Данные только в этом браузере.", foot2: "Очистка истории удалит данные.", foot3: "Делайте бэкап.", foot4: "(💾 Gear -> Бэкап -> Download JSON)",
+            vVery: "Очень", vLittle: "Немного", vHalf: "Средне", vEnergy: "Энергия", vRecognize: "Восприятие", vJudge: "Суждение", vLife: "Стиль жизни",
+            otherGames: "Выбрать другие игры"
+        },
+        q: {
+            1: ["Шумно играть", "Тихо читать"],
+            5: ["Первым поздороваться", "Ждать других"],
+            9: ["Говорить сразу", "Сначала подумать"],
+            2: ["Реальные факты", "Фантазии"],
+            6: ["Рисовать реальность", "Рисовать из головы"],
+            10: ["Искать воду", "Быть героем"],
+            3: ["'Какой цветок?'", "'Почему грустишь?'"],
+            7: ["'За что ругали?'", "Посочувствовать"],
+            11: ["Правила и результат", "Гармония в группе"],
+            4: ["Планировать заранее", "Делать в конце"],
+            8: ["Четкое время", "Решать по ходу"],
+            12: ["Чистый стол", "Творческий беспорядок"]
+        },
+        desc: {
+            E: "Много энергии! Люблю играть!",
+            I: "Нужно время в тишине.",
+            S: "Ценю факты и реальность.",
+            N: "Люблю фантазировать.",
+            T: "Правила превыше всего.",
+            F: "Чувства людей важны.",
+            J: "Люблю следовать плану.",
+            P: "Люблю действовать по ситуации."
+        }
+    },
+    'id': {
+        name: '🇮🇩 Bahasa Indo...',
+        ui: {
+            title: "Raja Tes 16 Kepribadian", lang1: "Bahasa 1", lang2: "Bahasa 2", none: "Tidak Ada", dashTitle: "Dashboard Guru",
+            wait: "Menunggu", entered: "Diisi", completed: "Selesai", avgPrefix: "Rata-rata:", avgSuffix: "Siswa", noData: "Belum ada siswa.",
+            guide: "Panduan", manage: "Siswa", indRes: "Hasil Individu", allRes: "Hasil Kelas", backup: "Cadangan",
+            add: "Tambah", del: "Hapus", phName: "Nama siswa", msgAvatar: "※ Avatar otomatis.",
+            selTarget: "Pilih siswa", copy: "Salin", saveTxt: "Simpan TXT", msgAllSum: "Ringkasan MBTI kelas.",
+            bkDownTitle: "Cadangkan JSON", bkUpTitle: "Pulihkan", bkDelTitle: "Reset Data", btnBkDown: "Unduh", btnBkUp: "Pulihkan File", btnBkDel: "Hapus Semua",
+            saveClose: "Simpan & Tutup", batchInput: "Input Massal ➡️", batchSave: "Simpan Semua", cancel: "⬅️ Batal", selectScore: "Pilih tombol yang sesuai perasaanmu.", qNum: " Nomor",
+            noResp: "Belum jawab", sumTitle: "Hasil Tipe", detailTitle: "Detail Jawaban",
+            nameCol: "Nama", noCol: "No.", traitCol: "Sifat", qCol: "Pertanyaan", scoreCol: "Skor", scorePt: "pt",
+            alertNoSt: "Pilih siswa.", alertNoData: "Data kosong.", alertDel: "Hapus?", alertInit: "Hapus semua data?", alertCopyOk: "Tersalin.", alertBkOk: "Pulih!",
+            gTitle: "📌 Cara Pakai", g1: "Daftar: Tambah nama di [Siswa].", g2: "Skor: Merah = Kiri, Biru = Kanan.", g3: "Tes: Klik kartu siswa.", g4: "Lihat Semua: Cek sebaran kelas.",
+            discTitle: "⚠️ Perhatian!", disc1: "MBTI bukan tes ilmiah, ini versi sederhana.", disc2: "Kepribadian bisa berubah.", disc3: "Gunakan untuk <strong>saling menghargai</strong>.",
+            footTitle: "⚠️ Penyimpanan", foot1: "Data hanya disimpan di browser ini.", foot2: "Hapus histori akan menghapus data.", foot3: "Cadangkan data sebelum tutup.", foot4: "(💾 Klik Gear -> Cadangan -> Download JSON)",
+            vVery: "Sangat", vLittle: "Sedikit", vHalf: "Netral", vEnergy: "Energi", vRecognize: "Persepsi", vJudge: "Keputusan", vLife: "Gaya Hidup",
+            otherGames: "Pilih Game Lain"
+        },
+        q: {
+            1: ["Main ramai-ramai", "Baca buku tenang"],
+            5: ["Sapa duluan", "Tunggu disapa"],
+            9: ["Langsung bicara", "Pikir dulu"],
+            2: ["Fakta nyata", "Imajinasi"],
+            6: ["Gambar apa adanya", "Gambar imajinatif"],
+            10: ["Cari air (Nyata)", "Jadi pahlawan (Khayal)"],
+            3: ["'Beli bunga apa?'", "'Kenapa sedih?'"],
+            7: ["'Kenapa dimarahi?'", "Hibur mereka"],
+            11: ["Aturan & hasil", "Harmoni & tim"],
+            4: ["Rencana awal", "Kerjakan akhir"],
+            8: ["Waktu & tempat pasti", "Putuskan nanti"],
+            12: ["Meja rapi", "Sedikit berantakan"]
+        },
+        desc: {
+            E: "Penuh energi! Suka main bersama!",
+            I: "Butuh waktu sendiri.",
+            S: "Fakta nyata itu penting.",
+            N: "Suka berimajinasi.",
+            T: "Aturan itu penting.",
+            F: "Perasaan itu utama.",
+            J: "Suka ada rencana.",
+            P: "Suka kebebasan."
+        }
+    },
+    'vi': {
+        name: '🇻🇳 Tiếng Việt',
+        ui: {
+            title: "Vua Trắc Nghiệm Tính Cách", lang1: "Ngôn ngữ 1", lang2: "Ngôn ngữ 2", none: "Không chọn", dashTitle: "Bảng Giáo Viên",
+            wait: "Đang chờ", entered: "Đã nhập", completed: "Xong", avgPrefix: "Trung bình:", avgSuffix: "Học sinh", noData: "Chưa có học sinh.",
+            guide: "Hướng dẫn", manage: "Học sinh", indRes: "Kết quả riêng", allRes: "Kết quả chung", backup: "Sao lưu",
+            add: "Thêm", del: "Xóa", phName: "Tên học sinh", msgAvatar: "※ Avatar tự động.",
+            selTarget: "Chọn học sinh", copy: "Sao chép", saveTxt: "Lưu TXT", msgAllSum: "Tóm tắt MBTI cả lớp.",
+            bkDownTitle: "Tải JSON", bkUpTitle: "Khôi phục", bkDelTitle: "Xóa hết", btnBkDown: "Tải về", btnBkUp: "Khôi phục file", btnBkDel: "Xóa tất cả",
+            saveClose: "Lưu & Đóng", batchInput: "Nhập nhanh ➡️", batchSave: "Lưu tất cả", cancel: "⬅️ Hủy", selectScore: "Chọn màu giống với cảm xúc của bạn.", qNum: " Câu",
+            noResp: "Chưa trả lời", sumTitle: "Kết quả", detailTitle: "Chi tiết",
+            nameCol: "Tên", noCol: "Số", traitCol: "Đặc điểm", qCol: "Câu hỏi", scoreCol: "Điểm", scorePt: "đ",
+            alertNoSt: "Hãy chọn học sinh.", alertNoData: "Không có dữ liệu.", alertDel: "Xóa?", alertInit: "Xóa hết dữ liệu?", alertCopyOk: "Đã chép.", alertBkOk: "Đã khôi phục!",
+            gTitle: "📌 Cách sử dụng", g1: "Đăng ký: Thêm tên học sinh.", g2: "Điểm: Đỏ là Trái, Xanh là Phải.", g3: "Kiểm tra: Nhấn vào thẻ học sinh.", g4: "Xem chung: Xem phân bổ cả lớp.",
+            discTitle: "⚠️ Lưu ý!", disc1: "MBTI không hoàn toàn khoa học.", disc2: "Tính cách có thể thay đổi.", disc3: "Dùng để <strong>thấu hiểu nhau hơn</strong>.",
+            footTitle: "⚠️ Lưu trữ", foot1: "Dữ liệu chỉ lưu trên trình duyệt này.", foot2: "Xóa lịch sử sẽ mất dữ liệu.", foot3: "Hãy sao lưu thường xuyên.", foot4: "(💾 ⚙️ -> Sao lưu -> Tải JSON)",
+            vVery: "Rất", vLittle: "Hơi", vHalf: "Vừa", vEnergy: "Năng lượng", vRecognize: "Nhận thức", vJudge: "Quyết định", vLife: "Lối sống",
+            otherGames: "Chọn trò chơi khác"
+        },
+        q: {
+            1: ["Chơi cùng bạn bè", "Đọc sách một mình"],
+            5: ["Chào hỏi trước", "Đợi bạn chào"],
+            9: ["Nói ra ngay", "Nghĩ kỹ rồi nói"],
+            2: ["Sự thật (Táo đỏ)", "Tưởng tượng (Táo độc)"],
+            6: ["Vẽ đúng thực tế", "Vẽ theo tưởng tượng"],
+            10: ["Tìm nước uống", "Làm siêu anh hùng"],
+            3: ["'Mua hoa gì thế?'", "'Sao bạn buồn?'"],
+            7: ["'Sao bị mắng thế?'", "An ủi bạn"],
+            11: ["Quy tắc & kết quả", "Hòa đồng & đội nhóm"],
+            4: ["Lập kế hoạch sớm", "Để đến phút cuối"],
+            8: ["Chốt giờ giấc", "Tới đâu hay tới đó"],
+            12: ["Bàn học sạch sẽ", "Hơi bừa bộn"]
+        },
+        desc: {
+            E: "Tràn đầy năng lượng! Thích chơi với bạn bè!",
+            I: "Cần thời gian yên tĩnh.",
+            S: "Coi trọng thực tế.",
+            N: "Giàu trí tưởng tượng.",
+            T: "Quy tắc là quan trọng.",
+            F: "Cảm xúc là quan trọng.",
+            J: "Thích có kế hoạch.",
+            P: "Thích tự do."
+        }
+    },
+    'th': {
+        name: '🇹🇭 ไทย',
+        ui: {
+            title: "ราชาแห่งการทดสอบ 16 บุคลิกภาพ", lang1: "ภาษาหลัก", lang2: "ภาษาเสริม", none: "ไม่เลือก", dashTitle: "แผงควบคุมครู",
+            wait: "รอ", entered: "กรอกแล้ว", completed: "เสร็จสิ้น", avgPrefix: "เฉลี่ย:", avgSuffix: "คน", noData: "ยังไม่มีนักเรียน",
+            guide: "คำแนะนำ", manage: "จัดการนักเรียน", indRes: "ผลรายบุคคล", allRes: "ผลรวมทั้งหมด", backup: "สำรองข้อมูล",
+            add: "เพิ่ม", del: "ลบ", phName: "ชื่อนักเรียน", msgAvatar: "※ สร้างอวตารอัตโนมัติ",
+            selTarget: "เลือกนักเรียน", copy: "คัดลอก", saveTxt: "บันทึก TXT", msgAllSum: "สรุปผล MBTI ของชั้นเรียน",
+            bkDownTitle: "สำรอง JSON", bkUpTitle: "กู้คืน", bkDelTitle: "ล้างข้อมูล", btnBkDown: "ดาวน์โหลด", btnBkUp: "กู้คืนไฟล์", btnBkDel: "ลบทั้งหมด",
+            saveClose: "บันทึกและปิด", batchInput: "ใส่ข้อมูลชุดเดียว ➡️", batchSave: "บันทึกทั้งหมด", cancel: "⬅️ ยกเลิก", selectScore: "เลือกสีที่ตรงใจที่สุด", qNum: " ข้อ",
+            noResp: "ยังไม่ตอบ", sumTitle: "ผลลัพธ์", detailTitle: "รายละเอียด",
+            nameCol: "ชื่อ", noCol: "ที่", traitCol: "ประเภท", qCol: "คำถาม", scoreCol: "คะแนน", scorePt: "คะแนน",
+            alertNoSt: "เลือกนักเรียนก่อน", alertNoData: "ไม่มีข้อมูล", alertDel: "ลบหรือไม่?", alertInit: "ลบทั้งหมด?", alertCopyOk: "คัดลอกแล้ว", alertBkOk: "กู้คืนแล้ว!",
+            gTitle: "📌 วิธีใช้", g1: "ลงทะเบียน: เพิ่มชื่อที่ [จัดการนักเรียน]", g2: "คะแนน: แดง=ซ้าย, ฟ้า=ขวา", g3: "ทดสอบ: คลิกที่การ์ดนักเรียน", g4: "ดูภาพรวม: ดูการกระจายตัวของห้อง",
+            discTitle: "⚠️ ข้อควรระวัง!", disc1: "MBTI ไม่ใช่การทดสอบทางวิทยาศาสตร์ที่แม่นยำ 100%", disc2: "บุคลิกเปลี่ยนตามอารมณ์ได้", disc3: "ใช้เพื่อ <strong>ทำความเข้าใจความต่าง</strong>",
+            footTitle: "⚠️ การเก็บข้อมูล", foot1: "ข้อมูลเก็บในเบราว์เซอร์นี้เท่านั้น", foot2: "การล้างประวัติจะทำให้ข้อมูลหาย", foot3: "สำรองข้อมูลเสมอ", foot4: "(💾 คลิก Gear -> สำรองข้อมูล -> Download JSON)",
+            vVery: "มาก", vLittle: "เล็กน้อย", vHalf: "กลาง", vEnergy: "พลังงาน", vRecognize: "การรับรู้", vJudge: "การตัดสินใจ", vLife: "การใช้ชีวิต",
+            otherGames: "เลือกเกมอื่น"
+        },
+        q: {
+            1: ["เล่นกับเพื่อน", "อ่านหนังสือเงียบๆ"],
+            5: ["ทักทายก่อน", "รอคนทัก"],
+            9: ["พูดออกมาเลย", "คิดก่อนพูด"],
+            2: ["ความจริง (แอปเปิ้ลแดง)", "จินตนาการ (ยาพิษ)"],
+            6: ["วาดตามที่เห็น", "วาดตามจินตนาการ"],
+            10: ["หาน้ำดื่ม", "เป็นฮีโร่"],
+            3: ["'ซื้อดอกไม้อะไร?'", "'ทำไมเศร้า?'"],
+            7: ["'ทำไมโดนดุ?'", "ปลอบใจเพื่อน"],
+            11: ["กฎและผลลัพธ์", "ความสัมพันธ์ในทีม"],
+            4: ["วางแผนล่วงหน้า", "ทำตอนใกล้เสร็จ"],
+            8: ["นัดเวลาชัดเจน", "แล้วแต่สถานการณ์"],
+            12: ["โต๊ะสะอาด", "รกนิดหน่อยแต่หาเจอ"]
+        },
+        desc: {
+            E: "พลังงานล้น! ชอบอยู่กับเพื่อน!",
+            I: "ต้องการความเงียบสงบ",
+            S: "เน้นความจริง",
+            N: "ช่างฝัน",
+            T: "เน้นเหตุผล",
+            F: "เน้นความรู้สึก",
+            J: "ชอบมีแผน",
+            P: "ชอบอิสระ"
+        }
+    },
+    'pt': {
+        name: '🇧🇷 Português',
+        ui: {
+            title: "Rei do Teste 16 Personalidades", lang1: "Língua 1", lang2: "Língua 2", none: "Nenhum", dashTitle: "Painel do Professor",
+            wait: "Aguardando", entered: "Inserido", completed: "Concluído", avgPrefix: "Média:", avgSuffix: "Alunos", noData: "Sem alunos.",
+            guide: "Guia", manage: "Alunos", indRes: "Individual", allRes: "Geral", backup: "Cópia",
+            add: "Adicionar", del: "Excluir", phName: "Nome do aluno", msgAvatar: "※ Avatar automático.",
+            selTarget: "Escolha um aluno", copy: "Copiar", saveTxt: "Salvar TXT", msgAllSum: "Resumo MBTI do grupo.",
+            bkDownTitle: "Salvar JSON", bkUpTitle: "Restaurar", bkDelTitle: "Limpar", btnBkDown: "Baixar", btnBkUp: "Restaurar File", btnBkDel: "Limpar Tudo",
+            saveClose: "Salvar e Fechar", batchInput: "Entrada Rápida ➡️", batchSave: "Salvar Tudo", cancel: "⬅️ Cancelar", selectScore: "Escolha a cor que combina com você.", qNum: " Questão",
+            noResp: "Sem resposta", sumTitle: "Resultado", detailTitle: "Detalhes",
+            nameCol: "Nome", noCol: "No.", traitCol: "Traço", qCol: "Questão", scoreCol: "Pontos", scorePt: "pt",
+            alertNoSt: "Selecione um aluno.", alertNoData: "Sem dados.", alertDel: "Excluir?", alertInit: "Excluir tudo?", alertCopyOk: "Copiado.", alertBkOk: "Restaurado.",
+            gTitle: "📌 Como Usar", g1: "Registro: Adicione nomes em [Alunos].", g2: "Pontos: Vermelho=Esquerda, Azul=Direita.", g3: "Teste: Clique no aluno.", g4: "Vista Geral: Veja a distribuição.",
+            discTitle: "⚠️ Nota!", disc1: "O MBTI não é estritamente científico.", disc2: "A personalidade muda com o humor.", disc3: "Use para <strong>entender as diferenças</strong>.",
+            footTitle: "⚠️ Armazenamento", foot1: "Dados salvos apenas neste navegador.", foot2: "Limpar histórico apaga os dados.", foot3: "Faça backup regularmente.", foot4: "(💾 ⚙️ -> Backup -> Download JSON)",
+            vVery: "Muito", vLittle: "Pouco", vHalf: "Meio", vEnergy: "Energia", vRecognize: "Percepção", vJudge: "Julgamento", vLife: "Estilo de vida",
+            otherGames: "Escolher outros jogos"
+        },
+        q: {
+            1: ["Brincar com amigos", "Ler sozinho"],
+            5: ["Cumprimentar primeiro", "Esperar o outro"],
+            9: ["Falar logo", "Pensar primeiro"],
+            2: ["Fatos reais", "Imaginação"],
+            6: ["Desenhar a realidade", "Desenhar fantasia"],
+            10: ["Procurar água", "Ser o herói"],
+            3: ["Qual flor?", "Por que está triste?"],
+            7: ["Por que brigaram?", "Sinto muito"],
+            11: ["Regras e resultados", "Harmonia e equipe"],
+            4: ["Planejar cedo", "Fazer no final"],
+            8: ["Hora e lugar fixos", "Decidir na hora"],
+            12: ["Mesa limpa", "Bagunçado mas me acho"]
+        },
+        desc: {
+            E: "Muita energia! Amo amigos!",
+            I: "Preciso de silêncio.",
+            S: "Fatos reais importam.",
+            N: "Muita imaginação.",
+            T: "Regras importam.",
+            F: "Empatia importa.",
+            J: "Gosto de planos.",
+            P: "Gosto de liberdade."
+        }
+    },
+    'hi': {
+        name: '🇮🇳 हिन्दी',
+        ui: {
+            title: "16 व्यक्तित्व परीक्षण राजा", lang1: "भाषा 1", lang2: "भाषा 2", none: "कोई नहीं", dashTitle: "शिक्षक डैशबोर्ड",
+            wait: "प्रतीक्षा", entered: "दर्ज", completed: "पूर्ण", avgPrefix: "औसत:", avgSuffix: "छात्र", noData: "कोई छात्र नहीं।",
+            guide: "निर्देश", manage: "छात्र प्रबंधन", indRes: "व्यक्तिगत", allRes: "समूह परिणाम", backup: "बैक업",
+            add: "जोड़ें", del: "मिटाएं", phName: "छात्र का नाम", msgAvatar: "※ ऑटो अवतार।",
+            selTarget: "छात्र चुनें", copy: "कॉपी", saveTxt: "TXT सहेजें", msgAllSum: "समूह का MBTI सारांश।",
+            bkDownTitle: "JSON डाउनलोड", bkUpTitle: "पुनर्प्राप्त", bkDelTitle: "रीसेट", btnBkDown: "डाउनलोड", btnBkUp: "फाइल लोड करें", btnBkDel: "सब मिटाएं",
+            saveClose: "सहेजें और बंद करें", batchInput: "एक साथ दर्ज करें ➡️", batchSave: "सब सहेजें", cancel: "⬅️ रद्द करें", selectScore: "वह बटन चुनें जो आप जैसा महसूस हो।", qNum: " प्रश्न",
+            noResp: "जवाब नहीं", sumTitle: "परिणाम", detailTitle: "विवरण",
+            nameCol: "नाम", noCol: "क्रम", traitCol: "गुण", qCol: "प्रश्न", scoreCol: "अंक", scorePt: "अंक",
+            alertNoSt: "छात्र चुनें।", alertNoData: "डेटा नहीं है।", alertDel: "मिटाएं?", alertInit: "सब मिटाएं?", alertCopyOk: "कॉपी हो गया।", alertBkOk: "वापस आ गया!",
+            gTitle: "📌 उपयोग कैसे करें", g1: "पंजीकरण: [छात्र प्रबंधन] में नाम जोड़ें।", g2: "अंक: लाल = बायां, नीला = दायां।", g3: "परीक्षण: छात्र कार्ड पर क्लिक करें।", g4: "सब देखें: समूह वितरण देखें।",
+            discTitle: "⚠️ ध्यान दें!", disc1: "MBTI वैज्ञानिक नहीं है, यह सरल संस्करण है।", disc2: "व्यक्तित्व बदल सकता है।", disc3: "इसे <strong>मतभेदों का सम्मान करने</strong> के लिए उपयोग करें।",
+            footTitle: "⚠️ डेटा स्टोरेज", foot1: "डेटा केवल इसी ब्राउज़र में है।", foot2: "इतिहास मिटाने पर डेटा खो सकता है।", foot3: "बैकअप जरूर लें।", foot4: "(💾 ⚙️ -> बैक업 -> JSON डाउनलोड)",
+            vVery: "बहुत", vLittle: "थोड़ा", vHalf: "आधा", vEnergy: "ऊर्जा", vRecognize: "पहचान", vJudge: "निर्णय", vLife: "जीवन शैली",
+            otherGames: "अन्य गेम चुनें"
+        },
+        q: {
+            1: ["दोस्तों के साथ खेलना", "अकेले पढ़ना"],
+            5: ["पहले नमस्ते करना", "इंतज़ार करना"],
+            9: ["तुरंत बोलना", "सोचकर बोलना"],
+            2: ["वास्तविक तथ्य", "कल्पना"],
+            6: ["देखा हुआ चित्र बनाना", "कल्पना से बनाना"],
+            10: ["पानी खोजना", "नायक बनना"],
+            3: ["'कौन सा फूल?'", "'क्यों दुखी हो?'"],
+            7: ["'डांट क्यों पड़ी?'", "सह सहानुभूति"],
+            11: ["नियम और परिणाम", "टीम वर्क"],
+            4: ["जल्दी योजना बनाना", "अंत में करना"],
+            8: ["समय और स्थान तय करना", "उसी समय तय करना"],
+            12: ["साफ मेज", "थोड़ा बिखरा हुआ"]
+        },
+        desc: {
+            E: "ऊर्जा से भरपूर! खेलना पसंद है!",
+            I: "शांति की जरूरत है।",
+            S: "तथ्य महत्वपूर्ण हैं।",
+            N: "कल्पनाशील विचार।",
+            T: "नियम जरूरी हैं।",
+            F: "भावनाएं जरूरी हैं।",
+            J: "योजना पसंद है।",
+            P: "स्वतंत्रता पसंद है।"
+        }
+    },
+    'bn': {
+        name: '🇧🇩 বাংলা',
+        ui: {
+            title: "১৬ ব্যক্তিত্ব পরীক্ষা রাজা", lang1: "ভাষা ১", lang2: "ভাষা ২", none: "নেই", dashTitle: "শিক্ষক ড্যাশবোর্ড",
+            wait: "অপেক্ষা", entered: "দেওয়া হয়েছে", completed: "সম্পন্ন", avgPrefix: "গড়:", avgSuffix: "শিক্ষার্থী", noData: "শিক্ষার্থী নেই।",
+            guide: "নির্দেশিকা", manage: "শিক্ষার্থী", indRes: "ব্যক্তিগত", allRes: "সামগ্রিক", backup: "ব্যাকআপ",
+            add: "যোগ", del: "মুছুন", phName: "নাম লিখুন", msgAvatar: "※ অটো অবতার।",
+            selTarget: "শিক্ষার্থী বেছে নিন", copy: "কপি", saveTxt: "TXT সেভ", msgAllSum: "সামগ্রিক MBTI সারসংক্ষেপ।",
+            bkDownTitle: "JSON ডাউনলোড", bkUpTitle: "রিস্টোর", bkDelTitle: "রিসেট", btnBkDown: "ডাউনলোড", btnBkUp: "ফাইল রিস্টোর", btnBkDel: "সব মুছুন",
+            saveClose: "সেভ ও বন্ধ", batchInput: "একসাথে ইনপুট ➡️", batchSave: "সব সেভ", cancel: "⬅️ বাতিল", selectScore: "আপনার মতো মনে হয় এমন রঙ বাছুন।", qNum: " নম্বর",
+            noResp: "উত্তর নেই", sumTitle: "ফলাফল", detailTitle: "বিস্তারিত",
+            nameCol: "নাম", noCol: "নং", traitCol: "বৈশিষ্ট্য", qCol: "প্রশ্ন", scoreCol: "স্কোর", scorePt: "পয়েন্ট",
+            alertNoSt: "শিক্ষার্থী বেছে নিন।", alertNoData: "তথ্য নেই।", alertDel: "মুছবেন?", alertInit: "সব মুছবেন?", alertCopyOk: "কপি হয়েছে।", alertBkOk: "রিস্টোর হয়েছে!",
+            gTitle: "📌 ব্যবহারের নিয়ম", g1: "নিবন্ধন: নাম যোগ করুন।", g2: "স্কোর: লাল=বাম, নীল=ডান।", g3: "পরীক্ষা: কার্ডে ক্লিক করুন।", g4: "সব দেখুন: সামগ্রিক চিত্র দেখুন।",
+            discTitle: "⚠️ মনে রাখবেন!", disc1: "MBTI বৈজ্ঞানিক নয়, এটি সহজ সংস্করণ।", disc2: "ব্যক্তিত্ব পরিবর্তিত হতে পারে।", disc3: "<strong>পারস্পরিক শ্রদ্ধার</strong> জন্য এটি ব্যবহার করুন।",
+            footTitle: "⚠️ ডেটা স্টোরেজ", foot1: "ডেটা শুধু এই ব্রাউজারে থাকে।", foot2: "হিস্ট্রি মুছলে ডেটা হারাবে।", foot3: "ব্যাকআপ নিন।", foot4: "(💾 ⚙️ -> ব্যাকআপ -> JSON ডাউনলোড)",
+            vVery: "খুব", vLittle: "অল্প", vHalf: "অর্ধেক", vEnergy: "শক্তি", vRecognize: "উপলব্ধি", vJudge: "বিচার", vLife: "জীবনধারা",
+            otherGames: "অন্যান্য গেম চয়ন করুন"
+        },
+        q: {
+            1: ["বন্ধুদের সাথে খেলা", "একা পড়া"],
+            5: ["আগে কথা বলা", "অপেক্ষা করা"],
+            9: ["সরাসরি বলা", "ভেবে বলা"],
+            2: ["বাস্তব তথ্য", "কল্পনা"],
+            6: ["যা দেখছেন তা আঁকা", "কল্পনা করে আঁকা"],
+            10: ["জল খোঁজা", "নায়ক হওয়া"],
+            3: ["'কি ফুল কিনলে?'", "'কেন মন খারাপ?'"],
+            7: ["'কেন বকা খেলে?'", "সহমর্মিতা"],
+            11: ["নিয়ম ও ফলাফল", "দলগত কাজ"],
+            4: ["আগে পরিকল্পনা", "শেষে করা"],
+            8: ["সময় ঠিক করা", "তখনি ঠিক করা"],
+            12: ["পরিষ্কার টেবিল", "অগোছালো"]
+        },
+        desc: {
+            E: "প্রাণবন্ত! খেলা পছন্দ!",
+            I: "শান্তি প্রয়োজন।",
+            S: "বাস্তব গুরুত্বপূর্ণ।",
+            N: "কল্পনাপ্রসূত।",
+            T: "নিয়ম জরুরি।",
+            F: "অনুভূতি জরুরি।",
+            J: "পরিকল্পনা পছন্দ।",
+            P: "স্বাধীনতা পছন্দ।"
+        }
+    },
+    'tr': {
+        name: '🇹🇷 Türkçe',
+        ui: {
+            title: "16 Kişilik Testi Kralı", lang1: "Dil 1", lang2: "Dil 2", none: "Hiçbiri", dashTitle: "Öğretmen Paneli",
+            wait: "Bekliyor", entered: "Girildi", completed: "Tamamlandı", avgPrefix: "Ortalama:", avgSuffix: "Öğrenci", noData: "Öğrenci yok.",
+            guide: "Kılavuz", manage: "Öğrenciler", indRes: "Bireysel", allRes: "Genel", backup: "Yedek",
+            add: "Ekle", del: "Sil", phName: "Öğrenci adı", msgAvatar: "※ Otomatik avatar.",
+            selTarget: "Öğrenci seçin", copy: "Kopyala", saveTxt: "TXT Kaydet", msgAllSum: "Sınıf MBTI özeti.",
+            bkDownTitle: "JSON İndir", bkUpTitle: "Geri Yükle", bkDelTitle: "Sıfırla", btnBkDown: "İndir", btnBkUp: "Dosya Yükle", btnBkDel: "Hepsini Sil",
+            saveClose: "Kaydet ve Kapat", batchInput: "Toplu Giriş ➡️", batchSave: "Hepsini Kaydet", cancel: "⬅️ İptal", selectScore: "Sana en yakın rengi seç.", qNum: " Soru",
+            noResp: "Cevapsız", sumTitle: "Sonuç", detailTitle: "Detaylar",
+            nameCol: "İsim", noCol: "No", traitCol: "Özellik", qCol: "Soru", scoreCol: "Puan", scorePt: "p",
+            alertNoSt: "Öğrenci seçin.", alertNoData: "Veri yok.", alertDel: "Silinsin mi?", alertInit: "Sıfırlansın mı?", alertCopyOk: "Kopyalandı.", alertBkOk: "Yüklendi!",
+            gTitle: "📌 Nasıl Kullanılır", g1: "Kayıt: İsimleri [Öğrenciler] kısmına ekleyin.", g2: "Puan: Kırmızı=Sol, Mavi=Sağ.", g3: "Test: Öğrenci kartına tıklayın.", g4: "Genel Bakış: Sınıf dağılımını görün.",
+            discTitle: "⚠️ Not!", disc1: "MBTI bilimsel bir test değildir.", disc2: "Kişilik ruh haline göre değişebilir.", disc3: "Bunu <strong>farklılıklara saygı duymak</strong> için kullanın.",
+            footTitle: "⚠️ Veri Saklama", foot1: "Veriler sadece bu tarayıcıda saklanır.", foot2: "Geçmiş silinirse veriler gider.", foot3: "Yedek almayı unutmayın.", foot4: "(💾 ⚙️ -> Yedek -> JSON İndir)",
+            vVery: "Çok", vLittle: "Az", vHalf: "Yarı yarıya", vEnergy: "Enerji", vRecognize: "Algı", vJudge: "Yargı", vLife: "Yaşam Tarzı",
+            otherGames: "Diğer Oyunları Seç"
+        },
+        q: {
+            1: ["Arkadaşlarca oynamak", "Yalnız kitap okumak"],
+            5: ["İlk selamı vermek", "Beklemek"],
+            9: ["Hemen söylemek", "Düşünüp söylemek"],
+            2: ["Gerçekler", "Hayaller"],
+            6: ["Gerçekçi çizim", "Hayali çizim"],
+            10: ["Su aramak", "Kahraman olmak"],
+            3: ["'Hangi çiçeği aldın?'", "'Neden üzgünsün?'"],
+            7: ["'Neden azar işittin?'", "Teselli etmek"],
+            11: ["Kurallar ve sonuçlar", "Uyum ve ekip"],
+            4: ["Erken planlamak", "Sona bırakmak"],
+            8: ["Zamanı netleştirmek", "O an karar vermek"],
+            12: ["Düzenli masa", "Biraz dağınık"]
+        },
+        desc: {
+            E: "Enerji dolu! Arkadaşlarla olmayı severim!",
+            I: "Yalnız kalmaya ihtiyacım var.",
+            S: "Gerçekler benim için önemlidir.",
+            N: "Hayal gücüm geniştir.",
+            T: "Kurallar önemlidir.",
+            F: "Duygular önemlidir.",
+            J: "Plan yapmayı severim.",
+            P: "Özgür olmayı severim."
+        }
+    },
+    'de': {
+        name: '🇩🇪 Deutsch',
+        ui: {
+            title: "König des Persönlichkeitstests", lang1: "Sprache 1", lang2: "Sprache 2", none: "Keine", dashTitle: "Lehrer-Dashboard",
+            wait: "Warten", entered: "Eingegeben", completed: "Fertig", avgPrefix: "Schnitt:", avgSuffix: "Schüler", noData: "Keine Schüler.",
+            guide: "Anleitung", manage: "Schüler", indRes: "Einzeln", allRes: "Gesamt", backup: "Backup",
+            add: "Plus", del: "Minus", phName: "Name eingeben", msgAvatar: "※ Auto-Avatar.",
+            selTarget: "Schüler wählen", copy: "Kopieren", saveTxt: "TXT Speichern", msgAllSum: "MBTI-Übersicht der Klasse.",
+            bkDownTitle: "JSON Download", bkUpTitle: "Wiederherstellen", bkDelTitle: "Reset", btnBkDown: "Download", btnBkUp: "Datei Laden", btnBkDel: "Alles Löschen",
+            saveClose: "Speichern & Zu", batchInput: "Schnelleingabe ➡️", batchSave: "Alle Speichern", cancel: "⬅️ Abbruch", selectScore: "Wähle die Farbe, die zu dir passt.", qNum: " Frage",
+            noResp: "Keine Antwort", sumTitle: "Ergebnis", detailTitle: "Details",
+            nameCol: "Name", noCol: "Nr.", traitCol: "Typ", qCol: "Frage", scoreCol: "Punkte", scorePt: "Pkt",
+            alertNoSt: "Schüler wählen.", alertNoData: "Keine Daten.", alertDel: "Löschen?", alertInit: "Alles löschen?", alertCopyOk: "Kopiert.", alertBkOk: "Geladen!",
+            gTitle: "📌 Bedienung", g1: "Anmeldung: Namen hinzufügen.", g2: "Punkte: Rot=Links, Blau=Rechts.", g3: "Test: Auf Karte klicken.", g4: "Übersicht: Verteilung ansehen.",
+            discTitle: "⚠️ Hinweis!", disc1: "MBTI ist nicht streng wissenschaftlich.", disc2: "Persönlichkeit ändert sich.", disc3: "Nutzen Sie es zum <strong>Verständnis anderer</strong>.",
+            footTitle: "⚠️ Speicherung", foot1: "Daten nur in diesem Browser.", foot2: "Verlauf löschen löscht Daten.", foot3: "Backup machen.", foot4: "(💾 ⚙️ -> Backup -> JSON Download)",
+            vVery: "Sehr", vLittle: "Etwas", vHalf: "Mitte", vEnergy: "Energie", vRecognize: "Wahrnehmung", vJudge: "Urteil", vLife: "Lebensstil",
+            otherGames: "Andere Spiele wählen"
+        },
+        q: {
+            1: ["Mit Freunden spielen", "Alleine lesen"],
+            5: ["Zuerst grüßen", "Warten"],
+            9: ["Sofort sagen", "Erst nachdenken"],
+            2: ["Fakten (Roter Apfel)", "Fantasie (Giftapfel)"],
+            6: ["Realitätsnah zeichnen", "Fantasievoll zeichnen"],
+            10: ["Wasser suchen", "Held sein"],
+            3: ["'Welche Blume?'", "'Warum traurig?'"],
+            7: ["'Warum Ärger?'", "Trösten"],
+            11: ["Regeln & Ergebnisse", "Harmonie & Team"],
+            4: ["Früh planen", "Am Ende machen"],
+            8: ["Zeit festlegen", "Spontan entscheiden"],
+            12: ["Ordentlicher Tisch", "Etwas unordentlich"]
+        },
+        desc: {
+            E: "Voller Energie! Ich liebe Freunde!",
+            I: "Ich brauche Ruhe.",
+            S: "Fakten zählen.",
+            N: "Viel Fantasie.",
+            T: "Regeln zählen.",
+            F: "Gefühle zählen.",
+            J: "Ich mag Pläne.",
+            P: "Ich mag Freiheit."
+        }
+    },
+    'it': {
+        name: '🇮🇹 Italiano',
+        ui: {
+            title: "Re del Test di Personalità", lang1: "Lingua 1", lang2: "Lingua 2", none: "Nessuna", dashTitle: "Dashboard Docente",
+            wait: "Attesa", entered: "Inserito", completed: "Finito", avgPrefix: "Media:", avgSuffix: "Alunni", noData: "Nessun alunno.",
+            guide: "Guida", manage: "Alunni", indRes: "Singolo", allRes: "Generale", backup: "Backup",
+            add: "Aggiungi", del: "Elimina", phName: "Nome alunno", msgAvatar: "※ Avatar automatico.",
+            selTarget: "Scegli un alunno", copy: "Copia", saveTxt: "Salva TXT", msgAllSum: "Riepilogo MBTI classe.",
+            bkDownTitle: "Salva JSON", bkUpTitle: "Ripristina", bkDelTitle: "Reset", btnBkDown: "Scarica", btnBkUp: "Carica File", btnBkDel: "Cancella Tutto",
+            saveClose: "Salva e Chiudi", batchInput: "Inserimento Rapido ➡️", batchSave: "Salva Tutto", cancel: "⬅️ Annulla", selectScore: "Scegli il colore che ti descrive.", qNum: " Domanda",
+            noResp: "Nessuna risposta", sumTitle: "Risultato", detailTitle: "Dettagli",
+            nameCol: "Nome", noCol: "No.", traitCol: "Tratto", qCol: "Domanda", scoreCol: "Punti", scorePt: "pt",
+            alertNoSt: "Scegli un alunno.", alertNoData: "Nessun dato.", alertDel: "Elimina?", alertInit: "Cancella tutto?", alertCopyOk: "Copiato.", alertBkOk: "Caricato!",
+            gTitle: "📌 Utilizzo", g1: "Iscrizione: Aggiungi nomi.", g2: "Punti: Rosso=Sinistra, Blu=Destra.", g3: "Test: Clicca sull'alunno.", g4: "Panoramica: Guarda la distribuzione.",
+            discTitle: "⚠️ Nota!", disc1: "Il MBTI non è scientifico.", disc2: "La personalità cambia col morale.", disc3: "Usalo per <strong>capire gli altri</strong>.",
+            footTitle: "⚠️ Memoria", foot1: "Dati salvati solo su questo browser.", foot2: "Cancellare la cronologia elimina i dati.", foot3: "Fai il backup.", foot4: "(💾 ⚙️ -> Backup -> Download JSON)",
+            vVery: "Molto", vLittle: "Poco", vHalf: "Metà", vEnergy: "Energia", vRecognize: "Percezione", vJudge: "Giudizio", vLife: "Stile di vita",
+            otherGames: "Scegli altri giochi"
+        },
+        q: {
+            1: ["Giocare con amici", "Leggere solo"],
+            5: ["Salutare per primi", "Aspettare"],
+            9: ["Parlare subito", "Pensare prima"],
+            2: ["Fatti reali", "Immaginazione"],
+            6: ["Disegnare la realtà", "Disegnare fantasia"],
+            10: ["Cercare acqua", "Essere l'eroe"],
+            3: ["'Quale fiore?'", "'Perché triste?'"],
+            7: ["'Perché il rimprovero?'", "Consolare"],
+            11: ["Regeles e risultati", "Armonia e team"],
+            4: ["Pianificare presto", "Fare alla fine"],
+            8: ["Orario fisso", "Decidere al momento"],
+            12: ["Tavolo pulito", "Un po' disordinato"]
+        },
+        desc: {
+            E: "Pieno di energia! Amo gli amici!",
+            I: "Ho bisogno di calma.",
+            S: "Contano i fatti.",
+            N: "Molta fantasia.",
+            T: "Contano le regole.",
+            F: "Contano i sentimenti.",
+            J: "Mi piacciono i piani.",
+            P: "Mi piace la libertà."
+        }
+    }
+};
+
+    const TOTAL_QUESTIONS = 12;
+    const traitsMap = {
+        "EI": [1, 5, 9],
+        "SN": [2, 6, 10],
+        "TF": [3, 7, 11],
+        "JP": [4, 8, 12]
+    };
+
+    let students = [];
+    let surveyData = {};
+    let currentQuestionId = 1;
+    let activeStudent = "";
+    let selectedScore = null;
+    let bulkAnswers = {};
+    let currentLang1 = 'ko';
+    let currentLang2 = 'none';
+    let isViewAllMode = false;
+
+    window.onload = () => {
+        initLanguages();
+        loadFromCache();
+        updateGlobalUI();
+        renderButtons();
+        selectQuestion(1);
+    };
+
+    function initLanguages() {
+        const sel1 = document.getElementById('lang1');
+        const sel2 = document.getElementById('lang2');
+        sel1.innerHTML = "";
+        for (const [code, data] of Object.entries(dict)) {
+            sel1.add(new Option(data.name, code));
+            sel2.add(new Option(data.name, code));
+        }
+        sel1.value = 'ko';
+        sel2.value = 'none';
+    }
+
+    function changeLanguage() {
+        currentLang1 = document.getElementById('lang1').value;
+        currentLang2 = document.getElementById('lang2').value;
+        updateGlobalUI();
+        
+        if(isViewAllMode) {
+            renderMBTIArena(document.querySelector('.mbti-nav-btn.active').innerText.substring(0,2).replace(" ",""));
+            document.querySelector('.mbti-nav-btn.active').click();
+        } else {
+            selectQuestion(currentQuestionId);
+            renderStudents();
+            updateAverageDisplay(currentQuestionId);
+        }
+        
+        if(document.getElementById('student-input-modal').classList.contains('show')) updateModalUI();
+        updateStudentSelectbox();
+        renderIndividualResult(); 
+        renderAllResultTable();
+    }
+
+    function getQText(lang, qId) { return dict[lang].q[qId]; }
+    function getUIText(lang, key) { return dict[lang].ui[key]; }
+    function getDescText(lang, letter) { return dict[lang].desc[letter]; }
+
+    function updateGlobalUI() {
+        const ui = dict[currentLang1].ui;
+        document.getElementById("ui-title").innerText = `👑 ${ui.title}`;
+        document.getElementById("ui-label-lang1").innerText = ui.lang1;
+        document.getElementById("ui-label-lang2").innerText = ui.lang2;
+        document.getElementById("ui-opt-none").innerText = ui.none;
+
+        document.getElementById("ui-dash-title").innerText = ui.dashTitle;
+        document.getElementById("ui-tab-guide").innerHTML = `📖 ${ui.guide}`;
+        document.getElementById("ui-tab-manage").innerHTML = `👥 ${ui.manage}`;
+        document.getElementById("ui-tab-ind").innerHTML = `📊 ${ui.indRes}`;
+        document.getElementById("ui-tab-all").innerHTML = `📈 ${ui.allRes}`;
+        document.getElementById("ui-tab-backup").innerHTML = `💾 ${ui.backup}`;
+
+        document.getElementById("guide-content-area").innerHTML = `
+            <h3 style="color: #3B82F6; margin-bottom: 10px;">${ui.gTitle}</h3>
+            <ol style="color: #E0E0E0; line-height: 1.6; padding-left: 20px; font-size: 0.95em;">
+                <li style="margin-bottom: 8px;">${ui.g1}</li>
+                <li style="margin-bottom: 8px;">${ui.g2}</li>
+                <li style="margin-bottom: 8px;">${ui.g3}</li>
+                <li style="margin-bottom: 8px;">${ui.g4}</li>
+            </ol>
+        `;
+
+        document.getElementById("new-student-input").placeholder = ui.phName;
+        document.getElementById("btn-add-st").innerText = ui.add;
+        document.getElementById("ui-msg-avatar").innerText = ui.msgAvatar;
+        
+        document.getElementById("btn-copy").innerHTML = `📋 ${ui.copy}`;
+        document.getElementById("btn-save-txt-ind").innerHTML = `📄 ${ui.saveTxt}`;
+        document.getElementById("ui-msg-allsum").innerText = ui.msgAllSum;
+        document.getElementById("btn-save-txt-all").innerHTML = `📑 ${ui.saveTxt}`;
+
+        document.getElementById("ui-bk-down-title").innerText = ui.bkDownTitle;
+        document.getElementById("ui-bk-up-title").innerText = ui.bkUpTitle;
+        document.getElementById("ui-bk-del-title").innerText = ui.bkDelTitle;
+        document.getElementById("btn-bk-down").innerText = ui.btnBkDown;
+        document.getElementById("btn-bk-up").innerText = ui.btnBkUp;
+        document.getElementById("btn-bk-del").innerText = ui.btnBkDel;
+
+        // 면책조항 및 하단 경고 번역
+        document.getElementById("mbti-disclaimer").innerHTML = `
+            <strong style="color: #FCD34D;">${ui.discTitle}</strong><br>
+            ${ui.disc1}<br>
+            ${ui.disc2}<br>
+            ${ui.disc3}
+        `;
+
+        document.getElementById("footer-warning").innerHTML = `
+           <strong>${ui.footTitle}</strong><br>
+            ${ui.foot1}<br>
+            ${ui.foot2}<br>
+            ${ui.foot3}<br>
+            <br>
+            <span style="color: #A0A0A0;">${ui.foot4}</span>
+        `;
+
+        // 하단 다른 게임 고르기 버튼 번역 추가
+        document.getElementById("ui-other-games-text").innerText = ui.otherGames;
+
+        renderButtons();
+    }
+
+    function loadFromCache() {
+        const savedStudents = localStorage.getItem('mbtiStudents');
+        const savedData = localStorage.getItem('mbtiSurveyData');
+        students = savedStudents ? JSON.parse(savedStudents) : [];
+        surveyData = savedData ? JSON.parse(savedData) : {};
+    }
+
+    function saveToCache() {
+        localStorage.setItem('mbtiStudents', JSON.stringify(students));
+        localStorage.setItem('mbtiSurveyData', JSON.stringify(surveyData));
+    }
+
+    function renderButtons() {
+        const container = document.getElementById("button-container");
+        container.innerHTML = "";
+        for(let i = 1; i <= TOTAL_QUESTIONS; i++) {
+            const btn = document.createElement("button");
+            btn.className = "question-btn";
+            btn.id = "btn-" + i;
+            btn.innerText = "Q " + i;
+            if (students.length > 0) {
+                const allAnswered = students.every(st => surveyData[st] && surveyData[st][i]);
+                if (allAnswered) btn.classList.add('completed');
+            }
+            btn.onclick = () => selectQuestion(i);
+            container.appendChild(btn);
+        }
+        
+        const viewAllBtn = document.createElement("button");
+        viewAllBtn.className = "question-btn";
+        viewAllBtn.id = "btn-view-all";
+        viewAllBtn.innerText = "🌟 " + (currentLang1 === 'ko' ? "전체 보기" : "View All");
+        viewAllBtn.onclick = () => showMBTIView();
+        container.appendChild(viewAllBtn);
+
+        if(isViewAllMode) {
+            document.getElementById("btn-view-all").classList.add('active');
+        } else {
+            const activeBtn = document.getElementById("btn-" + currentQuestionId);
+            if(activeBtn) activeBtn.classList.add('active');
+        }
+    }
+
+    function selectQuestion(id) {
+        isViewAllMode = false;
+        currentQuestionId = id;
+        document.getElementById("normal-view-wrapper").style.display = "block";
+        document.getElementById("mbti-view").style.display = "none";
+        
+        document.querySelectorAll('.question-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById("btn-" + id);
+        if(btn) btn.classList.add('active');
+        
+        const qTexts = getQText(currentLang1, id);
+        document.getElementById("qd-lang1").innerHTML = `<span style="color:#A0A0A0; font-size:0.6em; vertical-align:super; margin-right:8px;">${id}.</span> <span style="color:#FCA5A5;">${qTexts[0]}</span> <span style="color:#888; font-size:0.8em; margin: 0 15px;">VS</span> <span style="color:#93C5FD;">${qTexts[1]}</span>`;
+        
+        const qdLang2 = document.getElementById("qd-lang2");
+        if(currentLang2 !== 'none' && currentLang2 !== currentLang1) {
+            const qTexts2 = getQText(currentLang2, id);
+            qdLang2.innerHTML = `<span style="color:#FCA5A5;">${qTexts2[0]}</span> <span style="color:#888; margin: 0 10px;">vs</span> <span style="color:#93C5FD;">${qTexts2[1]}</span>`;
+            qdLang2.style.display = 'block';
+        } else {
+            qdLang2.style.display = 'none';
+        }
+
+        renderStudents();
+        updateAverageDisplay(id);
+    }
+
+    function getAvatarUrl(seedName) {
+        return `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(seedName)}&backgroundColor=transparent`;
+    }
+
+    function renderStudents() {
+        const container = document.getElementById("student-list");
+        container.innerHTML = ""; 
+        students.forEach(student => {
+            const card = document.createElement("div");
+            card.className = "student-card";
+            card.onclick = () => openStudentModal(student);
+
+            const hasAnswered = surveyData[student] && surveyData[student][currentQuestionId];
+            const isAllCompleted = surveyData[student] && Object.keys(surveyData[student]).length === TOTAL_QUESTIONS;
+
+            let badgeText = getUIText(currentLang1, 'wait'); let badgeClass = "status-badge";
+            if (isAllCompleted) { badgeText = getUIText(currentLang1, 'completed'); badgeClass = "status-badge completed"; } 
+            else if (hasAnswered) { badgeText = getUIText(currentLang1, 'entered'); badgeClass = "status-badge completed"; }
+
+            card.innerHTML = `<img src="${getAvatarUrl(student)}" alt="avatar" class="student-avatar" loading="lazy">
+                <div class="student-name" title="${student}">${student}</div>
+                <div class="${badgeClass}">${badgeText}</div>`;
+            container.appendChild(card);
+        });
+    }
+
+    function updateAverageDisplay(questionId) {
+        const avgContainer = document.getElementById("average-display");
+        const ui = dict[currentLang1].ui;
+        let sum = 0, count = 0;
+        
+        students.forEach(student => {
+            if (surveyData[student] && surveyData[student][questionId]) {
+                sum += parseInt(surveyData[student][questionId]);
+                count++;
+            }
+        });
+        
+        if (students.length === 0) {
+            avgContainer.innerText = ui.noData;
+        } else if (count === students.length) {
+            const avg = sum / count;
+            const percent = ((avg - 1) / 4) * 100;
+            
+            avgContainer.innerHTML = `
+                <div class="avg-bar-wrapper">
+                    <div class="avg-bar-bg">
+                        <div class="avg-marker" style="left: ${percent}%;"></div>
+                        <div class="avg-marker-label" style="left: ${percent}%;">${avg.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="avg-text-info">${ui.completed} (${ui.avgPrefix} ${avg.toFixed(2)})</div>
+            `;
+        } else {
+            let msg = currentLang1 === 'ko' ?
+                `현재 <strong style="color:#FFF;">${count} / ${students.length}</strong> 명 참여 완료<br><span style="font-size: 0.8em; color: #888; font-weight: normal;">(우리 반 학생이 모두 참여하면 평균이 표시됩니다.)</span>` :
+                `<strong style="color:#FFF;">${count} / ${students.length}</strong> ${ui.entered}<br><span style="font-size: 0.8em; color: #888; font-weight: normal;">(Average will be shown when everyone completes it.)</span>`;
+            avgContainer.innerHTML = `<div style="color:#A0A0A0; font-size:0.95em; margin-top:10px; text-align: center;">${msg}</div>`;
+        }
+    }
+
+    function calculateMBTI(dataObj) {
+        if(!dataObj || Object.keys(dataObj).length < TOTAL_QUESTIONS) return null;
+        let type = "";
+        let sumEI = parseInt(dataObj[1]) + parseInt(dataObj[5]) + parseInt(dataObj[9]);
+        type += (sumEI / 3 > 3.0) ? "I" : "E"; 
+        let sumSN = parseInt(dataObj[2]) + parseInt(dataObj[6]) + parseInt(dataObj[10]);
+        type += (sumSN / 3 > 3.0) ? "N" : "S";
+        let sumTF = parseInt(dataObj[3]) + parseInt(dataObj[7]) + parseInt(dataObj[11]);
+        type += (sumTF / 3 > 3.0) ? "F" : "T";
+        let sumJP = parseInt(dataObj[4]) + parseInt(dataObj[8]) + parseInt(dataObj[12]);
+        type += (sumJP / 3 > 3.0) ? "P" : "J";
+        return type;
+    }
+
+    function showMBTIView() {
+        isViewAllMode = true;
+        document.getElementById("normal-view-wrapper").style.display = "none";
+        document.getElementById("mbti-view").style.display = "block";
+        document.querySelectorAll('.question-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById("btn-view-all").classList.add('active');
+        renderMBTIArena('EI');
+    }
+
+    function renderMBTIArena(indicatorKey) {
+        const ui = dict[currentLang1].ui;
+        document.querySelectorAll('.mbti-nav-btn').forEach(b => b.classList.remove('active'));
+        const btnIdx = ['EI','SN','TF','JP'].indexOf(indicatorKey);
+        
+        const navBtns = document.querySelectorAll('.mbti-nav-btn');
+        navBtns[0].innerText = `E vs I (${ui.vEnergy})`;
+        navBtns[1].innerText = `S vs N (${ui.vRecognize})`;
+        navBtns[2].innerText = `T vs F (${ui.vJudge})`;
+        navBtns[3].innerText = `J vs P (${ui.vLife})`;
+        navBtns[btnIdx].classList.add('active');
+
+        const leftLetter = indicatorKey[0];
+        const rightLetter = indicatorKey[1];
+        
+        document.getElementById("mbti-desc-left").innerText = `"${getDescText(currentLang1, leftLetter)}"`;
+        document.getElementById("mbti-desc-right").innerText = `"${getDescText(currentLang1, rightLetter)}"`;
+
+        document.getElementById("arena-col-1-title").innerText = ui.vVery + " " + leftLetter;
+        document.getElementById("arena-col-2-title").innerText = ui.vLittle + " " + leftLetter;
+        document.getElementById("arena-col-3-title").innerText = ui.vHalf;
+        document.getElementById("arena-col-4-title").innerText = ui.vLittle + " " + rightLetter;
+        document.getElementById("arena-col-5-title").innerText = ui.vVery + " " + rightLetter;
+
+        const containers = [];
+        for(let i = 1; i <= 5; i++) {
+            containers[i] = document.getElementById(`arena-col-${i}-students`);
+            containers[i].innerHTML = "";
+        }
+
+        const qNums = traitsMap[indicatorKey];
+
+        students.forEach(st => {
+            const data = surveyData[st];
+            if(data && data[qNums[0]] && data[qNums[1]] && data[qNums[2]]) {
+                const avg = (parseInt(data[qNums[0]]) + parseInt(data[qNums[1]]) + parseInt(data[qNums[2]])) / 3;
+                let colIdx = 3;
+                if(avg <= 1.8) colIdx = 1;
+                else if(avg <= 2.6) colIdx = 2;
+                else if(avg < 3.4) colIdx = 3;
+                else if(avg < 4.2) colIdx = 4;
+                else colIdx = 5;
+
+                const fullType = calculateMBTI(data) || "-";
+                const cardHtml = `<div class="mbti-st-card">
+                    <img src="${getAvatarUrl(st)}" alt="avatar">
+                    <div style="color: #FFF; font-size: 0.85em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${st}</div>
+                    <div class="mbti-st-type">${fullType}</div>
+                </div>`;
+                containers[colIdx].innerHTML += cardHtml;
+            }
+        });
+        
+        for(let i = 1; i <= 5; i++) {
+            if(containers[i].innerHTML === "") {
+                containers[i].innerHTML = `<div style="color:#555; margin-top:20px; font-size: 0.85em;">-</div>`;
+            }
+        }
+    }
+
+    function openStudentModal(studentName) {
+        activeStudent = studentName;
+        selectedScore = null;
+        document.getElementById("modal-student-name").innerHTML = `<img src="${getAvatarUrl(studentName)}" style="width:40px; height:40px; border-radius:50%; vertical-align:middle; margin-right:10px;">${studentName}`;
+        const existingScore = surveyData[studentName] && surveyData[studentName][currentQuestionId];
+        document.querySelectorAll('#single-input-view .scale-btn').forEach((btn, idx) => {
+            btn.classList.remove('selected');
+            if(existingScore && idx + 1 == existingScore) btn.classList.add('selected');
+        });
+        bulkAnswers = surveyData[studentName] ? {...surveyData[studentName]} : {};
+        updateModalUI();
+        document.getElementById("single-input-view").style.display = "block";
+        document.getElementById("bulk-input-view").style.display = "none";
+        document.getElementById("student-input-modal").classList.add("show");
+    }
+
+    function updateModalUI() {
+        const ui = dict[currentLang1].ui;
+        document.getElementById("ui-mq-num").innerText = `${currentQuestionId}${ui.qNum}`;
+        const qTexts = getQText(currentLang1, currentQuestionId);
+        document.getElementById("mq-left-lang1").innerText = qTexts[0];
+        document.getElementById("mq-right-lang1").innerText = qTexts[1];
+
+        const mqLeftLang2 = document.getElementById("mq-left-lang2");
+        const mqRightLang2 = document.getElementById("mq-right-lang2");
+
+        if(currentLang2 !== 'none' && currentLang2 !== currentLang1) {
+            const qTexts2 = getQText(currentLang2, currentQuestionId);
+            mqLeftLang2.innerText = qTexts2[0]; mqLeftLang2.style.display = 'block';
+            mqRightLang2.innerText = qTexts2[1]; mqRightLang2.style.display = 'block';
+        } else {
+            mqLeftLang2.style.display = 'none';
+            mqRightLang2.style.display = 'none';
+        }
+
+        const setBtnText = (id1, id2, key) => {
+            document.getElementById(id1).innerText = ui[key];
+            const el2 = document.getElementById(id2);
+            if(currentLang2 !== 'none' && currentLang2 !== currentLang1) {
+                el2.innerText = dict[currentLang2].ui[key]; el2.style.display = 'block';
+            } else { el2.style.display = 'none'; }
+        };
+
+        setBtnText("ui-btn-save", "ui-btn-save-l2", "saveClose");
+        setBtnText("ui-btn-batch", "ui-btn-batch-l2", "batchInput");
+        setBtnText("ui-msg-score", "ui-msg-score-l2", "selectScore");
+        setBtnText("ui-btn-cancel", "ui-btn-cancel-l2", "cancel");
+        setBtnText("ui-btn-batch-save", "ui-btn-batch-save-l2", "batchSave");
+
+        renderBulkQuestions();
+    }
+
+    function toggleBulkInputView() {
+        const single = document.getElementById("single-input-view");
+        const bulk = document.getElementById("bulk-input-view");
+        if(single.style.display === "none") {
+            single.style.display = "block"; bulk.style.display = "none";
+        } else {
+            single.style.display = "none"; bulk.style.display = "block";
+        }
+    }
+
+    function selectScore(score) {
+        selectedScore = score;
+        const btns = document.getElementById("single-input-view").querySelectorAll('.scale-btn');
+        btns.forEach(btn => btn.classList.remove('selected'));
+        btns[score - 1].classList.add('selected');
+    }
+
+    function saveSingleData() {
+        if (!selectedScore) {
+            const activeBtn = document.querySelector('#single-input-view .scale-btn.selected');
+            if(activeBtn) selectedScore = parseInt(activeBtn.dataset.score);
+            else { return; }
+        }
+        if (!surveyData[activeStudent]) surveyData[activeStudent] = {};
+        surveyData[activeStudent][currentQuestionId] = selectedScore;
+        saveToCache(); closeModal('student-input-modal'); renderButtons(); selectQuestion(currentQuestionId);
+    }
+
+    function getTraitKeyForQuestion(qId) {
+        for (const [key, qNums] of Object.entries(traitsMap)) {
+            if (qNums.includes(qId)) return key;
+        }
+        return "";
+    }
+
+    function renderBulkQuestions() {
+        const container = document.getElementById('bulk-questions-container');
+        const ui = dict[currentLang1].ui;
+        container.innerHTML = "";
+        for(let i = 1; i <= TOTAL_QUESTIONS; i++) {
+            let div = document.createElement('div');
+            div.style.marginBottom = "20px"; div.style.borderBottom = "1px solid #333"; div.style.paddingBottom = "15px";
+            let qTexts = getQText(currentLang1, i);
+
+            let html = `<div style="color:#FFF; margin-bottom:5px; text-align:center;">
+                            <strong>${i}${ui.qNum}</strong>
+                        </div>
+                        <div class="balance-row" id="bulk-q-${i}" style="margin: 10px 0;">
+                            <div class="balance-text left-text">${qTexts[0]}</div>
+                            <div class="scale-group">`;
+            for(let s=1; s<=5; s++) {
+                let isSel = bulkAnswers[i] == s ? "selected" : "";
+                html += `<button class="scale-btn scale-color-${s} ${isSel}" data-score="${s}" onclick="setBulkScore(${i}, ${s})"></button>`;
+            }
+            html += `           </div>
+                            <div class="balance-text right-text">${qTexts[1]}</div>
+                        </div>`;
+
+            if(currentLang2 !== 'none' && currentLang2 !== currentLang1) {
+                let qTexts2 = getQText(currentLang2, i);
+                html += `<div class="balance-row" style="margin: -5px 0 10px 0; opacity: 0.8; font-size: 0.85em;">
+                            <div class="balance-text left-text" style="color:#FCD34D;">${qTexts2[0]}</div>
+                            <div style="width: 220px;"></div>
+                            <div class="balance-text right-text" style="color:#FCD34D;">${qTexts2[1]}</div>
+                         </div>`;
+            }
+            div.innerHTML = html;
+            container.appendChild(div);
+        }
+    }
+
+    function setBulkScore(qId, score) {
+        bulkAnswers[qId] = score;
+        const group = document.getElementById(`bulk-q-${qId}`);
+        group.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+        group.querySelectorAll('.scale-btn')[score-1].classList.add('selected');
+    }
+
+    function saveBulkData() {
+        if (!surveyData[activeStudent]) surveyData[activeStudent] = {};
+        surveyData[activeStudent] = {...bulkAnswers};
+        saveToCache();
+        closeModal('student-input-modal'); renderButtons(); selectQuestion(currentQuestionId);
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+    function openTeacherModal() {
+        document.getElementById("teacher-modal").classList.add("show");
+        renderManageList(); updateStudentSelectbox(); renderAllResultTable(); switchTab('tab-guide');
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`);
+        if(activeBtn) activeBtn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+        if (tabId === 'tab-result-ind') updateStudentSelectbox();
+        if (tabId === 'tab-result-all') renderAllResultTable();
+    }
+
+    function renderManageList() {
+        const list = document.getElementById("manage-student-list");
+        list.innerHTML = "";
+        students.forEach((student, index) => {
+            const li = document.createElement("li"); li.className = "list-item";
+            li.innerHTML = `<div style="display:flex; align-items:center;">
+                    <img src="${getAvatarUrl(student)}" style="width:30px; height:30px; border-radius:50%; margin-right:10px;">
+                    <span style="color: #FFF;">${student}</span>
+                </div>
+                <button class="btn-danger" style="padding: 5px 10px; border:none; border-radius:5px;" onclick="removeStudent(${index})">${getUIText(currentLang1, 'del')}</button>`;
+            list.appendChild(li);
+        });
+    }
+
+    function addStudent() {
+        const input = document.getElementById("new-student-input");
+        const newName = input.value.trim();
+        if(!newName) return;
+        if(students.includes(newName)) return;
+        students.push(newName);
+        saveToCache(); renderManageList(); input.value = ""; renderButtons(); 
+        if(!isViewAllMode) renderStudents();
+    }
+
+    function removeStudent(index) {
+        if(confirm(getUIText(currentLang1, 'alertDel'))) {
+            delete surveyData[students[index]]; students.splice(index, 1);
+            saveToCache(); renderManageList(); renderButtons(); 
+            if(!isViewAllMode) renderStudents(); else renderMBTIArena('EI');
+        }
+    }
+
+    function updateStudentSelectbox() {
+        const select = document.getElementById("student-select");
+        select.innerHTML = `<option value="">${getUIText(currentLang1, 'selTarget')}</option>`;
+        students.forEach(st => { select.innerHTML += `<option value="${st}">${st}</option>`; });
+        document.getElementById("ind-result-area").style.display = "none";
+    }
+
+    function renderIndividualResult() {
+        const stName = document.getElementById("student-select").value;
+        const area = document.getElementById("ind-result-area");
+        const ui = dict[currentLang1].ui;
+        if(!stName) { area.style.display = "none"; return; }
+        const data = surveyData[stName];
+        if(!data || Object.keys(data).length === 0) { alert(ui.alertNoData); area.style.display = "none"; return; }
+
+        area.style.display = "block";
+        const mbtiType = calculateMBTI(data);
+        if(mbtiType) {
+            document.getElementById("ind-mbti-display").innerText = mbtiType;
+            document.getElementById("ind-scores-display").innerHTML = ui.completed;
+        } else {
+            document.getElementById("ind-mbti-display").innerText = ui.wait;
+            document.getElementById("ind-scores-display").innerHTML = `<span style='color:red;'>${ui.noResp}</span>`;
+        }
+
+        let detailHtml = `<table class="result-table"><thead><tr><th width="10%">${ui.noCol}</th><th width="15%">${ui.traitCol}</th><th width="60%">${ui.qCol}</th><th width="15%">${ui.scoreCol}</th></tr></thead><tbody>`;
+        for(let i = 1; i <= TOTAL_QUESTIONS; i++) {
+            let traitKey = getTraitKeyForQuestion(i);
+            let scoreStr = data[i] ? `<b>${data[i]}</b>` : `<span style="color:red">${ui.noResp}</span>`;
+            let qTexts = getQText(currentLang1, i);
+            let combinedQText = `<span style="color:#F87171">${qTexts[0]}</span> <br><span style="color:#888;font-size:0.8em;">VS</span><br> <span style="color:#60A5FA">${qTexts[1]}</span>`;
+            detailHtml += `<tr><td>${i}</td><td style="color:#8B5CF6; font-weight:bold;">${traitKey[0]} vs ${traitKey[1]}</td><td class="text-left">${combinedQText}</td><td>${scoreStr}</td></tr>`;
+        }
+        detailHtml += `</tbody></table>`;
+        document.getElementById("ind-detail-table-wrapper").innerHTML = detailHtml;
+    }
+
+    function copyIndividualResult() {
+        const stName = document.getElementById("student-select").value;
+        const ui = dict[currentLang1].ui;
+        if(!stName) { alert(ui.alertNoSt); return; }
+        const data = surveyData[stName];
+        if(!data || Object.keys(data).length === 0) return;
+
+        const mbtiType = calculateMBTI(data) || ui.wait;
+        let textToCopy = `[ ${stName} - ${ui.title} ]\n\n`;
+        textToCopy += `■ ${ui.sumTitle}: ${mbtiType}\n\n`;
+        textToCopy += `■ ${ui.detailTitle}\n`;
+        for(let i = 1; i <= TOTAL_QUESTIONS; i++) {
+            let traitKey = getTraitKeyForQuestion(i);
+            let scoreStr = data[i] ? `${data[i]}` : ui.noResp;
+            let qTexts = getQText(currentLang1, i);
+            textToCopy += `${i}. [${traitKey[0]} vs ${traitKey[1]}] ${qTexts[0]} VS ${qTexts[1]} : ${scoreStr}\n`;
+        }
+
+        const textarea = document.createElement("textarea");
+        textarea.value = textToCopy;
+        document.body.appendChild(textarea); textarea.select();
+        try { document.execCommand('copy'); alert(ui.alertCopyOk); } 
+        catch (err) { }
+        document.body.removeChild(textarea);
+    }
+
+    function downloadTXT(text, filename) {
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportIndividualTXT() {
+        const stName = document.getElementById("student-select").value;
+        const ui = dict[currentLang1].ui;
+        if(!stName) { alert(ui.alertNoSt); return; }
+        const data = surveyData[stName];
+        if(!data || Object.keys(data).length === 0) return;
+
+        const mbtiType = calculateMBTI(data) || ui.wait;
+        let text = `[ ${stName} - ${ui.title} ]\n\n`;
+        text += `■ ${ui.sumTitle}: ${mbtiType}\n\n`;
+        text += `■ ${ui.detailTitle}\n`;
+        for(let i = 1; i <= TOTAL_QUESTIONS; i++) {
+            let traitKey = getTraitKeyForQuestion(i);
+            let scoreStr = data[i] ? `${data[i]}` : ui.noResp;
+            let qTexts = getQText(currentLang1, i);
+            text += `${i}. [${traitKey[0]} vs ${traitKey[1]}] ${qTexts[0]} VS ${qTexts[1]} : ${scoreStr}\n`;
+        }
+        downloadTXT(text, `${stName}_MBTI.txt`);
+    }
+
+    function exportAllTXT() {
+        const ui = dict[currentLang1].ui;
+        let text = `[ ${ui.title} - ${ui.allRes} ]\n\n`;
+        students.forEach(st => {
+            text += `--------------------------------------------------\n`;
+            text += `👤 ${ui.nameCol}: ${st}\n`;
+            const data = surveyData[st];
+            if(data && Object.keys(data).length > 0) {
+                const type = calculateMBTI(data);
+                text += `${ui.sumTitle}: ${type || ui.wait}\n`;
+            } else {
+                text += `${ui.noResp}\n`;
+            }
+        });
+        downloadTXT(text, `All_Students_MBTI.txt`);
+    }
+
+    function renderAllResultTable() {
+        const ui = dict[currentLang1].ui;
+        let html = `<table class="result-table"><thead><tr><th width="30%">${ui.nameCol}</th><th width="70%">${ui.sumTitle}</th></tr></thead><tbody>`;
+        students.forEach(st => {
+            const data = surveyData[st];
+            if(data && Object.keys(data).length === TOTAL_QUESTIONS) {
+                const mbti = calculateMBTI(data);
+                html += `<tr><td><div style="display:flex; align-items:center; justify-content:center;"><img src="${getAvatarUrl(st)}" style="width:24px; height:24px; border-radius:50%; margin-right:5px;"><b>${st}</b></div></td>
+                            <td style="color:#8B5CF6; font-weight:bold; font-size:1.2em;">${mbti}</td></tr>`;
+            } else {
+                html += `<tr><td><div style="display:flex; align-items:center; justify-content:center;"><img src="${getAvatarUrl(st)}" style="width:24px; height:24px; border-radius:50%; margin-right:5px;"><b>${st}</b></div></td><td style="color:#aaa;">${ui.wait} / ${ui.noResp}</td></tr>`;
+            }
+        });
+        html += `</tbody></table>`;
+        document.getElementById("all-result-table-container").innerHTML = html;
+    }
+
+    function exportBackupData() {
+        const exportObj = { students: students, surveyData: surveyData, exportDate: new Date().toLocaleString() };
+        const blob = new Blob([JSON.stringify(exportObj, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        a.download = `mbti_backup_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    function importBackupData() {
+        const fileInput = document.getElementById("backup-file-input");
+        if(fileInput.files.length === 0) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const obj = JSON.parse(e.target.result);
+                if(obj.students && obj.surveyData) {
+                    students = obj.students; surveyData = obj.surveyData; saveToCache();
+                    alert(getUIText(currentLang1, 'alertBkOk')); closeModal('teacher-modal'); renderButtons(); 
+                    if(!isViewAllMode) { renderStudents(); selectQuestion(currentQuestionId); } else { renderMBTIArena('EI'); }
+                }
+            } catch(err) { }
+        };
+        reader.readAsText(fileInput.files[0]);
+    }
+
+    function clearAllData() {
+        if(confirm(getUIText(currentLang1, 'alertInit'))) {
+            localStorage.removeItem('mbtiStudents'); localStorage.removeItem('mbtiSurveyData');
+            students = []; surveyData = {}; 
+            renderManageList(); renderButtons(); 
+            if(!isViewAllMode) renderStudents();
+            document.getElementById("ind-result-area").style.display="none"; renderAllResultTable();
+        }
+    }
+</script>
+</body>
+</html>

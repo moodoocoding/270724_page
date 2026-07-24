@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta name="description" content="숨은 이모지 찾기! 교실 전자칠판용 유아/초등 저학년 한글 단어 게임." id="meta-desc">
+<meta name="keywords" content="전자칠판 게임, 이모지 게임, 한글 게임, 킹수학, 초등저학년, 유치원" id="meta-keywords">
+<link rel="canonical" href="https://킹수학.com">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="숨은 이모지 찾기 | KingsMath" id="og-title">
+<meta property="og:description" content="숨은 이모지를 찾아라! 유아 및 초등 저학년용 전자칠판 게임." id="og-desc">
+<meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/당구킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+<meta property="og:url" content="https://킹수학.com">
+<meta property="og:site_name" content="KingsMath" id="og-site-name">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="숨은 이모지 찾기 | KingsMath" id="tw-title">
+<meta name="twitter:description" content="숨은 이모지를 찾아라! 유아 및 초등 저학년용 전자칠판 게임." id="tw-desc">
+<meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/당구킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+<meta name="theme-color" content="#121212">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title id="page-title">숨은 이모지 찾기</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --app-height: 100vh;
+    }
+
+    /* 파란 화면(텍스트 선택) 및 이미지 드래그 완벽 차단 */
+    * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #121212;
+        font-family: 'Nanum Gothic', sans-serif;
+        width: 100%;
+        height: 100vh; 
+        height: 100dvh; 
+        height: var(--app-height); 
+        touch-action: none; 
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        color: #fff;
+    }
+
+    /* --- Top Information Area --- */
+    #top-area {
+        flex: 0 0 auto;
+        min-height: 8vmin;
+        background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center; 
+        align-items: center;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    #scoreboard-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        width: 100%;
+        padding: 1vmin 3vmin; 
+        flex: 1;
+        gap: 2vmin;
+    }
+
+    .team-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 1vmin 2vmin;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        position: relative; 
+        overflow: hidden;
+    }
+    .p1-panel { border: 3px solid #ff4d4d; }
+    .p2-panel { border: 3px solid #4d88ff; }
+
+    .player-label { font-size: clamp(14px, 2vmin, 24px); font-weight: 800; letter-spacing: 1px; margin-bottom: 2px; }
+    .p1-label { color: #ff4d4d; }
+    .p2-label { color: #4d88ff; }
+    .score { font-size: clamp(30px, 5vmin, 70px); font-weight: 800; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+
+    /* Win Overlay */
+    .win-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-weight: 800;
+        z-index: 20;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .win-overlay.win { color: #ffcc00; font-size: clamp(40px, 5vw, 70px); text-shadow: 0 0 20px rgba(255,204,0,0.8); }
+    .win-overlay.lose { color: #777; font-size: clamp(24px, 3vw, 40px); text-shadow: none; }
+    .win-overlay.draw { color: #fff; font-size: clamp(30px, 4vw, 50px); }
+
+    @keyframes popIn {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Timer Text Area */
+    .timer-container {
+        width: 15%;
+        max-width: 200px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .timer-label { 
+        color: #ffcc00; 
+        font-size: clamp(16px, 2.5vmin, 30px); 
+        font-weight: 800; 
+        letter-spacing: 2px; 
+        text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    }
+
+    /* Progress Timer Bar */
+    #top-timer-bar {
+        width: 100%;
+        height: 1.5vmin; 
+        background: #333;
+        flex-shrink: 0;
+    }
+    #top-timer-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #ff3b30, #ffcc00, #4cd964);
+        transition: width 1s linear;
+    }
+
+    /* --- Bottom Game Area --- */
+    #game-area-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; 
+        padding: 1vmin 3vmin 2vmin 3vmin; 
+        background-color: #0d0d0d;
+        position: relative;
+        min-height: 0; 
+    }
+
+    #game-area {
+        width: 100%;
+        max-width: 1800px; 
+        height: 100%; 
+        display: flex;
+        gap: 2vmin; 
+        justify-content: center;
+        min-height: 0; 
+    }
+
+    .player-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end; 
+        align-items: center; 
+        gap: 1.5vmin;
+        min-width: 0;
+        height: 100%;
+        padding-bottom: 1vmin;
+    }
+
+    /* 타겟 단어 영역 */
+    .targets-container {
+        display: grid;
+        grid-template-rows: repeat(2, 1fr);
+        gap: 1vmin;
+        width: 100%;
+        max-width: 700px; 
+        flex: 0 0 auto; 
+        margin-top: auto; 
+    }
+
+    .target-chip {
+        display: flex;
+        flex-direction: row; 
+        align-items: center;
+        justify-content: center;
+        gap: 1vmin; 
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #555;
+        border-radius: 8px;
+        padding: 1vmin; 
+        transition: all 0.3s ease;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .target-chip.found {
+        background: rgba(76, 217, 100, 0.2);
+        border-color: #4cd964;
+        color: #4cd964;
+        transform: scale(1.00);
+    }
+
+    .emoji-icon { 
+        font-size: clamp(14px, 2.5vmin, 26px); 
+        flex-shrink: 0; 
+        line-height: 1; 
+    }
+    
+    .target-word {
+        white-space: normal;
+        word-break: keep-all; 
+        text-align: center;
+        max-width: 100%;
+        line-height: 1.1;
+        font-size: clamp(11px, 1.8vmin, 18px);
+        font-weight: 800;
+    }
+
+    /* 이모지 보드 */
+    .grid-container {
+        background: #1a1a1a;
+        border-radius: 12px;
+        border: 4px solid #333;
+        padding: 1vmin; 
+        display: grid;
+        gap: 0.8vmin; 
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        transition: filter 0.3s, opacity 0.3s;
+        
+        width: fit-content; 
+        max-width: 100%;
+        flex: 0 0 auto; 
+        margin: 0 auto; 
+    }
+
+    .p1-board { border-color: rgba(255, 77, 77, 0.4); }
+    .p2-board { border-color: rgba(77, 136, 255, 0.4); }
+
+    .emoji-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: clamp(16px, 3.5vmin, 40px); 
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.1s, filter 0.8s, opacity 0.8s;
+        overflow: hidden;
+        width: 100%;
+        aspect-ratio: 1 / 1; 
+        position: relative; 
+    }
+
+    .emoji-btn:active {
+        transform: scale(0.85);
+        background: rgba(255,255,255,0.15);
+    }
+
+    .emoji-btn.hidden-emoji {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .emoji-btn.hint-fade {
+        filter: grayscale(100%);
+        opacity: 0.15;
+        pointer-events: none;
+        transform: scale(0.9);
+    }
+
+    /* 게임 종료 시 못 맞춘 정답 O 표시 */
+    .missed-target {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: scale(1.1) !important;
+        pointer-events: none;
+    }
+    .missed-target::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%; height: 85%;
+        border-radius: 50%;
+        border: 6px solid;
+        box-sizing: border-box;
+        z-index: 10;
+        box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    .missed-p1::after { border-color: #ff4d4d; }
+    .missed-p2::after { border-color: #4d88ff; }
+
+    .penalty-mode {
+        filter: grayscale(100%) opacity(0.3);
+        pointer-events: none;
+        border-color: #ff3333 !important;
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .divider {
+        width: 4px; 
+        background: rgba(255, 215, 0, 0.4);
+        border-radius: 2px;
+        margin-top: auto;
+        height: 70%; 
+    }
+
+    /* Floating Buttons */
+    .float-btn {
+        position: fixed; bottom: 20px; width: 40px; height: 40px;
+        background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%; cursor: pointer; z-index: 1000;
+        display: flex; justify-content: center; align-items: center;
+        color: white; font-size: 20px; transition: all 0.2s;
+        backdrop-filter: blur(4px); pointer-events: auto;
+    }
+    .float-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
+    .float-btn:active { transform: scale(0.95); }
+    #fullscreen-btn { right: 20px; }
+    #home-btn { left: 20px; }
+
+    /* Overlay (초기 시작화면) */
+    #overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 100; backdrop-filter: blur(8px);
+    }
+    
+    .modal-content {
+        background: rgba(30, 30, 30, 0.95); padding: 40px 60px;
+        border-radius: 30px; border: 2px solid rgba(197, 160, 89, 0.5);
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; max-width: 800px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        pointer-events: auto;
+    }
+
+ .modal-content h1 { 
+        font-size: clamp(30px, 6vw, 50px) !important; 
+        margin: 0 0 20px 0; 
+        font-weight: 800 !important;
+        color: #ffcc00;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    
+    .result-msg { font-size: clamp(22px, 3.5vw, 32px); font-weight: bold; margin: 15px 0; color: #fff; }
+    .sub-msg { font-size: clamp(16px, 2vw, 22px); color: #ccc; line-height: 1.6; font-weight: bold; margin-bottom: 30px; }
+    .sub-msg b { color: #ffcc00; }
+
+    /* 레벨 버튼 디자인 */
+    .level-btns {
+        display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px;
+    }
+    .level-btn {
+        padding: 8px 20px; font-size: clamp(18px, 2.5vw, 26px); font-weight: 800; font-family: 'Nanum Gothic', sans-serif;
+        border: 3px solid #fff; border-radius: 60px; color: #fff; cursor: pointer;
+        transition: transform 0.1s, filter 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .level-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+    .level-btn:active { transform: scale(0.95); }
+    
+    .btn-l1 { background: linear-gradient(to bottom, #4cd964, #28a745); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l2 { background: linear-gradient(to bottom, #5ac8fa, #007aff); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l3 { background: linear-gradient(to bottom, #ff9500, #ff2d55); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l4 { background: linear-gradient(to bottom, #ff3b30, #5856d6); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+    /* 다시하기 버튼 등 공통버튼 */
+    .action-btn {
+        padding: 15px 40px; font-size: clamp(20px, 2.5vw, 28px); font-weight: 800; font-family: 'Nanum Gothic', sans-serif;
+        background: linear-gradient(to bottom, #4cd964, #28a745);
+        border: 3px solid #fff; border-radius: 60px; color: #fff; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
+        transition: transform 0.1s, box-shadow 0.2s;
+    }
+    .action-btn:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(40, 167, 69, 0.7); }
+    .action-btn:active { transform: scale(0.95); }
+
+    /* 중앙 하단 다시하기 버튼 영역 */
+    #restart-container {
+        position: fixed;
+        bottom: 50px;
+        left: 0;
+        width: 100%;
+        display: none; 
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        pointer-events: none; 
+    }
+    #restart-container .action-btn { pointer-events: auto; animation: popIn 0.5s ease-out forwards; }
+
+    /* Countdown Overlay */
+    #countdown-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: black; color: white; display: none; flex-direction: column; 
+        justify-content: center; align-items: center; z-index: 9999; 
+        font-size: clamp(80px, 15vw, 200px); font-weight: 800; 
+        text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+    .count-anim {
+        animation: popCount 1s ease-in-out forwards;
+    }
+    @keyframes popCount {
+        0% { transform: scale(0.5); opacity: 0; }
+        20% { transform: scale(1.2); opacity: 1; }
+        80% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+</style>
+</head>
+<body>
+
+    <div id="top-area">
+        <div id="scoreboard-row">
+            <div class="team-panel p1-panel">
+                <span class="player-label p1-label">🔴 빨강 팀</span>
+                <span class="score" id="score-p1">0</span>
+                <div class="win-overlay" id="win-p1"></div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer-label">⏱️ 시간</div>
+            </div>
+
+            <div class="team-panel p2-panel">
+                <span class="player-label p2-label">🔵 파랑 팀</span>
+                <span class="score" id="score-p2">0</span>
+                <div class="win-overlay" id="win-p2"></div>
+            </div>
+        </div>
+        
+        <div id="top-timer-bar"><div id="top-timer-fill"></div></div>
+    </div>
+
+    <div id="game-area-wrapper">
+        <div id="game-area">
+            
+            <div class="player-section" id="p1-section">
+                <div class="targets-container" id="p1-targets"></div>
+                <div id="p1-grid" class="grid-container p1-board"></div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="player-section" id="p2-section">
+                <div class="targets-container" id="p2-targets"></div>
+                <div id="p2-grid" class="grid-container p2-board"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="home-btn" class="float-btn" onpointerdown="location.reload()" title="Home">🏠</div>
+    <div id="fullscreen-btn" class="float-btn" onpointerdown="toggleFullscreen()" title="Fullscreen">⛶</div>
+
+    <div id="restart-container">
+        <button class="action-btn" onpointerdown="startCountdown(currentLevelNum)">🔄 다시 하기</button>
+    </div>
+
+    <div id="overlay">
+        <div class="modal-content">
+            <h1>👑 숨은 이모지 찾기 👑</h1>
+            <div class="result-msg" id="main-msg">
+                <span style="color:#ff4d4d">🔴 빨강 팀</span> vs <span style="color:#4d88ff">🔵 파랑 팀</span>
+            </div>
+            <div class="sub-msg" id="txt-instruct">
+                👆 글씨와 똑같은 <b>이모지</b>를 화면 아래에서 찾아봐요!<br>
+                💡 힌트: 틀린 이모지는 10초 뒤에 흐려진답니다<br>
+                🚫 잘못 누르면 <b>3초 동안 기다려야 해요</b> ⏱️
+            </div>
+            
+            <div class="level-btns">
+                <button class="level-btn btn-l1" onpointerdown="startCountdown(1)">쉬움</button>
+                <button class="level-btn btn-l2" onpointerdown="startCountdown(2)">보통</button>
+                <button class="level-btn btn-l3" onpointerdown="startCountdown(3)">어려움</button>
+                <button class="level-btn btn-l4" onpointerdown="startCountdown(4)">킹어려움</button>
+            </div>
+
+<a href="/?cg=kingkr" style="display: inline-block; margin-top: 20px; color: #aaaaaa; font-size: clamp(16px, 2vw, 22px); font-weight: bold; text-decoration: underline; text-underline-offset: 4px;" onpointerdown="window.location.href=this.href; return false;">🎮 다른 게임 보기</a>
+
+        </div>
+    </div>
+
+    <div id="countdown-overlay">
+        <span id="countdown-text"></span>
+    </div>
+
+<script>
+    const emojiData = [
+      { "category": "fruit", "emoji": "🍎", "word": "사과", "level": 1 },
+      { "category": "fruit", "emoji": "🍌", "word": "바나나", "level": 2 },
+      { "category": "animal", "emoji": "🐶", "word": "강아지", "level": 2 },
+      { "category": "animal", "emoji": "🐱", "word": "고양이", "level": 2 },
+      { "category": "animal", "emoji": "🐻", "word": "곰", "level": 1 },
+      { "category": "animal", "emoji": "🐮", "word": "소", "level": 1 },
+      { "category": "animal", "emoji": "🐷", "word": "돼지", "level": 1 },
+      { "category": "animal", "emoji": "🦁", "word": "사자", "level": 1 },
+      { "category": "body", "emoji": "👀", "word": "눈", "level": 1 },
+      { "category": "body", "emoji": "👃", "word": "코", "level": 1 },
+      { "category": "body", "emoji": "👂", "word": "귀", "level": 1 },
+      { "category": "body", "emoji": "🖐️", "word": "손", "level": 1 },
+      { "category": "body", "emoji": "💪", "word": "팔", "level": 1 },
+      { "category": "body", "emoji": "🦵", "word": "다리", "level": 1 },
+      { "category": "number", "emoji": "0️⃣", "word": "영", "level": 1 },
+      { "category": "number", "emoji": "1️⃣", "word": "일", "level": 1 },
+      { "category": "number", "emoji": "2️⃣", "word": "이", "level": 1 },
+      { "category": "number", "emoji": "3️⃣", "word": "삼", "level": 1 },
+      { "category": "number", "emoji": "4️⃣", "word": "사", "level": 1 },
+      { "category": "number", "emoji": "5️⃣", "word": "오", "level": 1 },
+      { "category": "number", "emoji": "6️⃣", "word": "육", "level": 1 },
+      { "category": "number", "emoji": "7️⃣", "word": "칠", "level": 1 },
+      { "category": "number", "emoji": "8️⃣", "word": "팔", "level": 1 },
+      { "category": "number", "emoji": "9️⃣", "word": "구", "level": 1 },
+      { "category": "number", "emoji": "🔟", "word": "십", "level": 1 },
+      { "category": "school", "emoji": "🖊️", "word": "펜", "level": 1 },
+      { "category": "school", "emoji": "📖", "word": "책", "level": 1 },
+      { "category": "vehicle", "emoji": "🚗", "word": "자동차", "level": 2 },
+      { "category": "vehicle", "emoji": "🚌", "word": "버스", "level": 1 },
+      { "category": "vehicle", "emoji": "🚕", "word": "택시", "level": 2 },
+      { "category": "nature", "emoji": "☀️", "word": "해", "level": 1 },
+      { "category": "nature", "emoji": "🌧️", "word": "비", "level": 1 },
+      { "category": "nature", "emoji": "❄️", "word": "눈", "level": 1 },
+      { "category": "nature", "emoji": "⭐", "word": "별", "level": 1 },
+      { "category": "emotion", "emoji": "😀", "word": "웃음", "level": 2 },
+      { "category": "emotion", "emoji": "😢", "word": "슬픔", "level": 2 },
+      { "category": "food", "emoji": "🍕", "word": "피자", "level": 2 },
+      { "category": "food", "emoji": "🍳", "word": "계란", "level": 1 },
+      { "category": "clothes", "emoji": "🧢", "word": "모자", "level": 1 },
+      { "category": "shape", "emoji": "🔴", "word": "빨강", "level": 1 },
+      { "category": "shape", "emoji": "🔵", "word": "파랑", "level": 1 },
+      { "category": "shape", "emoji": "🟡", "word": "노랑", "level": 1 },
+      { "category": "shape", "emoji": "🟢", "word": "초록", "level": 1 },
+      { "category": "shape", "emoji": "⚫", "word": "검정", "level": 1 },
+      { "category": "shape", "emoji": "⚪", "word": "하양", "level": 1 },
+      { "category": "shape", "emoji": "❤️", "word": "하트", "level": 1 },
+      { "category": "family", "emoji": "👶", "word": "아기", "level": 1 },
+      { "category": "family", "emoji": "👦", "word": "남자아이", "level": 2 },
+      { "category": "family", "emoji": "👧", "word": "여자아이", "level": 2 },
+      { "category": "family", "emoji": "👨", "word": "아빠", "level": 1 },
+      { "category": "family", "emoji": "👩", "word": "엄마", "level": 1 },
+      { "category": "place", "emoji": "🏠", "word": "집", "level": 1 },
+      { "category": "place", "emoji": "🏫", "word": "학교", "level": 2 },
+      { "category": "place", "emoji": "🎡", "word": "놀이공원", "level": 3 },
+      { "category": "toy", "emoji": "🎮", "word": "게임", "level": 2 },
+      
+      { "category": "fruit", "emoji": "🍇", "word": "포도", "level": 1 },
+      { "category": "fruit", "emoji": "🍑", "word": "복숭아", "level": 3 },
+      { "category": "fruit", "emoji": "🍋", "word": "레몬", "level": 2 },
+      { "category": "fruit", "emoji": "🍊", "word": "귤", "level": 1 },
+      { "category": "fruit", "emoji": "🍈", "word": "멜론", "level": 2 },
+      { "category": "animal", "emoji": "🐭", "word": "쥐", "level": 1 },
+      { "category": "animal", "emoji": "🐰", "word": "토끼", "level": 2 },
+      { "category": "animal", "emoji": "🐼", "word": "판다", "level": 2 },
+      { "category": "animal", "emoji": "🐯", "word": "호랑이", "level": 2 },
+      { "category": "animal", "emoji": "🐸", "word": "개구리", "level": 2 },
+      { "category": "animal", "emoji": "🐵", "word": "원숭이", "level": 2 },
+      { "category": "animal", "emoji": "🐔", "word": "닭", "level": 1 },
+      { "category": "animal", "emoji": "🦊", "word": "여우", "level": 2 },
+      { "category": "body", "emoji": "👄", "word": "입", "level": 1 },
+      { "category": "body", "emoji": "🦶", "word": "발", "level": 1 },
+      { "category": "job", "emoji": "👮", "word": "경찰관", "level": 3 },
+      { "category": "job", "emoji": "👨‍⚕️", "word": "의사", "level": 2 },
+      { "category": "job", "emoji": "👩‍🏫", "word": "선생님", "level": 3 },
+      { "category": "job", "emoji": "👨‍🍳", "word": "요리사", "level": 3 },
+      { "category": "job", "emoji": "👨‍🌾", "word": "농부", "level": 2 },
+      { "category": "job", "emoji": "👨‍🎤", "word": "가수", "level": 2 },
+      { "category": "school", "emoji": "✏️", "word": "연필", "level": 2 },
+      { "category": "vehicle", "emoji": "🚓", "word": "경찰차", "level": 3 },
+      { "category": "vehicle", "emoji": "🚂", "word": "기차", "level": 2 },
+      { "category": "vehicle", "emoji": "🚢", "word": "배", "level": 1 },
+      { "category": "nature", "emoji": "☁️", "word": "구름", "level": 2 },
+      { "category": "nature", "emoji": "🌬️", "word": "바람", "level": 2 },
+      { "category": "nature", "emoji": "🌙", "word": "달", "level": 1 },
+      { "category": "nature", "emoji": "🌲", "word": "나무", "level": 1 },
+      { "category": "nature", "emoji": "🌺", "word": "꽃", "level": 1 },
+      { "category": "emotion", "emoji": "😡", "word": "화남", "level": 2 },
+      { "category": "emotion", "emoji": "😴", "word": "졸림", "level": 2 },
+      { "category": "emotion", "emoji": "🤢", "word": "아픔", "level": 2 },
+      { "category": "emotion", "emoji": "😭", "word": "울음", "level": 2 },
+      { "category": "food", "emoji": "🌭", "word": "핫도그", "level": 3 },
+      { "category": "food", "emoji": "🍞", "word": "빵", "level": 1 },
+      { "category": "food", "emoji": "🍦", "word": "아이스크림", "level": 3 },
+      { "category": "food", "emoji": "🍰", "word": "케이크", "level": 3 },
+      { "category": "food", "emoji": "🍬", "word": "사탕", "level": 2 },
+      { "category": "clothes", "emoji": "👕", "word": "티셔츠", "level": 3 },
+      { "category": "clothes", "emoji": "👖", "word": "바지", "level": 1 },
+      { "category": "clothes", "emoji": "👗", "word": "치마", "level": 1 },
+      { "category": "clothes", "emoji": "👟", "word": "신발", "level": 2 },
+      { "category": "sport", "emoji": "⚽", "word": "축구", "level": 2 },
+      { "category": "sport", "emoji": "🏃", "word": "달리기", "level": 3 },
+      { "category": "shape", "emoji": "🟤", "word": "갈색", "level": 2 },
+      { "category": "instrument", "emoji": "🎹", "word": "피아노", "level": 3 },
+      { "category": "instrument", "emoji": "🥁", "word": "북", "level": 1 },
+      { "category": "instrument", "emoji": "🔔", "word": "종", "level": 1 },
+      { "category": "family", "emoji": "🤴", "word": "왕", "level": 1 },
+      { "category": "family", "emoji": "👸", "word": "여왕", "level": 2 },
+      { "category": "family", "emoji": "🧑‍🤝‍🧑", "word": "친구", "level": 1 },
+      { "category": "place", "emoji": "🏦", "word": "은행", "level": 2 },
+      { "category": "place", "emoji": "🏪", "word": "가게", "level": 1 },
+      { "category": "insect", "emoji": "🐝", "word": "꿀벌", "level": 2 },
+      { "category": "insect", "emoji": "🐜", "word": "개미", "level": 2 },
+      { "category": "toy", "emoji": "🪆", "word": "인형", "level": 2 },
+
+      { "category": "fruit", "emoji": "🍉", "word": "수박", "level": 2 },
+      { "category": "fruit", "emoji": "🍒", "word": "체리", "level": 2 },
+      { "category": "fruit", "emoji": "🥝", "word": "키위", "level": 2 },
+      { "category": "animal", "emoji": "🐘", "word": "코끼리", "level": 3 },
+      { "category": "animal", "emoji": "🐺", "word": "늑대", "level": 2 },
+      { "category": "body", "emoji": "🦷", "word": "이빨", "level": 2 },
+      { "category": "body", "emoji": "🦴", "word": "뼈", "level": 1 },
+      { "category": "job", "emoji": "👨‍✈️", "word": "조종사", "level": 4 },
+      { "category": "job", "emoji": "👨‍🎨", "word": "화가", "level": 2 },
+      { "category": "job", "emoji": "👷", "word": "건축가", "level": 4 },
+      { "category": "school", "emoji": "🖍️", "word": "크레파스", "level": 3 },
+      { "category": "school", "emoji": "🎒", "word": "가방", "level": 2 },
+      { "category": "school", "emoji": "📏", "word": "자", "level": 1 },
+      { "category": "school", "emoji": "📓", "word": "공책", "level": 2 },
+      { "category": "school", "emoji": "📎", "word": "클립", "level": 3 },
+      { "category": "school", "emoji": "💻", "word": "컴퓨터", "level": 3 },
+      { "category": "vehicle", "emoji": "🚒", "word": "소방차", "level": 3 },
+      { "category": "vehicle", "emoji": "🚲", "word": "자전거", "level": 3 },
+      { "category": "vehicle", "emoji": "✈️", "word": "비행기", "level": 3 },
+      { "category": "nature", "emoji": "🌈", "word": "무지개", "level": 3 },
+      { "category": "nature", "emoji": "🌊", "word": "파도", "level": 2 },
+      { "category": "nature", "emoji": "🌍", "word": "지구", "level": 2 },
+      { "category": "nature", "emoji": "🍃", "word": "나뭇잎", "level": 3 },
+      { "category": "emotion", "emoji": "😨", "word": "무서움", "level": 3 },
+      { "category": "emotion", "emoji": "😍", "word": "사랑", "level": 2 },
+      { "category": "food", "emoji": "🍔", "word": "햄버거", "level": 3 },
+      { "category": "food", "emoji": "🍟", "word": "감자튀김", "level": 4 },
+      { "category": "food", "emoji": "🧀", "word": "치즈", "level": 2 },
+      { "category": "food", "emoji": "🥗", "word": "샐러드", "level": 3 },
+      { "category": "food", "emoji": "🍩", "word": "도넛", "level": 2 },
+      { "category": "clothes", "emoji": "🧥", "word": "외투", "level": 2 },
+      { "category": "clothes", "emoji": "🧦", "word": "양말", "level": 2 },
+      { "category": "clothes", "emoji": "👢", "word": "장화", "level": 2 },
+      { "category": "clothes", "emoji": "👓", "word": "안경", "level": 2 },
+      { "category": "sport", "emoji": "🏀", "word": "농구", "level": 2 },
+      { "category": "sport", "emoji": "⚾", "word": "야구", "level": 2 },
+      { "category": "sport", "emoji": "🎾", "word": "테니스", "level": 3 },
+      { "category": "sport", "emoji": "🏊", "word": "수영", "level": 2 },
+      { "category": "shape", "emoji": "🟥", "word": "네모", "level": 1 },
+      { "category": "instrument", "emoji": "🎸", "word": "기타", "level": 2 },
+      { "category": "family", "emoji": "👴", "word": "할아버지", "level": 3 },
+      { "category": "family", "emoji": "👵", "word": "할머니", "level": 3 },
+      { "category": "family", "emoji": "👼", "word": "천사", "level": 2 },
+      { "category": "place", "emoji": "🏥", "word": "병원", "level": 2 },
+      { "category": "place", "emoji": "🏰", "word": "성", "level": 1 },
+      { "category": "place", "emoji": "⛺", "word": "텐트", "level": 2 },
+      { "category": "insect", "emoji": "🦋", "word": "나비", "level": 2 },
+      { "category": "insect", "emoji": "🕷️", "word": "거미", "level": 2 },
+      { "category": "insect", "emoji": "🐌", "word": "달팽이", "level": 3 },
+      { "category": "insect", "emoji": "🪱", "word": "지렁이", "level": 3 },
+      { "category": "toy", "emoji": "🧸", "word": "곰인형", "level": 3 },
+      { "category": "toy", "emoji": "🎈", "word": "풍선", "level": 2 },
+      { "category": "toy", "emoji": "🪁", "word": "연", "level": 1 },
+      { "category": "space", "emoji": "🚀", "word": "로켓", "level": 2 },
+
+      { "category": "fruit", "emoji": "🍓", "word": "딸기", "level": 2 },
+      { "category": "fruit", "emoji": "🍍", "word": "파인애플", "level": 4 },
+      { "category": "body", "emoji": "👅", "word": "혀", "level": 1 },
+      { "category": "body", "emoji": "🧠", "word": "뇌", "level": 3 },
+      { "category": "job", "emoji": "👩‍🚒", "word": "소방관", "level": 3 },
+      { "category": "job", "emoji": "👩‍🚀", "word": "우주비행사", "level": 4 },
+      { "category": "job", "emoji": "🕵️", "word": "탐정", "level": 3 },
+      { "category": "school", "emoji": "✂️", "word": "가위", "level": 2 },
+      { "category": "school", "emoji": "📋", "word": "클립보드", "level": 4 },
+      { "category": "vehicle", "emoji": "🚑", "word": "구급차", "level": 3 },
+      { "category": "vehicle", "emoji": "🏍️", "word": "오토바이", "level": 4 },
+      { "category": "vehicle", "emoji": "🚁", "word": "헬리콥터", "level": 4 },
+      { "category": "nature", "emoji": "⚡", "word": "번개", "level": 2 },
+      { "category": "emotion", "emoji": "😲", "word": "놀람", "level": 2 },
+      { "category": "emotion", "emoji": "😆", "word": "신남", "level": 2 },
+      { "category": "food", "emoji": "🥪", "word": "샌드위치", "level": 4 },
+      { "category": "food", "emoji": "🍫", "word": "초콜릿", "level": 3 },
+      { "category": "clothes", "emoji": "🧣", "word": "목도리", "level": 3 },
+      { "category": "clothes", "emoji": "🧤", "word": "장갑", "level": 2 },
+      { "category": "sport", "emoji": "🏐", "word": "배구", "level": 3 },
+      { "category": "sport", "emoji": "🎳", "word": "볼링", "level": 3 },
+      { "category": "sport", "emoji": "🏓", "word": "탁구", "level": 3 },
+      { "category": "sport", "emoji": "🏸", "word": "배드민턴", "level": 4 },
+      { "category": "sport", "emoji": "⛷️", "word": "스키", "level": 2 },
+      { "category": "sport", "emoji": "⛸️", "word": "스케이트", "level": 4 },
+      { "category": "shape", "emoji": "🔺", "word": "세모", "level": 1 },
+      { "category": "instrument", "emoji": "🎻", "word": "바이올린", "level": 4 },
+      { "category": "instrument", "emoji": "🎺", "word": "트럼펫", "level": 4 },
+      { "category": "instrument", "emoji": "🎷", "word": "색소폰", "level": 4 },
+      { "category": "instrument", "emoji": "🪈", "word": "피리", "level": 2 },
+      { "category": "instrument", "emoji": "🎤", "word": "마이크", "level": 3 },
+      { "category": "instrument", "emoji": "🎧", "word": "헤드폰", "level": 3 },
+      { "category": "place", "emoji": "🏤", "word": "우체국", "level": 3 },
+      { "category": "place", "emoji": "🏭", "word": "공장", "level": 2 },
+      { "category": "place", "emoji": "🏟️", "word": "경기장", "level": 4 },
+      { "category": "insect", "emoji": "🐞", "word": "무당벌레", "level": 4 },
+      { "category": "insect", "emoji": "🐛", "word": "애벌레", "level": 3 },
+      { "category": "toy", "emoji": "🪀", "word": "요요", "level": 2 },
+      { "category": "toy", "emoji": "🧩", "word": "퍼즐", "level": 3 },
+      { "category": "toy", "emoji": "🎲", "word": "주사위", "level": 3 },
+      { "category": "space", "emoji": "👽", "word": "외계인", "level": 4 },
+      { "category": "space", "emoji": "🛸", "word": "우주선", "level": 3 },
+      { "category": "space", "emoji": "🪐", "word": "행성", "level": 4 },
+      { "category": "space", "emoji": "☄️", "word": "혜성", "level": 4 },
+      { "category": "space", "emoji": "🔭", "word": "망원경", "level": 4 },
+      { "category": "space", "emoji": "🛰️", "word": "인공위성", "level": 4 }
+    ];
+
+    // 레벨별 설정값
+    const levelConfigs = {
+        1: { maxLvl: 1, total: 20, targets: 4, cols: 5, rows: 4, hide: 2 },
+        2: { maxLvl: 2, total: 40, targets: 6, cols: 8, rows: 5, hide: 4 },
+        3: { maxLvl: 3, total: 80, targets: 8, cols: 10, rows: 8, hide: 7 },
+        4: { maxLvl: 4, total: 96, targets: 10, cols: 12, rows: 8, hide: 8 }
+    };
+
+    let currentLevelNum = 4;
+    let currentConfig = levelConfigs[currentLevelNum];
+
+    // Audio Engine for zero-dependency sound effects
+    const AudioEngine = {
+        ctx: null,
+        init: function() {
+            if (!this.ctx) {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+            } else if (this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+        },
+        playTone: function(freq, type, duration, vol=0.3, startTime=null) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            const now = startTime || this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        },
+        playCorrect: function(isP1) { 
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const base = isP1 ? 660 : 880; 
+            this.playTone(base, 'square', 0.1, 0.15, now);
+            this.playTone(base * 1.25, 'triangle', 0.2, 0.2, now + 0.1);
+            this.playTone(base * 1.5, 'sine', 0.4, 0.2, now + 0.2);
+        },
+        playWrong: function() { 
+            this.playTone(150, 'sawtooth', 0.3, 0.4);
+            setTimeout(() => this.playTone(100, 'sawtooth', 0.4, 0.4), 150);
+        },
+        playHint: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            this.playTone(300, 'sine', 0.1, 0.05, now); 
+            this.playTone(400, 'sine', 0.1, 0.05, now + 0.1);
+        },
+        playCountdown: function() { this.playTone(1200, 'sine', 0.1, 0.2); },
+        playStart: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            this.playTone(600, 'square', 0.1, 0.3, now);
+            this.playTone(800, 'square', 0.4, 0.4, now + 0.15);
+            this.playTone(1200, 'sine', 0.5, 0.2, now + 0.3);
+        },
+        playFanfare: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            [523, 659, 783, 1046, 783, 1046].forEach((freq, i) => {
+                this.playTone(freq, 'square', 0.2, 0.3, now + i*0.15);
+            });
+        }
+    };
+
+    // 드래그 및 우클릭, 선택 방지 (전자칠판 터치 최적화)
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log("Fullscreen not supported or allowed");
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // --- Game Logic ---
+    let state = {
+        p1: { score: 0, found: new Set(), targets: [] },
+        p2: { score: 0, found: new Set(), targets: [] }
+    };
+    
+    let timeLeft = 60;
+    const maxTime = 60;
+    let timerId;
+    let hintTimerId;
+    let isPlaying = false;
+
+    function renderTargets(playerStr, targets) {
+        const container = document.getElementById(`${playerStr}-targets`);
+        
+        container.style.gridTemplateColumns = `repeat(${Math.ceil(targets.length / 2)}, 1fr)`;
+
+        container.innerHTML = targets.map(t => {
+            return `
+            <div id="${playerStr}-target-${t.word}" class="target-chip">
+                <span class="emoji-icon grayscale opacity-40">❓</span>
+                <span class="target-word">${t.word}</span>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function renderGrid(playerStr, emojiArray) {
+        const container = document.getElementById(`${playerStr}-grid`);
+        
+        container.style.gridTemplateColumns = `repeat(${currentConfig.cols}, minmax(20px, 6vmin))`;
+        
+        container.innerHTML = emojiArray.map((e) => {
+            const isTarget = state[playerStr].targets.some(t => t.word === e.word);
+            return `<div class="emoji-btn" data-word="${e.word}" data-istarget="${isTarget}" onpointerdown="handleTap('${playerStr}', '${e.word}', this)">
+                ${e.emoji}
+            </div>`;
+        }).join('');
+    }
+
+    function initGame() {
+        document.getElementById('win-p1').style.display = 'none';
+        document.getElementById('win-p2').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+
+        // 해당 레벨 이하의 이모지들만 필터링
+        let availablePool = emojiData.filter(e => e.level <= currentConfig.maxLvl);
+        let shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        
+        // 정답 개수만큼 추출
+        let targets = shuffled.slice(0, currentConfig.targets);
+        
+        // 오답(filler) 추출
+        let remaining = shuffled.slice(currentConfig.targets);
+        let fillers = remaining.slice(0, currentConfig.total - currentConfig.targets);
+        
+        // 정답과 오답을 합쳐서 최종 풀 생성
+        let pool = [...targets, ...fillers];
+
+        state.p1 = { score: 0, found: new Set(), targets: [...targets] };
+        state.p2 = { score: 0, found: new Set(), targets: [...targets] };
+
+        document.getElementById('score-p1').textContent = '0';
+        document.getElementById('score-p2').textContent = '0';
+
+        renderTargets('p1', targets);
+        renderTargets('p2', targets);
+
+        // 독립적으로 섞어서 보드 렌더링
+        renderGrid('p1', [...pool].sort(() => Math.random() - 0.5));
+        renderGrid('p2', [...pool].sort(() => Math.random() - 0.5));
+    }
+
+    function applyHint(playerStr) {
+        const grid = document.getElementById(`${playerStr}-grid`);
+        const fillers = Array.from(grid.querySelectorAll('.emoji-btn[data-istarget="false"]:not(.hidden-emoji):not(.hint-fade)'));
+        
+        if(fillers.length === 0) return false;
+
+        fillers.sort(() => Math.random() - 0.5);
+        // 레벨별 설정된 소거 개수 적용
+        const toHide = fillers.slice(0, currentConfig.hide);
+        
+        toHide.forEach(btn => {
+            btn.classList.add('hint-fade');
+        });
+
+        return true;
+    }
+
+    function handleTap(playerStr, word, element) {
+        if(!isPlaying) return;
+
+        const playerState = state[playerStr];
+        const target = playerState.targets.find(t => t.word === word);
+
+        if (target && !playerState.found.has(word)) {
+            // Correct Touch
+            playerState.found.add(word);
+            element.classList.add('hidden-emoji');
+            AudioEngine.playCorrect(playerStr === 'p1');
+
+            // Update Target UI
+            const targetUI = document.getElementById(`${playerStr}-target-${word}`);
+            targetUI.classList.add('found');
+            const icon = targetUI.querySelector('.emoji-icon');
+            icon.textContent = target.emoji;
+            icon.classList.remove('grayscale', 'opacity-40');
+
+            // Update Score
+            playerState.score++;
+            document.getElementById(`score-${playerStr}`).textContent = playerState.score;
+
+            // Win condition (설정된 정답 개수와 비교)
+            if (playerState.score >= currentConfig.targets) {
+                endGame();
+            }
+        } else {
+            // Wrong Touch - Apply Penalty
+            AudioEngine.playWrong();
+            const grid = document.getElementById(`${playerStr}-grid`);
+            grid.classList.add('penalty-mode');
+
+            setTimeout(() => {
+                grid.classList.remove('penalty-mode');
+            }, 3000);
+        }
+    }
+
+    function startCountdown(level) {
+        AudioEngine.init();
+        currentLevelNum = level;
+        currentConfig = levelConfigs[level];
+
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+        
+        const countOverlay = document.getElementById('countdown-overlay');
+        const countText = document.getElementById('countdown-text');
+        countOverlay.style.display = 'flex';
+        
+        let count = 3;
+        let countInt; 
+        
+        function updateCount() {
+            countText.classList.remove('count-anim');
+            void countText.offsetWidth; // trigger reflow
+            countText.classList.add('count-anim');
+            
+            if(count > 0) {
+                countText.textContent = count;
+                AudioEngine.playTone(800, 'square', 0.1, 0.3); // Beep
+            } else if(count === 0) {
+                countText.textContent = '시작!';
+                AudioEngine.playTone(1200, 'sine', 0.5, 0.4); // High beep
+            } else {
+                clearInterval(countInt); // 0보다 작아지면 확실하게 타이머 종료
+                countOverlay.style.display = 'none'; // 검은 화면 숨기기
+                startGame(); // 게임 진짜 시작!
+                return; // 더 이상 실행되지 않도록 리턴
+            }
+            count--;
+        }
+        
+        updateCount(); // 초기 3 바로 표시
+        countInt = setInterval(updateCount, 1000); // 1초마다 실행
+    }
+
+    function startGame() {
+        if(isPlaying) return;
+        
+        initGame();
+
+        timeLeft = maxTime;
+        isPlaying = true;
+
+        const timerFill = document.getElementById('top-timer-fill');
+        timerFill.style.width = '100%';
+
+        clearInterval(timerId);
+        clearInterval(hintTimerId);
+
+        // 메인 타이머
+        timerId = setInterval(() => {
+            timeLeft--;
+            let pct = (timeLeft / maxTime) * 100;
+            timerFill.style.width = pct + '%';
+            
+            if (timeLeft <= 10 && timeLeft > 0) AudioEngine.playCountdown();
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+
+        // 10초마다 힌트 제공 타이머
+        hintTimerId = setInterval(() => {
+            if(!isPlaying) return;
+            const h1 = applyHint('p1');
+            const h2 = applyHint('p2');
+            
+            if(h1 || h2) AudioEngine.playHint();
+        }, 10000);
+    }
+
+    function endGame() {
+        isPlaying = false;
+        clearInterval(timerId);
+        clearInterval(hintTimerId);
+        AudioEngine.playFanfare();
+
+        // 1. 못 찾은 이모지에 O 표시
+        ['p1', 'p2'].forEach(playerStr => {
+            const playerState = state[playerStr];
+            playerState.targets.forEach(t => {
+                if (!playerState.found.has(t.word)) {
+                    const grid = document.getElementById(`${playerStr}-grid`);
+                    const btn = grid.querySelector(`.emoji-btn[data-word="${t.word}"]`);
+                    if (btn) {
+                        btn.classList.add('missed-target');
+                        btn.classList.add(playerStr === 'p1' ? 'missed-p1' : 'missed-p2');
+                        btn.classList.remove('hint-fade'); 
+                    }
+                }
+            });
+        });
+
+        // 2. 상단 패널에 승/패 표시
+        const winP1 = document.getElementById('win-p1');
+        const winP2 = document.getElementById('win-p2');
+
+        winP1.style.display = 'flex';
+        winP2.style.display = 'flex';
+        
+        // 이전 클래스 제거
+        winP1.className = 'win-overlay';
+        winP2.className = 'win-overlay';
+
+        if (state.p1.score > state.p2.score) {
+            winP1.innerHTML = '🏆 승리!';
+            winP1.classList.add('win');
+            winP2.innerHTML = '😥 패배';
+            winP2.classList.add('lose');
+        } else if (state.p2.score > state.p1.score) {
+            winP2.innerHTML = '🏆 승리!';
+            winP2.classList.add('win');
+            winP1.innerHTML = '😥 패배';
+            winP1.classList.add('lose');
+        } else {
+            winP1.innerHTML = '🤝 무승부';
+            winP1.classList.add('draw');
+            winP2.innerHTML = '🤝 무승부';
+            winP2.classList.add('draw');
+        }
+
+        // 3. 3초 후 다시하기 버튼 노출
+        setTimeout(() => {
+            document.getElementById('restart-container').style.display = 'flex';
+        }, 3000);
+    }
+
+    const setAppHeight = () => {
+        const doc = document.documentElement;
+        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+    }
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    setAppHeight();
+
+</script>
+
+</body>
+</html>

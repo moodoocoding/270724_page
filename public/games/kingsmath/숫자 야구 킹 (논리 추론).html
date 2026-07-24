@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2b2b2b">
+    
+    <meta id="meta-desc" name="description" content="숫자 야구킹 - 두뇌 풀가동 전자칠판 배틀 게임">
+    <meta id="meta-keys" name="keywords" content="수학게임, 숫자야구, 킹수학, 두뇌트레이닝, 전자칠판게임">
+    <meta id="meta-og-title" property="og:title" content="⚾️ 숫자 야구킹">
+    <meta id="meta-og-desc" property="og:description" content="킹수학에서 제공하는 최고의 숫자 야구 게임을 즐겨보세요!">
+    
+    <title id="page-title">⚾️ 숫자 야구킹</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            --border-color: #555;
+            
+            /* 추리 메모판 색상 */
+            --logic-neutral: #444;
+            --logic-good: #0984e3; /* 파랑 (유력) */
+            --logic-bad: #d63031;  /* 빨강 (제외) */
+        }
+
+        /* 기존 게임 스타일 보호 (Tailwind 충돌 방지) */
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
+            font-family: 'Jua', 'Noto Sans KR', sans-serif !important;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            touch-action: manipulation; 
+        }
+
+        /* --- [수정] 멀티터치 최적화 CSS --- */
+        .btn-option, #btn-start, .input-box, .btn-submit, .logic-btn, .key-btn, .floating-btn, .overlay-btn {
+            touch-action: none; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.2s ease;
+        }
+
+        /* --- 모달 및 언어 선택 UI 최상단(99999) 고정 스타일 --- */
+        #langBtnWrapper, #langModal, #toastNotification {
+            z-index: 99999 !important;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        /* --- Header --- */
+        header {
+            background-color: #1e1e1e;
+            padding: 0 20px;
+            height: 80px; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+            position: relative;
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            text-shadow: 1px 1px 0 #000;
+            z-index: 2; 
+        }
+
+        /* 중앙 정렬을 위한 절대 배치 */
+        .header-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* 초기 화면에서는 숨김 처리 */
+            gap: 20px;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .round-badge {
+            background: #6c5ce7;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        #timer-display {
+            font-size: 2rem;
+            color: #fff;
+            background: #444;
+            padding: 5px 25px;
+            border-radius: 15px;
+            border: 2px solid #666;
+            min-width: 100px;
+            text-align: center;
+        }
+        #timer-display.urgent {
+            color: #ff7675;
+            border-color: #ff7675;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* --- Main Container --- */
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* 상하 가운데 정렬 */
+            width: 100%;
+            height: calc(100% - 80px);
+        }
+
+        /* --- Start Screen --- */
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            background: var(--card-bg);
+            padding: 10px 28px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 3px solid #444;
+            max-width: 90%;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        /* 상단 배너 링크 스타일 */
+        .top-banner-link {
+            font-size: 1rem;
+            color: #fdcb6e;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: -5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .top-banner-link:hover { text-decoration: underline; color: #ffeaa7; }
+
+    h1 { 
+            margin: 0; 
+            font-size: 2.2rem !important; /* Tailwind 간섭 방지 */
+            color: #fff; 
+            text-shadow: 3px 3px 0 #000; 
+            margin-bottom: 5px; 
+            text-align: center; 
+            line-height: 1.2; 
+        }
+        
+        .guide-box h3 { 
+            color: var(--accent-color); 
+            margin: 0 0 5px 0; 
+            font-size: 1.1rem !important; /* Tailwind 간섭 방지 */
+        }
+        .guide-box {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px dashed #777;
+            text-align: left;
+            width: 100%;
+        }
+    
+        .guide-box p { margin: 3px 0; color: #ccc; font-size: 0.95rem; line-height: 1.3; }
+
+        .option-group { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; justify-content: center; }
+        .btn-option {
+            padding: 8px 16px;
+            font-size: 1rem;   
+            border: 2px solid #555;
+            background: #222;
+            color: #aaa;
+            border-radius: 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active);
+            color: white;
+            border-color: var(--btn-active);
+            box-shadow: 0 0 10px var(--btn-active);
+        }
+
+        #btn-start {
+            margin-top: 10px;
+            padding: 10px 50px;
+            font-size: 1.8rem;
+            background-color: #ff7675;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 0 #d63031;
+            font-family: 'Jua', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        /* KingsMath Footer Link */
+        .footer-link {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #888;
+            text-decoration: none;
+            border-bottom: 1px dotted #888;
+            transition: color 0.3s;
+        }
+        .footer-link:hover { color: var(--accent-color); border-color: var(--accent-color); }
+
+        /* --- Game Screen (Multiplayer Layout) --- */
+        #game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .player-area {
+            width: 25%;    /* 화면의 4분의 1 고정 */
+            flex: none;  
+            border-right: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            position: relative;
+            background: #2b2b2b;
+        }
+        .player-area:first-child { border-left: 2px solid #444; }
+        .player-area:last-child { border-right: 2px solid #444; } 
+
+        /* 테마 색상 (플레이어별) */
+        .p-theme-0 { --p-color: #00cec9; --p-bg: rgba(0, 206, 201, 0.1); }
+        .p-theme-1 { --p-color: #fdcb6e; --p-bg: rgba(253, 203, 110, 0.1); }
+        .p-theme-2 { --p-color: #ff7675; --p-bg: rgba(255, 118, 117, 0.1); }
+        .p-theme-3 { --p-color: #a29bfe; --p-bg: rgba(162, 155, 254, 0.1); }
+
+        .player-header {
+            font-size: 1.5rem;
+            color: var(--p-color);
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px black;
+            font-weight: bold;
+        }
+
+        /* History Log */
+        .history-log {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            display: flex;
+            flex-direction: column-reverse; 
+        }
+        .history-log::-webkit-scrollbar { width: 6px; }
+        .history-log::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #444;
+            font-size: 2.2rem; 
+            animation: slideIn 0.3s ease;
+            line-height: 1.2;
+        }
+        
+        .log-special {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--p-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 5px;
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .log-special.win { background: rgba(255, 215, 0, 0.2); border-color: #FFD700; }
+        .log-special.lose { background: rgba(200, 50, 50, 0.2); border-color: #ff7675; }
+        
+        .special-answer { font-size: 1.5rem; color: #fff; margin-bottom: 5px; }
+        .special-team { font-size: 1.8rem; font-weight: bold; color: var(--p-color); margin-bottom: 5px; }
+        .special-msg { font-size: 2.5rem; font-weight: bold; color: var(--accent-color); text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+        
+        .log-turn { color: #888; font-size: 1.2rem; margin-right: 10px; align-self: center; } 
+        .log-nums { font-weight: bold; color: #fff; letter-spacing: 3px; }
+        .log-result { font-weight: bold; }
+        .res-out { color: #ff7675; }
+        .res-hit { color: var(--p-color); }
+        .res-win { color: #fab1a0; text-shadow: 0 0 5px #fab1a0; }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-box {
+            width: 50px; height: 60px;
+            background: #eee;
+            color: #333;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #bbb;
+            font-weight: bold;
+        }
+        .input-box.active { background: #fff; border: 3px solid var(--p-color); }
+        .input-box:active { transform: translateY(2px); box-shadow: 0 2px 0 #999; }
+        .input-box.locked { background: #777; color: #ccc; border: 2px solid #555; cursor: not-allowed; box-shadow: none; }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.3rem;
+            border-radius: 10px;
+            border: none;
+            font-family: 'Jua';
+            cursor: pointer;
+            background: #555;
+            color: #aaa;
+            margin-bottom: 5px; 
+            transition: background 0.1s, color 0.1s;
+        }
+        .btn-submit.ready { background: var(--p-color); color: #2b2b2b; box-shadow: 0 4px 0 rgba(0,0,0,0.5); }
+        .btn-submit.ready:active { box-shadow: 0 2px 0 rgba(0,0,0,0.5) inset; filter: brightness(0.9); transform: translateY(2px); }
+        .btn-submit.waiting { background: #2d3436; color: #dfe6e9; border: 2px dashed #636e72; cursor: default; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        /* Logic Grid (Memo) */
+        .memo-label { color: #888; font-size: 0.9rem; margin-bottom: 3px; padding-left: 5px; }
+        .logic-grid { background: #222; border-radius: 10px; padding: 5px; display: flex; flex-direction: column; gap: 3px; }
+        .logic-row { display: flex; align-items: center; gap: 2px; }
+        .logic-label { font-size: 0.8rem; color: #888; width: 20px; text-align: center; }
+        .logic-cells { flex: 1; display: grid; grid-template-columns: repeat(9, 1fr); gap: 2px; }
+        .logic-btn {
+            aspect-ratio: 1/1;
+            background: var(--logic-neutral);
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .logic-btn.state-1 { background: var(--logic-good); color: white; border-color: transparent; }
+        .logic-btn.state-2 { background: var(--logic-bad); color: #555; opacity: 0.5; }
+
+        /* Keypad Popup */
+        .keypad-popup {
+            position: absolute;
+            bottom: 160px; /* 로직 그리드 위 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            background: rgba(40,40,40, 0.95);
+            border: 2px solid #888;
+            border-radius: 15px;
+            padding: 10px;
+            display: none; /* JS toggle */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            z-index: 50;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+        .key-btn {
+            background: #eee; color: #333; border: none; border-radius: 8px; height: 45px;
+            font-size: 1.5rem; font-family: 'Jua'; cursor: pointer; box-shadow: 0 3px 0 #bbb;
+        }
+        .key-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #999; background: #ddd; }
+        .key-btn.cancel { background: #ff7675; color: white; box-shadow: 0 3px 0 #d63031; font-size: 1rem; }
+
+        /* Global Overlay */
+        #global-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+            text-align: center;
+            padding: 20px;
+        }
+        .overlay-title { font-size: 5rem; margin-bottom: 20px; color: var(--accent-color); animation: bounce 1s infinite; }
+        .overlay-msg { font-size: 2.5rem; color: white; line-height: 1.5; margin-bottom: 30px; white-space: pre-line; }
+        .overlay-btn { 
+            padding: 15px 40px; font-size: 1.5rem; background: #6c5ce7; color: white; 
+            border: none; border-radius: 30px; cursor: pointer; font-family: 'Jua';
+        }
+
+        /* Floating Buttons */
+        .floating-btn {
+            position: fixed; top: 50%; transform: translateY(-50%);
+            width: 50px; height: 50px; border-radius: 50%;
+            background: #444; color: white; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; border: 2px solid #666; cursor: pointer; z-index: 200; transition: all 0.2s;
+        }
+        .floating-btn:active { transform: translateY(-45%); background: #555; }
+        #btn-home { left: 20px; }
+        #btn-fullscreen { right: 20px; }
+
+        /* Responsive tweaks */
+ /* Responsive tweaks */
+        @media (max-width: 800px) {
+            .input-box { width: 40px; height: 50px; font-size: 1.5rem; }
+            .logic-btn { font-size: 0.7rem; }
+            .log-item { font-size: 1.5rem; } 
+            h1 { font-size: 1.8rem !important; } /* Tailwind 간섭 방지 */
+            .floating-btn { width: 40px; height: 40px; font-size: 1.2rem; opacity: 0.5;}
+            .top-banner-link { font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="langBtnWrapper" class="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/80 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg backdrop-blur text-white">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/70 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-gray-100">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">언어 및 지역 선택</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">선호하는 언어와 지역을 선택하세요.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="언어 검색 (예: English, 한국어...)" 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">검색 결과가 없습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-title" data-i18n="gameTitle">⚾️ 숫자 야구킹</div>
+        <div class="header-center">
+            <div class="round-badge" id="round-badge">1 Round</div>
+            <div id="timer-display">30</div>
+        </div>
+    </header>
+
+    <div id="app-container">
+        
+        <div id="start-screen">
+            <a href="/" target="_self" class="top-banner-link" id="top-banner" data-i18n="topBanner">게임으로 수학의 킹이 되어라. 킹수학.com</a>
+
+            <h1 data-i18n="gameTitle">⚾️ 숫자 야구킹</h1>
+            
+            <div class="guide-box">
+                <h3 data-i18n="howToPlay">📜 게임 방법</h3>
+                <p data-i18n="rule1">1️⃣ 1~9 사이의 <b>서로 다른 숫자 3개</b>를 맞히세요.</p>
+                <p data-i18n="rule2">2️⃣ <b>모든 플레이어의 정답 숫자는 같습니다!</b> (협동 모드)</p>
+                <p data-i18n="rule3">3️⃣ <b>S (Strike):</b> 숫자와 위치가 모두 정답!</p>
+                <p data-i18n="rule4">4️⃣ <b>B (Ball):</b> 숫자는 맞지만 위치가 다름!</p>
+                <p data-i18n="rule5">5️⃣ 3회/6회 종료 시 힌트 공개! (입력칸 고정)</p>
+                <p data-i18n="rule6">6️⃣ 누군가 3S를 맞추면 <b>HOMERUN</b>으로 다같이 승리!</p>
+            </div>
+
+            <div style="margin-top:10px; width:100%;">
+                <div style="color:#aaa; margin-bottom:5px;" data-i18n="selectPlayers">참여 인원 선택</div>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option" data-value="1" data-i18n="p1" onpointerdown="selectPlayerOpt(this, 1)">1인 👤</div>
+                    <div class="btn-option" data-value="2" data-i18n="p2" onpointerdown="selectPlayerOpt(this, 2)">2인 👥</div>
+                    <div class="btn-option" data-value="3" data-i18n="p3" onpointerdown="selectPlayerOpt(this, 3)">3인 👨‍👩‍👧</div>
+                    <div class="btn-option selected" data-value="4" data-i18n="p4" onpointerdown="selectPlayerOpt(this, 4)">4인 👨‍👩‍👧‍👦</div>
+                </div>
+            </div>
+
+            <div style="margin-top:10px; width:100%;">
+                <div style="color:#aaa; margin-bottom:5px;" data-i18n="selectTime">제한 시간 선택</div>
+                <div class="option-group" id="time-options">
+                    <div class="btn-option selected" data-time="30" data-i18n="time30" onpointerdown="selectTimeOpt(this, 30)">30초</div>
+                    <div class="btn-option" data-time="60" data-i18n="time60" onpointerdown="selectTimeOpt(this, 60)">60초</div>
+                    <div class="btn-option" data-time="0" data-i18n="timeInf" onpointerdown="selectTimeOpt(this, 0)">무제한 (∞)</div>
+                </div>
+            </div>
+
+            <button id="btn-start" data-i18n="btnStart" onpointerdown="event.preventDefault(); initGame();">게임 시작! 🚀</button>
+            
+            <a href="/" target="_self" class="footer-link" id="kingsmath-link" data-i18n="linkText">🎮 다른 게임 고르기</a>
+        </div>
+
+        <div id="game-screen"></div>
+
+        <div id="global-overlay">
+            <div class="overlay-title" id="ov-title">3</div>
+            <div class="overlay-msg" id="ov-msg">준비하세요...</div>
+            <button class="overlay-btn" id="ov-btn" style="display:none;" data-i18n="btnOk">확인</button>
+        </div>
+
+    </div>
+
+    <div id="btn-home" class="floating-btn">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+
+    <script>
+        // --- 1. 언어별 UI 내부 텍스트 (모달창 내부용) ---
+        const uiTranslations = {
+            'ko': { title: '언어 및 지역 선택', desc: '선호하는 언어와 지역을 선택하세요.', search: '언어 검색 (예: English, 한국어...)', empty: '검색 결과가 없습니다.', toast: '언어가 변경되었습니다.' },
+            'en': { title: 'Language & Region', desc: 'Select your preferred language and region.', search: 'Search language (e.g. English, Español...)', empty: 'No results found.', toast: 'Language changed.' },
+            'zh': { title: '语言和地区选择', desc: '请选择您偏好的语言和地区。', search: '搜索语言 (例如: English, 中文...)', empty: '未找到结果。', toast: '语言已更改。' },
+            'ja': { title: '言語と地域の選択', desc: '希望する言語と地域を選択してください。', search: '言語を検索 (例: English, 日本語...)', empty: '結果が見つかりません。', toast: '言語が変更されました。' },
+            'es': { title: 'Idioma y Región', desc: 'Selecciona tu idioma y región preferidos.', search: 'Buscar idioma (ej. English, Español...)', empty: 'No se encontraron resultados.', toast: 'Idioma cambiado.' },
+            'fr': { title: 'Langue et Région', desc: 'Sélectionnez votre langue et région.', search: 'Rechercher (ex: English, Français...)', empty: 'Aucun résultat trouvé.', toast: 'Langue modifiée.' },
+            'ru': { title: 'Язык и Регион', desc: 'Выберите предпочитаемый язык и регион.', search: 'Поиск языка (напр. English, Русский...)', empty: 'Ничего не найдено.', toast: 'Язык изменен.' },
+            'vi': { title: 'Ngôn ngữ & Khu vực', desc: 'Chọn ngôn ngữ và khu vực của bạn.', search: 'Tìm kiếm (VD: English, Tiếng Việt...)', empty: 'Không tìm thấy kết quả.', toast: 'Ngôn ngữ đã được thay đổi.' },
+            'id': { title: 'Bahasa & Wilayah', desc: 'Pilih bahasa dan wilayah pilihan Anda.', search: 'Cari bahasa (Mis: English, Indonesia...)', empty: 'Tidak ada hasil yang ditemukan.', toast: 'Bahasa telah diubah.' },
+            'th': { title: 'ภาษาและภูมิภาค', desc: 'เลือกภาษาและภูมิภาคที่คุณต้องการ', search: 'ค้นหาภาษา (เช่น English, ไทย...)', empty: 'ไม่พบผลลัพธ์', toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว' },
+            'pt-br': { title: 'Idioma e Região', desc: 'Selecione seu idioma e região preferidos.', search: 'Buscar idioma (ex: English, Português...)', empty: 'Nenhum resultado encontrado.', toast: 'Idioma alterado.' },
+            'hi': { title: 'भाषा और क्षेत्र', desc: 'अपनी पसंदीदा भाषा और क्षेत्र चुनें।', search: 'भाषा खोजें (उदा: English, हिन्दी...)', empty: 'कोई परिणाम नहीं मिला।', toast: 'भाषा बदल दी गई है।' },
+            'bn': { title: 'ভাষা এবং অঞ্চল', desc: 'আপনার পছন্দের ভাষা এবং অঞ্চল নির্বাচন করুন।', search: 'ভাষা অনুসন্ধান করুন...', empty: 'কোন ফলাফল পাওয়া যায়নি।', toast: 'ভাষা পরিবর্তন করা হয়েছে।' },
+            'tr': { title: 'Dil ve Bölge', desc: 'Tercih ettiğiniz dili ve bölgeyi seçin.', search: 'Dil ara (ör. English, Türkçe...)', empty: 'Sonuç bulunamadı.', toast: 'Dil değiştirildi.' },
+            'de': { title: 'Sprache & Region', desc: 'Wählen Sie Ihre bevorzugte Sprache und Region.', search: 'Sprache suchen (z.B. English, Deutsch...)', empty: 'Keine Ergebnisse gefunden.', toast: 'Sprache geändert.' },
+            'it': { title: 'Lingua e Regione', desc: 'Seleziona la tua lingua e regione preferite.', search: 'Cerca lingua (es. English, Italiano...)', empty: 'Nessun risultato trovato.', toast: 'Lingua cambiata.' }
+        };
+
+        // --- 2. 16개국 언어 데이터베이스 (모달 리스트용) ---
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        // --- 3. 게임 내부 다국어 데이터 (16개국) ---
+        const I18N = {
+            en: {
+                topBanner: "Become the Math King with games! KingsMath.com",
+                gameTitle: "⚾️ Math Baseball King", seoDesc: "Math Baseball King - Brain Battle Game", seoKeys: "Math Game, Number Baseball, KingsMath",
+                howToPlay: "📜 How to Play",
+                rule1: "1️⃣ Find <b>3 different numbers</b> (1~9).", rule2: "2️⃣ <b>All players share the answer!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Right number & place!", rule4: "4️⃣ <b>B (Ball):</b> Right number, wrong place!",
+                rule5: "5️⃣ Hints at Round 3 & 6!", rule6: "6️⃣ Get 3S for a <b>HOMERUN</b> win!",
+                selectPlayers: "Select Players", selectTime: "Time Limit",
+                p1: "1 Player 👤", p2: "2 Players 👥", p3: "3 Players 👨‍👩‍👧", p4: "4 Players 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "No Limit (∞)",
+                btnStart: "Game Start! 🚀", btnOk: "OK", roundBadge: "Round", readyMsg: "Get Ready...",
+                startTitle: "Start!", startMsg: "Work together to solve it!", waitingLog: "Waiting...",
+                inputPlaceholder: "Enter 3 numbers", btnSubmit: "Submit", btnWait: "Waiting...",
+                memo: "Memo", cancel: "Cancel", checkSubmit: "Checking...", submitDone: "submitted!",
+                pass: "Pass", correctAnswer: "Answer", homerun: "HOMERUN!", defeat: "Defeat...",
+                hintTitle: "🗝️ Hint!", hintMsg: "Hint revealed.\nFixed from next round.\n\n",
+                linkText: "🎮 Choose Another Game", linkHref: "/",
+                teamNames: ["Lumi Dogs 🐶", "Mira Cats 🐱", "Joy Rabbits 🐰", "Jinwoo Hamsters 🐹"]
+            },
+            ko: {
+                topBanner: "게임으로 수학의 킹이 되어라. 킹수학.com",
+                gameTitle: "⚾️ 숫자 야구킹", seoDesc: "숫자 야구킹 - 두뇌 풀가동 게임", seoKeys: "수학게임, 숫자야구, 킹수학",
+                howToPlay: "📜 게임 방법",
+                rule1: "1️⃣ 1~9 사이의 <b>서로 다른 숫자 3개</b>를 맞히세요.", rule2: "2️⃣ <b>모든 플레이어의 정답 숫자는 같습니다!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> 숫자와 위치가 모두 정답!", rule4: "4️⃣ <b>B (Ball):</b> 숫자는 맞지만 위치가 다름!",
+                rule5: "5️⃣ 3회/6회 종료 시 힌트 공개! (입력칸 고정)", rule6: "6️⃣ 누군가 3S를 맞추면 <b>HOMERUN</b>으로 승리!",
+                selectPlayers: "참여 인원 선택", selectTime: "제한 시간 선택",
+                p1: "1인 👤", p2: "2인 👥", p3: "3인 👨‍👩‍👧", p4: "4인 👨‍👩‍👧‍👦",
+                time30: "30초", time60: "60초", timeInf: "무제한 (∞)",
+                btnStart: "게임 시작! 🚀", btnOk: "확인", roundBadge: "회", readyMsg: "준비하세요...",
+                startTitle: "시작!", startMsg: "모두 힘을 합쳐 숫자를 맞춰보세요!", waitingLog: "기록 대기중...",
+                inputPlaceholder: "숫자 3개를 채워주세요", btnSubmit: "제출하기", btnWait: "대기 중...",
+                memo: "메모", cancel: "취소", checkSubmit: "제출 번호 확인 중... ⚾️", submitDone: "회 제출 완료!",
+                pass: "패스", correctAnswer: "정답", homerun: "회 홈런!", defeat: "패배...",
+                hintTitle: "🗝️ 힌트 도착!", hintMsg: "모두 주목! 힌트가 도착했습니다.\n다음 라운드부터 입력칸에 고정됩니다.\n\n",
+                linkText: "🎮 다른 게임 고르기", linkHref: "/",
+                teamNames: ["루미 강아지 🐶", "미라 고양이 🐱", "조이 토끼 🐰", "진우 햄스터 🐹"]
+            },
+            zh: {
+                topBanner: "通过游戏成为数学之王！KingsMath.com",
+                gameTitle: "⚾️ 数字棒球王", seoDesc: "数字棒球王 - 大脑对战游戏", seoKeys: "数学游戏, 棒球, KingsMath",
+                howToPlay: "📜 游戏规则",
+                rule1: "1️⃣ 找出 <b>3个不同的数字</b> (1~9)。", rule2: "2️⃣ <b>所有玩家共享同一个答案！</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> 数字和位置都正确！", rule4: "4️⃣ <b>B (Ball):</b> 数字正确，但位置不对！",
+                rule5: "5️⃣ 第3和第6回合显示提示！", rule6: "6️⃣ 获得 3S 即为 <b>全垒打 (HOMERUN)</b>！",
+                selectPlayers: "选择人数", selectTime: "选择时间限制",
+                p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                time30: "30秒", time60: "60秒", timeInf: "无限 (∞)",
+                btnStart: "开始游戏! 🚀", btnOk: "确认", roundBadge: "回合", readyMsg: "准备...",
+                startTitle: "开始!", startMsg: "大家一起合作猜数字吧！", waitingLog: "等待中...",
+                inputPlaceholder: "请输入3个数字", btnSubmit: "提交", btnWait: "等待中...",
+                memo: "笔记", cancel: "取消", checkSubmit: "正在检查...", submitDone: "已提交!",
+                pass: "跳过", correctAnswer: "答案", homerun: "全垒打!", defeat: "失败...",
+                hintTitle: "🗝️ 提示!", hintMsg: "注意！提示来了。\n下一回合起固定输入框。\n\n",
+                linkText: "🎮 选择其他游戏", linkHref: "/",
+                teamNames: ["鲁米小狗 🐶", "米拉小猫 🐱", "乔伊兔子 🐰", "振宇仓鼠 🐹"]
+            },
+            ja: {
+                topBanner: "ゲームで数学のキングになろう！KingsMath.com",
+                gameTitle: "⚾️ 数字野球キング", seoDesc: "数字野球キング - 脳トレゲーム", seoKeys: "数学ゲーム, 野球, KingsMath",
+                howToPlay: "📜 遊び方",
+                rule1: "1️⃣ 1〜9の<b>異なる3つの数字</b>を当ててください。", rule2: "2️⃣ <b>みんなで同じ答えを目指します！</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> 数字も場所も正解！", rule4: "4️⃣ <b>B (Ball):</b> 数字は合ってるけど場所が違う！",
+                rule5: "5️⃣ 3回と6回終了時にヒント公開！", rule6: "6️⃣ 3Sを当てれば<b>ホームラン</b>で勝利！",
+                selectPlayers: "参加人数", selectTime: "制限時間",
+                p1: "1人 👤", p2: "2人 👥", p3: "3人 👨‍👩‍👧", p4: "4人 👨‍👩‍👧‍👦",
+                time30: "30秒", time60: "60秒", timeInf: "無制限 (∞)",
+                btnStart: "ゲーム開始! 🚀", btnOk: "確認", roundBadge: "回", readyMsg: "準備して...",
+                startTitle: "スタート!", startMsg: "みんなで力を合わせて数字を当てよう！", waitingLog: "記録待ち...",
+                inputPlaceholder: "3つの数字を入力", btnSubmit: "提出する", btnWait: "待機中...",
+                memo: "メモ", cancel: "取消", checkSubmit: "確認中...", submitDone: "回 提出完了!",
+                pass: "パス", correctAnswer: "正解", homerun: "ホームラン!", defeat: "敗北...",
+                hintTitle: "🗝️ ヒント到着!", hintMsg: "注目！ヒントが届きました。\n次のラウンドから入力欄が固定されます。\n\n",
+                linkText: "🎮 他のゲームを選ぶ", linkHref: "/",
+                teamNames: ["ルミ犬 🐶", "ミラ猫 🐱", "ジョイ兎 🐰", "ジヌハムスター 🐹"]
+            },
+            es: {
+                topBanner: "¡Conviértete en el Rey de las Matemáticas! KingsMath.com",
+                gameTitle: "⚾️ Rey del Béisbol Numérico", seoDesc: "Rey del Béisbol Numérico - KingsMath", seoKeys: "Math Game, Baseball, KingsMath",
+                howToPlay: "📜 Cómo Jugar",
+                rule1: "1️⃣ Encuentra <b>3 números diferentes</b> (1~9).", rule2: "2️⃣ <b>¡Todos comparten la respuesta!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> ¡Número y lugar correctos!", rule4: "4️⃣ <b>B (Ball):</b> ¡Número correcto, lugar incorrecto!",
+                rule5: "5️⃣ ¡Pistas en la ronda 3 y 6!", rule6: "6️⃣ ¡Consigue 3S para ganar con <b>JONRÓN</b>!",
+                selectPlayers: "Jugadores", selectTime: "Tiempo",
+                p1: "1 Persona 👤", p2: "2 Personas 👥", p3: "3 Personas 👨‍👩‍👧", p4: "4 Personas 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Infinito (∞)",
+                btnStart: "¡Empezar! 🚀", btnOk: "OK", roundBadge: "Ronda", readyMsg: "Prepárate...",
+                startTitle: "¡Ya!", startMsg: "¡Trabajad juntos para resolver los números!", waitingLog: "Esperando...",
+                inputPlaceholder: "Pon 3 números", btnSubmit: "Enviar", btnWait: "Esperando...",
+                memo: "Nota", cancel: "Cancelar", checkSubmit: "Comprobando...", submitDone: "¡enviado!",
+                pass: "Paso", correctAnswer: "Respuesta", homerun: "¡JONRÓN!", defeat: "Derrota...",
+                hintTitle: "🗝️ ¡Pista!", hintMsg: "Pista revelada.\nFijo desde la próxima ronda.\n\n",
+                linkText: "🎮 Elige otro juego", linkHref: "/",
+                teamNames: ["Perros Lumi 🐶", "Gatos Mira 🐱", "Conejos Joy 🐰", "Hámsters Jinwoo 🐹"]
+            },
+            fr: {
+                topBanner: "Devenez le roi des maths! KingsMath.com",
+                gameTitle: "⚾️ Roi du Baseball Numérique", seoDesc: "Roi du Baseball Numérique", seoKeys: "Maths, KingsMath",
+                howToPlay: "📜 Comment Jouer",
+                rule1: "1️⃣ Trouvez <b>3 chiffres différents</b> (1~9).", rule2: "2️⃣ <b>Tous les joueurs ont la même réponse!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Bon chiffre, bonne place!", rule4: "4️⃣ <b>B (Ball):</b> Bon chiffre, mauvaise place!",
+                rule5: "5️⃣ Indices aux tours 3 et 6!", rule6: "6️⃣ Obtenez 3S pour un <b>HOME RUN</b>!",
+                selectPlayers: "Joueurs", selectTime: "Temps",
+                p1: "1 Joueur 👤", p2: "2 Joueurs 👥", p3: "3 Joueurs 👨‍👩‍👧", p4: "4 Joueurs 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Infini (∞)",
+                btnStart: "Commencer! 🚀", btnOk: "OK", roundBadge: "Tour", readyMsg: "Préparez-vous...",
+                startTitle: "Partez!", startMsg: "Trouvez les chiffres ensemble!", waitingLog: "En attente...",
+                inputPlaceholder: "Entrez 3 chiffres", btnSubmit: "Valider", btnWait: "Attente...",
+                memo: "Mémo", cancel: "Annuler", checkSubmit: "Vérification...", submitDone: "envoyé!",
+                pass: "Passe", correctAnswer: "Réponse", homerun: "HOME RUN!", defeat: "Défaite...",
+                hintTitle: "🗝️ Indice!", hintMsg: "Indice révélé.\nFixé au prochain tour.\n\n",
+                linkText: "🎮 Choisir un autre jeu", linkHref: "/",
+                teamNames: ["Chiens Lumi 🐶", "Chats Mira 🐱", "Lapins Joy 🐰", "Hamsters Jinwoo 🐹"]
+            },
+            ru: {
+                topBanner: "Стань королем математики! KingsMath.com",
+                gameTitle: "⚾️ Король Числового Бейсбола", seoDesc: "Король Числового Бейсбола", seoKeys: "KingsMath",
+                howToPlay: "📜 Как играть",
+                rule1: "1️⃣ Найди <b>3 разные цифры</b> (1~9).", rule2: "2️⃣ <b>У всех один ответ!</b>",
+                rule3: "3️⃣ <b>S (Страйк):</b> Цифра и место верны!", rule4: "4️⃣ <b>B (Бол):</b> Цифра верна, место нет!",
+                rule5: "5️⃣ Подсказки в 3 и 6 раунде!", rule6: "6️⃣ Собери 3S для <b>ХОУМ-РАНА</b>!",
+                selectPlayers: "Игроки", selectTime: "Время",
+                p1: "1 Игрок 👤", p2: "2 Игрока 👥", p3: "3 Игрока 👨‍👩‍👧", p4: "4 Игрока 👨‍👩‍👧‍👦",
+                time30: "30с", time60: "60с", timeInf: "Без огр. (∞)",
+                btnStart: "Старт! 🚀", btnOk: "ОК", roundBadge: "Раунд", readyMsg: "Готовься...",
+                startTitle: "Поехали!", startMsg: "Решайте цифры вместе!", waitingLog: "Ждем...",
+                inputPlaceholder: "Введи 3 цифры", btnSubmit: "Отправить", btnWait: "Ждем...",
+                memo: "Заметка", cancel: "Отмена", checkSubmit: "Проверка...", submitDone: "готово!",
+                pass: "Пас", correctAnswer: "Ответ", homerun: "ХОУМ-РАН!", defeat: "Поражение...",
+                hintTitle: "🗝️ Подсказка!", hintMsg: "Подсказка.\nЗафиксировано со след. раунда.\n\n",
+                linkText: "🎮 Выбрать другую игру", linkHref: "/",
+                teamNames: ["Люми Псы 🐶", "Мира Коты 🐱", "Джой Зайцы 🐰", "Джину Хомяки 🐹"]
+            },
+            id: {
+                topBanner: "Jadilah Raja Matematika! KingsMath.com",
+                gameTitle: "⚾️ Raja Bisbol Angka", seoDesc: "Raja Bisbol Angka - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Cara Bermain",
+                rule1: "1️⃣ Temukan <b>3 angka berbeda</b> (1~9).", rule2: "2️⃣ <b>Semua berbagi jawaban!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Angka & tempat benar!", rule4: "4️⃣ <b>B (Ball):</b> Angka benar, tempat salah!",
+                rule5: "5️⃣ Petunjuk di Ronde 3 & 6!", rule6: "6️⃣ Dapatkan 3S untuk <b>HOMERUN</b>!",
+                selectPlayers: "Pemain", selectTime: "Waktu",
+                p1: "1 Pemain 👤", p2: "2 Pemain 👥", p3: "3 Pemain 👨‍👩‍👧", p4: "4 Pemain 👨‍👩‍👧‍👦",
+                time30: "30d", time60: "60d", timeInf: "Tanpa Batas (∞)",
+                btnStart: "Mulai! 🚀", btnOk: "OK", roundBadge: "Ronde", readyMsg: "Bersiaplah...",
+                startTitle: "Mulai!", startMsg: "Kerja sama untuk menebak angka!", waitingLog: "Menunggu...",
+                inputPlaceholder: "Masukkan 3 angka", btnSubmit: "Kirim", btnWait: "Menunggu...",
+                memo: "Catatan", cancel: "Batal", checkSubmit: "Memeriksa...", submitDone: "terkirim!",
+                pass: "Lewati", correctAnswer: "Jawaban", homerun: "HOMERUN!", defeat: "Kalah...",
+                hintTitle: "🗝️ Petunjuk!", hintMsg: "Petunjuk terbuka.\nTetap mulai ronde depan.\n\n",
+                linkText: "🎮 Pilih Game Lain", linkHref: "/",
+                teamNames: ["Anjing Lumi 🐶", "Kucing Mira 🐱", "Kelinci Joy 🐰", "Hamster Jinwoo 🐹"]
+            },
+            vi: {
+                topBanner: "Trở thành Vua Toán Học! KingsMath.com",
+                gameTitle: "⚾️ Vua Bóng Chày Số", seoDesc: "Vua Bóng Chày Số - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Cách chơi",
+                rule1: "1️⃣ Tìm <b>3 số khác nhau</b> (1~9).", rule2: "2️⃣ <b>Tất cả chung một đáp án!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Đúng số & đúng vị trí!", rule4: "4️⃣ <b>B (Ball):</b> Đúng số, sai vị trí!",
+                rule5: "5️⃣ Gợi ý ở Vòng 3 & 6!", rule6: "6️⃣ Đạt 3S để thắng <b>HOMERUN</b>!",
+                selectPlayers: "Người chơi", selectTime: "Thời gian",
+                p1: "1 Người 👤", p2: "2 Người 👥", p3: "3 Người 👨‍👩‍👧", p4: "4 Người 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Không giới hạn (∞)",
+                btnStart: "Bắt đầu! 🚀", btnOk: "OK", roundBadge: "Vòng", readyMsg: "Chuẩn bị...",
+                startTitle: "Bắt đầu!", startMsg: "Cùng nhau giải mã con số!", waitingLog: "Đang chờ...",
+                inputPlaceholder: "Nhập 3 số", btnSubmit: "Gửi", btnWait: "Đang chờ...",
+                memo: "Ghi chú", cancel: "Hủy", checkSubmit: "Đang kiểm tra...", submitDone: "đã gửi!",
+                pass: "Bỏ qua", correctAnswer: "Đáp án", homerun: "HOMERUN!", defeat: "Thua cuộc...",
+                hintTitle: "🗝️ Gợi ý!", hintMsg: "Gợi ý đã mở.\nSẽ cố định từ vòng sau.\n\n",
+                linkText: "🎮 Chọn Trò Chơi Khác", linkHref: "/",
+                teamNames: ["Chó Lumi 🐶", "Mèo Mira 🐱", "Thỏ Joy 🐰", "Chuột Jinwoo 🐹"]
+            },
+            th: {
+                topBanner: "มาเป็นราชาคณิตศาสตร์! KingsMath.com",
+                gameTitle: "⚾️ ราชาเบสบอลตัวเลข", seoDesc: "ราชาเบสบอลตัวเลข - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 วิธีเล่น",
+                rule1: "1️⃣ หา <b>3 ตัวเลขที่ต่างกัน</b> (1~9)", rule2: "2️⃣ <b>ทุกคนใช้คำตอบเดียวกัน!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> ตัวเลขและตำแหน่งถูกต้อง!", rule4: "4️⃣ <b>B (Ball):</b> ตัวเลขถูก แต่ตำแหน่งผิด!",
+                rule5: "5️⃣ คำใบ้ในรอบที่ 3 และ 6!", rule6: "6️⃣ ได้ 3S ชนะแบบ <b>โฮมรัน</b>!",
+                selectPlayers: "ผู้เล่น", selectTime: "เวลา",
+                p1: "1 คน 👤", p2: "2 คน 👥", p3: "3 คน 👨‍👩‍👧", p4: "4 คน 👨‍👩‍👧‍👦",
+                time30: "30 วิ", time60: "60 วิ", timeInf: "ไม่จำกัด (∞)",
+                btnStart: "เริ่มเกม! 🚀", btnOk: "ตกลง", roundBadge: "รอบ", readyMsg: "เตรียมตัว...",
+                startTitle: "เริ่ม!", startMsg: "ร่วมมือกันทายตัวเลข!", waitingLog: "รอ...",
+                inputPlaceholder: "ใส่ 3 ตัวเลข", btnSubmit: "ส่ง", btnWait: "รอ...",
+                memo: "บันทึก", cancel: "ยกเลิก", checkSubmit: "กำลังตรวจ...", submitDone: "ส่งแล้ว!",
+                pass: "ผ่าน", correctAnswer: "คำตอบ", homerun: "โฮมรัน!", defeat: "พ่ายแพ้...",
+                hintTitle: "🗝️ คำใบ้!", hintMsg: "เปิดคำใบ้\nจะล็อกไว้ในรอบถัดไป\n\n",
+                linkText: "🎮 เลือกเกมอื่น", linkHref: "/",
+                teamNames: ["หมาน้อยลูมิ 🐶", "แมวน้อยมิร่า 🐱", "กระต่ายจอย 🐰", "แฮมสเตอร์จินอู 🐹"]
+            },
+            'pt-br': {
+                topBanner: "Torne-se o Rei da Matemática! KingsMath.com",
+                gameTitle: "⚾️ Rei do Beisebol Numérico", seoDesc: "Rei do Beisebol Numérico - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Como Jogar",
+                rule1: "1️⃣ Encontre <b>3 números diferentes</b> (1~9).", rule2: "2️⃣ <b>Todos compartilham a resposta!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Número e lugar corretos!", rule4: "4️⃣ <b>B (Ball):</b> Número certo, lugar errado!",
+                rule5: "5️⃣ Dicas na Rodada 3 e 6!", rule6: "6️⃣ Consiga 3S para vencer com <b>HOMERUN</b>!",
+                selectPlayers: "Jogadores", selectTime: "Tempo",
+                p1: "1 Jogador 👤", p2: "2 Jogadores 👥", p3: "3 Jogadores 👨‍👩‍👧", p4: "4 Jogadores 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Infinito (∞)",
+                btnStart: "Começar! 🚀", btnOk: "OK", roundBadge: "Rodada", readyMsg: "Prepare-se...",
+                startTitle: "Vai!", startMsg: "Trabalhem juntos!", waitingLog: "Aguardando...",
+                inputPlaceholder: "Insira 3 números", btnSubmit: "Enviar", btnWait: "Aguardando...",
+                memo: "Nota", cancel: "Cancelar", checkSubmit: "Verificando...", submitDone: "enviado!",
+                pass: "Passar", correctAnswer: "Resposta", homerun: "HOMERUN!", defeat: "Derrota...",
+                hintTitle: "🗝️ Dica!", hintMsg: "Dica revelada.\nFixada na próxima rodada.\n\n",
+                linkText: "🎮 Escolha Outro Jogo", linkHref: "/",
+                teamNames: ["Cães Lumi 🐶", "Gatos Mira 🐱", "Coelhos Joy 🐰", "Hamsters Jinwoo 🐹"]
+            },
+            hi: {
+                topBanner: "गणित के राजा बनें! KingsMath.com",
+                gameTitle: "⚾️ नंबर बेसबॉल किंग", seoDesc: "नंबर बेसबॉल किंग - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 कैसे खेलें",
+                rule1: "1️⃣ <b>3 अलग नंबर</b> खोजें (1~9)।", rule2: "2️⃣ <b>सबका एक ही उत्तर है!</b>",
+                rule3: "3️⃣ <b>S (स्ट्राइक):</b> सही नंबर और जगह!", rule4: "4️⃣ <b>B (बॉल):</b> नंबर सही, जगह गलत!",
+                rule5: "5️⃣ राउंड 3 और 6 में हिंट!", rule6: "6️⃣ <b>होम रन</b> के लिए 3S पाएं!",
+                selectPlayers: "खिलाड़ी चुनें", selectTime: "समय चुनें",
+                p1: "1 खिलाड़ी 👤", p2: "2 खिलाड़ी 👥", p3: "3 खिलाड़ी 👨‍👩‍👧", p4: "4 खिलाड़ी 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "असीमित (∞)",
+                btnStart: "शुरू करें! 🚀", btnOk: "OK", roundBadge: "राउंड", readyMsg: "तैयार हो जाओ...",
+                startTitle: "शुरू!", startMsg: "मिलकर हल करें!", waitingLog: "प्रतीक्षा...",
+                inputPlaceholder: "3 नंबर डालें", btnSubmit: "जमा करें", btnWait: "प्रतीक्षा...",
+                memo: "मेमो", cancel: "रद्द करें", checkSubmit: "जांच हो रही है...", submitDone: "जमा हो गया!",
+                pass: "पास", correctAnswer: "उत्तर", homerun: "होम रन!", defeat: "हार...",
+                hintTitle: "🗝️ हिंट!", hintMsg: "हिंट खुला।\nअगले राउंड से फिक्स रहेगा।\n\n",
+                linkText: "🎮 अन्य गेम चुनें", linkHref: "/",
+                teamNames: ["लूमी डॉग्स 🐶", "मीरा कैट्स 🐱", "जॉय रैबिट्स 🐰", "जिनवू हैम्स्टर्स 🐹"]
+            },
+            bn: {
+                topBanner: "গণিতের রাজা হন! KingsMath.com",
+                gameTitle: "⚾️ সংখ্যা বেসবল কিং", seoDesc: "সংখ্যা বেসবল কিং - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 কীভাবে খেলবেন",
+                rule1: "1️⃣ <b>৩টি ভিন্ন সংখ্যা</b> খুঁজুন (১~৯)।", rule2: "2️⃣ <b>সবার একই উত্তর!</b>",
+                rule3: "3️⃣ <b>S (স্ট্রাইক):</b> সঠিক সংখ্যা ও স্থান!", rule4: "4️⃣ <b>B (বল):</b> সংখ্যা ঠিক, স্থান ভুল!",
+                rule5: "5️⃣ রাউন্ড ৩ এবং ৬ এ সূত্র!", rule6: "6️⃣ <b>হোম রান</b> এর জন্য 3S পান!",
+                selectPlayers: "খেলোয়াড় নির্বাচন করুন", selectTime: "সময় নির্বাচন করুন",
+                p1: "১ জন 👤", p2: "২ জন 👥", p3: "৩ জন 👨‍👩‍👧", p4: "৪ জন 👨‍👩‍👧‍👦",
+                time30: "৩০ সে.", time60: "৬০ সে.", timeInf: "সীমাহীন (∞)",
+                btnStart: "শুরু করুন! 🚀", btnOk: "OK", roundBadge: "রাউন্ড", readyMsg: "প্রস্তুত হন...",
+                startTitle: "শুরু!", startMsg: "একসাথে সমাধান করুন!", waitingLog: "অপেক্ষা...",
+                inputPlaceholder: "৩টি সংখ্যা দিন", btnSubmit: "জমা দিন", btnWait: "অপেক্ষা...",
+                memo: "নোট", cancel: "বাতিল", checkSubmit: "পরীক্ষা হচ্ছে...", submitDone: "জমা হয়েছে!",
+                pass: "পাস", correctAnswer: "উত্তর", homerun: "হোম রান!", defeat: "পরাজয়...",
+                hintTitle: "🗝️ সূত্র!", hintMsg: "সূত্র উন্মুক্ত।\nপরবর্তী রাউন্ড থেকে ফিক্সড।\n\n",
+                linkText: "🎮 অন্য গেম বাছুন", linkHref: "/",
+                teamNames: ["লুমি কুকুর 🐶", "মিরা বিড়াল 🐱", "জয় খরগোশ 🐰", "জিনউ হ্যামস্টার 🐹"]
+            },
+            tr: {
+                topBanner: "Oyunlarla Matematik Kralı Ol! KingsMath.com",
+                gameTitle: "⚾️ Sayı Beyzbolu Kralı", seoDesc: "Sayı Beyzbolu Kralı - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Nasıl Oynanır",
+                rule1: "1️⃣ <b>3 farklı sayı</b> bulun (1~9).", rule2: "2️⃣ <b>Herkes aynı cevabı paylaşır!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Sayı ve yer doğru!", rule4: "4️⃣ <b>B (Ball):</b> Sayı doğru, yer yanlış!",
+                rule5: "5️⃣ 3. ve 6. Turda İpuçları!", rule6: "6️⃣ <b>HOMERUN</b> kazanmak için 3S yap!",
+                selectPlayers: "Oyuncular", selectTime: "Süre",
+                p1: "1 Oyuncu 👤", p2: "2 Oyuncu 👥", p3: "3 Oyuncu 👨‍👩‍👧", p4: "4 Oyuncu 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Sınırsız (∞)",
+                btnStart: "Başla! 🚀", btnOk: "TAMAM", roundBadge: "Tur", readyMsg: "Hazırlan...",
+                startTitle: "Başla!", startMsg: "Sayıları birlikte çözün!", waitingLog: "Bekleniyor...",
+                inputPlaceholder: "3 sayı gir", btnSubmit: "Gönder", btnWait: "Bekleniyor...",
+                memo: "Not", cancel: "İptal", checkSubmit: "Kontrol ediliyor...", submitDone: "gönderildi!",
+                pass: "Pas", correctAnswer: "Cevap", homerun: "HOMERUN!", defeat: "Mağlubiyet...",
+                hintTitle: "🗝️ İpucu!", hintMsg: "İpucu açıldı.\nSonraki tur sabitlenecek.\n\n",
+                linkText: "🎮 Başka Oyun Seç", linkHref: "/",
+                teamNames: ["Lumi Köpekleri 🐶", "Mira Kedileri 🐱", "Joy Tavşanları 🐰", "Jinwoo Hamsterları 🐹"]
+            },
+            de: {
+                topBanner: "Werde der Mathe-König! KingsMath.com",
+                gameTitle: "⚾️ Zahlen-Baseball-König", seoDesc: "Zahlen-Baseball-König - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Spielanleitung",
+                rule1: "1️⃣ Finde <b>3 verschiedene Zahlen</b> (1~9).", rule2: "2️⃣ <b>Alle teilen sich eine Antwort!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Zahl & Ort richtig!", rule4: "4️⃣ <b>B (Ball):</b> Zahl richtig, Ort falsch!",
+                rule5: "5️⃣ Tipps in Runde 3 & 6!", rule6: "6️⃣ Erreiche 3S für einen <b>HOMERUN</b>!",
+                selectPlayers: "Spieler", selectTime: "Zeit",
+                p1: "1 Spieler 👤", p2: "2 Spieler 👥", p3: "3 Spieler 👨‍👩‍👧", p4: "4 Spieler 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Unbegrenzt (∞)",
+                btnStart: "Start! 🚀", btnOk: "OK", roundBadge: "Runde", readyMsg: "Mach dich bereit...",
+                startTitle: "Los!", startMsg: "Löst die Zahlen zusammen!", waitingLog: "Warten...",
+                inputPlaceholder: "3 Zahlen eingeben", btnSubmit: "Senden", btnWait: "Warten...",
+                memo: "Notiz", cancel: "Abbrechen", checkSubmit: "Prüfe...", submitDone: "gesendet!",
+                pass: "Passen", correctAnswer: "Antwort", homerun: "HOMERUN!", defeat: "Niederlage...",
+                hintTitle: "🗝️ Tipp!", hintMsg: "Tipp enthüllt.\nAb nächster Runde fixiert.\n\n",
+                linkText: "🎮 Anderes Spiel wählen", linkHref: "/",
+                teamNames: ["Lumi Hunde 🐶", "Mira Katzen 🐱", "Joy Hasen 🐰", "Jinwoo Hamster 🐹"]
+            },
+            it: {
+                topBanner: "Diventa il Re della Matematica! KingsMath.com",
+                gameTitle: "⚾️ Re del Baseball Numerico", seoDesc: "Re del Baseball Numerico - KingsMath", seoKeys: "KingsMath",
+                howToPlay: "📜 Come Giocare",
+                rule1: "1️⃣ Trova <b>3 numeri diversi</b> (1~9).", rule2: "2️⃣ <b>Tutti condividono la risposta!</b>",
+                rule3: "3️⃣ <b>S (Strike):</b> Numero e posto corretti!", rule4: "4️⃣ <b>B (Ball):</b> Numero corretto, posto sbagliato!",
+                rule5: "5️⃣ Suggerimenti al Turno 3 e 6!", rule6: "6️⃣ Ottieni 3S per un <b>FUORICAMPO</b>!",
+                selectPlayers: "Giocatori", selectTime: "Tempo",
+                p1: "1 Giocatore 👤", p2: "2 Giocatori 👥", p3: "3 Giocatori 👨‍👩‍👧", p4: "4 Giocatori 👨‍👩‍👧‍👦",
+                time30: "30s", time60: "60s", timeInf: "Infinito (∞)",
+                btnStart: "Inizia! 🚀", btnOk: "OK", roundBadge: "Turno", readyMsg: "Preparati...",
+                startTitle: "Via!", startMsg: "Risolvete i numeri insieme!", waitingLog: "In attesa...",
+                inputPlaceholder: "Inserisci 3 numeri", btnSubmit: "Invia", btnWait: "In attesa...",
+                memo: "Nota", cancel: "Annulla", checkSubmit: "Controllo...", submitDone: "inviato!",
+                pass: "Passa", correctAnswer: "Risposta", homerun: "FUORICAMPO!", defeat: "Sconfitta...",
+                hintTitle: "🗝️ Suggerimento!", hintMsg: "Suggerimento svelato.\nFissato dal prossimo turno.\n\n",
+                linkText: "🎮 Scegli un altro gioco", linkHref: "/",
+                teamNames: ["Cani Lumi 🐶", "Gatti Mira 🐱", "Conigli Joy 🐰", "Criceti Jinwoo 🐹"]
+            }
+        };
+
+        let currentLang = 'en';
+
+        // DOM 요소 (언어 관련)
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const langBtnWrapper = document.getElementById('langBtnWrapper');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        // --- 언어 감지 우선순위 (1.URL 2.LocalStorage 3.기기언어) ---
+        function detectLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && I18N[urlLang]) return urlLang;
+
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            if (storedLang && I18N[storedLang]) return storedLang;
+
+            const browserLang = navigator.language.slice(0, 2);
+            if (I18N[browserLang]) return browserLang;
+
+            return 'en';
+        }
+
+        // --- 언어 설정 처리 ---
+        function setLanguage(langCode) {
+            if (!I18N[langCode]) return;
+            currentLang = langCode;
+            
+            // 상태 저장
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            // 링크 공유 가능하게 URL 업데이트
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', newUrl);
+            document.documentElement.lang = langCode;
+
+            // 상단 버튼 및 UI 데이터 업데이트
+            const langObj = languages.find(l => l.code === langCode);
+            if (langObj) {
+                currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+                currentLangSpan.textContent = langObj.name;
+            }
+
+            // 번역 텍스트 적용 (게임 & 모달)
+            applyTranslations();
+            updateModalUIText(langCode);
+        }
+
+        // --- 모달 내부 텍스트 번역 ---
+        function updateModalUIText(langCode) {
+            const t = uiTranslations[langCode] || uiTranslations['en'];
+            document.getElementById('ui-title').textContent = t.title;
+            document.getElementById('ui-desc').textContent = t.desc;
+            document.getElementById('searchInput').placeholder = t.search;
+            document.getElementById('ui-empty').textContent = t.empty;
+            document.getElementById('ui-toast').textContent = t.toast;
+        }
+
+        // --- 실제 번역 적용 및 폰트/SEO 동적 처리 ---
+        function applyTranslations() {
+            const t = I18N[currentLang];
+
+            // 도메인 링크 텍스트 동적 수정
+            const domainText = currentLang === 'ko' ? "킹수학.com" : "KingsMath.com";
+            
+            // 텍스트 반영
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    el.innerHTML = t[key];
+                    if (key === 'topBanner') {
+                        el.innerHTML = t[key].replace(/킹수학\.com|KingsMath\.com/g, domainText);
+                    }
+                }
+
+                // [글자 수에 따른 동적 폰트 사이즈]
+                if (el.classList.contains('btn-option')) {
+                    if (el.innerText.length > 12) el.style.fontSize = '0.85rem';
+                    else el.style.fontSize = '1rem';
+                }
+                if (el.id === 'btn-start') {
+                     if (el.innerText.length > 15) el.style.fontSize = '1.4rem';
+                     else el.style.fontSize = '1.8rem';
+                }
+            });
+
+            // SEO 적용
+            document.getElementById('page-title').innerText = t.gameTitle;
+            document.getElementById('meta-desc').setAttribute("content", t.seoDesc);
+            document.getElementById('meta-keys').setAttribute("content", t.seoKeys);
+            document.getElementById('meta-og-title').setAttribute("content", t.gameTitle);
+            document.getElementById('meta-og-desc').setAttribute("content", t.seoDesc);
+
+            // 하이퍼링크 (a 태그) 현재 창 유지 규칙
+            document.getElementById('kingsmath-link').href = t.linkHref;
+            document.getElementById('kingsmath-link').target = '_self';
+            document.getElementById('top-banner').href = t.linkHref;
+            document.getElementById('top-banner').target = '_self';
+
+            // 게임 UI(Round 뱃지, 플레이어 텍스트) 동적 갱신
+            if (document.getElementById('game-screen').style.display !== 'none') {
+                document.getElementById('round-badge').innerText = 
+                    (currentLang === 'ko' || currentLang === 'ja') ? `${GameState.round}${t.roundBadge}` : `${t.roundBadge} ${GameState.round}`;
+                
+                for(let i=0; i<GameState.players; i++) {
+                    const btn = document.getElementById(`btn-submit-${i}`);
+                    if (btn && !btn.classList.contains('ready') && !btn.classList.contains('waiting')) {
+                        btn.innerText = t.inputPlaceholder;
+                    }
+                }
+            }
+        }
+
+        // --- 언어 모달 렌더링 ---
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => {
+                        setLanguage(lang.code);
+                        closeModal();
+                        showToast(lang.name);
+                        renderLanguages(searchInput.value); // 재랜더링
+                    });
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        // --- 모달 토스트 동작 ---
+        function openModal() {
+            modal.classList.add('active');
+            renderLanguages(); // 열때마다 재랜더링
+            setTimeout(() => searchInput.focus(), 100);
+        }
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+        function showToast(langName) {
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- 모달 이벤트 리스너 ---
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+
+        // --- 초기 언어 설정 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setLanguage(detectLanguage());
+            renderLanguages();
+        });
+
+
+        // --- Game State & Configuration ---
+        const GameState = {
+            players: 4,
+            timeSetting: 30, // Default 30s
+            round: 1,
+            timeLeft: 30,
+            targets: [], 
+            inputs: [],        
+            submitted: [], 
+            activeInputs: [], 
+            timerInterval: null,
+            gameOver: false
+        };
+
+        // --- Audio Context ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if(type === 'click') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if(type === 'submit') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if(type === 'count') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'start-game') {
+                const notes = [
+                    {f: 392.00, d: 0.15, t: 0.00}, {f: 523.25, d: 0.15, t: 0.15}, {f: 659.25, d: 0.15, t: 0.30}, 
+                    {f: 783.99, d: 0.40, t: 0.45}, {f: 0,      d: 0.05, t: 0.85}, {f: 659.25, d: 0.15, t: 0.90}, 
+                    {f: 783.99, d: 0.60, t: 1.05}
+                ];
+                const speed = 0.77;
+                notes.forEach(n => {
+                    if (n.f === 0) return; 
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = n.f;
+                    const startT = now + (n.t * speed);
+                    const dur = n.d * speed;
+                    gain.gain.setValueAtTime(0.15, startT);
+                    gain.gain.linearRampToValueAtTime(0.1, startT + dur - 0.05);
+                    gain.gain.linearRampToValueAtTime(0, startT + dur);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(startT); osc.stop(startT + dur);
+                });
+            } else if(type === 'tick') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1000, now); 
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if(type === 'result') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(600, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if(type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((f, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sawtooth';
+                    o.frequency.value = f;
+                    g.gain.setValueAtTime(0.2, now + i*0.1);
+                    g.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.3);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(now + i*0.1); o.stop(now + i*0.1 + 0.3);
+                });
+            }
+        }
+
+        // --- Utils ---
+        function generateTarget() {
+            const nums = [1,2,3,4,5,6,7,8,9];
+            const result = [];
+            for(let i=0; i<3; i++) {
+                const idx = Math.floor(Math.random() * nums.length);
+                result.push(nums[idx]);
+                nums.splice(idx, 1);
+            }
+            return result;
+        }
+
+        function calculateResult(target, input) {
+            let s = 0, b = 0;
+            for(let i=0; i<3; i++) {
+                if(input[i] === target[i]) {
+                    s++;
+                } else if(target.includes(input[i])) {
+                    b++;
+                }
+            }
+            return { s, b };
+        }
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const roundBadge = document.getElementById('round-badge');
+        const globalOverlay = document.getElementById('global-overlay');
+        const ovTitle = document.getElementById('ov-title');
+        const ovMsg = document.getElementById('ov-msg');
+        const ovBtn = document.getElementById('ov-btn');
+
+        // --- Event Listeners Helpers ---
+        window.selectPlayerOpt = function(el, val) {
+            event.preventDefault();
+            document.querySelectorAll('#player-options .btn-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            GameState.players = val;
+            playSound('click');
+        }
+
+        window.selectTimeOpt = function(el, val) {
+            event.preventDefault();
+            document.querySelectorAll('#time-options .btn-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            GameState.timeSetting = val;
+            playSound('click');
+        }
+
+        document.getElementById('btn-home').onpointerdown = (e) => { 
+            e.preventDefault(); 
+            resetToHome(); 
+        };
+        
+        document.getElementById('btn-fullscreen').onpointerdown = (e) => {
+            e.preventDefault();
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        };
+        
+        // --- Reset / Home Logic ---
+        function resetToHome() {
+            if(GameState.timerInterval) clearInterval(GameState.timerInterval);
+            gameScreen.style.display = 'none';
+            gameScreen.innerHTML = ''; 
+            startScreen.style.display = 'flex';
+            globalOverlay.style.display = 'none';
+            document.querySelector('.header-center').style.display = 'none';
+            
+            // 메인 화면으로 돌아왔으므로 언어 선택 버튼 다시 노출
+            langBtnWrapper.style.display = 'block';
+
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            playSound('click');
+        }
+
+        // --- Overlay Handlers ---
+        function showOverlay(title, msg, showBtn, btnCallback) {
+            globalOverlay.style.display = 'flex';
+            ovTitle.innerHTML = title;
+            ovMsg.innerHTML = msg;
+            
+            const t = I18N[currentLang];
+            ovBtn.innerText = t.btnOk;
+
+            if(showBtn) {
+                ovBtn.style.display = 'block';
+                ovBtn.onpointerdown = (e) => {
+                    e.preventDefault();
+                    globalOverlay.style.display = 'none';
+                    if(btnCallback) btnCallback();
+                };
+            } else {
+                ovBtn.style.display = 'none';
+            }
+        }
+
+        // --- Game Init ---
+        window.initGame = function() {
+            playSound('submit');
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            
+            // 게임 몰입을 위해 언어 선택 UI 숨김
+            langBtnWrapper.style.display = 'none';
+            document.querySelector('.header-center').style.display = 'flex';
+
+            GameState.timeLeft = GameState.timeSetting;
+            updateTimerUI();
+
+            GameState.targets = [];
+            GameState.inputs = [];
+            GameState.submitted = [];
+            GameState.activeInputs = [];
+            GameState.round = 1;
+            GameState.gameOver = false;
+            gameScreen.innerHTML = ''; 
+
+            const commonTarget = generateTarget();
+            for(let i=0; i<GameState.players; i++) {
+                GameState.targets.push([...commonTarget]); 
+                GameState.inputs.push([null, null, null]);
+                GameState.submitted.push(false);
+                GameState.activeInputs.push(null);
+                createPlayerUI(i);
+            }
+            startCountdown();
+        }
+
+        function startCountdown() {
+            const t = I18N[currentLang];
+            let count = 3;
+            showOverlay(count, t.readyMsg, false);
+            playSound('count'); 
+
+            const countInterval = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    ovTitle.innerText = count;
+                    playSound('count');
+                } else if (count === 0) {
+                    ovTitle.innerText = t.startTitle;
+                    ovMsg.innerText = t.startMsg;
+                    playSound('start-game');
+                } else {
+                    clearInterval(countInterval);
+                    globalOverlay.style.display = 'none';
+                    startRound();
+                }
+            }, 1000);
+        }
+
+        function createPlayerUI(pIdx) {
+            const t = I18N[currentLang];
+            const themes = ["p-theme-0", "p-theme-1", "p-theme-2", "p-theme-3"];
+            const pTheme = themes[pIdx % 4];
+            const pName = t.teamNames[pIdx % 4];
+
+            const div = document.createElement('div');
+            div.className = `player-area ${pTheme}`;
+            div.id = `player-${pIdx}`;
+
+            div.innerHTML = `
+                <div class="player-header">${pName}</div>
+                
+                <div class="history-log" id="log-${pIdx}">
+                    <div style="text-align:center; color:#666; padding-top:20px; font-size:1.5rem;">${t.waitingLog}</div>
+                </div>
+
+                <div class="input-area" id="input-area-${pIdx}">
+                    <div class="input-box" onpointerdown="event.preventDefault(); openKeypad(${pIdx}, 0)"></div>
+                    <div class="input-box" onpointerdown="event.preventDefault(); openKeypad(${pIdx}, 1)"></div>
+                    <div class="input-box" onpointerdown="event.preventDefault(); openKeypad(${pIdx}, 2)"></div>
+                </div>
+
+                <button class="btn-submit" id="btn-submit-${pIdx}" onpointerdown="event.preventDefault(); submitAnswer(${pIdx})">${t.inputPlaceholder}</button>
+
+                <div class="memo-label">${t.memo}</div>
+                <div class="logic-grid">
+                    ${[1,2,3].map(row => `
+                        <div class="logic-row">
+                            <div class="logic-label">${row}</div>
+                            <div class="logic-cells">
+                                ${[1,2,3,4,5,6,7,8,9].map(num => `
+                                    <div class="logic-btn" onpointerdown="event.preventDefault(); toggleLogic(this)">${num}</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="keypad-popup" id="keypad-${pIdx}">
+                    ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="key-btn" onpointerdown="event.preventDefault(); inputNumber(${pIdx}, ${n})">${n}</button>`).join('')}
+                    <button class="key-btn cancel" style="grid-column:1/-1" onpointerdown="event.preventDefault(); closeKeypad(${pIdx})">${t.cancel}</button>
+                </div>
+            `;
+            gameScreen.appendChild(div);
+        }
+
+        function startRound() {
+            if(GameState.gameOver) return;
+            const t = I18N[currentLang];
+
+            GameState.timeLeft = GameState.timeSetting;
+            
+            if(currentLang === 'ko' || currentLang === 'ja') {
+                roundBadge.innerText = `${GameState.round}${t.roundBadge}`;
+            } else {
+                roundBadge.innerText = `${t.roundBadge} ${GameState.round}`;
+            }
+
+            updateTimerUI();
+            
+            for(let i=0; i<GameState.players; i++) {
+                GameState.submitted[i] = false;
+                GameState.inputs[i] = [null, null, null];
+
+                if (GameState.round >= 4) GameState.inputs[i][0] = GameState.targets[i][0];
+                if (GameState.round >= 7) GameState.inputs[i][1] = GameState.targets[i][1];
+
+                updateInputUI(i);
+                
+                const btn = document.getElementById(`btn-submit-${i}`);
+                btn.className = 'btn-submit';
+                btn.innerText = t.inputPlaceholder;
+                btn.disabled = false;
+                
+                checkReady(i);
+            }
+
+            if(GameState.timerInterval) clearInterval(GameState.timerInterval);
+
+            if (GameState.timeSetting > 0) {
+                GameState.timerInterval = setInterval(() => {
+                    GameState.timeLeft--;
+                    updateTimerUI();
+                    if(GameState.timeLeft <= 5 && GameState.timeLeft > 0) playSound('tick');
+                    if(GameState.timeLeft <= 0) forceEndRound();
+                }, 1000);
+            }
+        }
+
+        function updateTimerUI() {
+            if (GameState.timeSetting === 0) {
+                timerDisplay.innerText = "∞";
+                timerDisplay.classList.remove('urgent');
+                return;
+            }
+            timerDisplay.innerText = GameState.timeLeft;
+            if(GameState.timeLeft <= 10) timerDisplay.classList.add('urgent');
+            else timerDisplay.classList.remove('urgent');
+        }
+
+        window.openKeypad = function(pIdx, boxIdx) {
+            if(GameState.submitted[pIdx] || GameState.gameOver) return;
+            if (GameState.round >= 4 && boxIdx === 0) return;
+            if (GameState.round >= 7 && boxIdx === 1) return;
+
+            playSound('click');
+            GameState.activeInputs[pIdx] = boxIdx;
+            const popup = document.getElementById(`keypad-${pIdx}`);
+            popup.style.display = 'grid';
+            
+            const boxes = document.querySelectorAll(`#input-area-${pIdx} .input-box`);
+            boxes.forEach(b => b.classList.remove('active'));
+            boxes[boxIdx].classList.add('active');
+        }
+
+        window.closeKeypad = function(pIdx) {
+            document.getElementById(`keypad-${pIdx}`).style.display = 'none';
+            const boxes = document.querySelectorAll(`#input-area-${pIdx} .input-box`);
+            boxes.forEach(b => b.classList.remove('active'));
+        }
+
+        window.inputNumber = function(pIdx, num) {
+            const boxIdx = GameState.activeInputs[pIdx];
+            
+            if(GameState.inputs[pIdx].includes(num) && GameState.inputs[pIdx][boxIdx] !== num) {
+                const existIdx = GameState.inputs[pIdx].indexOf(num);
+                if(existIdx !== -1) {
+                    const isLocked0 = (GameState.round >= 4 && existIdx === 0);
+                    const isLocked1 = (GameState.round >= 7 && existIdx === 1);
+                    if(!isLocked0 && !isLocked1) {
+                            GameState.inputs[pIdx][existIdx] = null;
+                    } else {
+                        return; 
+                    }
+                }
+            }
+
+            GameState.inputs[pIdx][boxIdx] = num;
+            playSound('click');
+            closeKeypad(pIdx);
+            updateInputUI(pIdx);
+            checkReady(pIdx);
+        }
+
+        function updateInputUI(pIdx) {
+            const boxes = document.querySelectorAll(`#input-area-${pIdx} .input-box`);
+            for(let i=0; i<3; i++) {
+                const val = GameState.inputs[pIdx][i];
+                boxes[i].innerText = val || '';
+                
+                let isLocked = false;
+                if (GameState.round >= 4 && i === 0) isLocked = true;
+                if (GameState.round >= 7 && i === 1) isLocked = true;
+                
+                if (isLocked) boxes[i].classList.add('locked');
+                else boxes[i].classList.remove('locked');
+            }
+        }
+
+        function checkReady(pIdx) {
+            const t = I18N[currentLang];
+            const inputs = GameState.inputs[pIdx];
+            const isFull = inputs.every(n => n !== null);
+            const btn = document.getElementById(`btn-submit-${pIdx}`);
+            
+            if(isFull) {
+                btn.classList.add('ready');
+                btn.innerText = t.btnSubmit;
+            } else {
+                btn.classList.remove('ready');
+                btn.innerText = t.inputPlaceholder;
+            }
+        }
+
+        window.submitAnswer = function(pIdx) {
+            const t = I18N[currentLang];
+            if(!document.getElementById(`btn-submit-${pIdx}`).classList.contains('ready')) return;
+            if(GameState.submitted[pIdx]) return;
+
+            playSound('submit');
+            GameState.submitted[pIdx] = true;
+            
+            const btn = document.getElementById(`btn-submit-${pIdx}`);
+            btn.classList.remove('ready');
+            btn.classList.add('waiting');
+            btn.innerText = t.btnWait;
+            
+            checkAllSubmitted();
+        }
+
+        function checkAllSubmitted() {
+            let allDone = true;
+            for(let i=0; i<GameState.players; i++) {
+                if(!GameState.submitted[i]) allDone = false;
+            }
+
+            if(allDone) {
+                const t = I18N[currentLang];
+                let submittedMsg = '';
+
+                if(currentLang === 'ko' || currentLang === 'ja') {
+                    submittedMsg = `${GameState.round}${t.submitDone}`;
+                } else {
+                    submittedMsg = `${t.roundBadge} ${GameState.round} ${t.submitDone}`; 
+                }
+
+                showOverlay(submittedMsg, t.checkSubmit, false);
+                setTimeout(() => {
+                    globalOverlay.style.display = 'none';
+                    processRound();
+                }, 2000);
+            }
+        }
+
+        function forceEndRound() {
+            processRound();
+        }
+
+        function processRound() {
+            clearInterval(GameState.timerInterval);
+            playSound('result');
+            const t = I18N[currentLang];
+
+            let homerunPlayer = null;
+            let winners = [];
+
+            for(let i=0; i<GameState.players; i++) {
+                const input = GameState.inputs[i];
+                const target = GameState.targets[i];
+                const logDiv = document.getElementById(`log-${i}`);
+                const pName = t.teamNames[i % 4];
+
+                let roundDisplay = (currentLang === 'ko' || currentLang === 'ja') ? `${GameState.round}${t.roundBadge}` : `${t.roundBadge} ${GameState.round}`;
+
+                if(input.includes(null)) {
+                    const entry = document.createElement('div');
+                    entry.className = 'log-item';
+                    entry.innerHTML = `<span class="log-turn">${roundDisplay}</span> <span style="color:#888; font-size:1.5rem;">${t.pass}</span>`;
+                    logDiv.prepend(entry);
+                    continue;
+                }
+
+                const res = calculateResult(target, input);
+                
+                if(res.s === 3) {
+                    homerunPlayer = pName;
+                    winners.push(i);
+                    let winMsg = (currentLang === 'ko' || currentLang === 'ja') ? `${GameState.round}${t.homerun}` : `${t.homerun}`;
+
+                    const specialEntry = document.createElement('div');
+                    specialEntry.className = 'log-special win';
+                    specialEntry.innerHTML = `
+                        <div class="special-answer">${t.correctAnswer} ${input.join('')}</div>
+                        <div class="special-team">${pName}</div>
+                        <div class="special-msg">${winMsg}</div>
+                    `;
+                    logDiv.prepend(specialEntry);
+                } else {
+                    const entry = document.createElement('div');
+                    entry.className = 'log-item';
+                    let resText = "";
+                    let resClass = "";
+                    
+                    if(res.s === 0 && res.b === 0) {
+                        resText = "OUT"; resClass = "res-out";
+                    } else {
+                        resText = `${res.s}S ${res.b}B`; resClass = "res-hit";
+                    }
+
+                    entry.innerHTML = `
+                        <span class="log-nums">${input.join('')}</span>
+                        <span class="log-result ${resClass}">${resText}</span>
+                    `;
+                    logDiv.prepend(entry);
+                }
+            }
+
+            if(winners.length > 0) {
+                GameState.gameOver = true;
+                playSound('win');
+                return;
+            }
+
+            if(GameState.round >= 9) {
+                GameState.gameOver = true;
+                for(let i=0; i<GameState.players; i++) {
+                    const logDiv = document.getElementById(`log-${i}`);
+                    const pName = t.teamNames[i % 4];
+                    const loseEntry = document.createElement('div');
+                    loseEntry.className = 'log-special lose';
+                    loseEntry.innerHTML = `
+                        <div class="special-answer">${t.correctAnswer} ${GameState.targets[i].join('')}</div>
+                        <div class="special-team">${pName}</div>
+                        <div class="special-msg">${t.defeat}</div>
+                    `;
+                    logDiv.prepend(loseEntry);
+                }
+                return;
+            }
+
+            if(GameState.round === 3 || GameState.round === 6) {
+                let hintMsg = "";
+                const revealCount = (GameState.round === 3) ? 1 : 2;
+                const hintNums = GameState.targets[0].slice(0, revealCount).join(' ');
+                const xBox = (revealCount === 1) ? "X X" : "X";
+                hintMsg += `${t.hintMsg}[ ${hintNums} ${xBox} ]`;
+                
+                showOverlay(t.hintTitle, hintMsg, true, () => {
+                    nextRoundStep();
+                });
+            } else {
+                setTimeout(nextRoundStep, 2000);
+            }
+        }
+
+        function nextRoundStep() {
+            GameState.round++;
+            startRound();
+        }
+
+        window.toggleLogic = function(el) {
+            if(el.classList.contains('state-1')) {
+                el.classList.remove('state-1');
+                el.classList.add('state-2');
+            } else if(el.classList.contains('state-2')) {
+                el.classList.remove('state-2');
+            } else {
+                el.classList.add('state-1');
+            }
+            playSound('click');
+        }
+
+    </script>
+</body>
+</html>

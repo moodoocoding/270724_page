@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+    <meta name="description" content="English Ten King - Make 10 matching game" id="meta-desc">
+    <meta name="keywords" content="smartboard, math game, KingsMath, make 10, English Ten King" id="meta-keywords">
+    <link rel="canonical" href="/" id="link-canonical">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="English Ten King | KingsMath.com" id="og-title">
+    <meta property="og:description" content="English Ten King - Make 10 matching game" id="og-desc">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울10만들기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+    <meta property="og:url" content="/" id="og-url">
+    <meta property="og:site_name" content="KingsMath" id="og-site-name">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="English Ten King | KingsMath.com" id="tw-title">
+    <meta name="twitter:description" content="English Ten King - Make 10 matching game" id="tw-desc">
+    <meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/킹방울10만들기_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+    <meta name="theme-color" content="#0F4C3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title id="page-title">English Ten King</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* 폰트: HS산토끼 */
+        @font-face {
+            font-family: 'HsSantoki';
+            src: url('https://gcore.jsdelivr.net/gh/projectnoonnu/noonfonts_2201-2@1.0/HS-Regular.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+        :root {
+            --p1-main: #ff9f43; 
+            --p1-glow: rgba(255, 159, 67, 0.6);
+            --p2-main: #54a0ff;
+            --p2-glow: rgba(84, 160, 255, 0.6);
+            --bg-color: #1e1e2e;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'HsSantoki', sans-serif;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            color: white;
+            font-weight: normal;
+        }
+
+        body { display: flex; flex-direction: column; }
+        a { text-decoration: none; color: inherit; }
+
+        /* --- 모달 UI 전용 스타일 --- */
+        .modal-ui-text { font-family: 'Noto Sans KR', sans-serif; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* --- 게임 배경 및 UI --- */
+        .background-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #222f3e 0%, #1e1e2e 100%);
+            z-index: -10;
+            overflow: hidden;
+        }
+
+        .bg-bubble {
+            position: absolute; bottom: -50px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%; border: 1px solid rgba(255,255,255,0.1);
+            animation: rise var(--duration) infinite linear;
+            left: var(--left); width: var(--size); height: var(--size);
+            animation-delay: var(--delay); pointer-events: none;
+            will-change: transform, opacity;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.5; } 50% { opacity: 0.8; } 80% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        #intro-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; transition: opacity 0.5s;
+        }
+
+        .promo-link {
+            font-size: 1.5rem; color: #ccc; margin-bottom: 10px; opacity: 0.9;
+            transition: transform 0.2s, color 0.2s; cursor: pointer;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .promo-link span { color: #feca57; text-decoration: underline; }
+        .promo-link:hover { transform: scale(1.05); color: #fff; }
+
+        .game-title {
+            font-size: 5rem; margin-bottom: 20px;
+            background: linear-gradient(to right, #ff9f43, #54a0ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+            animation: float 3s ease-in-out infinite; font-weight: normal;
+            white-space: nowrap; transition: font-size 0.3s;
+        }
+
+        .tutorial-box    {   background: rgba(255, 255, 255, 0.1);
+            padding: 5px 50px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 18px;
+            backdrop-filter: blur(10px);
+            max-width: 80%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .tutorial-text { font-size: 1.8rem; line-height: 1.6; color: #eee; font-weight: normal; transition: font-size 0.3s; }
+        .highlight { color: #feca57; font-size: 2rem; font-weight: normal; transition: font-size 0.3s; }
+        .warning { color: #ff6b6b; font-weight: normal; }
+        b { font-weight: normal; }
+
+        .btn-group { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+
+        .btn {
+            padding: 15px 40px; font-size: 1.8rem; font-family: 'HsSantoki';
+            border: none; border-radius: 50px; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, font-size 0.3s; color: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            font-weight: normal; white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-start { background: linear-gradient(45deg, #1dd1a1, #10ac84); }
+
+        .other-game-link {
+            font-size: 1.2rem; color: #aaa; margin-top: 10px;
+            text-decoration: none; cursor: pointer; transition: color 0.2s;
+        }
+        .other-game-link:hover { color: #fff; text-decoration: underline; }
+
+        /* --- 게임 실행 화면 --- */
+        #game-screen { display: none; flex: 1; flex-direction: column; width: 100%; height: 100%; }
+
+        .top-hud {
+            flex: 0 0 90px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; background: rgba(30, 30, 40, 0.8);
+            border-bottom: 3px solid rgba(255,255,255,0.1); z-index: 100;
+        }
+
+        .team-score { 
+            font-size: 1.5rem; display: flex; flex-direction: row; 
+            align-items: center; min-width: 180px; gap: 15px; font-weight: normal;
+        }
+        .p1-score-box { justify-content: flex-start; }
+        .p2-score-box { flex-direction: row-reverse; justify-content: flex-start; }
+
+        .team-name { font-size: 3rem; opacity: 1.0; white-space: nowrap; font-weight: normal; transition: font-size 0.3s; }
+        .score-num { font-size: 3rem; min-width: 60px; text-align: center; font-weight: normal; }
+        
+        .p1-color { color: var(--p1-main); text-shadow: 0 0 10px rgba(255, 159, 67, 0.3); }
+        .p2-color { color: var(--p2-main); text-shadow: 0 0 10px rgba(84, 160, 255, 0.3); }
+
+        .timer-box { flex: 1; text-align: center; max-width: 300px; margin: 0 20px; }
+        .timer-num { font-size: 2.2rem; color: #feca57; margin-bottom: 5px; font-weight: normal; }
+        .progress-track { width: 100%; height: 12px; background: #333; border-radius: 6px; overflow: hidden; border: 1px solid #555; }
+        .progress-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #1dd1a1, #feca57, #ff6b6b); transition: width 0.2s linear; }
+
+        .play-area { flex: 1; display: flex; position: relative; flex-direction: row; }
+        .player-zone {
+            flex: 1; position: relative; display: flex; justify-content: center; align-items: flex-end;
+            border-right: 2px dashed rgba(255,255,255,0.1); overflow: hidden;
+            padding-bottom: 5vh;
+        }
+        .player-zone:last-child { border-right: none; }
+
+        .game-board {
+            width: 74%; aspect-ratio: 1/1; max-width: 64vh; max-height: 90%;
+            background: rgba(20, 20, 30, 0.6); border-radius: 24px;
+            position: relative; z-index: 10;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            border: 5px solid rgba(255,255,255,0.1); transition: border-color 0.3s;
+        }
+        #board-p1 { border-color: var(--p1-main); box-shadow: 0 0 30px var(--p1-glow); }
+        #board-p2 { border-color: var(--p2-main); box-shadow: 0 0 30px var(--p2-glow); }
+
+        .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: #ff4757 !important; }
+
+        .target-hint {
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 46, 0.95); padding: 8px 30px; border-radius: 50px;
+            font-size: 1.6rem; white-space: nowrap; border: 3px solid #fff;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 50; color: #feca57; text-shadow: 0 0 10px rgba(254, 202, 87, 0.5);
+            transition: font-size 0.3s;
+        }
+        .target-hint::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 10px solid #fff;
+        }
+
+        .bubble {
+            position: absolute; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight:600; 
+            color: #222; 
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+            background: radial-gradient(circle at 35% 35%, #ffffff 0%, #ffffff 15%, var(--bubble-bg) 100%);
+            border: 3px solid #fff;
+            transition: transform 0.1s;
+            will-change: transform;
+        }
+        .bubble.active-drag {
+            transform: scale(1.15);
+            border-color: #ffeb3b;
+            box-shadow: 0 0 0 5px rgba(255, 235, 59, 0.5);
+            z-index: 9999 !important;
+        }
+
+        .float-btn {
+            position: fixed; bottom: 20px; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%; cursor: pointer; z-index: 5000;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 24px; backdrop-filter: blur(5px); transition: all 0.2s;
+        }
+        .float-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
+        .float-btn:active { transform: scale(0.95); }
+        #home-btn { left: 20px; }
+        #fullscreen-btn { right: 20px; }
+
+        .popping { animation: popAnim 0.3s forwards ease-out; pointer-events: none; }
+        .respawning { animation: spawnAnim 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        #line-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 900; }
+        #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); z-index: 3000;
+            flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+        @keyframes popAnim { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.8; } 100% { transform: scale(0); opacity: 0; } }
+        @keyframes spawnAnim { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+        @media (max-aspect-ratio: 1/1) {
+            .play-area { flex-direction: column; }
+            .player-zone { border-right: none; border-bottom: 2px dashed rgba(255,255,255,0.1); }
+            .game-board { width: auto; height: 85%; margin-top: 0; margin-left: 20px; }
+            .target-hint { top: 10px; left: 10px; transform: none; font-size: 1.2rem; padding: 5px 15px; }
+            .target-hint::after { display: none; }
+        }
+
+        @media (max-width: 600px) and (orientation: portrait) {
+            .game-board { width: 90%; height: auto; margin-top: 25px; }
+            .target-hint { top: -45px; left: 50%; transform: translateX(-50%); }
+            .top-hud { padding: 0 10px; }
+            .team-score { min-width: auto; font-size: 1.2rem; }
+            .score-num { font-size: 1.8rem; min-width: 40px; }
+            .team-name { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <div class="background-container" id="bg-bubbles"></div>
+
+    <div id="intro-screen">
+        <a href="/" target="_self" class="promo-link" id="main-link">
+            👑 KingsMath.com
+        </a>
+        <h1 class="game-title dyn-text">🫧 English Ten King 🫧</h1>
+        <div class="tutorial-box">
+            <p class="tutorial-text dyn-text">
+                <b style="color:var(--p1-main)">🐶 Dog</b> vs <b style="color:var(--p2-main)">🐱 Cat</b><br><br>
+                ✏️ Draw lines to <span class="highlight dyn-text">connect</span>!<br>
+                ➕ Make <span class="highlight dyn-text">Sum 10</span>.<br>
+                (e.g., two + eight, five + five)<br>
+                <span class="warning dyn-text">⚠️ Don't touch others!</span>
+            </p>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-start dyn-text" onclick="game.init()">▶️ Start</button>
+        </div>
+        <a href="/?cg=kingen" target="_self" class="other-game-link dyn-text" id="more-games-link">🎮 More</a>
+    </div>
+
+    <div id="game-screen">
+        <div class="top-hud">
+            <div class="team-score p1-color p1-score-box">
+                <span class="team-name dyn-text">🐶 Dog</span>
+                <span class="score-num" id="score-p1">0</span>
+            </div>
+            <div class="timer-box">
+                <div class="timer-num" id="timer-display">60</div>
+                <div class="progress-track"><div class="progress-bar" id="timer-bar"></div></div>
+            </div>
+            <div class="team-score p2-color p2-score-box">
+                <span class="team-name dyn-text">🐱 Cat</span>
+                <span class="score-num" id="score-p2">0</span>
+            </div>
+        </div>
+
+        <div class="play-area">
+            <div class="player-zone" id="zone-p1">
+                <div class="game-board" id="board-p1"></div>
+            </div>
+            <div class="player-zone" id="zone-p2">
+                <div class="game-board" id="board-p2"></div>
+            </div>
+        </div>
+
+        <div id="home-btn" class="float-btn" onclick="resetGame()" title="Home">🏠</div>
+        <div id="fullscreen-btn" class="float-btn" onclick="toggleFullScreen()" title="Fullscreen">⛶</div>
+    </div>
+
+    <canvas id="line-canvas"></canvas>
+    <canvas id="fx-canvas"></canvas>
+
+    <div id="result-modal">
+        <h1 class="game-title" style="font-size: 4rem;">GAME OVER</h1>
+        <h2 id="winner-text" class="dyn-text" style="color:#fff; font-size:3rem; margin: 20px 0;">🤝 Draw!</h2>
+        <div style="font-size: 2.5rem; color: #fff; margin-bottom: 40px;">
+            <span style="color:var(--p1-main)">🐶 <span id="final-p1">0</span></span>
+            &nbsp;&nbsp;vs&nbsp;&nbsp;
+            <span style="color:var(--p2-main)">🐱 <span id="final-p2">0</span></span>
+        </div>
+        <button class="btn btn-start dyn-text" onclick="resetGame()">🔄 Retry</button>
+        <a href="/" target="_self" class="other-game-link dyn-text" id="more-games-end" style="margin-top:20px;">🎮 More</a>
+    </div>
+
+<script>
+    /* 소프트 리셋 함수 추가 (전체화면 유지용) */
+    function resetGame() {
+        document.getElementById('result-modal').style.display = 'none';
+        document.getElementById('game-screen').style.display = 'none';
+        
+        game.state.isPlaying = false;
+        clearInterval(game.state.timerId);
+        game.state.activePointers.clear();
+        
+        if (game.lineCtx) game.lineCtx.clearRect(0, 0, game.lineCanvas.width, game.lineCanvas.height);
+        
+        const intro = document.getElementById('intro-screen');
+        intro.style.display = 'flex';
+        intro.style.opacity = '1';
+    }
+
+    // 동적 폰트 크기 조절 (글자 수 감지)
+    function adjustFontSize() {
+        document.querySelectorAll('.dyn-text').forEach(el => {
+            const length = el.innerText.replace(/\s/g, '').length;
+            
+            // 클래스별 기본 사이즈에서 텍스트 길이에 따라 비율 축소
+            if (el.classList.contains('game-title')) {
+                el.style.fontSize = length > 18 ? '3rem' : length > 12 ? '4rem' : '5rem';
+            } else if (el.classList.contains('tutorial-text')) {
+                el.style.fontSize = length > 50 ? '1.4rem' : '1.8rem';
+            } else if (el.classList.contains('btn')) {
+                el.style.fontSize = length > 15 ? '1.2rem' : length > 10 ? '1.4rem' : '1.8rem';
+            } else if (el.classList.contains('team-name')) {
+                el.style.fontSize = length > 12 ? '2rem' : '3rem';
+            } else if (el.classList.contains('target-hint')) {
+                el.style.fontSize = length > 25 ? '1.2rem' : '1.6rem';
+            }
+        });
+    }
+
+    window.addEventListener('load', adjustFontSize);
+
+    /* ----------------------------------------------------------------
+        Original Game Scripts
+    ---------------------------------------------------------------- */
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('dragstart', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    let lastTouch = 0;
+    document.addEventListener('touchend', event => {
+        const now = window.performance.now();
+        if (now - lastTouch <= 300) event.preventDefault();
+        lastTouch = now;
+    }, false);
+
+    function initBgBubbles() {
+        const container = document.getElementById('bg-bubbles');
+        for (let i = 0; i < 20; i++) {
+            const b = document.createElement('div');
+            b.classList.add('bg-bubble');
+            const size = Math.random() * 60 + 20; 
+            b.style.setProperty('--size', `${size}px`);
+            b.style.setProperty('--left', `${Math.random() * 100}%`);
+            b.style.setProperty('--duration', `${Math.random() * 10 + 10}s`);
+            b.style.setProperty('--delay', `${Math.random() * 10}s`);
+            container.appendChild(b);
+        }
+    }
+    initBgBubbles();
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => console.log(err));
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+        }
+    }
+
+    const AudioSys = {
+        ctx: null,
+        init: function() { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); },
+        play: function(type) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); const now = this.ctx.currentTime;
+            
+            if (type === 'start') {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+                notes.forEach((freq, i) => {
+                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+                    o.type = 'triangle'; o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + i * 0.05); g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.3);
+                    o.connect(g); g.connect(this.ctx.destination); o.start(now + i * 0.05); o.stop(now + i * 0.05 + 0.3);
+                });
+                return;
+            } else if (type === 'pop') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800 + Math.random() * 200, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now); osc.stop(now + 0.15);
+            } else if (type === 'error') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(400, now + 0.1); osc.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'select') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'win') {
+                const melody = [{f: 523.25, t: 0}, {f: 523.25, t: 0.1}, {f: 523.25, t: 0.2}, {f: 659.25, t: 0.4}, {f: 783.99, t: 0.6}, {f: 1046.50, t: 0.8}];
+                melody.forEach(n => {
+                    const o = this.ctx.createOscillator(); const g = this.ctx.createGain(); o.type = 'square'; o.frequency.value = n.f;
+                    g.gain.setValueAtTime(0.1, now + n.t); g.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.4);
+                    o.connect(g); g.connect(this.ctx.destination); o.start(now + n.t); o.stop(now + n.t + 0.4);
+                });
+                return;
+            }
+            osc.connect(gain); gain.connect(this.ctx.destination);
+        }
+    };
+
+    const FX = {
+        canvas: document.getElementById('fx-canvas'), ctx: null, particles: [],
+        init: function() { this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); this.loop(); },
+        resize: function() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+        spawn: function(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 6 + 2;
+                this.particles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, color: color, size: Math.random() * 8 + 3 });
+            }
+        },
+        loop: function() {
+            const ctx = this.ctx; ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            for (let i = this.particles.length - 1; i >= 0; i--) {
+                let p = this.particles[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.life -= 0.04; p.size *= 0.92;
+                if (p.life <= 0) { this.particles.splice(i, 1); continue; }
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.fill();
+            }
+            requestAnimationFrame(() => this.loop());
+        }
+    };
+
+    const game = {
+        state: { p1: { bubbles: [], dragging: null }, p2: { bubbles: [], dragging: null }, isPlaying: false, timeLeft: 60, timerId: null, activePointers: new Map() },
+        colors: ['#ffb7b2', '#ffdac1', '#e2f0cb', '#b5ead7', '#c7ceea', '#fdfd96', '#fab1a0', '#81ecec'],
+        lineCanvas: document.getElementById('line-canvas'),
+        lineCtx: document.getElementById('line-canvas').getContext('2d'),
+
+        init: function() {
+            if (!this.initialized) {
+                AudioSys.init(); FX.init(); 
+                this.resizeLineCanvas();
+                window.addEventListener('resize', () => this.resizeLineCanvas());
+                const gameScreen = document.getElementById('game-screen');
+                gameScreen.onpointerdown = (e) => this.handlePointerDown(e);
+                gameScreen.onpointermove = (e) => this.handlePointerMove(e);
+                gameScreen.onpointerup = (e) => this.handlePointerUp(e);
+                gameScreen.onpointercancel = (e) => this.handlePointerUp(e);
+                this.initialized = true;
+            }
+            AudioSys.play('start');
+
+            document.getElementById('intro-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('intro-screen').style.display = 'none';
+                document.getElementById('game-screen').style.display = 'flex';
+                
+                // 점수 초기화
+                document.getElementById('score-p1').innerText = '0';
+                document.getElementById('score-p2').innerText = '0';
+                
+                this.setupPlayer('p1'); this.setupPlayer('p2');
+                this.gameLoop(); 
+            }, 500);
+            
+            this.state.isPlaying = true; this.state.timeLeft = 60; this.updateTimer();
+            if(this.state.timerId) clearInterval(this.state.timerId);
+            this.state.timerId = setInterval(() => {
+                this.state.timeLeft--; this.updateTimer();
+                if (this.state.timeLeft <= 0) this.endGame();
+            }, 1000);
+        },
+
+        resizeLineCanvas: function() { this.lineCanvas.width = window.innerWidth; this.lineCanvas.height = window.innerHeight; },
+
+        setupPlayer: function(pid) {
+            const board = document.getElementById(`board-${pid}`);
+            const hintText = "🎯 Make 10";
+            board.innerHTML = `<div class="target-hint dyn-text">${hintText}</div>`;
+            this.state[pid].bubbles = [];
+
+            const rect = board.getBoundingClientRect();
+            const bubbleSize = (rect.width / 9) * 1.2; 
+
+            // 1부터 9까지 각 2개씩 총 18개 + 랜덤 2개를 배열로 생성합니다.
+            let initialNumbers = [];
+            for (let i = 1; i <= 9; i++) {
+                initialNumbers.push(i);
+                initialNumbers.push(i);
+            }
+            initialNumbers.push(Math.floor(Math.random() * 9) + 1);
+            initialNumbers.push(Math.floor(Math.random() * 9) + 1);
+
+            let positions = [];
+            for (let i = 0; i < 20; i++) {
+                let num = initialNumbers[i]; 
+                let pos = this.getSafePosition(positions, rect.width, rect.height, bubbleSize);
+                positions.push(pos);
+                this.createBubbleElement(pid, num, pos.x, pos.y, bubbleSize, 1000 + i);
+            }
+        },
+
+        getSafePosition: function(existing, w, h, size) {
+            let x, y, overlap; let tries = 0;
+            const padding = 4; const topMargin = 10; 
+            do {
+                overlap = false;
+                x = Math.random() * (w - size - padding * 2) + padding;
+                y = Math.random() * (h - size - padding * 2 - topMargin) + topMargin;
+                for (let p of existing) {
+                    const dist = Math.sqrt((x - p.x)**2 + (y - p.y)**2);
+                    if (dist < size) { overlap = true; break; }
+                }
+                tries++;
+            } while (overlap && tries < 1000);
+            return {x, y};
+        },
+
+        createBubbleElement: function(pid, num, x, y, size, zIndex) {
+            const numWords = {1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'};
+            const board = document.getElementById(`board-${pid}`);
+            const el = document.createElement('div');
+            el.className = 'bubble'; 
+            
+            // 숫자를 영어 단어로 렌더링
+            el.textContent = numWords[num]; 
+            // 데이터셋에는 계속 정수를 보관하여 합산 검사가 제대로 작동하게 둡니다.
+            el.dataset.val = num; 
+            el.dataset.pid = pid; 
+            
+            const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            el.style.setProperty('--bubble-bg', color);
+            el.style.width = size + 'px'; el.style.height = size + 'px';
+            el.style.left = x + 'px'; el.style.top = y + 'px';
+            // 영어 단어가 한 줄에 잘 들어가도록 폰트 크기를 조절했습니다.
+            el.style.fontSize = (size * 0.35) + 'px';
+            el.style.zIndex = zIndex;
+            board.appendChild(el);
+            this.state[pid].bubbles.push({ num, el, x, y, size, color });
+        },
+
+        getBubbleAt: function(x, y, pid) {
+            const pState = this.state[pid];
+            for (let b of pState.bubbles) {
+                const rect = b.el.getBoundingClientRect();
+                const radius = rect.width / 2;
+                if (Math.hypot(x - (rect.left + radius), y - (rect.top + radius)) < radius) return b.el;
+            }
+            return null;
+        },
+
+        handlePointerDown: function(e) {
+            if (!this.state.isPlaying) return;
+            if (e.target.classList.contains('bubble')) {
+                e.preventDefault();
+                const bubbleEl = e.target; const pid = bubbleEl.dataset.pid;
+                bubbleEl.classList.add('active-drag'); AudioSys.play('select');
+                this.state.activePointers.set(e.pointerId, { pid: pid, startEl: bubbleEl, path: [{x: e.clientX, y: e.clientY}], validPath: true });
+            }
+        },
+
+        handlePointerMove: function(e) {
+            if (this.state.activePointers.has(e.pointerId)) {
+                e.preventDefault();
+                const dragInfo = this.state.activePointers.get(e.pointerId);
+                const curr = {x: e.clientX, y: e.clientY}; const prev = dragInfo.path[dragInfo.path.length - 1];
+                if (Math.hypot(curr.x - prev.x, curr.y - prev.y) < 6) return;
+                dragInfo.path.push(curr);
+
+                const hoverBubbleEl = this.getBubbleAt(curr.x, curr.y, dragInfo.pid);
+                if (dragInfo.validPath && this.checkSegmentCollision(dragInfo.pid, prev, curr, dragInfo.startEl, hoverBubbleEl)) {
+                    this.handlePenalty(dragInfo.pid); this.stopDrag(e.pointerId); return;
+                }
+                if (hoverBubbleEl && hoverBubbleEl !== dragInfo.startEl) {
+                    if (parseInt(dragInfo.startEl.dataset.val) + parseInt(hoverBubbleEl.dataset.val) !== 10) {
+                        this.handlePenalty(dragInfo.pid); this.stopDrag(e.pointerId); return;
+                    } else if (dragInfo.validPath) { 
+                        this.handleCorrect(dragInfo.pid, dragInfo.startEl, hoverBubbleEl); this.stopDrag(e.pointerId); return;
+                    }
+                }
+            }
+        },
+
+        handlePointerUp: function(e) { if (this.state.activePointers.has(e.pointerId)) this.stopDrag(e.pointerId, e.clientX, e.clientY); },
+
+        stopDrag: function(pointerId, endX, endY) {
+            const dragInfo = this.state.activePointers.get(pointerId);
+            if(!dragInfo) return;
+            dragInfo.startEl.classList.remove('active-drag');
+            this.state.activePointers.delete(pointerId);
+        },
+
+        checkSegmentCollision: function(pid, p1, p2, startEl, hoverEl) {
+            const pState = this.state[pid];
+            for (let b of pState.bubbles) {
+                if (b.el === startEl || b.el === hoverEl) continue; 
+                const bRect = b.el.getBoundingClientRect();
+                const bx = bRect.left + bRect.width/2; const by = bRect.top + bRect.height/2; const radius = bRect.width/2 * 0.6; 
+                if (this.lineIntersectsCircle(p1.x, p1.y, p2.x, p2.y, bx, by, radius)) return true;
+            }
+            return false;
+        },
+
+        lineIntersectsCircle: function(x1, y1, x2, y2, cx, cy, r) {
+            const dx = x2 - x1; const dy = y2 - y1; const lenSq = dx*dx + dy*dy;
+            if (lenSq === 0) return false;
+            let t = Math.max(0, Math.min(1, ((cx - x1) * dx + (cy - y1) * dy) / lenSq));
+            return ((cx - (x1 + t * dx))**2 + (cy - (y1 + t * dy))**2) < r*r;
+        },
+
+        gameLoop: function() {
+            if (!this.state.isPlaying) return;
+            const ctx = this.lineCtx; ctx.clearRect(0, 0, this.lineCanvas.width, this.lineCanvas.height);
+            this.state.activePointers.forEach(drag => {
+                if (drag.path.length < 2) return;
+                ctx.beginPath(); ctx.moveTo(drag.path[0].x, drag.path[0].y);
+                for (let i = 1; i < drag.path.length; i++) ctx.lineTo(drag.path[i].x, drag.path[i].y);
+                ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.setLineDash([]); ctx.stroke();
+                
+                const last = drag.path[drag.path.length - 1];
+                ctx.beginPath(); ctx.arc(last.x, last.y, 8, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+            });
+            requestAnimationFrame(() => this.gameLoop());
+        },
+
+        handleCorrect: function(pid, el1, el2) {
+            AudioSys.play('pop');
+            const color1 = getComputedStyle(el1).getPropertyValue('--bubble-bg'); const rect1 = el1.getBoundingClientRect(); FX.spawn(rect1.left + rect1.width/2, rect1.top + rect1.height/2, color1);
+            const color2 = getComputedStyle(el2).getPropertyValue('--bubble-bg'); const rect2 = el2.getBoundingClientRect(); FX.spawn(rect2.left + rect2.width/2, rect2.top + rect2.height/2, color2);
+
+            el1.classList.add('popping'); el2.classList.add('popping');
+            setTimeout(() => { el1.remove(); el2.remove(); }, 300);
+
+            const pState = this.state[pid];
+            pState.bubbles = pState.bubbles.filter(b => b.el !== el1 && b.el !== el2);
+            const scoreEl = document.getElementById(`score-${pid}`); scoreEl.innerText = parseInt(scoreEl.innerText) + 200;
+
+            setTimeout(() => {
+                const board = document.getElementById(`board-${pid}`); const rect = board.getBoundingClientRect();
+                const existingPos = pState.bubbles.map(b => ({x: b.x, y: b.y})); 
+                const size = (rect.width / 9) * 1.2;
+
+                // 1~5 1개, 5~9 1개가 리스폰되도록 배열을 구성합니다.
+                const newNums = [
+                    Math.floor(Math.random() * 5) + 1,
+                    Math.floor(Math.random() * 5) + 5
+                ];
+
+                for(let i=0; i<2; i++) {
+                    const num = newNums[i];
+                    const newPos = this.getSafePosition(existingPos, rect.width, rect.height, size);
+                    existingPos.push(newPos); 
+                    this.createBubbleElement(pid, num, newPos.x, newPos.y, size, 2000+i);
+                    pState.bubbles[pState.bubbles.length-1].el.classList.add('respawning');
+                }
+            }, 300);
+        },
+
+        handlePenalty: function(pid) {
+            AudioSys.play('error');
+            const board = document.getElementById(`board-${pid}`); board.classList.remove('shake-anim'); void board.offsetWidth; board.classList.add('shake-anim');
+            const scoreEl = document.getElementById(`score-${pid}`); scoreEl.innerText = Math.max(0, parseInt(scoreEl.innerText) - 50);
+        },
+
+        updateTimer: function() { document.getElementById('timer-display').innerText = this.state.timeLeft; document.getElementById('timer-bar').style.width = (this.state.timeLeft / 60) * 100 + '%'; },
+        
+        endGame: function() {
+            this.state.isPlaying = false; clearInterval(this.state.timerId); AudioSys.play('win');
+            const s1 = parseInt(document.getElementById('score-p1').innerText); const s2 = parseInt(document.getElementById('score-p2').innerText);
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-p1').innerText = s1; document.getElementById('final-p2').innerText = s2;
+            const wTxt = document.getElementById('winner-text');
+            
+            if (s1 > s2) wTxt.innerHTML = `<span style='color:var(--p1-main)'>🐶 Win!</span>`;
+            else if (s2 > s1) wTxt.innerHTML = `<span style='color:var(--p2-main)'>🐱 Win!</span>`;
+            else wTxt.innerText = "🤝 Draw!";
+        }
+    };
+</script>
+
+</body>
+</html>

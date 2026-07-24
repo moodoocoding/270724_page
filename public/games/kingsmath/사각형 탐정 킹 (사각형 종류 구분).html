@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5YW0T2C109');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>🕵️ 사각형 탐정킹</title>
+    <meta name="description" content="넓이와 둘레에 맞는 사각형을 찾아라! 6인용 경쟁 수학 게임">
+    <meta name="keywords" content="사각형, 넓이, 둘레, 탐정, 수학게임, 초등수학, 킹수학">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind = {
+            corePlugins: { preflight: false } // 게임 기존 CSS가 붕괴되는 것을 막기 위함
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* ========================================================
+           [게임 공통/전용 CSS] - 전자칠판 최적화
+           ======================================================== */
+        
+        /* 폰트 어썸 아이콘 깨짐 방지: i 태그는 공통 폰트 강제 적용에서 제외 */
+        *:not(i):not([class^="fa-"]):not(.fa-solid):not(.fa-regular) {
+            user-select: none; -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+            box-sizing: border-box;
+            font-family: 'Noto Sans', sans-serif; /* 한글은 Noto Sans 우선, 기타 일반 폰트 */
+        }
+
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: #1a1a2e; /* 다크 네이비 베이스 */
+            color: #f0f0f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; cursor: pointer; }
+
+        /* --- 헤더 --- */
+        header {
+            background-color: #16213e;
+            padding: 0 30px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            z-index: 10;
+            position: relative;
+            border-bottom: 2px solid #e94560;
+        }
+        
+        h1 { 
+            margin: 0; font-size: 2rem; color: #FFD93D; cursor: pointer; 
+            position: absolute; left: 30px;
+            text-shadow: 2px 2px 0 #000;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        #timer-box {
+            font-size: 1.8rem; background: #0f3460; padding: 2px 20px;
+            border-radius: 15px; border: 3px solid #e94560;
+            color: #fff; min-width: 90px; text-align: center;
+            font-weight: 900;
+        }
+        #timer-box.urgent {
+            background: #e94560; border-color: #fff;
+            animation: blink 0.5s infinite alternate;
+        }
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.5; } }
+
+        /* --- 공통 문제 표출 영역 --- */
+        #mission-banner {
+            display: none;
+            flex-direction: column; /* 세로 배치로 변경 */
+            justify-content: center; align-items: center; gap: 10px; /* 간격 조정 */
+            background: linear-gradient(90deg, #16213e, #0f3460, #16213e);
+            padding: 15px 25px;
+            font-size: 2.5rem;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 5;
+            border-bottom: 3px solid #FFD93D;
+            font-weight: bold;
+        }
+        #mission-info {
+            display: flex;
+            justify-content: center; align-items: center; gap: 30px;
+            text-align: center; flex-wrap: wrap;
+        }
+        #mission-answer {
+            display: none;
+            color: #00e676;
+            text-shadow: 2px 2px 4px #000;
+            font-size: 2rem;
+            font-weight: 900;
+        }
+        .highlight { color: #FFD93D; font-size: 4rem; font-weight: 900; text-shadow: 2px 2px 4px #000; margin: 0 10px; }
+
+        /* 각 팀별 몽타주 및 정보 박스 */
+        .team-mission-box {
+            background: rgba(255, 255, 255, 0.1);
+            text-align: center;
+            padding: 10px 5px;
+            font-size: 1.1rem;
+            color: #FFD93D;
+            border-bottom: 2px solid rgba(0,0,0,0.3);
+            font-weight: bold;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px 15px;
+        }
+        .team-mission-box .mission-item { white-space: nowrap; }
+        .team-mission-box .mission-item span.highlight-num { font-size: 1.5rem; color: #fff; margin: 0 2px; }
+        
+        .grid-info {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #aaa;
+            padding: 8px 0 0 0;
+            background: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* --- 메인 컨테이너 --- */
+        #app-container {
+            flex: 1; position: relative;
+            display: flex; justify-content: center; align-items: center;
+            width: 100%; height: calc(100vh - 60px);
+            background: repeating-linear-gradient(45deg, #1a1a2e, #1a1a2e 10px, #1c1c33 10px, #1c1c33 20px);
+        }
+
+        /* --- 설정 화면 (로비) --- */
+        #setup-screen {
+            position: absolute; z-index: 1000;
+            background: rgba(30, 30, 40, 0.95);
+            padding: 40px 50px; border-radius: 20px;
+            border: 4px solid #FFD93D;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8);
+            text-align: center; display: flex; flex-direction: column; gap: 20px;
+            min-width: 500px; max-width: 90%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            backdrop-filter: blur(10px);
+        }
+        
+        .title-text { 
+            position: static; font-size: 3.5rem; color: #fff; 
+            text-shadow: 3px 3px 0 #e94560, 5px 5px 0 #000; margin: 0; line-height: 1.2; font-weight: 900;
+        }
+        
+        .desc-text { font-size: 1.3rem; color: #ccc; line-height: 1.5; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; font-weight: bold;}
+        
+        .option-row { display: flex; justify-content: center; gap: 10px; align-items: center; flex-direction: column;}
+        .option-label { font-size: 1.5rem; color: #FFD93D; font-weight: bold;}
+        
+        .btn-opt {
+            padding: 10px 20px; font-size: 1.3rem; font-weight: bold;
+            background: #222; color: #aaa; border: 2px solid #555;
+            border-radius: 10px; cursor: pointer; transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-opt.selected {
+            background: #e94560; color: #fff; border-color: #ff7675;
+            transform: scale(1.05); box-shadow: 0 0 15px rgba(233, 69, 96, 0.6);
+        }
+
+        #btn-start {
+            margin-top: 10px; padding: 15px 50px; font-size: 2.2rem;
+            background: #FFD93D; color: #1a1a2e; border: none; border-radius: 50px;
+            box-shadow: 0 6px 0 #c2a326; cursor: pointer; font-weight: 900;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        /* --- 카운트다운 오버레이 --- */
+        #countdown-overlay {
+            position: absolute; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center;
+        }
+        #countdown-text {
+            font-size: 15rem; color: #FFD93D; text-shadow: 0 0 30px #FFD93D;
+            animation: pulse 1s infinite; font-weight: 900;
+        }
+        @keyframes pulse { 0% { transform: scale(1.5); opacity: 0; } 50% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.8); opacity: 0; } }
+
+        /* --- 게임 보드 --- */
+        #game-board {
+            display: none; width: 100%; height: 100%; padding: 10px;
+            gap: 10px;
+        }
+
+        /* --- 플레이어 카드 (탐정) --- */
+        .team-card {
+            background: #252538; border-radius: 15px;
+            border: 4px solid #444; display: flex; flex-direction: column;
+            position: relative; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: border-color 0.3s;
+        }
+
+        .team-0 { border-color: #3498db; } .team-0 .player-name { color: #85c1e9; } .team-0 .cell.selected { background: rgba(52, 152, 219, 0.6) !important; }
+        .team-1 { border-color: #e74c3c; } .team-1 .player-name { color: #f1948a; } .team-1 .cell.selected { background: rgba(231, 76, 60, 0.6) !important; }
+        .team-2 { border-color: #f1c40f; } .team-2 .player-name { color: #f9e79f; } .team-2 .cell.selected { background: rgba(241, 196, 15, 0.6) !important; }
+        .team-3 { border-color: #2ecc71; } .team-3 .player-name { color: #82e0aa; } .team-3 .cell.selected { background: rgba(46, 204, 113, 0.6) !important; }
+        .team-4 { border-color: #9b59b6; } .team-4 .player-name { color: #d2b4de; } .team-4 .cell.selected { background: rgba(155, 89, 182, 0.6) !important; }
+        .team-5 { border-color: #e67e22; } .team-5 .player-name { color: #f5cba7; } .team-5 .cell.selected { background: rgba(230, 126, 34, 0.6) !important; }
+
+        .card-header { background: rgba(0,0,0,0.5); padding: 10px; display:flex; justify-content:center; align-items:center; z-index: 5; border-bottom: 2px solid rgba(255,255,255,0.1); }
+        .player-name { font-size: 1.5rem; text-shadow: 1px 1px 0 #000; margin: 0; font-weight: bold; }
+
+        /* --- 격자 캔버스 영역 --- */
+        .grid-wrapper {
+            flex: 1; padding: 5px; display: flex; justify-content: center; align-items: center;
+            background: #1a1a2e;
+            overflow: hidden;
+            min-height: 0;
+        }
+        .draw-grid {
+            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 1 / 1;
+            display: grid;
+            grid-template-columns: repeat(15, 1fr); 
+            grid-template-rows: repeat(15, 1fr);
+            gap: 0; 
+            background: #ddd; 
+            border: 3px solid #111;
+            cursor: crosshair; 
+            touch-action: none;
+        }
+        .cell {
+            background-color: #eee; width: 100%; height: 100%;
+            border-right: 1px solid #bbb;
+            border-bottom: 1px solid #bbb;
+            box-sizing: border-box;
+        }
+        .cell.thick-right { border-right: 2px solid #222; }
+        .cell.thick-bottom { border-bottom: 2px solid #222; }
+
+        /* --- 상태 및 페널티 오버레이 --- */
+        .status-overlay {
+            position: absolute; inset: 0; background: rgba(233, 69, 96, 0.85);
+            z-index: 10; display: none; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 2rem; color: white; text-align: center; line-height: 1.4;
+            animation: fadeIn 0.3s;
+        }
+        .status-overlay .p-time { font-size: 5rem; font-weight: 900; color: #FFD93D; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- 결과 화면 --- */
+        .rank-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 50;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px); animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .medal-icon { font-size: 4rem; margin-bottom: 5px; font-family: sans-serif; }
+        .rank-text { font-size: 2.5rem; color: #FFD93D; font-weight: 900; margin-bottom: 5px; text-align: center; }
+
+        /* 버튼 UI */
+        .floating-btn {
+            position: fixed; width: 50px; height: 50px; border-radius: 50%; background: #444; color: white;
+            display: flex; justify-content: center; align-items: center; font-size: 1.5rem;
+            z-index: 3000; border: 2px solid #666; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            top: 15%; transform: translateY(-50%); font-family: sans-serif;
+        }
+        #btn-home { left: 20px; } #btn-fullscreen { right: 20px; }
+        #btn-restart {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            padding: 10px 40px; font-size: 1.8rem; background: #FFD93D; color: #000;
+            border: 3px solid #fff; border-radius: 40px; display: none; z-index: 3000;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-weight:900;
+        }
+        
+        .shake { animation: shake 0.4s; }
+        @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-10px);} 75%{transform:translateX(10px);} }
+
+        #btn-other-game {
+            margin-top: 5px;
+            padding: 8px 20px;
+            font-size: 1.1rem;
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #555;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+            align-self: center;
+            font-weight: bold;
+        }
+        
+        #btn-other-game:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-color: #FFD93D;
+        }
+
+        /* 언어 선택 모달 박스사이징 보정 강제 및 디자인 독립 */
+        #langModal, #langModal * {box-sizing: border-box !important;}
+        .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* 다국어 시 동적 폰트 조절용 헬퍼 클래스 */
+        .dynamic-text-fit { word-break: keep-all; overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+
+    <div id="langSelectorContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6" style="z-index: 99999;">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg text-white">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4" style="z-index: 99999;">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-gray-100">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3" style="z-index: 99999;">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+    <header id="header-info">
+        <h1 id="ui-main-title" onclick="location.reload()" class="dynamic-text-fit">🕵️ 사각형 탐정킹</h1>
+        <div id="timer-box">60</div>
+    </header>
+
+    <div id="mission-banner">
+        <div id="mission-info">
+            <span id="ui-mission-montage" class="dynamic-text-fit"><i class="fa-solid fa-magnifying-glass"></i> 범인의 몽타주 👉 </span>
+            <span><span id="ui-mission-area" class="dynamic-text-fit">넓이</span> <span class="highlight" id="lbl-area">?</span>cm²</span>
+            <span style="color:#aaa; font-size:3rem;">/</span>
+            <span><span id="ui-mission-peri" class="dynamic-text-fit">둘레</span> <span class="highlight" id="lbl-peri">?</span>cm</span>
+        </div>
+        <div id="mission-answer" class="dynamic-text-fit">
+            </div>
+    </div>
+
+    <div id="app-container">
+        <div id="countdown-overlay"><div id="countdown-text">3</div></div>
+
+        <div id="setup-screen">
+            <h1 id="ui-setup-title" class="title-text dynamic-text-fit">🕵️ 사각형 탐정킹</h1>
+            
+            <div id="ui-setup-desc" class="desc-text dynamic-text-fit">
+                위에 나타나는 <strong>넓이</strong>와 <strong>둘레</strong>를 확인하고,<br>
+                자신의 격자에 빠르게 드래그하여 범인 사각형을 그리세요!<br>
+                <span style="color:#ff7675; font-size:1.1rem;">(주의: 틀리면 5초 동안 그릴 수 없습니다 / 한 문제 단판 승부!)</span>
+            </div>
+
+            <div class="option-row">
+                <div id="ui-opt-title" class="option-label dynamic-text-fit">참여 인원 선택</div>
+                <div id="opt-player" style="display:flex; gap:10px; flex-wrap: wrap; justify-content: center;">
+                    <div class="btn-opt" data-val="1" id="ui-opt-1">1인</div>
+                    <div class="btn-opt" data-val="2" id="ui-opt-2">2인</div>
+                    <div class="btn-opt" data-val="3" id="ui-opt-3">3인</div>
+                    <div class="btn-opt" data-val="4" id="ui-opt-4">4인</div>
+                    <div class="btn-opt" data-val="5" id="ui-opt-5">5인</div>
+                    <div class="btn-opt selected" data-val="6" id="ui-opt-6">6인</div>
+                </div>
+            </div>
+
+            <div>
+                <button id="btn-start" class="dynamic-text-fit">수사 시작! 🚀</button>
+                <br>
+                <button id="btn-other-game" onclick="location.href='https://킹수학.com'" class="dynamic-text-fit">🎮 다른 게임 고르기</button>
+            </div>
+        </div>
+
+        <div id="game-board"></div>
+    </div>
+
+    <button id="ui-btn-restart" id="btn-restart" class="dynamic-text-fit" onclick="location.reload()" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 40px; font-size: 1.8rem; background: #FFD93D; color: #000; border: 3px solid #fff; border-radius: 40px; display: none; z-index: 3000; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); font-weight:900;">🔄 다시 하기</button>
+    <div id="btn-home" class="floating-btn" style="cursor:pointer;">🏠</div>
+    <div id="btn-fullscreen" class="floating-btn">⛶</div>
+
+    <script>
+        // =========================================================================
+        // 다국어 데이터베이스 & 로직
+        // =========================================================================
+        const i18nData = {
+            'ko': {
+                seo_title: "🕵️ 사각형 탐정킹", seo_desc: "넓이와 둘레에 맞는 사각형을 찾아라! 6인용 경쟁 수학 게임",
+                game_title: "🕵️ 사각형 탐정킹",
+                desc_html: "위에 나타나는 <strong>넓이</strong>와 <strong>둘레</strong>를 확인하고,<br>자신의 격자에 빠르게 드래그하여 범인 사각형을 그리세요!<br><span style='color:#ff7675; font-size:1.1rem;'>(주의: 틀리면 5초 동안 그릴 수 없습니다 / 한 문제 단판 승부!)</span>",
+                opt_title: "참여 인원 선택",
+                p1: "1인", p2: "2인", p3: "3인", p4: "4인", p5: "5인", p6: "6인",
+                btn_start: "수사 시작! 🚀", btn_other: "🎮 다른 게임 고르기",
+                montage: "범인의 몽타주 👉", area: "넓이", peri: "둘레",
+                grid_info: "👇 1칸 = 1cm 👇",
+                btn_restart: "🔄 다시 하기",
+                msg_success: "범인 사각형 검거!", msg_keep: "현장 보존 중 🔒",
+                msg_fail: "오답!", msg_wait: "초 대기",
+                end_fail: "검거 실패", end_ans: "정답: 가로 {w} / 세로 {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> 사건 종료! 범인의 정답은 가로 {w}cm × 세로 {h}cm 였습니다.",
+                teams: ["🕵️ 셜록", "🕵️ 코난", "🕵️ 뤼팽", "🕵️ 포아로", "🕵️ 킨다이치", "🕵️ 가제트"],
+                toast_msg: "언어가 변경되었습니다."
+            },
+            'en': {
+                seo_title: "🕵️ Rectangle Detective King", seo_desc: "Find the matching area and perimeter! 6-player math game",
+                game_title: "🕵️ Rectangle Detective King",
+                desc_html: "Check the <strong>Area</strong> and <strong>Perimeter</strong> above,<br>and quickly drag on your grid to draw the culprit rectangle!<br><span style='color:#ff7675; font-size:1.1rem;'>(Note: If wrong, you can't draw for 5 seconds / One round sudden death!)</span>",
+                opt_title: "Select Players",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P", p5: "5P", p6: "6P",
+                btn_start: "Start Investigation! 🚀", btn_other: "🎮 Choose another game",
+                montage: "Culprit's Sketch 👉", area: "Area", peri: "Perimeter",
+                grid_info: "👇 1 block = 1cm 👇",
+                btn_restart: "🔄 Play Again",
+                msg_success: "Culprit Captured!", msg_keep: "Securing Scene 🔒",
+                msg_fail: "Wrong!", msg_wait: "s wait",
+                end_fail: "Failed", end_ans: "Answer: W {w} / H {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Case Closed! The culprit was Width {w}cm × Height {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Language changed successfully."
+            },
+            'zh': {
+                seo_title: "🕵️ 矩形侦探王", seo_desc: "寻找匹配面积和周长的矩形！6人数学游戏",
+                game_title: "🕵️ 矩形侦探王",
+                desc_html: "确认上方的<strong>面积</strong>和<strong>周长</strong>，<br>在你的网格上快速拖动，画出犯人矩形！<br><span style='color:#ff7675; font-size:1.1rem;'>(注意：如果画错，将有5秒钟不能画 / 一局定胜负！)</span>",
+                opt_title: "选择人数",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人", p5: "5人", p6: "6人",
+                btn_start: "开始调查！ 🚀", btn_other: "🎮 选择其他游戏",
+                montage: "犯人画像 👉", area: "面积", peri: "周长",
+                grid_info: "👇 1格 = 1cm 👇",
+                btn_restart: "🔄 再玩一次",
+                msg_success: "抓捕成功！", msg_keep: "保护现场 🔒",
+                msg_fail: "错误！", msg_wait: "秒等待",
+                end_fail: "抓捕失败", end_ans: "答案: 宽 {w} / 高 {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> 结案！犯人的答案是 宽 {w}cm × 高 {h}cm。",
+                teams: ["🕵️ 夏洛克", "🕵️ 柯南", "🕵️ 罗苹", "🕵️ 波罗", "🕵️ 金田一", "🕵️ 加杰特"],
+                toast_msg: "语言已更改。"
+            },
+            'ja': {
+                seo_title: "🕵️ 四角形探偵キング", seo_desc: "面積とまわりの長さが合う四角形を探せ！6人用数学ゲーム",
+                game_title: "🕵️ 四角形探偵キング",
+                desc_html: "上に表示される<strong>面積</strong>と<strong>まわりの長さ</strong>を確認し、<br>自分のグリッドに素早くドラッグして犯人の四角形を描け！<br><span style='color:#ff7675; font-size:1.1rem;'>(注意：間違えると5秒間描けません / 一発勝負！)</span>",
+                opt_title: "参加人数の選択",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人", p5: "5人", p6: "6人",
+                btn_start: "捜査開始！ 🚀", btn_other: "🎮 他のゲームを選ぶ",
+                montage: "犯人のモンタージュ 👉", area: "面積", peri: "まわり",
+                grid_info: "👇 1マス = 1cm 👇",
+                btn_restart: "🔄 もう一度",
+                msg_success: "犯人確保！", msg_keep: "現場保存中 🔒",
+                msg_fail: "不正解！", msg_wait: "秒待機",
+                end_fail: "確保失敗", end_ans: "正解: 横 {w} / 縦 {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> 事件解決！犯人の正解は 横 {w}cm × 縦 {h}cm でした。",
+                teams: ["🕵️ ホームズ", "🕵️ コナン", "🕵️ ルパン", "🕵️ ポワロ", "🕵️ 金田一", "🕵️ ガジェット"],
+                toast_msg: "言語が変更されました。"
+            },
+            'es': {
+                seo_title: "🕵️ Rey Detective de Rectángulos", seo_desc: "¡Encuentra el rectángulo con el área y perímetro correctos!",
+                game_title: "🕵️ Rey Detective de Rectángulos",
+                desc_html: "¡Revisa el <strong>Área</strong> y <strong>Perímetro</strong> de arriba,<br>y arrastra rápidamente en tu cuadrícula para dibujar el rectángulo culpable!<br><span style='color:#ff7675; font-size:1.1rem;'>(Nota: ¡Si te equivocas, no podrás dibujar por 5 segundos!)</span>",
+                opt_title: "Seleccionar Jugadores",
+                p1: "1 Jug", p2: "2 Jug", p3: "3 Jug", p4: "4 Jug", p5: "5 Jug", p6: "6 Jug",
+                btn_start: "¡Iniciar! 🚀", btn_other: "🎮 Otro juego",
+                montage: "Retrato del culpable 👉", area: "Área", peri: "Perím.",
+                grid_info: "👇 1 cuadro = 1cm 👇",
+                btn_restart: "🔄 Jugar de nuevo",
+                msg_success: "¡Capturado!", msg_keep: "Asegurando área 🔒",
+                msg_fail: "¡Error!", msg_wait: "s espera",
+                end_fail: "Falló", end_ans: "R: Ancho {w} / Alto {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> ¡Caso cerrado! El culpable era Ancho {w}cm × Alto {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Idioma cambiado."
+            },
+            'fr': {
+                seo_title: "🕵️ Roi Détective des Rectangles", seo_desc: "Trouvez le rectangle avec la bonne aire et périmètre!",
+                game_title: "🕵️ Roi Détective des Rectangles",
+                desc_html: "Vérifiez l'<strong>Aire</strong> et le <strong>Périmètre</strong> ci-dessus,<br>et glissez rapidement sur votre grille pour dessiner le rectangle coupable !<br><span style='color:#ff7675; font-size:1.1rem;'>(Note : Si c'est faux, 5 secondes d'attente !)</span>",
+                opt_title: "Sélectionner Joueurs",
+                p1: "1 J", p2: "2 J", p3: "3 J", p4: "4 J", p5: "5 J", p6: "6 J",
+                btn_start: "Commencer! 🚀", btn_other: "🎮 Autre jeu",
+                montage: "Portrait 👉", area: "Aire", peri: "Périm.",
+                grid_info: "👇 1 case = 1cm 👇",
+                btn_restart: "🔄 Rejouer",
+                msg_success: "Capturé!", msg_keep: "Sécurisation 🔒",
+                msg_fail: "Faux!", msg_wait: "s d'attente",
+                end_fail: "Échoué", end_ans: "Rép: Larg {w} / Haut {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Affaire classée ! Le coupable était Largeur {w}cm × Hauteur {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Langue modifiée."
+            },
+            'de': {
+                seo_title: "🕵️ Rechteck-Detektivkönig", seo_desc: "Finde das Rechteck mit passendem Flächeninhalt und Umfang!",
+                game_title: "🕵️ Rechteck-Detektivkönig",
+                desc_html: "Überprüfe oben <strong>Flächeninhalt</strong> und <strong>Umfang</strong><br>und ziehe schnell auf deinem Raster, um das Schuldige-Rechteck zu zeichnen!<br><span style='color:#ff7675; font-size:1.1rem;'>(Hinweis: Bei Fehler 5 Sekunden Sperre!)</span>",
+                opt_title: "Spieler wählen",
+                p1: "1 Sp", p2: "2 Sp", p3: "3 Sp", p4: "4 Sp", p5: "5 Sp", p6: "6 Sp",
+                btn_start: "Start! 🚀", btn_other: "🎮 Anderes Spiel",
+                montage: "Skizze 👉", area: "Fläche", peri: "Umfang",
+                grid_info: "👇 1 Feld = 1cm 👇",
+                btn_restart: "🔄 Nochmal",
+                msg_success: "Gefasst!", msg_keep: "Tatort sichern 🔒",
+                msg_fail: "Falsch!", msg_wait: "s Warten",
+                end_fail: "Gescheitert", end_ans: "Ant: B {w} / H {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Fall gelöst! Das Rechteck war Breite {w}cm × Höhe {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Sprache geändert."
+            },
+            'it': {
+                seo_title: "🕵️ Re Detective dei Rettangoli", seo_desc: "Trova il rettangolo con l'area e il perimetro giusti!",
+                game_title: "🕵️ Re Detective Rettangoli",
+                desc_html: "Controlla l'<strong>Area</strong> e il <strong>Perimetro</strong> sopra,<br>e trascina rapidamente sulla griglia per disegnare il rettangolo colpevole!<br><span style='color:#ff7675; font-size:1.1rem;'>(Nota: se sbagli, pausa di 5 secondi!)</span>",
+                opt_title: "Seleziona Giocatori",
+                p1: "1 G", p2: "2 G", p3: "3 G", p4: "4 G", p5: "5 G", p6: "6 G",
+                btn_start: "Inizia! 🚀", btn_other: "🎮 Altro gioco",
+                montage: "Identikit 👉", area: "Area", peri: "Perim.",
+                grid_info: "👇 1 blocco = 1cm 👇",
+                btn_restart: "🔄 Rigioca",
+                msg_success: "Catturato!", msg_keep: "Zona sicura 🔒",
+                msg_fail: "Errore!", msg_wait: "s attesa",
+                end_fail: "Fallito", end_ans: "R: Lar {w} / Alt {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Caso chiuso! Il colpevole era Larghezza {w}cm × Altezza {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Lingua cambiata."
+            },
+            'pt-br': {
+                seo_title: "🕵️ Rei Detetive de Retângulos", seo_desc: "Encontre o retângulo correspondente ao área e perímetro!",
+                game_title: "🕵️ Rei Detetive de Retângulos",
+                desc_html: "Verifique a <strong>Área</strong> e <strong>Perímetro</strong> acima,<br>e arraste rápido na sua grade para desenhar o retângulo culpado!<br><span style='color:#ff7675; font-size:1.1rem;'>(Nota: 5 seg de pausa se errar!)</span>",
+                opt_title: "Selecionar Jogadores",
+                p1: "1 J", p2: "2 J", p3: "3 J", p4: "4 J", p5: "5 J", p6: "6 J",
+                btn_start: "Iniciar! 🚀", btn_other: "🎮 Outro jogo",
+                montage: "Retrato 👉", area: "Área", peri: "Perím.",
+                grid_info: "👇 1 bloco = 1cm 👇",
+                btn_restart: "🔄 Jogar de novo",
+                msg_success: "Capturado!", msg_keep: "Local Seguro 🔒",
+                msg_fail: "Erro!", msg_wait: "s espera",
+                end_fail: "Falhou", end_ans: "R: L {w} / A {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Caso Encerrado! A resposta era Larg {w}cm × Alt {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Idioma alterado."
+            },
+            'ru': {
+                seo_title: "🕵️ Король-детектив прямоугольников", seo_desc: "Найдите прямоугольник с нужной площадью и периметром!",
+                game_title: "🕵️ Король Прямоугольников",
+                desc_html: "Проверьте <strong>Площадь</strong> и <strong>Периметр</strong> выше,<br>и быстро нарисуйте преступный прямоугольник на сетке!<br><span style='color:#ff7675; font-size:1.1rem;'>(Ошибка = штраф 5 секунд!)</span>",
+                opt_title: "Выбор игроков",
+                p1: "1 И", p2: "2 И", p3: "3 И", p4: "4 И", p5: "5 И", p6: "6 И",
+                btn_start: "Начать! 🚀", btn_other: "🎮 Другая игра",
+                montage: "Эскиз 👉", area: "Площ.", peri: "Перим.",
+                grid_info: "👇 1 клетка = 1см 👇",
+                btn_restart: "🔄 Еще раз",
+                msg_success: "Пойман!", msg_keep: "Охрана 🔒",
+                msg_fail: "Ошибка!", msg_wait: "с ждите",
+                end_fail: "Провал", end_ans: "Отв: Ш {w} / В {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Дело закрыто! Правильный ответ: Ширина {w}см × Высота {h}см.",
+                teams: ["🕵️ Шерлок", "🕵️ Конан", "🕵️ Люпен", "🕵️ Пуаро", "🕵️ Киндаичи", "🕵️ Гаджет"],
+                toast_msg: "Язык изменен."
+            },
+            'hi': {
+                seo_title: "🕵️ आयत जासूस राजा", seo_desc: "क्षेत्रफल और परिमाप से आयत खोजें!",
+                game_title: "🕵️ आयत जासूस राजा",
+                desc_html: "ऊपर <strong>क्षेत्रफल</strong> और <strong>परिमाप</strong> जांचें,<br>और जल्दी से अपराधी आयत बनाएं!<br><span style='color:#ff7675; font-size:1.1rem;'>(गलत होने पर 5 सेकंड रुकें!)</span>",
+                opt_title: "खिलाड़ी चुनें",
+                p1: "1", p2: "2", p3: "3", p4: "4", p5: "5", p6: "6",
+                btn_start: "शुरू करें! 🚀", btn_other: "🎮 दूसरा गेम",
+                montage: "अपराधी 👉", area: "क्षेत्रफल", peri: "परिमाप",
+                grid_info: "👇 1 ब्लॉक = 1cm 👇",
+                btn_restart: "🔄 फिर से खेलें",
+                msg_success: "पकड़ा गया!", msg_keep: "सुरक्षित 🔒",
+                msg_fail: "गलत!", msg_wait: "s रुकें",
+                end_fail: "विफल", end_ans: "उत्तर: {w} x {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> केस बंद! आयत {w}cm × {h}cm था।",
+                teams: ["🕵️ शरलॉक", "🕵️ कॉनन", "🕵️ ल्यूपिन", "🕵️ पॉयरोट", "🕵️ किंडाइची", "🕵️ गैजेट"],
+                toast_msg: "भाषा बदल दी गई है।"
+            },
+            'bn': {
+                seo_title: "🕵️ আয়তক্ষেত্র গোয়েন্দা রাজা", seo_desc: "ক্ষেত্রফল এবং পরিসীমা মিলিয়ে আয়তক্ষেত্র খুঁজুন!",
+                game_title: "🕵️ আয়তক্ষেত্র গোয়েন্দা রাজা",
+                desc_html: "উপরের <strong>ক্ষেত্রফল</strong> এবং <strong>পরিসীমা</strong> পরীক্ষা করুন,<br>এবং দ্রুত আয়তক্ষেত্রটি আঁকুন!<br><span style='color:#ff7675; font-size:1.1rem;'>(ভুল হলে ৫ সেকেন্ড অপেক্ষা!)</span>",
+                opt_title: "খেলোয়াড় নির্বাচন",
+                p1: "১", p2: "২", p3: "৩", p4: "৪", p5: "৫", p6: "৬",
+                btn_start: "শুরু! 🚀", btn_other: "🎮 অন্য গেম",
+                montage: "অপরাধী 👉", area: "ক্ষেত্রফল", peri: "পরিসীমা",
+                grid_info: "👇 ১ ব্লক = ১cm 👇",
+                btn_restart: "🔄 আবার খেলুন",
+                msg_success: "ধরা পড়েছে!", msg_keep: "নিরাপদ 🔒",
+                msg_fail: "ভুল!", msg_wait: "s অপেক্ষা",
+                end_fail: "ব্যর্থ", end_ans: "উত্তর: {w} x {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> সমাপ্ত! উত্তর ছিল {w}cm × {h}cm।",
+                teams: ["🕵️ শার্লক", "🕵️ কোনান", "🕵️ লুপিন", "🕵️ পোয়ারো", "🕵️ কিন্ডাইচি", "🕵️ গ্যাজেট"],
+                toast_msg: "ভাষা পরিবর্তন করা হয়েছে।"
+            },
+            'id': {
+                seo_title: "🕵️ Raja Detektif Persegi Panjang", seo_desc: "Temukan persegi panjang dengan luas dan keliling yang cocok!",
+                game_title: "🕵️ Raja Detektif Persegi",
+                desc_html: "Periksa <strong>Luas</strong> dan <strong>Keliling</strong> di atas,<br>dan gambar persegi panjang pelakunya dengan cepat!<br><span style='color:#ff7675; font-size:1.1rem;'>(Jika salah, tunggu 5 detik!)</span>",
+                opt_title: "Pilih Pemain",
+                p1: "1 P", p2: "2 P", p3: "3 P", p4: "4 P", p5: "5 P", p6: "6 P",
+                btn_start: "Mulai! 🚀", btn_other: "🎮 Game Lain",
+                montage: "Sketsa 👉", area: "Luas", peri: "Keliling",
+                grid_info: "👇 1 kotak = 1cm 👇",
+                btn_restart: "🔄 Main Lagi",
+                msg_success: "Tertangkap!", msg_keep: "Aman 🔒",
+                msg_fail: "Salah!", msg_wait: "d tunggu",
+                end_fail: "Gagal", end_ans: "Jawaban: L {w} / T {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Kasus Ditutup! Jawabannya Lebar {w}cm × Tinggi {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Bahasa telah diubah."
+            },
+            'vi': {
+                seo_title: "🕵️ Vua Thám Tử Hình Chữ Nhật", seo_desc: "Tìm hình chữ nhật phù hợp với diện tích và chu vi!",
+                game_title: "🕵️ Vua Thám Tử HCN",
+                desc_html: "Kiểm tra <strong>Diện tích</strong> và <strong>Chu vi</strong> ở trên,<br>và nhanh chóng vẽ hình chữ nhật thủ phạm!<br><span style='color:#ff7675; font-size:1.1rem;'>(Sai bị phạt 5 giây!)</span>",
+                opt_title: "Chọn Số Người",
+                p1: "1", p2: "2", p3: "3", p4: "4", p5: "5", p6: "6",
+                btn_start: "Bắt đầu! 🚀", btn_other: "🎮 Chọn game khác",
+                montage: "Kẻ tình nghi 👉", area: "D.tích", peri: "Chu vi",
+                grid_info: "👇 1 ô = 1cm 👇",
+                btn_restart: "🔄 Chơi Lại",
+                msg_success: "Bắt được!", msg_keep: "An toàn 🔒",
+                msg_fail: "Sai rồi!", msg_wait: "s chờ",
+                end_fail: "Thất bại", end_ans: "Đ.Án: R {w} / C {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Vụ án khép lại! Thủ phạm là Rộng {w}cm × Cao {h}cm.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Ngôn ngữ đã được thay đổi."
+            },
+            'th': {
+                seo_title: "🕵️ ราชาแห่งนักสืบสี่เหลี่ยม", seo_desc: "ค้นหาสี่เหลี่ยมที่ตรงกับพื้นที่และความยาวรอบรูป!",
+                game_title: "🕵️ ราชาสี่เหลี่ยม",
+                desc_html: "ตรวจสอบ <strong>พื้นที่</strong> และ <strong>ความยาวรอบรูป</strong> ด้านบน<br>แล้วลากอย่างรวดเร็วเพื่อวาดผู้ต้องสงสัย!<br><span style='color:#ff7675; font-size:1.1rem;'>(หากผิด จะโดนพัก 5 วินาที!)</span>",
+                opt_title: "เลือกผู้เล่น",
+                p1: "1", p2: "2", p3: "3", p4: "4", p5: "5", p6: "6",
+                btn_start: "เริ่มเลย! 🚀", btn_other: "🎮 เกมอื่น",
+                montage: "ผู้ต้องสงสัย 👉", area: "พื้นที่", peri: "รอบรูป",
+                grid_info: "👇 1 ช่อง = 1cm 👇",
+                btn_restart: "🔄 เล่นอีกครั้ง",
+                msg_success: "จับได้แล้ว!", msg_keep: "ปลอดภัย 🔒",
+                msg_fail: "ผิด!", msg_wait: "s รอ",
+                end_fail: "ล้มเหลว", end_ans: "ก {w} / ย {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> ปิดคดี! คำตอบคือ กว้าง {w}cm × ยาว {h}cm.",
+                teams: ["🕵️ เชอร์ล็อก", "🕵️ โคนัน", "🕵️ ลูแปง", "🕵️ ปัวโรต์", "🕵️ คินดะอิจิ", "🕵️ แกดเจ็ต"],
+                toast_msg: "เปลี่ยนภาษาเรียบร้อยแล้ว"
+            },
+            'tr': {
+                seo_title: "🕵️ Dikdörtgen Dedektif Kralı", seo_desc: "Alan ve çevreye uygun dikdörtgeni bulun!",
+                game_title: "🕵️ Dedektif Kralı",
+                desc_html: "Yukarıdaki <strong>Alan</strong> ve <strong>Çevre</strong>'yi kontrol et,<br>ve hızlıca suçlu dikdörtgeni çiz!<br><span style='color:#ff7675; font-size:1.1rem;'>(Yanlışsa 5 saniye ceza!)</span>",
+                opt_title: "Oyuncu Seçimi",
+                p1: "1 O", p2: "2 O", p3: "3 O", p4: "4 O", p5: "5 O", p6: "6 O",
+                btn_start: "Başla! 🚀", btn_other: "🎮 Başka Oyun",
+                montage: "Suçlu Çizimi 👉", area: "Alan", peri: "Çevre",
+                grid_info: "👇 1 kare = 1cm 👇",
+                btn_restart: "🔄 Tekrar Oyna",
+                msg_success: "Yakalandı!", msg_keep: "Güvende 🔒",
+                msg_fail: "Yanlış!", msg_wait: "sn bekle",
+                end_fail: "Başarısız", end_ans: "Cevap: G {w} / Y {h}",
+                end_full: "<i class='fa-solid fa-handcuffs'></i> Dava Kapandı! Suçlu Genişlik {w}cm × Yükseklik {h}cm idi.",
+                teams: ["🕵️ Sherlock", "🕵️ Conan", "🕵️ Lupin", "🕵️ Poirot", "🕵️ Kindaichi", "🕵️ Gadget"],
+                toast_msg: "Dil değiştirildi."
+            }
+        };
+
+        const globalLangs = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        let currentLang = 'ko'; // Default Init
+
+        function t(key) {
+            return (i18nData[currentLang] && i18nData[currentLang][key]) ? i18nData[currentLang][key] : i18nData['en'][key];
+        }
+
+        function detectLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && globalLangs.some(l => l.code === urlLang)) return urlLang;
+
+            const localLang = localStorage.getItem('kingsmath_lang');
+            if (localLang && globalLangs.some(l => l.code === localLang)) return localLang;
+
+            const navLang = navigator.language.split('-')[0].toLowerCase();
+            const exactMatch = globalLangs.find(l => l.code === navigator.language.toLowerCase());
+            if (exactMatch) return exactMatch.code;
+            if (globalLangs.some(l => l.code === navLang)) return navLang;
+
+            return 'en';
+        }
+
+        function applyTranslation(langCode) {
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', url);
+
+            // SEO Updates
+            document.title = t('seo_title');
+            document.querySelector('meta[name="description"]').setAttribute('content', t('seo_desc'));
+
+            // UI Texts
+            document.getElementById('ui-main-title').innerHTML = t('game_title');
+            document.getElementById('ui-setup-title').innerHTML = t('game_title');
+            document.getElementById('ui-setup-desc').innerHTML = t('desc_html');
+            document.getElementById('ui-opt-title').innerText = t('opt_title');
+            
+            for(let i=1; i<=6; i++) {
+                document.getElementById(`ui-opt-${i}`).innerText = t(`p${i}`);
+            }
+            
+            document.getElementById('btn-start').innerHTML = t('btn_start');
+            document.getElementById('btn-other-game').innerHTML = t('btn_other');
+            document.getElementById('ui-mission-montage').innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> ${t('montage')} `;
+            document.getElementById('ui-mission-area').innerText = t('area');
+            document.getElementById('ui-mission-peri').innerText = t('peri');
+            document.getElementById('ui-btn-restart').innerText = t('btn_restart');
+
+            // 동적 플레이어 보드가 이미 렌더링 되어있다면 강제 새로고침(재생성)
+            if(state.players && state.players.length > 0) {
+                state.players.forEach((p, idx) => {
+                    p.el.querySelector('.player-name').innerText = t('teams')[idx];
+                    p.el.querySelector('.i18n-area').innerText = t('area');
+                    p.el.querySelector('.i18n-peri').innerText = t('peri');
+                    p.el.querySelector('.i18n-grid-info').innerText = t('grid_info');
+                });
+            }
+
+            // 언어에 따른 UI 크기 유동성 조정
+            adjustFontSizes();
+        }
+
+        function adjustFontSizes() {
+            setTimeout(() => {
+                const els = document.querySelectorAll('.dynamic-text-fit');
+                els.forEach(el => {
+                    el.style.fontSize = ''; 
+                    if(el.scrollWidth > el.clientWidth && el.clientWidth > 0) {
+                        let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+                        let ratio = el.clientWidth / el.scrollWidth;
+                        el.style.fontSize = Math.floor(currentSize * ratio * 0.95) + 'px';
+                    }
+                });
+            }, 50);
+        }
+
+        window.addEventListener('resize', adjustFontSizes);
+
+        // =========================================================================
+        // 글로벌 UI (언어 선택기) 로직
+        // =========================================================================
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const langGrid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const currentFlagImg = document.getElementById('currentFlag');
+        const currentLangSpan = document.getElementById('currentLangName');
+        
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            langGrid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = globalLangs.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                langGrid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                langGrid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => selectLanguage(lang));
+                    langGrid.appendChild(btn);
+                });
+            }
+        }
+
+        function selectLanguage(lang) {
+            applyTranslation(lang.code);
+            currentFlagImg.src = `https://flagcdn.com/w40/${lang.country}.png`;
+            currentLangSpan.textContent = lang.name;
+            closeModal();
+            showToast(lang.name, lang.code);
+            renderLanguages(searchInput.value); // 제미나이 체크리스트 (모달창 갱신용 호출)
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showToast(langName, langCode) {
+            document.getElementById('ui-toast').textContent = t('toast_msg');
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+
+        // =========================================================================
+        // 원본 게임 로직 (수정 최소화, 다국어 연동 추가)
+        // =========================================================================
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            click: () => playTone(600, 'square', 0.1),
+            success: () => {
+                const now = audioCtx.currentTime;
+                [523, 659, 783, 1046].forEach((f,i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.frequency.value = f; gain.gain.value = 0.1;
+                    gain.gain.linearRampToValueAtTime(0, now + i*0.1 + 0.2);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(now + i*0.1); osc.stop(now + i*0.1 + 0.2);
+                });
+            },
+            fail: () => playTone(150, 'sawtooth', 0.4, false, true),
+            beep: () => playTone(440, 'square', 0.3),
+            go: () => playTone(880, 'square', 0.4, true),
+            tick: () => playTone(800, 'square', 0.05)
+        };
+
+        function playTone(freq, type, dur, slide=false, drop=false) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if(slide) osc.frequency.linearRampToValueAtTime(freq + 200, audioCtx.currentTime + dur);
+            if(drop) osc.frequency.linearRampToValueAtTime(freq - 100, audioCtx.currentTime + dur);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + dur);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
+        function playSound(name) { if(sounds[name]) sounds[name](); }
+
+        const config = { players: 6, time: 60 };
+        const state = { 
+            playing: false, players: [], interval: null,
+            targetArea: 0, targetPeri: 0, targetW: 0, targetH: 0,
+            currentRank: 1, finishedCount: 0
+        };
+
+        class Player {
+            constructor(id) {
+                this.id = id;
+                this.isPenalty = false;
+                this.isFinished = false;
+                this.rank = null;
+                
+                // 드래그 상태
+                this.isDrawing = false;
+                this.activePointerId = null;
+                this.startR = -1; this.startC = -1;
+                this.endR = -1; this.endC = -1;
+
+                this.el = document.createElement('div');
+                this.el.className = `team-card team-${id}`;
+                this.el.innerHTML = `
+                    <div class="card-header">
+                        <div class="player-name">${t('teams')[id]}</div>
+                    </div>
+                    <div class="team-mission-box">
+                        <div class="mission-item"><span class="i18n-area">${t('area')}</span><span id="t-area-${id}" class="highlight-num">?</span>cm²</div>
+                        <div class="mission-item"><span class="i18n-peri">${t('peri')}</span><span id="t-peri-${id}" class="highlight-num">?</span>cm</div>
+                    </div>
+                    <div class="grid-info i18n-grid-info">${t('grid_info')}</div>
+                    <div class="grid-wrapper">
+                        <div class="draw-grid" id="grid-${id}"></div>
+                    </div>
+                    <div class="status-overlay" id="overlay-${id}">
+                        </div>
+                    <div class="rank-overlay" id="rank-ov-${id}">
+                        <div class="medal-icon">🥇</div>
+                        <div class="rank-text">1등</div>
+                    </div>
+                `;
+
+                this.ui = {
+                    grid: this.el.querySelector(`#grid-${id}`),
+                    tArea: this.el.querySelector(`#t-area-${id}`),
+                    tPeri: this.el.querySelector(`#t-peri-${id}`),
+                    overlay: this.el.querySelector(`#overlay-${id}`),
+                    rankOv: this.el.querySelector(`#rank-ov-${id}`),
+                    medal: this.el.querySelector('.medal-icon'),
+                    rankTxt: this.el.querySelector('.rank-text')
+                };
+
+                this.cells = [];
+                this.createGrid();
+                this.bindEvents();
+            }
+
+            createGrid() {
+                for(let r=0; r<15; r++) {
+                    let rowArr = [];
+                    for(let c=0; c<15; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        
+                        if (c === 4 || c === 9) cell.classList.add('thick-right');
+                        if (r === 4 || r === 9) cell.classList.add('thick-bottom');
+                        
+                        if (c === 14) cell.style.borderRight = 'none';
+                        if (r === 14) cell.style.borderBottom = 'none';
+
+                        this.ui.grid.appendChild(cell);
+                        rowArr.push(cell);
+                    }
+                    this.cells.push(rowArr);
+                }
+            }
+
+            bindEvents() {
+                const board = this.ui.grid;
+                board.addEventListener('pointerdown', this.onPointerDown.bind(this));
+                board.addEventListener('pointermove', this.onPointerMove.bind(this));
+                board.addEventListener('pointerup', this.onPointerUp.bind(this));
+                board.addEventListener('pointercancel', this.onPointerUp.bind(this));
+                board.addEventListener('pointerleave', this.onPointerUp.bind(this));
+            }
+
+            getCellPos(e) {
+                const rect = this.ui.grid.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                if(x < 0 || y < 0 || x >= rect.width || y >= rect.height) return null;
+                const c = Math.floor(x / (rect.width / 15));
+                const r = Math.floor(y / (rect.height / 15));
+                return { r: Math.min(14, Math.max(0, r)), c: Math.min(14, Math.max(0, c)) };
+            }
+
+            onPointerDown(e) {
+                if(!state.playing || this.isPenalty || this.isFinished) return;
+                
+                this.activePointerId = e.pointerId;
+                this.ui.grid.setPointerCapture(e.pointerId);
+                
+                const pos = this.getCellPos(e);
+                if(!pos) return;
+                
+                this.isDrawing = true;
+                this.startR = pos.r; this.startC = pos.c;
+                this.endR = pos.r; this.endC = pos.c;
+                this.drawSelection();
+            }
+
+            onPointerMove(e) {
+                if(!this.isDrawing || e.pointerId !== this.activePointerId) return;
+                const pos = this.getCellPos(e);
+                if(!pos) return;
+                this.endR = pos.r; this.endC = pos.c;
+                this.drawSelection();
+            }
+
+            onPointerUp(e) {
+                if(!this.isDrawing || e.pointerId !== this.activePointerId) return;
+                this.isDrawing = false;
+                this.ui.grid.releasePointerCapture(e.pointerId);
+                this.checkAnswer();
+            }
+
+            drawSelection() {
+                this.clearSelection(false); 
+                const minR = Math.min(this.startR, this.endR);
+                const maxR = Math.max(this.startR, this.endR);
+                const minC = Math.min(this.startC, this.endC);
+                const maxC = Math.max(this.startC, this.endC);
+
+                for(let r=minR; r<=maxR; r++) {
+                    for(let c=minC; c<=maxC; c++) {
+                        this.cells[r][c].classList.add('selected');
+                    }
+                }
+            }
+
+            clearSelection(resetCoords = true) {
+                for(let r=0; r<15; r++) {
+                    for(let c=0; c<15; c++) {
+                        this.cells[r][c].classList.remove('selected');
+                    }
+                }
+                if(resetCoords) {
+                    this.startR = -1; this.startC = -1; this.endR = -1; this.endC = -1;
+                }
+            }
+
+            checkAnswer() {
+                const drawnW = Math.abs(this.endC - this.startC) + 1;
+                const drawnH = Math.abs(this.endR - this.startR) + 1;
+                const area = drawnW * drawnH;
+                const peri = (drawnW + drawnH) * 2;
+
+                if(area === state.targetArea && peri === state.targetPeri) {
+                    this.isFinished = true;
+                    this.rank = state.currentRank++;
+                    state.finishedCount++;
+                    
+                    playSound('success');
+
+                    this.ui.overlay.style.background = 'rgba(46, 204, 113, 0.9)';
+                    this.ui.overlay.innerHTML = `
+                        <span style="font-size:3rem">🎉</span>
+                        <span style="font-size:1.8rem; font-weight:900; color:#fff;">${t('msg_success')}</span>
+                        <span style="font-size:1.2rem; font-weight:bold; background:#16213e; padding:5px 15px; border-radius:20px; margin-top:15px;">${t('msg_keep')}</span>
+                    `;
+                    this.ui.overlay.style.display = 'flex';
+
+                    if(state.finishedCount === config.players) finishGame();
+                } else {
+                    this.applyPenalty();
+                    this.clearSelection(true);
+                }
+            }
+
+            applyPenalty() {
+                this.isPenalty = true;
+                this.el.classList.add('shake');
+                setTimeout(() => this.el.classList.remove('shake'), 400);
+                playSound('fail');
+
+                let timeLeft = 5;
+                this.ui.overlay.style.background = 'rgba(233, 69, 96, 0.85)';
+                this.ui.overlay.innerHTML = `
+                    <span style="font-size:3rem">🚨</span>
+                    <span style="font-weight:bold;">${t('msg_fail')}</span>
+                    <span><span class="p-time">${timeLeft}</span>${t('msg_wait')}</span>
+                `;
+                this.ui.overlay.style.display = 'flex';
+
+                const ptimeEl = this.ui.overlay.querySelector('.p-time');
+
+                const iv = setInterval(() => {
+                    if(!state.playing) { clearInterval(iv); return; }
+                    timeLeft--;
+                    ptimeEl.innerText = timeLeft;
+                    if(timeLeft <= 0) {
+                        clearInterval(iv);
+                        this.isPenalty = false;
+                        if(!this.isFinished) this.ui.overlay.style.display = 'none';
+                    }
+                }, 1000);
+            }
+
+            showRank(rank) {
+                if (rank === "실패" || rank === "Failed") {
+                    this.ui.medal.innerText = '💥';
+                    let failTxt = t('end_fail');
+                    let ansTxt = t('end_ans').replace('{w}', state.targetW).replace('{h}', state.targetH);
+                    this.ui.rankTxt.innerHTML = `${failTxt}<br><span style="font-size:1.3rem; color:#fff; font-weight:bold; display:block; margin-top:5px;">${ansTxt}</span>`;
+                    this.ui.rankTxt.style.color = "#ff7675";
+                } else {
+                    this.ui.medal.innerText = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : '🏅'));
+                    let ansTxt = t('end_ans').replace('{w}', state.targetW).replace('{h}', state.targetH);
+                    this.ui.rankTxt.innerHTML = `${rank}<br><span style="font-size:1.3rem; color:#fff; font-weight:bold; display:block; margin-top:5px;">${ansTxt}</span>`;
+                    this.ui.rankTxt.style.color = "#FFD93D";
+                }
+                this.ui.rankOv.style.display = 'flex';
+            }
+        }
+
+        // --- 전역 게임 로직 ---
+        function generateMission() {
+            const w = Math.floor(Math.random() * 15) + 1; 
+            const h = Math.floor(Math.random() * 15) + 1;
+            state.targetW = w;
+            state.targetH = h;
+            state.targetArea = w * h;
+            state.targetPeri = (w + h) * 2;
+
+            document.getElementById('lbl-area').innerText = state.targetArea;
+            document.getElementById('lbl-peri').innerText = state.targetPeri;
+            
+            const answerDiv = document.getElementById('mission-answer');
+            if(answerDiv) answerDiv.style.display = 'none';
+
+            state.players.forEach(p => {
+                p.ui.tArea.innerText = state.targetArea;
+                p.ui.tPeri.innerText = state.targetPeri;
+                p.isDrawing = false;
+                p.clearSelection(true);
+            });
+        }
+
+        function initGame() {
+            const board = document.getElementById('game-board');
+            board.innerHTML = '';
+            board.style.display = 'grid';
+            
+            board.style.gridTemplateColumns = `repeat(${config.players}, 1fr)`;
+            board.style.gridTemplateRows = '1fr';
+
+            state.players = [];
+            state.currentRank = 1;
+            state.finishedCount = 0;
+
+            for(let i=0; i<config.players; i++) {
+                const p = new Player(i);
+                board.appendChild(p.el);
+                state.players.push(p);
+            }
+            adjustFontSizes();
+        }
+
+        function startCountdown() {
+            // 게임 시작시 언어 선택 UI 숨기기
+            document.getElementById('langSelectorContainer').style.display = 'none';
+
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('mission-banner').style.display = 'flex';
+            generateMission();
+
+            const ov = document.getElementById('countdown-overlay');
+            const txt = document.getElementById('countdown-text');
+            ov.style.display = 'flex';
+            
+            let count = 3;
+            txt.innerText = count;
+            playSound('beep');
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    txt.innerText = count;
+                    playSound('beep');
+                } else {
+                    clearInterval(iv);
+                    txt.innerText = "START!";
+                    playSound('go');
+                    setTimeout(() => {
+                        ov.style.display = 'none';
+                        startGameReal();
+                    }, 800);
+                }
+            }, 1000);
+        }
+
+        function startGameReal() {
+            state.playing = true;
+            let timeLeft = config.time;
+            const tBox = document.getElementById('timer-box');
+            tBox.innerText = timeLeft;
+            tBox.classList.remove('urgent');
+            
+            state.interval = setInterval(() => {
+                timeLeft--;
+                tBox.innerText = timeLeft;
+                
+                if(timeLeft <= 5 && timeLeft > 0) {
+                    playSound('tick');
+                    tBox.classList.add('urgent');
+                }
+                
+                if(timeLeft <= 0) finishGame();
+            }, 1000);
+        }
+
+        function finishGame() {
+            if(!state.playing) return;
+            state.playing = false;
+            clearInterval(state.interval);
+            playSound('success');
+            document.getElementById('timer-box').classList.remove('urgent');
+
+            const answerDiv = document.getElementById('mission-answer');
+            if (answerDiv) {
+                let fullTxt = t('end_full').replace('{w}', state.targetW).replace('{h}', state.targetH);
+                answerDiv.innerHTML = fullTxt;
+                answerDiv.style.display = 'block';
+            }
+
+            state.players.forEach(p => {
+                if(!p.isFinished) { p.rank = "실패"; }
+                p.showRank(p.rank);
+            });
+
+            document.getElementById('btn-restart').style.display = 'block';
+        }
+
+        /* 옵션 버튼 이벤트 */
+        document.querySelectorAll('#opt-player .btn-opt').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#opt-player .btn-opt').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                config.players = parseInt(btn.dataset.val);
+                playSound('click');
+            }
+        });
+
+        document.getElementById('btn-start').onclick = () => {
+            playSound('click');
+            initGame();
+            startCountdown();
+        };
+
+        /* 홈버튼 로직 - 전체 화면 유지 처리 (요구사항 그대로 구현 + UI 보이기) */
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                state.playing = false;
+                clearInterval(state.interval); 
+                
+                document.getElementById('langSelectorContainer').style.display = 'block';
+                document.getElementById('game-board').style.display = 'none';
+                document.getElementById('header-info').style.display = 'flex'; // 원본 헤더 flex 속성 유지
+                document.getElementById('mission-banner').style.display = 'none'; // 미션 숨기기
+                document.getElementById('btn-restart').style.display = 'none'; 
+                document.getElementById('setup-screen').style.display = 'flex';
+                
+                if(window.playSound) window.playSound('click');
+            } else {
+                location.reload();
+            }
+        });
+
+        document.getElementById('btn-fullscreen').onclick = () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+            else if (document.exitFullscreen) document.exitFullscreen();
+        };
+        
+        document.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+
+        // 페이지 로드 시 다국어 초기 렌더 및 세팅
+        window.addEventListener('DOMContentLoaded', () => {
+            const detectedLang = detectLanguage();
+            applyTranslation(detectedLang);
+            
+            // 상단 언어 선택 버튼 플래그 업데이트
+            const matchLangInfo = globalLangs.find(l => l.code === currentLang) || globalLangs.find(l => l.code === 'en');
+            currentFlagImg.src = `https://flagcdn.com/w40/${matchLangInfo.country}.png`;
+            currentLangSpan.textContent = matchLangInfo.name;
+            
+            renderLanguages();
+        });
+    </script>
+</body>
+</html>

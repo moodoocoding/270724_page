@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TicTacToe king mobile 틱택토킹 모바일</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+
+    <style>
+
+* {
+    /* 터치 시 발생하는 파란색 하이라이트 제거 */
+    -webkit-tap-highlight-color: transparent;
+    
+    /* 포커스 시 생기는 아웃라인 제거 (선택 사항) */
+    outline: none;
+}
+
+
+        :root {
+            /* Theme Colors */
+            --bg-color: #1a1a1a;
+            --wood-dark: #2e2017;
+            --wood-light: #f4e4bc;
+            --gold: #c5a059;
+            --gold-light: #e5c07b;
+            --text-color: #f0f0f0;
+            
+            /* O X Colors */
+            --color-o: #3b82f6; /* Bright Blue */
+            --color-x: #ef4444; /* Bright Red */
+        }
+
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Pretendard', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none; 
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* --- Intro Screen --- */
+        #intro-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #2b1d0e 0%, #1a1108 60%, #050301 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.8s ease-in-out;
+            text-align: center;
+        }
+
+        #intro-screen::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.03) 75%, rgba(255, 255, 255, 0.03));
+            background-size: 60px 60px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .brand-links { 
+            position: relative; margin-bottom: 3vh; font-size: 1rem; letter-spacing: 2px; font-weight: 300; opacity: 0.7; z-index: 2; 
+        }
+        .brand-links a { color: #aaa; text-decoration: none; margin: 0 10px; transition: color 0.3s; }
+        .brand-links a:hover { color: var(--gold); }
+
+        .title-wrapper {
+            position: relative; z-index: 2; margin-bottom: 2vh; padding: 0px 20px 11px 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .title-wrapper::before, .title-wrapper::after {
+            content: ''; display: block; width: 60px; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 15px auto;
+        }
+
+        .title-main {
+            font-family: 'Georgia', serif;
+            font-size: clamp(2rem, 9vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1;
+            margin: 0;
+            background: linear-gradient(to bottom, #fff5d1, #c5a059, #8c6a28);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 4px 5px rgba(0,0,0,0.8));
+            letter-spacing: 3px;
+        }
+
+        .title-korean {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 800;
+            color: #e5c07b;
+            margin: 10px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            letter-spacing: 10px;
+        }
+
+        .title-sub {
+            font-family: 'Georgia', serif;
+            font-size: clamp(1rem, 3.5vw, 1.8rem);
+            color: #8c6a28;
+            text-transform: uppercase;
+            letter-spacing: clamp(4px, 1.5vw, 10px);
+            margin-top: 5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        /* QR Code & Buttons */
+        #qr-container {
+            position: relative; z-index: 2; margin-bottom: 5vh; background: #fff;
+            padding: 8px; border: 1px solid var(--gold);
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.15); cursor: pointer; transition: all 0.3s ease;
+        }
+        #qr-image { width: 100px; height: 100px; display: block; }
+        #qr-container.qr-fullscreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 500; border: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #qr-container.qr-fullscreen #qr-image { width: min(80vw, 80vh); height: min(80vw, 80vh); border: 4px solid #fff; }
+
+        .btn-start, .undo-btn, #home-btn, .more-games a, #qr-container { touch-action: manipulation; }
+
+        .btn-start {
+            position: relative; z-index: 2; padding: 16px 50px;
+            font-size: 1.3rem; font-family: 'Georgia', serif; font-weight: bold;
+            background: linear-gradient(180deg, #2b2b2b, #1a1a1a);
+            color: var(--gold); border: 1px solid var(--gold);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: pointer;
+            transition: all 0.3s; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5vh;
+            border-radius: 50px;
+        }
+        .btn-start:hover { background: var(--gold); color: #1a1a1a; box-shadow: 0 0 20px var(--gold); }
+        .btn-start:active { transform: scale(0.98); }
+
+        .more-games { position: relative; z-index: 2; }
+        .more-games a {
+            color: #888; text-decoration: none; font-size: 0.9rem;
+            display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+            border: 1px solid #444; border-radius: 4px; background: rgba(0,0,0,0.3);
+            transition: all 0.3s; letter-spacing: 1px;
+        }
+        .more-games a:hover { color: var(--gold); border-color: var(--gold); }
+
+        /* --- Game UI --- */
+        #home-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 200;
+            background: rgba(0, 0, 0, 0.6); border: 2px solid var(--gold);
+            color: var(--gold); font-size: 1.5rem; width: 50px; height: 50px;
+            border-radius: 50%; display: none; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #home-btn:hover { background: var(--gold); color: #000; transform: scale(1.1); }
+        .home-btn-large {
+            transform: scale(2.0) !important;
+            background: var(--gold) !important;
+            color: #1a1a1a !important;
+            box-shadow: 0 0 30px var(--gold);
+            border-width: 4px !important;
+        }
+
+        #game-area {
+            display: flex; width: 100%; height: 100%; opacity: 0; pointer-events: none; transition: opacity 1s;
+        }
+
+        .player-zone {
+            display: flex; align-items: center; justify-content: center;
+            position: relative; padding: 10px; gap: 15px;
+        }
+
+        .turn-indicator {
+            padding: 15px 30px; 
+            border-radius: 20px; 
+            background: #222;
+            color: #666; border: 1px solid #444; font-weight: bold;
+            letter-spacing: 1px; transition: all 0.3s;
+            display: flex; align-items: center; 
+            gap: 15px;
+            font-size: 1.8rem;
+            box-shadow: inset 0 0 5px #000; z-index: 20; white-space: nowrap;
+            visibility: visible; 
+        }
+        
+        .active-turn { 
+            color: #2b1d0e; border-color: #fff;
+            background: linear-gradient(270deg, var(--gold), var(--gold-light), var(--gold));
+            background-size: 200% 200%; animation: shine 3s ease infinite;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.6);
+            transform: scale(1.05); 
+        }
+        @keyframes shine { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* O X Icons in Indicator */
+        .player-icon { 
+            font-family: 'Fredoka', sans-serif; /* 둥근 폰트 */
+            font-size: 1.5em; 
+            line-height: 1; 
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); 
+        }
+        .icon-o { color: var(--color-o); }
+        .icon-x { color: var(--color-x); }
+
+        .timer-display {
+            font-family: 'Courier New', monospace; 
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: inherit; border-left: 3px solid rgba(0,0,0,0.2); padding-left: 15px;
+            min-width: 70px; text-align: center;
+        }
+
+        .undo-btn {
+            background: none; border: none; 
+            font-size: 2.5rem; 
+            cursor: pointer;
+            margin-left: 10px; padding: 0; line-height: 1; transition: all 0.3s;
+        }
+        .undo-active { color: #3b82f6; opacity: 1; pointer-events: auto; filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5)); transform: scale(1.1); }
+        .undo-disabled { color: #444; opacity: 0.3; pointer-events: none; filter: grayscale(100%); }
+
+        /* --- The Board (3x3 Tic-Tac-Toe) --- */
+        #board-container {
+            background-color: #5d4037;
+            background: linear-gradient(135deg, #5d4037 0%, #3e2723 100%);
+            padding: 20px;
+            border: 6px solid #281a14;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.5);
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.5s ease;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100%;
+            height: 100%;
+            gap: 15px;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .cell {
+            background-color: var(--wood-light);
+            border-radius: 15px;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2), 2px 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-family: 'Fredoka', sans-serif; /* 귀여운 둥근 폰트 */
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+        .cell:active { transform: scale(0.95); }
+
+        /* --- Pieces (O X Markers) --- */
+        .marker {
+            position: absolute;
+            line-height: 1;
+            transform: scale(0);
+            animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.5) forwards;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2));
+            user-select: none;
+        }
+        .marker.o { color: var(--color-o); }
+        .marker.x { color: var(--color-x); }
+
+        @keyframes pop-in { 0% { transform: scale(0) rotate(-45deg); opacity: 0; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+
+        /* Winning Styles */
+        .winning-cell {
+            background-color: #fff !important;
+            animation: pulse-bg 1s infinite alternate;
+        }
+        .winning-marker {
+            animation: bounce-marker 0.6s infinite alternate;
+        }
+        @keyframes pulse-bg { from { box-shadow: 0 0 10px var(--gold); } to { box-shadow: 0 0 30px var(--gold); } }
+        @keyframes bounce-marker { from { transform: translateY(0) scale(1); } to { transform: translateY(-10px) scale(1.1); } }
+
+        /* --- Orientation Logic --- */
+        @media (orientation: portrait) {
+            #game-area { flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+            .player-zone { width: 100%; height: auto; flex-direction: column; }
+            .player-top { transform: rotate(180deg); }
+            
+            #board-container {
+                width: 85vw; height: 85vw;
+                max-width: 50vh; max-height: 50vh;
+            }
+            .turn-indicator {
+                width: min(87vw,50vh);
+                padding: 10px 0;
+                font-size: clamp(1.4rem, 4vw, 2rem);
+                justify-content: center;
+            }
+        }
+
+        @media (orientation: landscape) {
+            #game-area { flex-direction: row; justify-content: center; align-items: center; gap: 40px; }
+            .player-zone { width: 25vw; height: 100vh; flex-direction: row; }
+            
+            #board-container { height: 80vh; width: 80vh; order: 2; transform: rotate(0deg); }
+            
+            #zone-o { order: 1; justify-content: flex-end; padding-right: 20px; }
+            #zone-o .turn-indicator, #zone-o .win-message, #zone-o .lose-message { transform: rotate(90deg); }
+
+            #zone-x { order: 3; justify-content: flex-start; padding-left: 20px; }
+            #zone-x .turn-indicator, #zone-x .win-message, #zone-x .lose-message { transform: rotate(-90deg); }
+        }
+
+        .win-message, .lose-message, .draw-message {
+            position: absolute; font-family: 'Georgia', serif; font-weight: 900;
+            font-size: 3.5rem; 
+            z-index: 100; pointer-events: none; animation: pop-up 0.5s forwards;
+            white-space: nowrap;
+            text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 20px rgba(0,0,0,0.5);
+        }
+        @keyframes pop-up { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+        .win-message { color: var(--gold); }
+        .lose-message { color: #888; }
+        .draw-message { color: #87ceeb; font-size: 3rem; }
+
+        #restart-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); 
+            display: none !important; 
+            justify-content: center; align-items: center; z-index: 200;
+        }
+        #restart-btn {
+            font-size: 2rem; padding: 20px 40px; border-radius: 50px;
+            background: var(--gold); border: none; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 20px rgba(197, 160, 89, 0.8);
+            animation: pulse-btn 1s infinite;
+        }
+        @keyframes pulse-btn { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <div class="brand-links">
+            <a href="http://킹수학.com" target="_blank">킹수학.com</a>
+            <span style="color:#555">|</span>
+            <a href="/" target="_blank">KingsMath.com</a>
+        </div>
+        
+        <div class="title-wrapper">
+            <h1 class="title-main">Tic-Tac-Toe King</h1>
+            <div class="title-korean">틱 택 토 킹</div>
+            <div class="title-sub">M o b i l e</div>
+        </div>
+        
+        <div id="qr-container" onclick="toggleQr()" title="Click to enlarge">
+            <img id="qr-image" src="" alt="QR Code" />
+        </div>
+
+        <button class="btn-start" onclick="startGameSequence()">Game Start</button>
+        
+        <div class="more-games">
+            <a href="/" target="_self">
+                <i class="fas fa-gamepad"></i> MORE MATH GAMES
+            </a>
+        </div>
+    </div>
+
+    <button id="home-btn" onclick="location.reload()" title="Home">
+        <i class="fas fa-home"></i>
+    </button>
+
+    <div id="game-area">
+        <div id="zone-o" class="player-zone player-top">
+            <div id="indicator-o" class="turn-indicator">
+                <div class="player-icon icon-o">O</div> PLAYER
+                <span id="timer-o" class="timer-display">15</span>
+                <button id="undo-btn-o" class="undo-btn undo-disabled" onclick="undoLastMove('o')">↩️</button>
+            </div>
+        </div>
+
+        <div id="board-container">
+            <div id="board">
+                </div>
+        </div>
+
+        <div id="zone-x" class="player-zone player-bottom">
+            <div id="indicator-x" class="turn-indicator">
+                <div class="player-icon icon-x">X</div> PLAYER
+                <span id="timer-x" class="timer-display">15</span>
+                <button id="undo-btn-x" class="undo-btn undo-disabled" onclick="undoLastMove('x')">↩️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="restart-overlay">
+        <button id="restart-btn" onclick="resetGame()">PLAY AGAIN</button>
+    </div>
+
+<script>
+    // [모바일 최적화] 제스처 차단
+    document.addEventListener('touchmove', function(e) { if (e.scale !== 1) e.preventDefault(); }, { passive: false });
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = (new Date()).getTime();
+        if (now - lastTouchEnd <= 300) e.preventDefault();
+        lastTouchEnd = now;
+    }, false);
+
+    // --- Utils & Audio ---
+    window.onload = function() {
+        const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(window.location.href);
+        document.getElementById('qr-image').src = qrUrl;
+    };
+    function toggleQr() { document.getElementById('qr-container').classList.toggle('qr-fullscreen'); }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'pop') { 
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+            gainNode.gain.setValueAtTime(0.3, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now); osc.stop(now + 0.15);
+        } else if (type === 'win') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now+0.1);
+            osc.frequency.setValueAtTime(783.99, now+0.2); osc.frequency.setValueAtTime(1046.50, now+0.3);
+            gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0, now + 2);
+            osc.start(now); osc.stop(now + 2);
+        } else if (type === 'draw') {
+             osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(300, now+0.3);
+             gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.linearRampToValueAtTime(0, now+0.3);
+             osc.start(now); osc.stop(now+0.3);
+        } else if (type === 'tick') { 
+            osc.type = 'square'; osc.frequency.setValueAtTime(800, now);
+            gainNode.gain.setValueAtTime(0.05, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+            osc.start(now); osc.stop(now + 0.05);
+        } else if (type === 'start') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now); osc.frequency.setValueAtTime(800, now + 0.2);
+            gainNode.gain.setValueAtTime(0.2, now); gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+            osc.start(now); osc.stop(now + 0.5);
+        }
+    }
+
+    // --- Game Logic ---
+    const BOARD_SIZE = 3;
+    let board = [];
+    let turn = 1; // 1: O, 2: X
+    let isGameOver = false;
+    let moveCount = 0;
+    
+    // 타이머
+    let timerValue = 15;
+    let timerInterval = null;
+    let historyStack = [];
+    let canUndo = false; 
+
+    const boardEl = document.getElementById('board');
+    const introEl = document.getElementById('intro-screen');
+    const gameAreaEl = document.getElementById('game-area');
+    const timerOEl = document.getElementById('timer-o');
+    const timerXEl = document.getElementById('timer-x');
+    const homeBtn = document.getElementById('home-btn');
+
+    function initGame(startingTurn = 1) {
+        board = Array(BOARD_SIZE).fill().map(() => Array(BOARD_SIZE).fill(0));
+        turn = startingTurn;
+        isGameOver = false;
+        moveCount = 0;
+        historyStack = [];
+        canUndo = false;
+        
+        document.querySelectorAll('.win-message, .lose-message, .draw-message').forEach(el => el.remove());
+        document.getElementById('restart-overlay').style.display = 'none';
+        
+        homeBtn.classList.remove('home-btn-large');
+        document.getElementById('indicator-o').style.visibility = 'visible';
+        document.getElementById('indicator-x').style.visibility = 'visible';
+        
+        renderBoard();
+        updateTurnIndicators();
+        updateUndoUI();
+    }
+
+    function renderBoard() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.onclick = () => handleInput(r, c);
+
+                if (board[r][c] !== 0) {
+                    const marker = document.createElement('div');
+                    marker.className = `marker ${board[r][c] === 1 ? 'o' : 'x'}`;
+                    marker.innerText = board[r][c] === 1 ? 'O' : 'X';
+                    cell.appendChild(marker);
+                }
+                boardEl.appendChild(cell);
+            }
+        }
+    }
+
+    function startGameSequence() {
+        introEl.style.opacity = '0';
+        introEl.style.pointerEvents = 'none';
+        initGame(); 
+        setTimeout(() => {
+            introEl.style.display = 'none';
+            homeBtn.style.display = 'flex';
+            gameAreaEl.style.opacity = '1';
+            gameAreaEl.style.pointerEvents = 'auto';
+            startFirstPlayerRoulette();
+        }, 800);
+    }
+
+    function startFirstPlayerRoulette() {
+        const oInd = document.getElementById('indicator-o');
+        const xInd = document.getElementById('indicator-x');
+        
+        let count = 0;
+        let speed = 50;
+let rouletteTurn = Math.random() < 0.5 ? 1 : 2; // <--- 1(O) 또는 2(X) 중 랜덤으로 시작하도록 변경
+        
+        oInd.classList.remove('active-turn');
+        xInd.classList.remove('active-turn');
+        
+        function step() {
+            playSound('tick'); 
+            if (rouletteTurn === 1) {
+                oInd.classList.add('active-turn'); xInd.classList.remove('active-turn');
+                rouletteTurn = 2;
+            } else {
+                xInd.classList.add('active-turn'); oInd.classList.remove('active-turn');
+                rouletteTurn = 1;
+            }
+            count++;
+            if (count < 15) {
+                setTimeout(step, speed);
+                if (count > 8) speed += 30; 
+            } else {
+                const winner = rouletteTurn === 1 ? 2 : 1; 
+                setTimeout(() => {
+                    playSound('start');
+                    initGame(winner);
+                    startTimer();
+                }, 400);
+            }
+        }
+        step();
+    }
+
+    function handleInput(r, c) {
+        if (isGameOver || board[r][c] !== 0) return;
+
+        // Save State for Undo
+        historyStack.push({
+            r: r, c: c,
+            boardSnapshot: JSON.parse(JSON.stringify(board)),
+            prevTurn: turn,
+            prevCount: moveCount
+        });
+
+        board[r][c] = turn;
+        moveCount++;
+        playSound('pop');
+        canUndo = true;
+
+        const winResult = checkWin(r, c, turn);
+        if (winResult.won) {
+            renderBoard(); 
+            highlightWinningCells(winResult.cells);
+            endGame(turn);
+            return;
+        }
+
+        if (moveCount === 9) { // Draw
+            renderBoard();
+            endGame(0); 
+            return;
+        }
+
+        turn = turn === 1 ? 2 : 1;
+        renderBoard();
+        updateTurnIndicators();
+        updateUndoUI(); 
+        startTimer();
+    }
+
+    function highlightWinningCells(cells) {
+        cells.forEach(pos => {
+            const cell = document.querySelector(`.cell[data-r="${pos.r}"][data-c="${pos.c}"]`);
+            if (cell) {
+                cell.classList.add('winning-cell');
+                const marker = cell.querySelector('.marker');
+                if(marker) marker.classList.add('winning-marker');
+            }
+        });
+    }
+
+    function checkWin(r, c, player) {
+        // Row check
+        let rowWin = true;
+        let rowCells = [];
+        for(let i=0; i<3; i++) {
+            if(board[r][i] !== player) rowWin = false;
+            rowCells.push({r:r, c:i});
+        }
+        if(rowWin) return { won: true, cells: rowCells };
+
+        // Col check
+        let colWin = true;
+        let colCells = [];
+        for(let i=0; i<3; i++) {
+            if(board[i][c] !== player) colWin = false;
+            colCells.push({r:i, c:c});
+        }
+        if(colWin) return { won: true, cells: colCells };
+
+        // Diagonal 1
+        if (r === c) {
+            let diagWin = true;
+            let diagCells = [];
+            for(let i=0; i<3; i++) {
+                if(board[i][i] !== player) diagWin = false;
+                diagCells.push({r:i, c:i});
+            }
+            if(diagWin) return { won: true, cells: diagCells };
+        }
+
+        // Diagonal 2
+        if (r + c === 2) {
+            let diagWin = true;
+            let diagCells = [];
+            for(let i=0; i<3; i++) {
+                if(board[i][2-i] !== player) diagWin = false;
+                diagCells.push({r:i, c:2-i});
+            }
+            if(diagWin) return { won: true, cells: diagCells };
+        }
+
+        return { won: false, cells: [] };
+    }
+
+    function endGame(winner) {
+        isGameOver = true;
+        stopTimer();
+        
+        homeBtn.classList.add('home-btn-large');
+        document.getElementById('indicator-o').style.visibility = 'hidden';
+        document.getElementById('indicator-x').style.visibility = 'hidden';
+
+        if (winner === 0) { // Draw
+            playSound('draw');
+            const drawDiv = document.createElement('div');
+            drawDiv.className = 'draw-message';
+            drawDiv.innerText = "DRAW!";
+            document.getElementById('board-container').appendChild(drawDiv);
+        } else {
+            playSound('win');
+            const winnerZoneId = winner === 1 ? 'zone-o' : 'zone-x';
+            const loserZoneId = winner === 1 ? 'zone-x' : 'zone-o';
+            
+            const winDiv = document.createElement('div');
+            winDiv.className = 'win-message';
+            winDiv.innerText = "WINNER!";
+            document.getElementById(winnerZoneId).appendChild(winDiv);
+            
+            const loseDiv = document.createElement('div');
+            loseDiv.className = 'lose-message';
+            loseDiv.innerText = "LOSE";
+            document.getElementById(loserZoneId).appendChild(loseDiv);
+        }
+
+        setTimeout(() => {
+            document.getElementById('restart-overlay').style.display = 'flex';
+        }, 1500);
+    }
+
+    function resetGame() {
+        startFirstPlayerRoulette();
+    }
+
+    // --- Timer ---
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerValue = 15; 
+        updateTimerUI();
+        
+        timerInterval = setInterval(() => {
+            timerValue--;
+            updateTimerUI();
+            if (timerValue <= 3 && timerValue > 0) playSound('tick');
+            if (timerValue === 0) {
+                clearInterval(timerInterval);
+                playSound('tick');
+                turn = turn === 1 ? 2 : 1;
+                updateTurnIndicators();
+                startTimer();
+            }
+        }, 1000);
+    }
+    function stopTimer() { clearInterval(timerInterval); }
+    function updateTimerUI() {
+        if (turn === 1) { // O
+            timerOEl.innerText = timerValue;
+            timerXEl.innerText = 15;
+        } else { // X
+            timerXEl.innerText = timerValue;
+            timerOEl.innerText = 15;
+        }
+    }
+
+    // --- Undo ---
+    function undoLastMove(requester) {
+        if (!canUndo || historyStack.length === 0 || isGameOver) return;
+        
+        const lastAction = historyStack.pop();
+        board = lastAction.boardSnapshot; 
+        turn = lastAction.prevTurn;
+        moveCount = lastAction.prevCount;
+        
+        canUndo = false; 
+
+        startTimer();
+        renderBoard();
+        updateTurnIndicators();
+        updateUndoUI();
+    }
+
+    function updateTurnIndicators() {
+        const oInd = document.getElementById('indicator-o');
+        const xInd = document.getElementById('indicator-x');
+        
+        if (turn === 1) {
+            oInd.classList.add('active-turn'); xInd.classList.remove('active-turn');
+        } else {
+            xInd.classList.add('active-turn'); oInd.classList.remove('active-turn');
+        }
+    }
+
+    function updateUndoUI() {
+        const btnO = document.getElementById('undo-btn-o');
+        const btnX = document.getElementById('undo-btn-x');
+        const hasHistory = historyStack.length > 0;
+
+        if (hasHistory && canUndo) {
+            btnO.classList.remove('undo-disabled'); btnO.classList.add('undo-active');
+            btnX.classList.remove('undo-disabled'); btnX.classList.add('undo-active');
+        } else {
+            btnO.classList.remove('undo-active'); btnO.classList.add('undo-disabled');
+            btnX.classList.remove('undo-active'); btnX.classList.add('undo-disabled');
+        }
+    }
+</script>
+</body>
+</html>

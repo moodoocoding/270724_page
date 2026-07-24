@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F4C3A">
+<meta name="description" content="알맞은 곳에 괄호를 넣어 식을 완성하세요!">
+<meta name="keywords" content="수학게임, 혼합계산, 괄호, math game, brackets">
+
+<title>괄호킹 - 괄호 찾기 대결</title>
+<link rel="canonical" href="/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+body { font-family: 'Noto Sans KR', sans-serif; font-weight: 500; }
+
+i[class^="fa-"], i[class*=" fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+:root {
+    --bg: #121212;
+    --panel-bg: #1e1e2e;
+    --dark: #e0e0e0;
+    --border-color: #333333;
+    
+    --team-left-bg: #1a233a;
+    --team-right-bg: #3a1a1a;
+    
+    --correct: #69db7c;
+    --wrong: #ff6b6b;
+}
+
+body {
+    margin: 0; background: var(--bg); color: var(--dark); overflow: hidden;
+    user-select: none; -webkit-user-select: none; 
+    touch-action: none; 
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+}
+
+/* UI 오버레이 */
+#overlay {
+    position: fixed; inset: 0; background: var(--bg); opacity: 0.98;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; backdrop-filter: blur(15px); text-align: center;
+}
+
+#msgTitle { font-size: 3.5rem; color: var(--dark); margin: 0 0 10px 0; font-weight: 900; }
+.subtitle { color: #a0a0a0; font-size: 1.2rem; margin-bottom: 30px; }
+
+#setupArea { width: 550px; max-width: 90vw; display: flex; flex-direction: column; gap: 20px; }
+.setup-label { font-size: 1.3rem; margin-bottom: 8px; display: block; text-align: left; font-weight: 700; }
+.custom-select {
+    width: 100%; font-family: inherit; font-size: 1.1rem; padding: 15px;
+    border-radius: 15px; border: 2px solid var(--border-color);
+    background: var(--panel-bg); color: var(--dark); outline: none; cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-large {
+    font-size: 1.8rem; padding: 15px 0; border-radius: 50px; border: none;
+    background: #339af0; color: white; cursor: pointer; font-weight: 700;
+    box-shadow: 0 6px 0 #1c7ed6; transition: 0.1s; width: 100%; margin-top: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 텍스트 넘침 방지 */
+}
+.btn-large:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c7ed6; }
+
+.side-btn {
+    position: fixed; top: 20%; transform: translateY(-50%);
+    font-size: 1.8rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 50px; height: 50px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9999; color: #fff;
+}
+.left-btn { left: 20px; }
+.right-btn { right: 20px; }
+
+/* 게임 화면 영역 */
+#topZone { background: var(--panel-bg); height: 80px; display: flex; align-items: center; justify-content: center; border-bottom: 2px solid var(--border-color); flex-shrink: 0; }
+.timer-box { font-size: 3rem; font-weight: 900; color: #ffd43b; background: rgba(0,0,0,0.3); padding: 0 30px; border-radius: 15px; }
+.timer-urgent { color: #ff6b6b; animation: pulse 0.5s infinite; }
+
+#arena { display: flex; flex: 1; width: 100vw; overflow: hidden; }
+.team-col { flex: 1; display: flex; flex-direction: column; position: relative; }
+#team-left { background: var(--team-left-bg); border-right: 2px solid #000; }
+#team-right { background: var(--team-right-bg); }
+
+.team-header { text-align: center; padding: 15px; font-size: 1.5rem; font-weight: 700; background: rgba(0,0,0,0.2); }
+
+/* 수식 보드 */
+.equation-board {
+    flex: 1; display: flex; align-items: center; justify-content: center; 
+    flex-wrap: nowrap; 
+    padding: 10px; width: 100%; box-sizing: border-box;
+}
+
+.eq-text { 
+    font-size: clamp(1rem, 2.5vw, 3rem); 
+    font-weight: 700; 
+    padding: 0 2px;
+}
+.eq-target { 
+    font-size: clamp(1.2rem, 3vw, 3.5rem); 
+    font-weight: 900; color: #ffd43b; 
+    margin-left: 5px; 
+}
+
+.drop-zone {
+    min-width: 5px; 
+    width: auto; height: clamp(40px, 5vw, 70px); 
+    border: 2px solid transparent; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; 
+    transition: min-width 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), margin 0.25s ease, background 0.2s ease, padding 0.25s ease;
+    margin: 0; padding: 0; gap: 2px;
+}
+
+.drop-zone.drag-over {
+    min-width: clamp(35px, 4vw, 55px); 
+    margin: 0 2px;
+    border: 2px dashed rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.15);
+}
+
+.drop-zone.filled.drag-over { border-color: #ffd43b; background: rgba(255, 212, 59, 0.2); }
+.drop-zone.filled.drag-over.insert-left { padding-left: clamp(35px, 4vw, 55px); padding-right: 0px; }
+.drop-zone.filled.drag-over.insert-right { padding-left: 0px; padding-right: clamp(35px, 4vw, 55px); }
+.drop-zone.filled { min-width: 5px; margin: 0 1px; }
+
+.paren-bank {
+    min-height: 120px; padding: 15px; background: rgba(0,0,0,0.4); 
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.draggable-paren {
+    width: clamp(25px, 3.5vw, 50px); 
+    height: clamp(35px, 5vw, 70px); 
+    font-size: clamp(1.2rem, 2.5vw, 2.5rem); 
+    background: #339af0; color: #fff; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-weight: 900;
+    cursor: grab; box-shadow: 0 4px 0 #1c7ed6; touch-action: none; flex-shrink: 0;
+}
+.draggable-paren[data-team="right"] { background: #ff6b6b; box-shadow: 0 4px 0 #e03131; }
+
+.dragging { 
+    position: fixed !important; 
+    z-index: 9999 !important; 
+    cursor: grabbing; 
+    opacity: 0.95; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important; 
+    transform: scale(1.1); margin: 0 !important; 
+}
+
+.check-btn {
+    height: clamp(60px, 8vh, 80px); font-size: clamp(1rem, 2.5vw, 2rem); 
+    font-weight: 700; border: none; color: white; cursor: pointer;
+    background: #40c057; transition: 0.1s; flex-shrink: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.check-btn:active { background: #2b8a3e; }
+.check-btn[data-team="left"] { border-top-right-radius: 20px; }
+.check-btn[data-team="right"] { border-top-left-radius: 20px; }
+
+.feedback-overlay {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.8); z-index: 50;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+}
+.feedback-overlay i { font-size: 8rem; margin-bottom: 20px; }
+
+#resultPopup {
+    display: none; position: absolute; inset: 0; background: rgba(10, 10, 15, 0.95);
+    z-index: 200; flex-direction: column; align-items: center; justify-content: center;
+}
+#winnerText { font-size: 5rem; font-weight: 900; color: #ffd43b; margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,212,59,0.5); text-align: center; word-break: keep-all; }
+
+@keyframes countPop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1.0); opacity: 0; } }
+#countdownLayer { position: fixed; inset: 0; background: #000; z-index: 2000; display: none; align-items: center; justify-content: center; }
+#countdownText { font-size: 15rem; color: #ffec99; font-weight: 900; opacity: 0; }
+.count-animate { animation: countPop 0.8s ease-in-out forwards; }
+
+@keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-10px);} 75% {transform: translateX(10px);} }
+.shake-anim { animation: shake 0.4s; }
+
+/* =======================================================
+   언어 선택기(모달) 전용 독립 CSS - 강제 보정 및 충돌 방지
+   ======================================================= */
+#langSelectorContainer { position: fixed; top: 0; right: 0; width: 100%; pointer-events: none; z-index: 99999; }
+#langSelectorContainer > * { pointer-events: auto; }
+#langModal, #langModal * { box-sizing: border-box !important; }
+
+html:not([lang="ko"]) #langModal { font-family: sans-serif; } /* 한국어가 아닐 때 모달 안 폰트 무난하게 변경 */
+
+#langModal .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+#langModal .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+#langModal .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+#langModal .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+#langModal.modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+#langModal.modal-overlay.active { opacity: 1; visibility: visible; }
+#langModal .modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+#langModal.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+#toastNotification { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; z-index: 99999; }
+#toastNotification.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+    <div id="langSelectorContainer">
+        <div class="absolute top-4 right-4 sm:top-6 sm:right-6">
+            <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg text-white">
+                <i class="fa-solid fa-globe text-gray-400"></i>
+                <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+                <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+                <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+            </button>
+        </div>
+
+        <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/80 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+            <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden text-gray-100">
+                <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-language text-yellow-500"></i>
+                            <span>Language / 언어</span>
+                        </h2>
+                    </div>
+                    <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 pb-2 bg-gray-900">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                            class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                    </div>
+                </div>
+
+                <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                    <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                    <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                        <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                        <p>No results / 검색 결과 없음</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastNotification" class="fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+                <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+            </div>
+        </div>
+    </div>
+    <div id="btn-home" class="side-btn left-btn" title="Home">🏠</div>
+    <button id="fullscreenBtn" class="side-btn right-btn" title="Full Screen">⛶</button>
+
+    <div id="overlay">
+        <h1 id="msgTitle">🔔 괄호킹</h1>
+        <div id="subtitleText" class="subtitle">알맞은 곳에 괄호를 넣어 식을 완성하세요!</div>
+        
+        <div id="setupArea">
+            <div class="setup-group">
+                <label id="diffLabel" class="setup-label">📚 난이도 선택</label>
+                <select id="difficulty" class="custom-select">
+                    <option id="diffEasy" value="easy">🐣 쉬움 (숫자 3개) 예: 5 × ( 2 + 3 )</option>
+                    <option id="diffNormal" value="normal" selected>🐥 보통 (숫자 4개) 예: ( 8 - 2 ) × 3 + 1</option>
+                    <option id="diffHard" value="hard">🦅 어려움 (숫자 4~5개, 중괄호) 예: 2 × { 5 - ( 1 + 2 ) }</option>
+                    <option id="diffExpert" value="expert">🐉 마스터 (숫자 5~6개, 대괄호) 예: [ { ( 3 + 2 ) × 2 } - 5 ] × 2</option>
+                </select>
+            </div>
+            <button id="startBtn" class="btn-large auto-resize">대결 시작하기</button>
+<button onclick="location.href='/'" style="background:none; border:none; color:#a0a0a0; font-size:14px; text-decoration:underline; cursor:pointer; margin-top:10px;">🎮 More Games</button>
+        </div>
+    </div>
+
+    <div id="countdownLayer">
+        <div id="countdownText">3</div>
+    </div>
+
+    <div id="topZone">
+        <div id="mainTimer" class="timer-box">60</div>
+    </div>
+
+    <div id="arena">
+        <div class="team-col" id="team-left">
+            <div id="teamLeftHeader" class="team-header text-blue-300">🐶 왼쪽 팀</div>
+            <div class="equation-board" id="eq-left"></div>
+            <div class="paren-bank" id="bank-left"></div>
+            <button class="check-btn auto-resize" data-team="left" onclick="checkAnswer('left')">정답 확인</button>
+            <div class="feedback-overlay" id="fb-left"></div>
+        </div>
+
+        <div class="team-col" id="team-right">
+            <div id="teamRightHeader" class="team-header text-red-300">🐱 오른쪽 팀</div>
+            <div class="equation-board" id="eq-right"></div>
+            <div class="paren-bank" id="bank-right"></div>
+            <button class="check-btn auto-resize" data-team="right" onclick="checkAnswer('right')">정답 확인</button>
+            <div class="feedback-overlay" id="fb-right"></div>
+        </div>
+    </div>
+
+    <div id="resultPopup">
+        <div id="winnerText">우승팀 발표!</div>
+        <button id="backBtn" class="btn-large auto-resize" style="width:auto; padding: 15px 40px;" onclick="location.reload()">처음으로 돌아가기</button>
+    </div>
+
+<script>
+/* ========================================================
+   다국어 지원(i18n) 시스템 로직 시작
+   ======================================================== */
+const T = {
+    ko: {
+        title: "[괄{호(킹)}]", subtitle: "알맞은 곳에 괄호를 넣어 식을 완성하세요!",
+        diffLabel: "📚 난이도 선택", diffEasy: "🐣 쉬움 (숫자 3개) 예: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 보통 (숫자 4개) 예: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 어려움 (4~5개, 중괄호) 예: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 마스터 (5~6개, 대괄호) 예: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "대결 시작하기", leftTeam: "🐶 왼쪽 팀", rightTeam: "🐱 오른쪽 팀",
+        checkBtn: "정답 확인", correctTxt: "정답!", winLeft: "🐶 왼쪽 팀 승리!",
+        winRight: "🐱 오른쪽 팀 승리!", drawTxt: "⚖️ 무승부 (시간 초과)", backBtn: "처음으로 돌아가기",
+        seoTitle: "괄호킹 - 괄호 찾기 대결", seoDesc: "알맞은 곳에 괄호를 넣어 식을 완성하세요!",
+        toast: "언어가 변경되었습니다."
+    },
+    en: {
+        title: "🔔 Bracket King", subtitle: "Place brackets correctly to solve the equation!",
+        diffLabel: "📚 Select Difficulty", diffEasy: "🐣 Easy (3 Numbers) ex: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 Numbers) ex: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Hard (4-5 Nums, Braces) ex: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Expert (5-6 Nums, Brackets) ex: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Start Battle", leftTeam: "🐶 Left Team", rightTeam: "🐱 Right Team",
+        checkBtn: "Check Answer", correctTxt: "Correct!", winLeft: "🐶 Left Team Wins!",
+        winRight: "🐱 Right Team Wins!", drawTxt: "⚖️ Draw (Time Out)", backBtn: "Go Back to Start",
+        seoTitle: "Bracket King - Bracket Challenge", seoDesc: "Place brackets correctly to solve the equation!",
+        toast: "Language changed."
+    },
+    zh: {
+        title: "🔔 括号之王", subtitle: "将括号放在正确的位置来完成等式！",
+        diffLabel: "📚 选择难度", diffEasy: "🐣 简单 (3个数字) 例: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 普通 (4个数字) 例: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 困难 (4-5个数字, 大括号) 例: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 大师 (5-6个数字, 中括号) 例: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "开始对战", leftTeam: "🐶 左队", rightTeam: "🐱 右队",
+        checkBtn: "确认答案", correctTxt: "正确!", winLeft: "🐶 左队获胜!",
+        winRight: "🐱 右队获胜!", drawTxt: "⚖️ 平局 (超时)", backBtn: "返回首页",
+        seoTitle: "括号之王 - 挑战括号", seoDesc: "将括号放在正确的位置来完成等式！",
+        toast: "语言已更改。"
+    },
+    ja: {
+        title: "🔔 カッコ王", subtitle: "正しい場所にカッコを入れて式を完成させよう！",
+        diffLabel: "📚 難易度を選択", diffEasy: "🐣 簡単 (数字3つ) 例: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 普通 (数字4つ) 例: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 難しい (数字4~5つ, 中カッコ) 例: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 マスター (数字5~6つ, 大カッコ) 例: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "バトル開始", leftTeam: "🐶 左チーム", rightTeam: "🐱 右チーム",
+        checkBtn: "答え合わせ", correctTxt: "正解!", winLeft: "🐶 左チームの勝ち!",
+        winRight: "🐱 右チームの勝ち!", drawTxt: "⚖️ 引き分け (タイムアウト)", backBtn: "最初に戻る",
+        seoTitle: "カッコ王 - カッコチャレンジ", seoDesc: "正しい場所にカッコを入れて式を完成させよう！",
+        toast: "言語が変更されました。"
+    },
+    es: {
+        title: "🔔 Rey de los Paréntesis", subtitle: "¡Coloca los paréntesis correctamente para completar la ecuación!",
+        diffLabel: "📚 Seleccionar Dificultad", diffEasy: "🐣 Fácil (3 números) ej: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 números) ej: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Difícil (4-5 núms, llaves) ej: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Experto (5-6 núms, corchetes) ej: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Comenzar Batalla", leftTeam: "🐶 Equipo Izquierdo", rightTeam: "🐱 Equipo Derecho",
+        checkBtn: "Comprobar", correctTxt: "¡Correcto!", winLeft: "🐶 ¡El Equipo Izquierdo Gana!",
+        winRight: "🐱 ¡El Equipo Derecho Gana!", drawTxt: "⚖️ Empate (Tiempo agotado)", backBtn: "Volver al Inicio",
+        seoTitle: "Rey de los Paréntesis - Reto Matemático", seoDesc: "¡Coloca los paréntesis correctamente para completar la ecuación!",
+        toast: "Idioma cambiado."
+    },
+    fr: {
+        title: "🔔 Roi des Parenthèses", subtitle: "Placez les parenthèses correctement pour compléter l'équation !",
+        diffLabel: "📚 Choisir la Difficulté", diffEasy: "🐣 Facile (3 nombres) ex: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 nombres) ex: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Difficile (4-5 nbs, accolades) ex: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Expert (5-6 nbs, crochets) ex: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Commencer", leftTeam: "🐶 Équipe Gauche", rightTeam: "🐱 Équipe Droite",
+        checkBtn: "Vérifier", correctTxt: "Correct !", winLeft: "🐶 L'équipe Gauche Gagne !",
+        winRight: "🐱 L'équipe Droite Gagne !", drawTxt: "⚖️ Égalité (Temps écoulé)", backBtn: "Retour au Début",
+        seoTitle: "Roi des Parenthèses - Défi Mathématique", seoDesc: "Placez les parenthèses correctement pour compléter l'équation !",
+        toast: "Langue modifiée."
+    },
+    ru: {
+        title: "🔔 Король Скобок", subtitle: "Расставьте скобки правильно, чтобы решить уравнение!",
+        diffLabel: "📚 Выберите Сложность", diffEasy: "🐣 Легко (3 числа) пр: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Нормально (4 числа) пр: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Сложно (4-5 чисел) пр: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Эксперт (5-6 чисел) пр: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Начать Битву", leftTeam: "🐶 Левая Команда", rightTeam: "🐱 Правая Команда",
+        checkBtn: "Проверить", correctTxt: "Верно!", winLeft: "🐶 Левая Команда Победила!",
+        winRight: "🐱 Правая Команда Победила!", drawTxt: "⚖️ Ничья (Время вышло)", backBtn: "Вернуться в Начало",
+        seoTitle: "Король Скобок - Математика", seoDesc: "Расставьте скобки правильно, чтобы решить уравнение!",
+        toast: "Язык изменен."
+    },
+    id: {
+        title: "🔔 Raja Kurung", subtitle: "Letakkan tanda kurung dengan benar untuk menyelesaikan persamaan!",
+        diffLabel: "📚 Pilih Kesulitan", diffEasy: "🐣 Mudah (3 Angka) cth: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 Angka) cth: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Sulit (4-5 Angka) cth: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Ahli (5-6 Angka) cth: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Mulai Pertempuran", leftTeam: "🐶 Tim Kiri", rightTeam: "🐱 Tim Kanan",
+        checkBtn: "Cek Jawaban", correctTxt: "Benar!", winLeft: "🐶 Tim Kiri Menang!",
+        winRight: "🐱 Tim Kanan Menang!", drawTxt: "⚖️ Seri (Waktu Habis)", backBtn: "Kembali ke Awal",
+        seoTitle: "Raja Kurung - Matematika", seoDesc: "Letakkan tanda kurung dengan benar untuk menyelesaikan persamaan!",
+        toast: "Bahasa telah diubah."
+    },
+    vi: {
+        title: "🔔 Vua Dấu Ngoặc", subtitle: "Đặt dấu ngoặc đúng chỗ để hoàn thành phép tính!",
+        diffLabel: "📚 Chọn Độ Khó", diffEasy: "🐣 Dễ (3 Số) vd: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Bình thường (4 Số) vd: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Khó (4-5 Số, Ngoặc Nhọn) vd: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Chuyên gia (5-6 Số, Ngoặc Vuông) vd: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Bắt Đầu Trận Đấu", leftTeam: "🐶 Đội Trái", rightTeam: "🐱 Đội Phải",
+        checkBtn: "Kiểm Tra", correctTxt: "Chính xác!", winLeft: "🐶 Đội Trái Thắng!",
+        winRight: "🐱 Đội Phải Thắng!", drawTxt: "⚖️ Hòa (Hết Giờ)", backBtn: "Quay Lại Từ Đầu",
+        seoTitle: "Vua Dấu Ngoặc - Toán Học", seoDesc: "Đặt dấu ngoặc đúng chỗ để hoàn thành phép tính!",
+        toast: "Ngôn ngữ đã được thay đổi."
+    },
+    th: {
+        title: "🔔 ราชาแห่งวงเล็บ", subtitle: "ใส่วงเล็บให้ถูกต้องเพื่อทำให้สมการสมบูรณ์!",
+        diffLabel: "📚 เลือกระดับความยาก", diffEasy: "🐣 ง่าย (3 ตัวเลข) เช่น: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 ปานกลาง (4 ตัวเลข) เช่น: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 ยาก (4-5 ตัวเลข) เช่น: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 ผู้เชี่ยวชาญ (5-6 ตัวเลข) เช่น: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "เริ่มการแข่งขัน", leftTeam: "🐶 ทีมซ้าย", rightTeam: "🐱 ทีมขวา",
+        checkBtn: "ตรวจคำตอบ", correctTxt: "ถูกต้อง!", winLeft: "🐶 ทีมซ้ายชนะ!",
+        winRight: "🐱 ทีมขวาชนะ!", drawTxt: "⚖️ เสมอ (หมดเวลา)", backBtn: "กลับไปที่หน้าแรก",
+        seoTitle: "ราชาแห่งวงเล็บ - คณิตศาสตร์", seoDesc: "ใส่วงเล็บให้ถูกต้องเพื่อทำให้สมการสมบูรณ์!",
+        toast: "เปลี่ยนภาษาเรียบร้อยแล้ว"
+    },
+    "pt-br": {
+        title: "🔔 Rei dos Parênteses", subtitle: "Coloque os parênteses corretamente para completar a equação!",
+        diffLabel: "📚 Selecione a Dificuldade", diffEasy: "🐣 Fácil (3 números) ex: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 números) ex: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Difícil (4-5 números) ex: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Mestre (5-6 números) ex: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Começar Batalha", leftTeam: "🐶 Equipe Esquerda", rightTeam: "🐱 Equipe Direita",
+        checkBtn: "Verificar", correctTxt: "Correto!", winLeft: "🐶 Equipe Esquerda Venceu!",
+        winRight: "🐱 Equipe Direita Venceu!", drawTxt: "⚖️ Empate (Tempo Esgotado)", backBtn: "Voltar ao Início",
+        seoTitle: "Rei dos Parênteses - Matemática", seoDesc: "Coloque os parênteses corretamente para completar a equação!",
+        toast: "Idioma alterado."
+    },
+    hi: {
+        title: "🔔 कोष्ठक राजा", subtitle: "समीकरण पूरा करने के लिए कोष्ठक सही जगह रखें!",
+        diffLabel: "📚 कठिनाई चुनें", diffEasy: "🐣 आसान (3 अंक) उदा: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 सामान्य (4 अंक) उदा: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 कठिन (4-5 अंक) उदा: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 विशेषज्ञ (5-6 अंक) उदा: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "शुरू करें", leftTeam: "🐶 बाईं टीम", rightTeam: "🐱 दाईं टीम",
+        checkBtn: "उत्तर जांचें", correctTxt: "सही!", winLeft: "🐶 बाईं टीम जीत गई!",
+        winRight: "🐱 दाईं टीम जीत गई!", drawTxt: "⚖️ ड्रा (समय समाप्त)", backBtn: "शुरुआत पर वापस जाएं",
+        seoTitle: "कोष्ठक राजा - गणित खेल", seoDesc: "समीकरण पूरा करने के लिए कोष्ठक सही जगह रखें!",
+        toast: "भाषा बदल दी गई है।"
+    },
+    bn: {
+        title: "🔔 ব্র্যাকেট রাজা", subtitle: "সমীকরণটি সম্পূর্ণ করতে ব্র্যাকেটগুলি সঠিক জায়গায় রাখুন!",
+        diffLabel: "📚 কাঠিন্য নির্বাচন করুন", diffEasy: "🐣 সহজ (৩টি সংখ্যা) উদা: ৫ × ( ২ + ৩ )",
+        diffNormal: "🐥 সাধারণ (৪টি সংখ্যা) উদা: ( ৮ - ২ ) × ৩ + ১", diffHard: "🦅 কঠিন (৪-৫টি সংখ্যা) উদা: ২ × { ৫ - ( ১ + ২ ) }",
+        diffExpert: "🐉 এক্সপার্ট (৫-৬টি সংখ্যা) উদা: [ { ( ৩ + ২ ) × ২ } - ৫ ] × ২",
+        startBtn: "শুরু করুন", leftTeam: "🐶 বাম দল", rightTeam: "🐱 ডান দল",
+        checkBtn: "উত্তর চেক করুন", correctTxt: "সঠিক!", winLeft: "🐶 বাম দল জিতেছে!",
+        winRight: "🐱 ডান দল জিতেছে!", drawTxt: "⚖️ ড্র (সময় শেষ)", backBtn: "শুরুতে ফিরে যান",
+        seoTitle: "ব্র্যাকেট রাজা - গণিত গেম", seoDesc: "সমীকরণটি সম্পূর্ণ করতে ব্র্যাকেটগুলি সঠিক জায়গায় রাখুন!",
+        toast: "ভাষা পরিবর্তিত হয়েছে।"
+    },
+    tr: {
+        title: "🔔 Parantez Kralı", subtitle: "Denklemi tamamlamak için parantezleri doğru yere koyun!",
+        diffLabel: "📚 Zorluk Seç", diffEasy: "🐣 Kolay (3 Sayı) örn: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 Sayı) örn: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Zor (4-5 Sayı) örn: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Uzman (5-6 Sayı) örn: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Savaşa Başla", leftTeam: "🐶 Sol Takım", rightTeam: "🐱 Sağ Takım",
+        checkBtn: "Cevabı Kontrol Et", correctTxt: "Doğru!", winLeft: "🐶 Sol Takım Kazandı!",
+        winRight: "🐱 Sağ Takım Kazandı!", drawTxt: "⚖️ Berabere (Süre Bitti)", backBtn: "Başa Dön",
+        seoTitle: "Parantez Kralı - Matematik", seoDesc: "Denklemi tamamlamak için parantezleri doğru yere koyun!",
+        toast: "Dil değiştirildi."
+    },
+    de: {
+        title: "🔔 Klammer-König", subtitle: "Setze die Klammern richtig, um die Gleichung zu lösen!",
+        diffLabel: "📚 Schwierigkeit wählen", diffEasy: "🐣 Leicht (3 Zahlen) Bsp: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normal (4 Zahlen) Bsp: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Schwer (4-5 Zahlen) Bsp: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Meister (5-6 Zahlen) Bsp: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Kampf starten", leftTeam: "🐶 Linkes Team", rightTeam: "🐱 Rechtes Team",
+        checkBtn: "Antwort prüfen", correctTxt: "Richtig!", winLeft: "🐶 Linkes Team gewinnt!",
+        winRight: "🐱 Rechtes Team gewinnt!", drawTxt: "⚖️ Unentschieden (Zeit abgelaufen)", backBtn: "Zurück zum Start",
+        seoTitle: "Klammer-König - Mathe", seoDesc: "Setze die Klammern richtig, um die Gleichung zu lösen!",
+        toast: "Sprache geändert."
+    },
+    it: {
+        title: "🔔 Re delle Parentesi", subtitle: "Posiziona correttamente le parentesi per risolvere l'equazione!",
+        diffLabel: "📚 Seleziona Difficoltà", diffEasy: "🐣 Facile (3 numeri) es: 5 × ( 2 + 3 )",
+        diffNormal: "🐥 Normale (4 numeri) es: ( 8 - 2 ) × 3 + 1", diffHard: "🦅 Difficile (4-5 num) es: 2 × { 5 - ( 1 + 2 ) }",
+        diffExpert: "🐉 Esperto (5-6 num) es: [ { ( 3 + 2 ) × 2 } - 5 ] × 2",
+        startBtn: "Inizia Battaglia", leftTeam: "🐶 Squadra Sinistra", rightTeam: "🐱 Squadra Destra",
+        checkBtn: "Controlla Risposta", correctTxt: "Corretto!", winLeft: "🐶 Squadra Sinistra Vince!",
+        winRight: "🐱 Squadra Destra Vince!", drawTxt: "⚖️ Pareggio (Tempo Scaduto)", backBtn: "Torna all'Inizio",
+        seoTitle: "Re delle Parentesi - Matematica", seoDesc: "Posiziona correttamente le parentesi per risolvere l'equazione!",
+        toast: "Lingua cambiata."
+    }
+};
+
+const languagesList = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+];
+
+let currentLangCode = 'en';
+
+function detectLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang');
+    if (urlLang && T[urlLang]) return urlLang;
+
+    const savedLang = localStorage.getItem('kingsmath_lang');
+    if (savedLang && T[savedLang]) return savedLang;
+
+    const browserLang = navigator.language.slice(0, 2).toLowerCase();
+    if (browserLang === 'pt') return 'pt-br';
+    if (T[browserLang]) return browserLang;
+
+    return 'en'; // 기본값
+}
+
+function applyTranslations(lang) {
+    document.documentElement.lang = lang;
+    
+    document.getElementById('msgTitle').innerText = T[lang].title;
+    document.getElementById('subtitleText').innerText = T[lang].subtitle;
+    document.getElementById('diffLabel').innerText = T[lang].diffLabel;
+    document.getElementById('diffEasy').innerText = T[lang].diffEasy;
+    document.getElementById('diffNormal').innerText = T[lang].diffNormal;
+    document.getElementById('diffHard').innerText = T[lang].diffHard;
+    document.getElementById('diffExpert').innerText = T[lang].diffExpert;
+    document.getElementById('startBtn').innerText = T[lang].startBtn;
+    
+    document.getElementById('teamLeftHeader').innerText = T[lang].leftTeam;
+    document.getElementById('teamRightHeader').innerText = T[lang].rightTeam;
+    document.querySelectorAll('.check-btn').forEach(btn => btn.innerText = T[lang].checkBtn);
+    document.getElementById('backBtn').innerText = T[lang].backBtn;
+    
+    // SEO
+    document.title = T[lang].seoTitle;
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.content = T[lang].seoDesc;
+
+    // 동적 폰트 스케일링 방어 로직
+    resizeDynamicTexts();
+}
+
+function resizeDynamicTexts() {
+    document.querySelectorAll('.auto-resize').forEach(el => {
+        el.style.fontSize = ''; // 초기화
+        let fSize = parseFloat(window.getComputedStyle(el, null).getPropertyValue('font-size'));
+        while (el.scrollWidth > el.clientWidth && fSize > 12) {
+            fSize -= 1;
+            el.style.fontSize = fSize + 'px';
+        }
+    });
+}
+
+window.addEventListener('resize', resizeDynamicTexts);
+
+// 모달 및 UI 로직
+const triggerBtn = document.getElementById('langTriggerBtn');
+const langModal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const currentFlagImg = document.getElementById('currentFlag');
+const currentLangSpan = document.getElementById('currentLangName');
+const toastNotification = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+const langSelectorContainer = document.getElementById('langSelectorContainer');
+let toastTimeout;
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filteredLangs = languagesList.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden');
+        noResult.classList.remove('hidden');
+        noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        noResult.classList.add('hidden');
+        noResult.classList.remove('flex');
+
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLangCode;
+            const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+            const stateClasses = isSelected 
+                ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+            const btn = document.createElement('div');
+            btn.className = `${baseClasses} ${stateClasses}`;
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+            btn.addEventListener('click', () => changeLanguage(lang));
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function changeLanguage(langObj) {
+    currentLangCode = langObj.code;
+    localStorage.setItem('kingsmath_lang', currentLangCode);
+    
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('lang', currentLangCode);
+    window.history.pushState({}, '', newUrl);
+
+    currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+    currentLangSpan.textContent = langObj.name;
+    
+    applyTranslations(currentLangCode);
+    closeModal();
+    
+    document.getElementById('ui-toast').textContent = T[currentLangCode].toast;
+    toastLangName.textContent = langObj.name;
+    toastNotification.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toastNotification.classList.remove('show'), 3000);
+}
+
+function openModal() {
+    langModal.classList.add('active');
+    renderLanguages(searchInput.value);
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeModal() { langModal.classList.remove('active'); }
+
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+langModal.addEventListener('click', (e) => { if (e.target === langModal) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && langModal.classList.contains('active')) closeModal(); });
+searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+/* ========================================================
+   초기화 및 공통 이벤트 연동 로직
+   ======================================================== */
+window.addEventListener('DOMContentLoaded', () => {
+    currentLangCode = detectLanguage();
+    const langObj = languagesList.find(l => l.code === currentLangCode) || languagesList[1];
+    currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+    currentLangSpan.textContent = langObj.name;
+    applyTranslations(currentLangCode);
+    renderLanguages();
+});
+
+/* Home 버튼 로직: 전체 화면일 땐 초기 화면으로, 아닐 땐 새로고침 */
+document.getElementById('btn-home').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        isGameOver = true;
+        clearInterval(timerInterval);
+        document.getElementById('countdownLayer').style.display = 'none';
+        
+        document.getElementById('langSelectorContainer').style.display = 'block';
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('resultPopup').style.display = 'none';
+        
+        document.getElementById('fb-left').style.display = 'none';
+        document.getElementById('fb-right').style.display = 'none';
+        
+        if(window.playSound) window.playSound('click');
+    } else {
+        location.reload();
+    }
+});
+/* ========================================================
+   다국어 지원(i18n) 시스템 로직 끝
+   ======================================================== */
+
+/* Audio Setup */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const t = audioCtx.currentTime;
+    if (type === 'count') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+    } else if (type === 'correct') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, t); osc.frequency.linearRampToValueAtTime(1046.50, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.5);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.3);
+    } else if (type === 'win') {
+        const freqs = [523.25, 659.25, 783.99, 1046.50];
+        freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = f;
+            g.gain.setValueAtTime(0.3, t + i*0.1); g.gain.linearRampToValueAtTime(0, t + i*0.1 + 0.5);
+            o.connect(g); g.connect(audioCtx.destination); o.start(t + i*0.1); o.stop(t + i*0.1 + 0.5);
+        });
+    }
+}
+
+/* Game Logic Variables */
+let currentPuzzle = null;
+let timer = 60;
+let timerInterval = null;
+let isGameOver = false;
+
+/* 초등학생 수준 안전한 식 계산기 (음수/소수 금지) */
+function strictEval(expr) {
+    expr = expr.replace(/[\{\[]/g, '(').replace(/[\}\]]/g, ')');
+    let tokens = expr.split(' ').filter(t => t.trim() !== '');
+    let out = [], ops = [];
+    let prec = {'+':1, '-':1, '*':2, '/':2};
+    
+    function applyOp() {
+        if (out.length < 2) return false;
+        let op = ops.pop();
+        let b = out.pop(), a = out.pop();
+        let res;
+        
+        if(op === '+') res = a + b;
+        else if(op === '-') res = a - b;
+        else if(op === '*') res = a * b;
+        else if(op === '/') res = a / b;
+        
+        if (res < 0 || !Number.isInteger(res)) return false; 
+        
+        out.push(res);
+        return true;
+    }
+    
+    for(let t of tokens) {
+        if(!isNaN(t)) out.push(Number(t));
+        else if(t === '(') ops.push(t);
+        else if(t === ')') {
+            while(ops.length > 0 && ops[ops.length-1] !== '(') {
+                if(!applyOp()) return null;
+            }
+            ops.pop();
+        } else {
+            while(ops.length > 0 && ops[ops.length-1] !== '(' && prec[ops[ops.length-1]] >= prec[t]) {
+                if(!applyOp()) return null;
+            }
+            ops.push(t);
+        }
+    }
+    while(ops.length > 0) {
+        if(!applyOp()) return null;
+    }
+    return out.length === 1 ? out[0] : null;
+}
+
+function randOp() { return ['+', '-', '*'][Math.floor(Math.random() * 3)]; }
+function randNum() { return Math.floor(Math.random() * 8) + 2; }
+
+function generatePuzzle(diff) {
+    let maxIter = 1000;
+    while(maxIter-- > 0) {
+        let struct = "";
+        let numCount = 0;
+        
+        if (diff === 'easy') {
+            numCount = 3;
+            let forms = ["( N O N ) O N", "N O ( N O N )"];
+            struct = forms[Math.floor(Math.random() * forms.length)];
+        } else if (diff === 'normal') {
+            numCount = 4;
+            let forms = ["( N O N ) O N O N", "N O ( N O N ) O N", "N O N O ( N O N )"];
+            struct = forms[Math.floor(Math.random() * forms.length)];
+        } else if (diff === 'hard') {
+            numCount = Math.random() < 0.5 ? 4 : 5;
+            let forms4 = ["{ ( N O N ) O N } O N", "N O { ( N O N ) O N }", "{ N O ( N O N ) } O N", "N O { N O ( N O N ) }"];
+            let forms5 = ["{ ( N O N ) O N } O N O N", "N O { ( N O N ) O N } O N"];
+            struct = numCount === 4 ? forms4[Math.floor(Math.random()*forms4.length)] : forms5[Math.floor(Math.random()*forms5.length)];
+        } else if (diff === 'expert') {
+            numCount = Math.random() < 0.5 ? 5 : 6;
+            let forms5 = ["[ { ( N O N ) O N } O N ] O N", "N O [ { ( N O N ) O N } O N ]"];
+            let forms6 = ["[ { ( N O N ) O N } O N ] O N O N"];
+            struct = numCount === 5 ? forms5[Math.floor(Math.random()*forms5.length)] : forms6[0];
+        }
+
+        let nums = Array.from({length: numCount}, () => randNum());
+        let ops = Array.from({length: numCount - 1}, () => randOp());
+
+        let nIdx = 0, oIdx = 0;
+        let exprWithP = struct.replace(/N/g, () => nums[nIdx++]).replace(/O/g, () => ops[oIdx++]);
+        let exprWithoutP = exprWithP.replace(/[\(\)\{\}\[\]]/g, '');
+
+        let valP = strictEval(exprWithP);
+        if (valP === null) continue; 
+        
+        let valNP = strictEval(exprWithoutP);
+
+        if (Number.isInteger(valP) && valP > 0 && valP !== valNP && valP < 1000) {
+            return { nums, ops, target: valP, solution: exprWithP };
+        }
+    }
+}
+
+/* UI Rendering */
+function populateBank(team, diff) {
+    const bank = document.getElementById(`bank-${team}`);
+    bank.innerHTML = '';
+    
+    let symbols = [];
+    if (diff === 'easy' || diff === 'normal') symbols = ['(', ')'];
+    else if (diff === 'hard') symbols = ['(', ')', '{', '}'];
+    else if (diff === 'expert') symbols = ['(', ')', '{', '}', '[', ']'];
+
+    symbols.forEach(sym => {
+        let el = document.createElement('div');
+        el.className = 'draggable-paren';
+        el.dataset.team = team;
+        el.dataset.val = sym;
+        el.innerText = sym;
+        bank.appendChild(el);
+    });
+}
+
+function renderEquation(team) {
+    const board = document.getElementById(`eq-${team}`);
+    board.innerHTML = '';
+    
+    for(let i=0; i<currentPuzzle.nums.length; i++) {
+        let dz1 = document.createElement('div');
+        dz1.className = 'drop-zone'; dz1.dataset.team = team;
+        board.appendChild(dz1);
+        
+        let numEl = document.createElement('div');
+        numEl.className = 'eq-text'; numEl.innerText = currentPuzzle.nums[i];
+        board.appendChild(numEl);
+        
+        let dz2 = document.createElement('div');
+        dz2.className = 'drop-zone'; dz2.dataset.team = team;
+        board.appendChild(dz2);
+        
+        if (i < currentPuzzle.ops.length) {
+            let opEl = document.createElement('div');
+            opEl.className = 'eq-text';
+            opEl.innerText = currentPuzzle.ops[i] === '*' ? '×' : currentPuzzle.ops[i];
+            opEl.dataset.realOp = currentPuzzle.ops[i];
+            board.appendChild(opEl);
+        }
+    }
+    
+    let eqEl = document.createElement('div');
+    eqEl.className = 'eq-text'; eqEl.innerText = '=';
+    board.appendChild(eqEl);
+    
+    let targetEl = document.createElement('div');
+    targetEl.className = 'eq-target'; targetEl.innerText = currentPuzzle.target;
+    board.appendChild(targetEl);
+}
+
+function resetTeamBank(team) {
+    const bank = document.getElementById(`bank-${team}`);
+    const board = document.getElementById(`eq-${team}`);
+    const parens = document.querySelectorAll(`.draggable-paren[data-team="${team}"]`);
+    
+    parens.forEach(p => {
+        bank.appendChild(p);
+        p.style.position = ''; p.style.left = ''; p.style.top = '';
+    });
+    
+    document.querySelectorAll(`.drop-zone[data-team="${team}"]`).forEach(dz => {
+        dz.classList.remove('filled', 'drag-over', 'insert-left', 'insert-right');
+    });
+    
+    board.classList.remove('shake-anim');
+}
+
+/* ========================================================
+   자석 효과 & 좌/우 방향 삽입 애니메이션 로직
+   ======================================================== */
+function getClosestDropZone(x, y, team) {
+    let closest = null;
+    let minDist = 100;
+    document.querySelectorAll(`.drop-zone[data-team="${team}"]`).forEach(dz => {
+        let rect = dz.getBoundingClientRect();
+        let cx = rect.left + rect.width / 2;
+        let cy = rect.top + rect.height / 2;
+        let dist = Math.hypot(x - cx, y - cy);
+        if (dist < minDist) {
+            minDist = dist;
+            closest = dz;
+        }
+    });
+    return closest;
+}
+
+const activeDrags = new Map();
+
+document.addEventListener('pointerdown', (e) => {
+    if(isGameOver) return;
+    const target = e.target.closest('.draggable-paren');
+    if(!target) return;
+
+    e.preventDefault();
+
+    for (let draggedEl of activeDrags.values()) {
+        if (draggedEl === target) return;
+    }
+
+    if (target.parentElement.classList.contains('drop-zone')) {
+        target.parentElement.classList.remove('filled');
+        if(target.parentElement.children.length <= 1) {
+             target.parentElement.classList.remove('insert-left', 'insert-right');
+        }
+    }
+
+    target.setPointerCapture(e.pointerId);
+    target.classList.add('dragging');
+    
+    activeDrags.set(e.pointerId, target);
+    document.body.appendChild(target); 
+    moveElement(target, e.clientX, e.clientY);
+});
+
+document.addEventListener('pointermove', (e) => {
+    const el = activeDrags.get(e.pointerId);
+    if(el) {
+        moveElement(el, e.clientX, e.clientY);
+        
+        let team = el.dataset.team;
+        let dropZone = getClosestDropZone(e.clientX, e.clientY, team);
+        
+        document.querySelectorAll(`.drop-zone[data-team="${team}"]`).forEach(dz => {
+            if (dz !== dropZone) dz.classList.remove('drag-over', 'insert-left', 'insert-right');
+        });
+        
+        if (dropZone && dropZone.dataset.team === team) {
+            dropZone.classList.add('drag-over');
+            
+            let parens = Array.from(dropZone.children).filter(c => c.classList.contains('draggable-paren'));
+            if (parens.length > 0) {
+                let rect = dropZone.getBoundingClientRect();
+                let dropZoneCenterX = rect.left + rect.width / 2;
+                
+                if (e.clientX < dropZoneCenterX) {
+                    dropZone.classList.add('insert-left');
+                    dropZone.classList.remove('insert-right');
+                } else {
+                    dropZone.classList.add('insert-right');
+                    dropZone.classList.remove('insert-left');
+                }
+            }
+        }
+    }
+});
+
+function moveElement(el, x, y) {
+    el.style.left = (x - el.offsetWidth / 2) + 'px';
+    el.style.top = (y - el.offsetHeight / 2) + 'px';
+}
+
+function handlePointerEnd(e) {
+    const el = activeDrags.get(e.pointerId);
+    if(!el) return;
+
+    el.releasePointerCapture(e.pointerId);
+    activeDrags.delete(e.pointerId);
+
+    let team = el.dataset.team;
+    let dropZone = getClosestDropZone(e.clientX, e.clientY, team);
+
+    el.classList.remove('dragging');
+    el.style.left = ''; el.style.top = '';
+
+    document.querySelectorAll(`.drop-zone[data-team="${team}"]`).forEach(dz => {
+        dz.classList.remove('drag-over', 'insert-left', 'insert-right');
+    });
+
+    if (dropZone && dropZone.dataset.team === team) {
+        let insertBeforeNode = null;
+        let parens = Array.from(dropZone.children).filter(c => c.classList.contains('draggable-paren'));
+        
+        if (parens.length > 0) {
+            for (let child of parens) {
+                let rect = child.getBoundingClientRect();
+                let childCenterX = rect.left + rect.width / 2;
+                if (e.clientX < childCenterX) {
+                    insertBeforeNode = child;
+                    break;
+                }
+            }
+        }
+
+        if (insertBeforeNode) {
+            dropZone.insertBefore(el, insertBeforeNode);
+        } else {
+            dropZone.appendChild(el);
+        }
+        dropZone.classList.add('filled');
+    } else {
+        document.getElementById(`bank-${team}`).appendChild(el);
+    }
+}
+
+document.addEventListener('pointerup', handlePointerEnd);
+document.addEventListener('pointercancel', handlePointerEnd);
+
+/* 정답 확인 로직 */
+function isValidBrackets(str) {
+    let stack = [];
+    let map = { ')': '(', '}': '{', ']': '[' };
+    for (let char of str) {
+        if (['(', '{', '['].includes(char)) stack.push(char);
+        else if ([')', '}', ']'].includes(char)) {
+            if (stack.length === 0 || stack.pop() !== map[char]) return false;
+        }
+    }
+    return stack.length === 0;
+}
+
+function checkAnswer(team) {
+    if(isGameOver) return;
+    
+    const board = document.getElementById(`eq-${team}`);
+    let exprStr = "";
+    
+    for(let child of board.children) {
+        if(child.classList.contains('drop-zone')) {
+            for(let bracket of child.children) {
+                exprStr += bracket.dataset.val + " ";
+            }
+        } else if(child.classList.contains('eq-text') && child.innerText !== '=') {
+            exprStr += (child.dataset.realOp || child.innerText) + " ";
+        }
+    }
+    
+    if (!isValidBrackets(exprStr)) {
+        triggerWrong(team);
+        return;
+    }
+    
+    let result = strictEval(exprStr);
+    
+    if (result !== null && result === currentPuzzle.target) {
+        triggerWin(team);
+    } else {
+        triggerWrong(team);
+    }
+}
+
+function triggerWrong(team) {
+    playSound('wrong');
+    const board = document.getElementById(`eq-${team}`);
+    const fb = document.getElementById(`fb-${team}`);
+    
+    board.classList.remove('shake-anim');
+    void board.offsetWidth;
+    board.classList.add('shake-anim');
+    
+    fb.innerHTML = '<i class="fa-solid fa-xmark text-red-500"></i>';
+    fb.style.display = 'flex';
+    
+    setTimeout(() => {
+        fb.style.display = 'none';
+        resetTeamBank(team);
+    }, 600);
+}
+
+function triggerWin(team) {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    playSound('win');
+    
+    const fb = document.getElementById(`fb-${team}`);
+    fb.innerHTML = `<i class="fa-solid fa-crown text-yellow-400"></i><div style="font-size:2rem;color:white;font-weight:bold;">${T[currentLangCode].correctTxt}</div>`;
+    fb.style.display = 'flex';
+    
+    setTimeout(() => {
+        const popup = document.getElementById('resultPopup');
+        const winnerTxt = document.getElementById('winnerText');
+        
+        winnerTxt.innerHTML = team === 'left' ? T[currentLangCode].winLeft : T[currentLangCode].winRight;
+        popup.style.display = 'flex';
+    }, 1500);
+}
+
+function triggerDraw() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    playSound('wrong');
+    
+    const popup = document.getElementById('resultPopup');
+    const winnerTxt = document.getElementById('winnerText');
+    
+    winnerTxt.innerHTML = T[currentLangCode].drawTxt;
+    winnerTxt.style.color = '#a0a0a0';
+    popup.style.display = 'flex';
+}
+
+/* 게임 초기화 및 시작 */
+async function startGame() {
+    initAudio();
+    const diff = document.getElementById('difficulty').value;
+    currentPuzzle = generatePuzzle(diff);
+    
+    document.getElementById('overlay').style.display = 'none';
+    langSelectorContainer.style.display = 'none'; // 시작하면 언어 모달 버튼 숨김
+    
+    isGameOver = false;
+    timer = 60;
+    
+    populateBank('left', diff);
+    populateBank('right', diff);
+    
+    renderEquation('left');
+    renderEquation('right');
+    resetTeamBank('left');
+    resetTeamBank('right');
+    
+    document.getElementById('fb-left').style.display = 'none';
+    document.getElementById('fb-right').style.display = 'none';
+    
+    await runCountdown();
+    startTimer();
+}
+
+async function runCountdown() {
+    const layer = document.getElementById('countdownLayer');
+    const txt = document.getElementById('countdownText');
+    layer.style.display = 'flex';
+    
+    for(let i=3; i>0; i--) {
+        txt.innerText = i; 
+        txt.classList.remove('count-animate');
+        void txt.offsetWidth; 
+        txt.classList.add('count-animate');
+        playSound('count'); 
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none';
+}
+
+function startTimer() {
+    const tBox = document.getElementById('mainTimer');
+    tBox.innerText = timer;
+    tBox.classList.remove('timer-urgent');
+    
+    timerInterval = setInterval(() => {
+        timer--;
+        tBox.innerText = timer;
+        if(timer <= 10) { tBox.classList.add('timer-urgent'); playSound('count'); }
+        if(timer <= 0) { triggerDraw(); }
+    }, 1000);
+}
+
+/* 이벤트 리스너 */
+document.getElementById('startBtn').addEventListener('click', startGame);
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e));
+    else document.exitFullscreen();
+});
+</script>
+</body>
+</html>

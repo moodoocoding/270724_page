@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점수판 킹 - Scoreboard King</title>
+    <meta name="description" content="선생님이 만든, 안전한 수학 놀이터 - 점수판 킹">
+    <meta name="keywords" content="수학게임, 점수판, KingsMath, 킹수학">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ======================================================== */
+        /* 1. 기존 게임 CSS (원형 100% 보존) */
+        /* ======================================================== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background: #121212; 
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: #1a1a1a;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 10;
+            position: relative;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-weight: 900;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #board-area {
+            flex: 1;
+            padding: 40px;
+            /* 하단 안내바 공간 확보를 위해 아래쪽 패딩을 더 줌 */
+            padding-bottom: 80px; 
+            display: grid;
+            gap: 25px;
+            align-content: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-card {
+            border-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0; 
+            color: white;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            z-index: 1;
+        }
+        .team-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            z-index: 2;
+        }
+
+        .btn-minus {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+            z-index: 10;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        .btn-minus:hover { background: rgba(0, 0, 0, 0.7); border-color: white; }
+        .btn-minus:active { transform: scale(0.9); }
+
+        .score-display {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8vw; 
+            font-weight: bold;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+            padding-top: 20px;
+        }
+
+        .team-name {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            font-size: 2.8em;
+            font-weight: 800;
+            text-align: center;
+            padding: 20px 10px;
+            box-sizing: border-box;
+            border-radius: 0 0 25px 25px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .header-buttons {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            display: flex;
+            align-items: center; 
+            gap: 15px;
+            z-index: 99998;
+        }
+
+        .header-btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.3);
+            transition: background 0.2s, transform 0.1s;
+        }
+        .header-btn:hover { background: #555; }
+        .header-btn:active { transform: scale(0.95); }
+
+        #reset-btn { background: #e74c3c; }
+        #reset-btn:hover { background: #c0392b; }
+
+        #settings-panel {
+            width: 450px; 
+            background: #1a1a1a;
+            color: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 20;
+            border-left: 1px solid #333;
+        }
+        #settings-panel.open { transform: translateX(0); }
+        .settings-header { padding: 20px; background: #252525; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .settings-header h2 { margin: 0; font-size: 1.5em; color: #4facfe; }
+        .close-btn { cursor: pointer; font-size: 1.8em; background: none; border: none; color: white; }
+        
+        .settings-content { padding: 25px; overflow-y: auto; flex: 1; }
+        .setting-group { margin-bottom: 25px; }
+        .setting-group label { display: block; font-weight: bold; margin-bottom: 10px; color: #aaa; }
+        
+        .setting-group input[type="number"], .setting-group input[type="text"] {
+            width: 100%; padding: 12px; background: #252525; border: 1px solid #333; border-radius: 8px; box-sizing: border-box; font-size: 1em; color: white;
+        }
+        .setting-group input:focus { border-color: #4facfe; outline: none; }
+        
+        .team-name-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .team-name-row { display: flex; align-items: center; gap: 8px; }
+        .team-name-row span { width: 30px; font-weight: bold; color: #777; text-align: right;}
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translate(-50%, 0) scale(1); }
+            20% { opacity: 1; transform: translate(-50%, -30px) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -150px) scale(1.8); }
+        }
+        .floating-point {
+            position: absolute; top: 30%; left: 50%; font-size: 5em; font-weight: bold; color: #FFD700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); pointer-events: none; animation: floatUp 0.9s ease-out forwards; z-index: 100;
+        }
+
+        /* ======================================================== */
+        /* 2. 다국어 모달 & 외부 UI 통합 독립 CSS */
+        /* ======================================================== */
+        
+        .lang-text-element { font-family: 'Noto Sans KR', sans-serif; }
+        #langModal, #langModal * { box-sizing: border-box !important; }
+
+        #kingsmath-domain-link {
+            position: fixed; top: 16px; left: 16px; z-index: 99999;
+            color: white; font-weight: bold; text-decoration: none;
+            background: rgba(31, 41, 55, 0.7); padding: 8px 16px; border-radius: 8px;
+            font-size: 14px; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s; font-family: 'Noto Sans KR', sans-serif;
+        }
+        #kingsmath-domain-link:hover { background: rgba(31, 41, 55, 1); }
+
+        /* 언어 선택 버튼 래퍼 - 기존 fixed를 상대 위치로 변경하여 그룹 안으로 편입 */
+        #langTriggerWrapper {
+            position: relative; 
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        #langTriggerBtn {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(55, 65, 81, 0.8); border: 1px solid #4b5563;
+            border-radius: 9999px; padding: 12px 16px;
+            cursor: pointer; color: white; font-size: 14px; font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            backdrop-filter: blur(4px); transition: 0.2s; font-family: 'Noto Sans KR', sans-serif;
+        }
+        #langTriggerBtn:hover { background: rgba(55, 65, 81, 1); border-color: #6b7280; }
+        #currentFlag { width: 20px; height: auto; border-radius: 2px; }
+
+        /* 모달 배경 및 컨텐츠 */
+        #langModal {
+            position: fixed; inset: 0; z-index: 99999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 16px;
+        }
+        #langModal.active { opacity: 1; visibility: visible; }
+        
+        #langModal .modal-content {
+            background: #111827; border: 1px solid #374151; border-radius: 16px;
+            width: 100%; max-width: 800px; max-height: 85vh; display: flex; flex-direction: column;
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        #langModal.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; border-bottom: 1px solid #1f2937; background: #111827; position: sticky; top: 0; z-index: 10;
+        }
+        .modal-header h2 { margin: 0; font-size: 20px; color: white; display: flex; align-items: center; gap: 8px; font-family: 'Noto Sans KR', sans-serif; }
+        #closeModalBtn {
+            width: 40px; height: 40px; border-radius: 50%; background: #1f2937; border: none; cursor: pointer;
+            color: #9ca3af; display: flex; justify-content: center; align-items: center; transition: 0.2s;
+        }
+        #closeModalBtn:hover { background: #374151; color: white; }
+
+        .modal-search { padding: 20px 20px 10px 20px; position: relative; }
+        .modal-search input {
+            width: 100%; background: #1f2937; border: 1px solid #374151; color: white; font-size: 14px;
+            border-radius: 12px; padding: 14px 14px 14px 44px; outline: none; transition: 0.2s; font-family: 'Noto Sans KR', sans-serif;
+        }
+        .modal-search input:focus { border-color: #eab308; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.3); }
+        .modal-search i { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .modal-body::-webkit-scrollbar { width: 8px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .modal-body::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .modal-body::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        #languageGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+        .lang-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; cursor: pointer;
+            background: rgba(31, 41, 55, 0.4); border: 1px solid #374151; transition: 0.2s;
+        }
+        .lang-item:hover { background: #374151; border-color: #6b7280; }
+        .lang-item.selected { background: #1f2937; border-color: #eab308; box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.5); }
+        .lang-item img { width: 32px; height: 24px; border-radius: 4px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+        .lang-item-text { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+        .lang-name { font-size: 14px; color: white; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lang-item.selected .lang-name { color: #facc15; }
+        .lang-en-name { font-size: 12px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        #noResult { display: none; flex-direction: column; align-items: center; padding: 40px 0; color: #6b7280; font-family: 'Noto Sans KR', sans-serif; }
+        #noResult.flex { display: flex; }
+
+        #toastNotification {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+            background: #1f2937; border: 1px solid #374151; border-radius: 12px; padding: 16px;
+            display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            transform: translateY(150%); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        #toastNotification.show { transform: translateY(0); opacity: 1; }
+
+        .btn-home-floating {
+            position: fixed; bottom: 24px; left: 24px; z-index: 99999;
+            width: 50px; height: 50px; border-radius: 50%; background: white;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; transition: 0.2s;
+        }
+        .btn-home-floating:hover { transform: scale(1.1); }
+        .btn-home-floating:active { transform: scale(0.95); }
+
+        /* 하단 게임 방법 안내바 CSS */
+        #instruction-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.65);
+            padding: 10px 24px;
+            border-radius: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 500;
+            pointer-events: none; /* 클릭을 방해하지 않음 */
+            z-index: 99990;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        @media (max-width: 600px) {
+            #instruction-bar {
+                font-size: 12px;
+                padding: 8px 16px;
+                bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="https://kingsmath.com" id="kingsmath-domain-link">kingsmath.com</a>
+
+    <div id="langModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-language text-yellow-500"></i> Language / 언어</h2>
+                <button id="closeModalBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search / 검색 ..." class="lang-text-element">
+            </div>
+            <div class="modal-body">
+                <div id="languageGrid"></div>
+                <div id="noResult">
+                    <i class="fa-regular fa-face-frown-open" style="font-size: 40px; margin-bottom: 12px;"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification">
+        <div style="width:32px; height:32px; border-radius:50%; background:rgba(34,197,94,0.2); color:#4ade80; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" style="margin:0; font-size:14px; font-weight:500; color:white;">언어가 변경되었습니다.</p>
+            <p id="toastLangName" style="margin:0; font-size:12px; color:#9ca3af;">Korean</p>
+        </div>
+    </div>
+
+    <div id="btn-home" class="btn-home-floating" title="Home">🏠</div>
+
+    <div id="instruction-bar">
+        <span id="t-instruction">👆 +1: 점수판 터치 | -1: 좌측 상단 (-) 터치</span>
+    </div>
+
+    <header>
+        <h1 id="game-title">점수판 킹</h1>
+        <div class="header-buttons">
+            <button class="header-btn" id="reset-btn">🔄 <span id="t-reset">초기화</span></button>
+            <button class="header-btn" id="toggle-settings">⚙️ <span id="t-settings">설정</span></button>
+            
+            <div id="langTriggerWrapper">
+                <button id="langTriggerBtn">
+                    <i class="fa-solid fa-globe" style="color:#9ca3af;"></i>
+                    <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR">
+                    <span id="currentLangName" class="lang-text-element" style="display:inline-block; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">한국어</span>
+                    <i class="fa-solid fa-chevron-down" style="color:#9ca3af; font-size:10px;"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div id="board-area"></div>
+
+        <div id="settings-panel">
+            <div class="settings-header">
+                <h2 id="t-settings-title">설정</h2>
+                <button class="close-btn" id="close-settings">✖</button>
+            </div>
+            <div class="settings-content">
+                <div class="setting-group">
+                    <label for="team-count" id="t-num-teams">팀 수</label>
+                    <input type="number" id="team-count" min="1" max="24" value="6">
+                </div>
+                <div class="setting-group">
+                    <label id="t-rename-teams">팀 이름 변경</label>
+                    <div class="team-name-inputs" id="team-name-inputs"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 번역 데이터베이스 (+ 하단 안내바 문구 추가)
+        const i18n = {
+            'ko': {
+                name: '한국어', enName: 'Korean', country: 'kr',
+                title: '점수판 킹', reset: '초기화', settings: '설정', numTeams: '팀 수', renameTeams: '팀 이름 변경', teamPrefix: '팀', resetConfirm: '모든 점수를 0으로 초기화하시겠습니까?', toastMsg: '언어가 변경되었습니다.',
+                instruction: '👆 +1: 보드 터치 | -1: 좌측 상단 (-) 터치'
+            },
+            'en': {
+                name: 'English', enName: 'English', country: 'us',
+                title: 'Scoreboard King', reset: 'Reset', settings: 'Settings', numTeams: 'Number of Teams', renameTeams: 'Rename Teams', teamPrefix: 'Team', resetConfirm: 'Are you sure you want to reset all scores to 0?', toastMsg: 'Language changed.',
+                instruction: '👆 +1: Touch Board | -1: Touch Top-Left (-)'
+            },
+            'zh': {
+                name: '中文 (简体)', enName: 'Chinese (Simplified)', country: 'cn',
+                title: '计分板大王', reset: '重置', settings: '设置', numTeams: '队伍数量', renameTeams: '重命名队伍', teamPrefix: '队伍', resetConfirm: '确定要将所有分数重置为0吗？', toastMsg: '语言已更改。',
+                instruction: '👆 +1分：点击面板 | -1分：点击左上角 (-)'
+            },
+            'ja': {
+                name: '日本語', enName: 'Japanese', country: 'jp',
+                title: 'スコアボードキング', reset: 'リセット', settings: '設定', numTeams: 'チーム数', renameTeams: 'チーム名の変更', teamPrefix: 'チーム', resetConfirm: 'すべてのスコアを0にリセットしますか？', toastMsg: '言語が変更されました。',
+                instruction: '👆 +1点: ボードをタッチ | -1点: 左上の (-) をタッチ'
+            },
+            'es': {
+                name: 'Español', enName: 'Spanish', country: 'es',
+                title: 'Rey del Marcador', reset: 'Reiniciar', settings: 'Ajustes', numTeams: 'Número de Equipos', renameTeams: 'Renombrar Equipos', teamPrefix: 'Equipo', resetConfirm: '¿Estás seguro de restablecer todas las puntuaciones a 0?', toastMsg: 'Idioma cambiado.',
+                instruction: '👆 +1: Tocar Tarjeta | -1: Tocar (-) Arriba a la Izquierda'
+            },
+            'fr': {
+                name: 'Français', enName: 'French', country: 'fr',
+                title: 'Roi du Tableau', reset: 'Réinitialiser', settings: 'Paramètres', numTeams: 'Nombre d\'équipes', renameTeams: 'Renommer les équipes', teamPrefix: 'Équipe', resetConfirm: 'Voulez-vous vraiment remettre tous les scores à 0 ?', toastMsg: 'Langue modifiée.',
+                instruction: '👆 +1 : Toucher Carte | -1 : Toucher (-) en Haut à Gauche'
+            },
+            'ru': {
+                name: 'Русский', enName: 'Russian', country: 'ru',
+                title: 'Король Табло', reset: 'Сброс', settings: 'Настройки', numTeams: 'Количество команд', renameTeams: 'Переименовать команды', teamPrefix: 'Команда', resetConfirm: 'Вы уверены, что хотите сбросить все очки до 0?', toastMsg: 'Язык изменен.',
+                instruction: '👆 +1: Нажмите Карточку | -1: Нажмите (-) Слева Вверху'
+            },
+            'id': {
+                name: 'Bahasa Indonesia', enName: 'Indonesian', country: 'id',
+                title: 'Raja Papan Skor', reset: 'Atur Ulang', settings: 'Pengaturan', numTeams: 'Jumlah Tim', renameTeams: 'Ganti Nama Tim', teamPrefix: 'Tim', resetConfirm: 'Yakin ingin mengatur ulang semua skor menjadi 0?', toastMsg: 'Bahasa telah diubah.',
+                instruction: '👆 +1: Sentuh Kartu | -1: Sentuh (-) Kiri Atas'
+            },
+            'vi': {
+                name: 'Tiếng Việt', enName: 'Vietnamese', country: 'vn',
+                title: 'Vua Bảng Điểm', reset: 'Đặt lại', settings: 'Cài đặt', numTeams: 'Số lượng đội', renameTeams: 'Đổi tên đội', teamPrefix: 'Đội', resetConfirm: 'Bạn có chắc chắn muốn đặt lại tất cả điểm về 0 không?', toastMsg: 'Ngôn ngữ đã được thay đổi.',
+                instruction: '👆 +1: Chạm vào Thẻ | -1: Chạm vào (-) Góc trên Trái'
+            },
+            'th': {
+                name: 'ไทย', enName: 'Thai', country: 'th',
+                title: 'ราชาป้ายคะแนน', reset: 'รีเซ็ต', settings: 'การตั้งค่า', numTeams: 'จำนวนทีม', renameTeams: 'เปลี่ยนชื่อทีม', teamPrefix: 'ทีม', resetConfirm: 'คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตคะแนนทั้งหมดเป็น 0?', toastMsg: 'เปลี่ยนภาษาเรียบร้อยแล้ว',
+                instruction: '👆 +1: แตะการ์ด | -1: แตะ (-) มุมซ้ายบน'
+            },
+            'pt-br': {
+                name: 'Português', enName: 'Portuguese (Brazil)', country: 'br',
+                title: 'Rei do Placar', reset: 'Resetar', settings: 'Configurações', numTeams: 'Número de Equipes', renameTeams: 'Renomear Equipes', teamPrefix: 'Equipe', resetConfirm: 'Tem certeza de que deseja zerar todas as pontuações?', toastMsg: 'Idioma alterado.',
+                instruction: '👆 +1: Tocar Cartão | -1: Tocar (-) no Canto Superior Esquerdo'
+            },
+            'hi': {
+                name: 'हिन्दी', enName: 'Hindi', country: 'in',
+                title: 'स्कोरबोर्ड किंग', reset: 'रीसेट', settings: 'सेटिंग्स', numTeams: 'टीमों की संख्या', renameTeams: 'टीमों का नाम बदलें', teamPrefix: 'टीम', resetConfirm: 'क्या आप सभी स्कोर को 0 पर रीसेट करना चाहते हैं?', toastMsg: 'भाषा बदल दी गई है.',
+                instruction: '👆 +1: कार्ड छुएं | -1: ऊपर-बाएं (-) छुएं'
+            },
+            'bn': {
+                name: 'বাংলা', enName: 'Bengali', country: 'bd',
+                title: 'স্কোরবোর্ড রাজা', reset: 'রিসেট', settings: 'সেটিংস', numTeams: 'দলের সংখ্যা', renameTeams: 'দলের নাম পরিবর্তন', teamPrefix: 'দল', resetConfirm: 'আপনি কি সব স্কোর ০ করতে চান?', toastMsg: 'ভাষা পরিবর্তন করা হয়েছে.',
+                instruction: '👆 +1: কার্ড স্পর্শ করুন | -1: উপরের-বামে (-) স্পর্শ করুন'
+            },
+            'tr': {
+                name: 'Türkçe', enName: 'Turkish', country: 'tr',
+                title: 'Skor Kralı', reset: 'Sıfırla', settings: 'Ayarlar', numTeams: 'Takım Sayısı', renameTeams: 'Takımları Yeniden Adlandır', teamPrefix: 'Takım', resetConfirm: 'Tüm skorları 0\'a sıfırlamak istediğinizden emin misiniz?', toastMsg: 'Dil değiştirildi.',
+                instruction: '👆 +1: Karta Dokun | -1: Sol Üstteki (-)\'ye Dokun'
+            },
+            'de': {
+                name: 'Deutsch', enName: 'German', country: 'de',
+                title: 'Anzeigetafel-König', reset: 'Zurücksetzen', settings: 'Einstellungen', numTeams: 'Anzahl der Teams', renameTeams: 'Teams umbenennen', teamPrefix: 'Team', resetConfirm: 'Möchten Sie wirklich alle Punkte auf 0 setzen?', toastMsg: 'Sprache geändert.',
+                instruction: '👆 +1: Karte berühren | -1: (-) Oben Links berühren'
+            },
+            'it': {
+                name: 'Italiano', enName: 'Italian', country: 'it',
+                title: 'Re del Tabellone', reset: 'Ripristina', settings: 'Impostazioni', numTeams: 'Numero di Squadre', renameTeams: 'Rinomina Squadre', teamPrefix: 'Squadra', resetConfirm: 'Sei sicuro di voler azzerare tutti i punteggi?', toastMsg: 'Lingua cambiata.',
+                instruction: '👆 +1: Tocca Scheda | -1: Tocca (-) in Alto a Sinistra'
+            }
+        };
+
+        const langCodes = Object.keys(i18n);
+        let currentLang = 'en';
+
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            const localLang = localStorage.getItem('kingsmath_lang');
+            const browserLang = navigator.language.split('-')[0];
+
+            if (urlLang && langCodes.includes(urlLang)) currentLang = urlLang;
+            else if (localLang && langCodes.includes(localLang)) currentLang = localLang;
+            else if (langCodes.includes(browserLang)) currentLang = browserLang;
+            else currentLang = 'en';
+            
+            applyLanguage(currentLang, false);
+        }
+
+        function applyLanguage(code, showToastMsg = true) {
+            currentLang = code;
+            const data = i18n[code];
+            
+            localStorage.setItem('kingsmath_lang', code);
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('lang', code);
+            window.history.pushState({}, '', newUrl);
+
+            document.title = `${data.title} - Scoreboard King`;
+            document.documentElement.lang = code;
+            
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${data.country}.png`;
+            document.getElementById('currentLangName').textContent = data.name;
+
+            document.getElementById('game-title').textContent = data.title;
+            document.getElementById('t-reset').textContent = data.reset;
+            document.getElementById('t-settings').textContent = data.settings;
+            document.getElementById('t-settings-title').textContent = data.settings;
+            document.getElementById('t-num-teams').textContent = data.numTeams;
+            document.getElementById('t-rename-teams').textContent = data.renameTeams;
+            
+            // 하단 안내바 번역 적용
+            document.getElementById('t-instruction').textContent = data.instruction;
+
+            renderSettingsInputs();
+
+            if(showToastMsg) showToast(data.name, data.toastMsg);
+            renderLanguages(document.getElementById('searchInput').value);
+        }
+
+        const modal = document.getElementById('langModal');
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filtered = langCodes.filter(code => {
+                const l = i18n[code];
+                return l.name.toLowerCase().includes(lowerFilter) || 
+                       l.enName.toLowerCase().includes(lowerFilter) ||
+                       code.toLowerCase().includes(lowerFilter);
+            });
+
+            if (filtered.length === 0) {
+                grid.style.display = 'none';
+                noResult.classList.add('flex');
+            } else {
+                grid.style.display = 'grid';
+                noResult.classList.remove('flex');
+                
+                filtered.forEach(code => {
+                    const l = i18n[code];
+                    const isSelected = code === currentLang;
+                    
+                    const div = document.createElement('div');
+                    div.className = `lang-item lang-text-element ${isSelected ? 'selected' : ''}`;
+                    div.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${l.country}.png" alt="${l.country}">
+                        <div class="lang-item-text">
+                            <span class="lang-name">${l.name}</span>
+                            <span class="lang-en-name">${l.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check" style="color:#facc15;"></i>' : ''}
+                    `;
+                    div.addEventListener('click', () => {
+                        applyLanguage(code);
+                        closeModal();
+                    });
+                    grid.appendChild(div);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function showToast(langName, msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('ui-toast').textContent = msg;
+            document.getElementById('toastLangName').textContent = langName;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        // 게임 중 메뉴 자동 숨김 기능을 완전히 제거했습니다.
+
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                teams.forEach(t => t.score = 0);
+                renderBoard();
+                document.getElementById('settings-panel').classList.remove('open');
+                if(window.playSound) playSound('down');
+            } else {
+                location.reload();
+            }
+        });
+
+        // ==========================================================
+        // 기존 게임 로직
+        // ==========================================================
+        let teamCount = 6;
+        let teams = [];
+        const colors = ['#FF3B30', '#4CD964', '#FFCC00', '#007AFF', '#5856D6', '#FF9500', '#5AC8FA', '#FF2D55', '#AF52DE', '#8e8e93', '#1abc9c', '#f1c40f'];
+        let audioCtx;
+
+        function initGame() {
+            for(let i = 0; i < teamCount; i++) {
+                teams.push({
+                    id: i,
+                    name: `${i18n[currentLang].teamPrefix} ${i + 1}`,
+                    score: 0,
+                    color: colors[i % colors.length]
+                });
+            }
+            renderBoard();
+            renderSettingsInputs();
+            setupEvents();
+            renderLanguages(); 
+        }
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'up') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(1600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            } else {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
+                gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            }
+            osc.start(now); osc.stop(now + 0.3);
+        }
+
+        function showFloatingPoint(cardElement, point) {
+            const floater = document.createElement('div');
+            floater.classList.add('floating-point');
+            floater.textContent = point > 0 ? `+${point}` : `${point}`;
+            if (point < 0) floater.style.color = '#ff4444';
+            cardElement.appendChild(floater);
+            setTimeout(() => floater.remove(), 900);
+        }
+
+        function changeScore(index, delta, cardElement) {
+            teams[index].score += delta;
+            playSound(delta > 0 ? 'up' : 'down');
+            showFloatingPoint(cardElement, delta);
+            cardElement.querySelector('.score-text').textContent = teams[index].score;
+            // checkGameStarted() 호출이 삭제되었습니다.
+        }
+
+        function renderBoard() {
+            const boardArea = document.getElementById('board-area');
+            boardArea.innerHTML = ''; 
+
+            let columns = teams.length;
+            if (teams.length > 6) columns = Math.ceil(teams.length / 2);
+            
+            let scoreFontSize = teams.length > 6 ? '5vw' : '8vw';
+            let nameFontSize = teams.length > 6 ? '2em' : '2.8em';
+            boardArea.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+
+            teams.forEach((team, index) => {
+                const card = document.createElement('div');
+                card.classList.add('team-card');
+                card.style.backgroundColor = team.color;
+
+                card.innerHTML = `
+                    <button class="btn-minus" title="-1 Point">−</button>
+                    <div class="score-display" style="font-size: ${scoreFontSize};">
+                        <span class="score-text">${team.score}</span>
+                    </div>
+                    <div class="team-name lang-text-element" style="font-size: ${nameFontSize};">${team.name}</div>
+                `;
+
+                card.querySelector('.btn-minus').addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    changeScore(index, -1, card);
+                });
+
+                card.addEventListener('click', () => changeScore(index, 1, card));
+                boardArea.appendChild(card);
+            });
+        }
+
+        function renderSettingsInputs() {
+            const container = document.getElementById('team-name-inputs');
+            container.innerHTML = '';
+            
+            teams.forEach((team, index) => {
+                const row = document.createElement('div');
+                row.classList.add('team-name-row');
+                
+                const label = document.createElement('span');
+                label.textContent = `${index + 1}.`;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = team.name;
+                input.placeholder = `${i18n[currentLang].teamPrefix} ${index + 1}`;
+                input.className = 'lang-text-element';
+                
+                input.addEventListener('input', (e) => {
+                    team.name = e.target.value.trim() === '' ? `${i18n[currentLang].teamPrefix} ${index + 1}` : e.target.value;
+                    renderBoard(); 
+                });
+
+                row.appendChild(label);
+                row.appendChild(input);
+                container.appendChild(row);
+            });
+        }
+
+        function setupEvents() {
+            const settingsPanel = document.getElementById('settings-panel');
+            const toggleBtn = document.getElementById('toggle-settings');
+            const closeBtn = document.getElementById('close-settings');
+            const countInput = document.getElementById('team-count');
+            const resetBtn = document.getElementById('reset-btn');
+
+            toggleBtn.addEventListener('click', () => settingsPanel.classList.add('open'));
+            closeBtn.addEventListener('click', () => settingsPanel.classList.remove('open'));
+
+            countInput.addEventListener('change', (e) => {
+                let newCount = parseInt(e.target.value);
+                if (isNaN(newCount) || newCount < 1) newCount = 1;
+                
+                if (newCount > teams.length) {
+                    for (let i = teams.length; i < newCount; i++) {
+                        teams.push({
+                            id: i, name: `${i18n[currentLang].teamPrefix} ${i + 1}`, score: 0, color: colors[i % colors.length]
+                        });
+                    }
+                } else if (newCount < teams.length) {
+                    teams = teams.slice(0, newCount);
+                }
+                renderBoard();
+                renderSettingsInputs();
+            });
+
+            resetBtn.addEventListener('click', () => {
+                if (confirm(i18n[currentLang].resetConfirm)) {
+                    teams.forEach(team => team.score = 0);
+                    renderBoard();
+                }
+            });
+        }
+
+        window.onload = () => {
+            initLanguage();
+            initGame();
+        };
+    </script>
+</body>
+</html>

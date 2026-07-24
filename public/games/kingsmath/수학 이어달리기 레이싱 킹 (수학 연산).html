@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#111827">
+    
+    <title>러닝킹 - 수학 이어달리기 | 킹수학.com</title>
+    <meta name="description" content="전자칠판 전용 수학 게임 러닝킹! 정답 거리만큼 달려서 우승하세요.">
+    <meta name="keywords" content="러닝킹, 수학게임, 초등수학, 연산게임, 전자칠판게임, 킹수학, KingsMath">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="러닝킹 - 수학 이어달리기">
+    <meta property="og:description" content="정답을 향해 달려라! 계산력과 스피드를 겨루는 수학 레이싱 게임.">
+    <meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/러닝킹_썸네일.png">
+    <meta property="og:url" content="https://킹수학.com">
+    <meta property="og:site_name" content="KingsMath">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* 기본 게임 폰트 */
+        body {
+            font-family: 'Jua', sans-serif;
+            touch-action: none;
+            overflow: hidden;
+            background-color: #111827;
+            color: white;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        button { touch-action: manipulation; }
+        .player-col { border-right: 2px solid rgba(255,255,255,0.1); }
+        .player-col:last-child { border-right: none; }
+        .btn-tap:active { transform: scale(0.95); }
+        .filter-white { filter: grayscale(100%) brightness(200%); }
+        .filter-red {
+            filter: sepia(100%) saturate(700%) hue-rotate(-50deg) brightness(100%) contrast(1.2);
+            transform: scaleX(-1); 
+            display: inline-block;
+        }
+        @keyframes flashSuccess {
+            0% { background-color: rgba(34, 197, 94, 0.6); }
+            100% { background-color: transparent; }
+        }
+        .flash { animation: flashSuccess 0.5s ease-out; }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .anim-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+  /* =========================================
+           언어 선택 모달 전용 CSS (완벽 분리, 강제 보정)
+           ========================================= */
+        /* 박스 사이징은 모든 요소에 강제 적용 */
+        #langUIWrapper *, #langModal * {
+            box-sizing: border-box !important;
+        }
+
+        /* 한글 폰트 강제 적용 (단, 폰트어썸 아이콘인 i 태그는 덮어쓰기에서 완벽 제외) */
+        #langUIWrapper *:not(i), #langModal *:not(i) {
+            font-family: 'Noto Sans KR', sans-serif !important;
+        }
+
+        /* 폰트어썸 아이콘 깨짐 방지용 예외 처리 (최상위 우선순위) */
+        i.fa-solid, i[class^="fa-"], i[class*=" fa-"] {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+            display: inline-block;
+        }
+
+        /* 스크롤바 등 기타 모달 CSS */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        .modal-overlay {
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+        
+        .toast-anim { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast-anim.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false" onselectstart="return false">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- 16개국 번역 데이터 ---
+        const TRANSLATIONS = {
+            ko: { code: 'ko', flag: 'kr', name: '한국어', enName: 'Korean',
+                title: '러닝킹', subtitle: '수학 이어달리기', siteName: '킹수학.com', linkUrl: '/', metaDesc: '전자칠판 전용 수학 게임 러닝킹! 정답 거리만큼 달려서 우승하세요.',
+                howToTitle: '📢 게임 방법', howToDesc1: '제시된 <span class="text-green-400 font-bold">목표 숫자</span>를 계산하여,', howToDesc2: '<span class="text-red-400 font-bold">버튼(+, -)</span>을 눌러 내 숫자를 맞춰주세요!', howToDesc3: '숫자가 일치하면 <span class="text-yellow-300 font-bold">딱! 멈춰서</span> 3초를 기다려야 점수를 획득합니다.', howToTip: '* 많이 이동할수록 더 높은 점수를 받습니다. 빠르고 정확하게 도전하세요!',
+                players: '참가 인원', unitPerson: '인', difficulty: '난이도', diffEasy: '쉬움 (➕➖)', diffNormal: '보통 (✖️➗)', diffHard: '어려움 (혼합)', startBtn: '달리기 시작! 🔫', moreGames: '🎮 다른 게임 고르기', homeBtn: '처음으로 돌아가기', resultTitle: '🏆 경기 결과 🏆', rankSuffix: '등', distance: '달린 거리', stopMsg: '⛔ 정답이면 멈춰!', banner: '게임으로 수학의 킹이 되어라. 킹수학.com', toastMsg: '언어가 변경되었습니다.'
+            },
+            en: { code: 'en', flag: 'us', name: 'English', enName: 'English',
+                title: 'Running King', subtitle: 'Math Relay Race', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Running King: Interactive Math Game for Kids! Run the distance of the answer to win.',
+                howToTitle: '📢 How to Play', howToDesc1: 'Calculate the <span class="text-green-400 font-bold">Target Number</span>.', howToDesc2: 'Press <span class="text-red-400 font-bold">Buttons (+, -)</span> to match your number!', howToDesc3: 'When matched, <span class="text-yellow-300 font-bold">STOP!</span> and wait 3s to score.', howToTip: '* The further you run, the higher your score. Be fast and accurate!',
+                players: 'Players', unitPerson: 'P', difficulty: 'Level', diffEasy: 'Easy (➕➖)', diffNormal: 'Normal (✖️➗)', diffHard: 'Hard (Mix)', startBtn: 'Start Run! 🔫', moreGames: '🎮 More Games', homeBtn: 'Go Home', resultTitle: '🏆 Final Result 🏆', rankSuffix: '', distance: 'Distance', stopMsg: '⛔ Stop if Correct!', banner: 'Be the King of Math! KingsMath.com', toastMsg: 'Language changed.'
+            },
+            zh: { code: 'zh', flag: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)',
+                title: '奔跑数学王', subtitle: '数学接力赛', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: '奔跑数学王：交互式电子白板数学游戏！计算正确答案并奔跑吧。',
+                howToTitle: '📢 游戏说明', howToDesc1: '计算显示的 <span class="text-green-400 font-bold">目标数字</span>。', howToDesc2: '按 <span class="text-red-400 font-bold">按钮 (+, -)</span> 调整你的数字！', howToDesc3: '数字匹配时 <span class="text-yellow-300 font-bold">停下！</span> 等待3秒得分。', howToTip: '* 跑得越远分数越高。挑战速度和准确性！',
+                players: '玩家人数', unitPerson: '人', difficulty: '难度', diffEasy: '简单 (➕➖)', diffNormal: '普通 (✖️➗)', diffHard: '困难 (混合)', startBtn: '开始奔跑! 🔫', moreGames: '🎮 更多游戏', homeBtn: '返回首页', resultTitle: '🏆 比赛结果 🏆', rankSuffix: '名', distance: '距离', stopMsg: '⛔ 正确请停止！', banner: '成为数学之王！KingsMath.com', toastMsg: '语言已更改。'
+            },
+            ja: { code: 'ja', flag: 'jp', name: '日本語', enName: 'Japanese',
+                title: 'ランニング・キング', subtitle: '算数リレー', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'ランニング・キング：電子黒板向け算数ゲーム！答えの距離だけ走って優勝しよう。',
+                howToTitle: '📢 遊び方', howToDesc1: '表示された <span class="text-green-400 font-bold">目標の数</span> を計算します。', howToDesc2: '<span class="text-red-400 font-bold">ボタン (+, -)</span> を押して数を合わせよう！', howToDesc3: '数が合ったら <span class="text-yellow-300 font-bold">ストップ！</span> 3秒待ってスコアゲット。', howToTip: '* たくさん走るほど高得点。速く正確に！',
+                players: '参加人数', unitPerson: '人', difficulty: '難易度', diffEasy: 'かんたん (➕➖)', diffNormal: 'ふつう (✖️➗)', diffHard: 'むずかしい (混合)', startBtn: 'よーい、ドン! 🔫', moreGames: '🎮 他のゲーム', homeBtn: 'ホームへ', resultTitle: '🏆 結果発表 🏆', rankSuffix: '位', distance: '距離', stopMsg: '⛔ 正解なら止まれ！', banner: 'ゲームで算数の王様になろう。KingsMath.com', toastMsg: '言語が変更されました。'
+            },
+            es: { code: 'es', flag: 'es', name: 'Español', enName: 'Spanish',
+                title: 'Rey Corredor', subtitle: 'Carrera de Matemáticas', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Rey Corredor: ¡Juego de matemáticas interactivo! Corre la distancia de la respuesta.',
+                howToTitle: '📢 Cómo Jugar', howToDesc1: 'Calcula el <span class="text-green-400 font-bold">Número Meta</span>.', howToDesc2: '¡Usa <span class="text-red-400 font-bold">Botones (+, -)</span> para igualar tu número!', howToDesc3: 'Cuando coincida, <span class="text-yellow-300 font-bold">¡PARA!</span> y espera 3s.', howToTip: '* Más distancia = Más puntos. ¡Sé rápido!',
+                players: 'Jugadores', unitPerson: '', difficulty: 'Nivel', diffEasy: 'Fácil (➕➖)', diffNormal: 'Medio (✖️➗)', diffHard: 'Difícil (Mix)', startBtn: '¡A Correr! 🔫', moreGames: '🎮 Más Juegos', homeBtn: 'Inicio', resultTitle: '🏆 Resultados 🏆', rankSuffix: 'º', distance: 'Distancia', stopMsg: '⛔ ¡Para si es correcto!', banner: '¡Sé el Rey de las Mates! KingsMath.com', toastMsg: 'Idioma cambiado.'
+            },
+            fr: { code: 'fr', flag: 'fr', name: 'Français', enName: 'French',
+                title: 'Roi Coureur', subtitle: 'Relais Mathématique', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Roi Coureur : Jeu de maths interactif ! Courez la distance de la réponse pour gagner.',
+                howToTitle: '📢 Comment Jouer', howToDesc1: 'Calcule le <span class="text-green-400 font-bold">Nombre Cible</span>.', howToDesc2: 'Appuie sur <span class="text-red-400 font-bold">(+, -)</span> pour ajuster !', howToDesc3: 'Si correct, <span class="text-yellow-300 font-bold">STOP !</span> Attends 3s pour marquer.', howToTip: '* Plus tu cours, plus tu gagnes. Sois rapide !',
+                players: 'Joueurs', unitPerson: '', difficulty: 'Niveau', diffEasy: 'Facile (➕➖)', diffNormal: 'Moyen (✖️➗)', diffHard: 'Difficile (Mix)', startBtn: 'C\'est parti ! 🔫', moreGames: '🎮 Autres Jeux', homeBtn: 'Accueil', resultTitle: '🏆 Résultats 🏆', rankSuffix: 'e', distance: 'Distance', stopMsg: '⛔ Stop si correct !', banner: 'Devenez le Roi des Maths ! KingsMath.com', toastMsg: 'Langue modifiée.'
+            },
+            ru: { code: 'ru', flag: 'ru', name: 'Русский', enName: 'Russian',
+                title: 'Король Бега', subtitle: 'Математическая Эстафета', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Король Бега: Интерактивная игра! Пробеги расстояние ответа, чтобы победить.',
+                howToTitle: '📢 Как играть', howToDesc1: 'Вычисли <span class="text-green-400 font-bold">Целевое Число</span>.', howToDesc2: 'Жми <span class="text-red-400 font-bold">(+, -)</span> чтобы совпало!', howToDesc3: 'Если верно, <span class="text-yellow-300 font-bold">СТОП!</span> Жди 3 сек.', howToTip: '* Больше дистанция = больше очков. Быстрее!',
+                players: 'Игроки', unitPerson: '', difficulty: 'Сложность', diffEasy: 'Легко (➕➖)', diffNormal: 'Средне (✖️➗)', diffHard: 'Сложно (Микс)', startBtn: 'На старт! 🔫', moreGames: '🎮 Игры', homeBtn: 'Домой', resultTitle: '🏆 Результаты 🏆', rankSuffix: '', distance: 'Дистанция', stopMsg: '⛔ Стоп, если верно!', banner: 'Стань Королем Математики! KingsMath.com', toastMsg: 'Язык изменен.'
+            },
+            id: { code: 'id', flag: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian',
+                title: 'Raja Lari', subtitle: 'Estafet Matematika', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Raja Lari: Game Matematika Interaktif! Lari sejauh jawaban untuk menang.',
+                howToTitle: '📢 Cara Bermain', howToDesc1: 'Hitung <span class="text-green-400 font-bold">Angka Target</span>.', howToDesc2: 'Tekan <span class="text-red-400 font-bold">Tombol (+, -)</span> untuk menyesuaikan!', howToDesc3: 'Jika cocok, <span class="text-yellow-300 font-bold">BERHENTI!</span> Tunggu 3 detik.', howToTip: '* Semakin jauh lari, semakin tinggi skor. Cepatlah!',
+                players: 'Pemain', unitPerson: '', difficulty: 'Level', diffEasy: 'Mudah (➕➖)', diffNormal: 'Normal (✖️➗)', diffHard: 'Sulit (Campur)', startBtn: 'Mulai Lari! 🔫', moreGames: '🎮 Game Lainnya', homeBtn: 'Beranda', resultTitle: '🏆 Hasil Akhir 🏆', rankSuffix: '', distance: 'Jarak', stopMsg: '⛔ Berhenti jika benar!', banner: 'Jadilah Raja Matematika! KingsMath.com', toastMsg: 'Bahasa telah diubah.'
+            },
+            vi: { code: 'vi', flag: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese',
+                title: 'Vua Chạy Bộ', subtitle: 'Tiếp sức Toán học', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Vua Chạy Bộ: Trò chơi Toán học! Chạy quãng đường bằng câu trả lời để chiến thắng.',
+                howToTitle: '📢 Cách Chơi', howToDesc1: 'Tính <span class="text-green-400 font-bold">Số Mục tiêu</span>.', howToDesc2: 'Nhấn <span class="text-red-400 font-bold">Nút (+, -)</span> để khớp số!', howToDesc3: 'Khi khớp, <span class="text-yellow-300 font-bold">DỪNG LẠI!</span> Đợi 3s để ghi điểm.', howToTip: '* Chạy càng xa, điểm càng cao. Nhanh lên nhé!',
+                players: 'Người chơi', unitPerson: '', difficulty: 'Độ khó', diffEasy: 'Dễ (➕➖)', diffNormal: 'Vừa (✖️➗)', diffHard: 'Khó (Hỗn hợp)', startBtn: 'Bắt đầu chạy! 🔫', moreGames: '🎮 Trò chơi khác', homeBtn: 'Trang chủ', resultTitle: '🏆 Kết quả 🏆', rankSuffix: '', distance: 'Quãng đường', stopMsg: '⛔ Dừng nếu đúng!', banner: 'Trở thành Vua Toán Học! KingsMath.com', toastMsg: 'Ngôn ngữ đã được thay đổi.'
+            },
+            th: { code: 'th', flag: 'th', name: 'ไทย', enName: 'Thai',
+                title: 'ราชาการวิ่ง', subtitle: 'วิ่งผลัดคณิตศาสตร์', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'ราชาการวิ่ง: เกมคณิตศาสตร์! วิ่งให้ได้ระยะทางเท่ากับคำตอบเพื่อชนะ',
+                howToTitle: '📢 วิธีการเล่น', howToDesc1: 'คำนวณ <span class="text-green-400 font-bold">ตัวเลขเป้าหมาย</span>', howToDesc2: 'กด <span class="text-red-400 font-bold">ปุ่ม (+, -)</span> ให้ตรงกับตัวเลขของคุณ!', howToDesc3: 'เมื่อตรงกัน <span class="text-yellow-300 font-bold">หยุด!</span> รอ 3 วินาทีเพื่อทำคะแนน', howToTip: '* ยิ่งวิ่งไกล คะแนนยิ่งสูง รวดเร็วและแม่นยำ!',
+                players: 'ผู้เล่น', unitPerson: 'คน', difficulty: 'ระดับ', diffEasy: 'ง่าย (➕➖)', diffNormal: 'ปานกลาง (✖️➗)', diffHard: 'ยาก (ผสม)', startBtn: 'เริ่มวิ่ง! 🔫', moreGames: '🎮 เกมเพิ่มเติม', homeBtn: 'หน้าแรก', resultTitle: '🏆 ผลการแข่งขัน 🏆', rankSuffix: '', distance: 'ระยะทาง', stopMsg: '⛔ หยุดเมื่อถูกต้อง!', banner: 'เป็นราชาแห่งคณิตศาสตร์! KingsMath.com', toastMsg: 'เปลี่ยนภาษาเรียบร้อยแล้ว'
+            },
+            'pt-br': { code: 'pt-br', flag: 'br', name: 'Português', enName: 'Portuguese (Brazil)',
+                title: 'Rei da Corrida', subtitle: 'Revezamento Matemático', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Rei da Corrida: Jogo de matemática interativo! Corra a distância da resposta para vencer.',
+                howToTitle: '📢 Como Jogar', howToDesc1: 'Calcule o <span class="text-green-400 font-bold">Número Alvo</span>.', howToDesc2: 'Use <span class="text-red-400 font-bold">Botões (+, -)</span> para igualar seu número!', howToDesc3: 'Se estiver certo, <span class="text-yellow-300 font-bold">PARE!</span> Espere 3s.', howToTip: '* Mais distância = mais pontos. Seja rápido!',
+                players: 'Jogadores', unitPerson: '', difficulty: 'Nível', diffEasy: 'Fácil (➕➖)', diffNormal: 'Médio (✖️➗)', diffHard: 'Difícil (Mix)', startBtn: 'Começar Corrida! 🔫', moreGames: '🎮 Mais Jogos', homeBtn: 'Início', resultTitle: '🏆 Resultado Final 🏆', rankSuffix: 'º', distance: 'Distância', stopMsg: '⛔ Pare se estiver certo!', banner: 'Seja o Rei da Matemática! KingsMath.com', toastMsg: 'Idioma alterado.'
+            },
+            hi: { code: 'hi', flag: 'in', name: 'हिन्दी', enName: 'Hindi',
+                title: 'दौड़ने वाला राजा', subtitle: 'गणित रिले रेस', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'दौड़ने वाला राजा: बच्चों के लिए इंटरैक्टिव गणित गेम! जीतने के लिए उत्तर की दूरी दौड़ें।',
+                howToTitle: '📢 कैसे खेलें', howToDesc1: '<span class="text-green-400 font-bold">लक्ष्य संख्या</span> की गणना करें।', howToDesc2: 'संख्या मिलाने के लिए <span class="text-red-400 font-bold">बटन (+, -)</span> दबाएँ!', howToDesc3: 'मिलान होने पर, <span class="text-yellow-300 font-bold">रुकें!</span> 3 सेकंड प्रतीक्षा करें।', howToTip: '* आप जितना आगे दौड़ेंगे, स्कोर उतना अधिक होगा। तेज बनें!',
+                players: 'खिलाड़ी', unitPerson: '', difficulty: 'स्तर', diffEasy: 'आसान (➕➖)', diffNormal: 'सामान्य (✖️➗)', diffHard: 'कठिन (मिश्रित)', startBtn: 'दौड़ शुरू! 🔫', moreGames: '🎮 और खेल', homeBtn: 'होम', resultTitle: '🏆 परिणाम 🏆', rankSuffix: '', distance: 'दूरी', stopMsg: '⛔ सही हो तो रुकें!', banner: 'गणित के राजा बनें! KingsMath.com', toastMsg: 'भाषा बदल दी गई है।'
+            },
+            bn: { code: 'bn', flag: 'bd', name: 'বাংলা', enName: 'Bengali',
+                title: 'দৌড়ের রাজা', subtitle: 'গণিত রিলে রেস', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'দৌড়ের রাজা: গণিত গেম! জিততে উত্তরের দূরত্ব দৌড়ান।',
+                howToTitle: '📢 কীভাবে খেলবেন', howToDesc1: '<span class="text-green-400 font-bold">লক্ষ্য নম্বর</span> হিসাব করুন।', howToDesc2: 'নম্বর মেলাতে <span class="text-red-400 font-bold">বোতাম (+, -)</span> চাপুন!', howToDesc3: 'মিলে গেলে, <span class="text-yellow-300 font-bold">থামুন!</span> ৩ সেকেন্ড অপেক্ষা করুন।', howToTip: '* যত দূরে দৌড়াবেন, তত বেশি পয়েন্ট। দ্রুত হন!',
+                players: 'খেলোয়াড়', unitPerson: '', difficulty: 'স্তর', diffEasy: 'সহজ (➕➖)', diffNormal: 'সাধারণ (✖️➗)', diffHard: 'কঠিন (মিশ্র)', startBtn: 'দৌড় শুরু! 🔫', moreGames: '🎮 আরও গেম', homeBtn: 'হোম', resultTitle: '🏆 ফলাফল 🏆', rankSuffix: '', distance: 'দূরত্ব', stopMsg: '⛔ ঠিক হলে থামুন!', banner: 'গণিতের রাজা হোন! KingsMath.com', toastMsg: 'ভাষা পরিবর্তন করা হয়েছে।'
+            },
+            tr: { code: 'tr', flag: 'tr', name: 'Türkçe', enName: 'Turkish',
+                title: 'Koşu Kralı', subtitle: 'Matematik Bayrak Yarışı', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Koşu Kralı: Çocuklar için Matematik Oyunu! Kazanmak için cevabın mesafesini koş.',
+                howToTitle: '📢 Nasıl Oynanır', howToDesc1: '<span class="text-green-400 font-bold">Hedef Sayıyı</span> hesapla.', howToDesc2: 'Sayıyı eşleştirmek için <span class="text-red-400 font-bold">Butonlara (+, -)</span> bas!', howToDesc3: 'Eşleştiğinde <span class="text-yellow-300 font-bold">DUR!</span> 3 saniye bekle.', howToTip: '* Ne kadar uzağa koşarsan o kadar çok puan. Hızlı ol!',
+                players: 'Oyuncular', unitPerson: '', difficulty: 'Seviye', diffEasy: 'Kolay (➕➖)', diffNormal: 'Normal (✖️➗)', diffHard: 'Zor (Karışık)', startBtn: 'Koşuya Başla! 🔫', moreGames: '🎮 Daha Fazla Oyun', homeBtn: 'Ana Sayfa', resultTitle: '🏆 Sonuçlar 🏆', rankSuffix: '.', distance: 'Mesafe', stopMsg: '⛔ Doğruysa Dur!', banner: 'Matematik Kralı Ol! KingsMath.com', toastMsg: 'Dil değiştirildi.'
+            },
+            de: { code: 'de', flag: 'de', name: 'Deutsch', enName: 'German',
+                title: 'Laufkönig', subtitle: 'Mathe-Staffellauf', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Laufkönig: Mathe-Spiel! Lauf die Distanz der Antwort, um zu gewinnen.',
+                howToTitle: '📢 Spielanleitung', howToDesc1: 'Berechne die <span class="text-green-400 font-bold">Zielzahl</span>.', howToDesc2: 'Drücke <span class="text-red-400 font-bold">Tasten (+, -)</span> um die Zahl anzupassen!', howToDesc3: 'Wenn es passt, <span class="text-yellow-300 font-bold">STOPP!</span> Warte 3s.', howToTip: '* Je weiter du läufst, desto mehr Punkte. Sei schnell!',
+                players: 'Spieler', unitPerson: '', difficulty: 'Level', diffEasy: 'Einfach (➕➖)', diffNormal: 'Normal (✖️➗)', diffHard: 'Schwer (Mix)', startBtn: 'Los geht\'s! 🔫', moreGames: '🎮 Mehr Spiele', homeBtn: 'Startseite', resultTitle: '🏆 Ergebnisse 🏆', rankSuffix: '.', distance: 'Distanz', stopMsg: '⛔ Stopp, wenn richtig!', banner: 'Werde der Mathe-König! KingsMath.com', toastMsg: 'Sprache geändert.'
+            },
+            it: { code: 'it', flag: 'it', name: 'Italiano', enName: 'Italian',
+                title: 'Re della Corsa', subtitle: 'Staffetta di Matematica', siteName: 'KingsMath.com', linkUrl: '/', metaDesc: 'Re della Corsa: Gioco di matematica! Corri la distanza della risposta per vincere.',
+                howToTitle: '📢 Come Giocare', howToDesc1: 'Calcola il <span class="text-green-400 font-bold">Numero Obiettivo</span>.', howToDesc2: 'Usa i <span class="text-red-400 font-bold">Pulsanti (+, -)</span> per abbinare!', howToDesc3: 'Quando coincide, <span class="text-yellow-300 font-bold">FERMATI!</span> Attendi 3s.', howToTip: '* Più corri, più punti ottieni. Sii veloce!',
+                players: 'Giocatori', unitPerson: '', difficulty: 'Livello', diffEasy: 'Facile (➕➖)', diffNormal: 'Medio (✖️➗)', diffHard: 'Difficile (Mix)', startBtn: 'Inizia a Correre! 🔫', moreGames: '🎮 Altri Giochi', homeBtn: 'Home', resultTitle: '🏆 Risultati 🏆', rankSuffix: 'º', distance: 'Distanza', stopMsg: '⛔ Fermati se è corretto!', banner: 'Diventa il Re della Matematica! KingsMath.com', toastMsg: 'Lingua cambiata.'
+            }
+        };
+
+        const LANG_ARRAY = Object.values(TRANSLATIONS);
+
+        // --- 언어 감지 로직 ---
+        const getInitialLang = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && TRANSLATIONS[urlLang]) return urlLang;
+
+            const storedLang = localStorage.getItem('kingsmath_lang');
+            if (storedLang && TRANSLATIONS[storedLang]) return storedLang;
+
+            const browserLang = navigator.language.toLowerCase().slice(0, 2);
+            if (browserLang === 'pt') return 'pt-br';
+            if (TRANSLATIONS[browserLang]) return browserLang;
+
+            return 'en';
+        };
+
+        const updateMetadata = (lang) => {
+            const t = TRANSLATIONS[lang];
+            document.title = `${t.title} - ${t.subtitle} | ${t.siteName}`;
+            document.querySelector('meta[name="description"]').setAttribute("content", t.metaDesc);
+            document.documentElement.lang = lang;
+        };
+
+        // ==========================================
+        // 언어 선택기 UI 리액트 컴포넌트 (모달 및 플로팅 버튼)
+        // ==========================================
+        const LanguageSelectorUI = ({ currentLang, onSelectLang, isVisible }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [searchTxt, setSearchTxt] = useState('');
+            const [toastData, setToastData] = useState({ show: false, msg: '', langName: '' });
+            const toastTimer = useRef(null);
+            
+            const curT = TRANSLATIONS[currentLang];
+
+            const handleOpen = () => { setIsOpen(true); setSearchTxt(''); };
+            const handleClose = () => setIsOpen(false);
+            
+            const handleSelect = (langCode) => {
+                onSelectLang(langCode);
+                handleClose();
+                
+                const selectedT = TRANSLATIONS[langCode];
+                setToastData({ show: true, msg: selectedT.toastMsg, langName: selectedT.name });
+                if(toastTimer.current) clearTimeout(toastTimer.current);
+                toastTimer.current = setTimeout(() => setToastData(prev => ({...prev, show: false})), 3000);
+            };
+
+            const filteredLangs = useMemo(() => {
+                const lower = searchTxt.toLowerCase();
+                return LANG_ARRAY.filter(l => l.name.toLowerCase().includes(lower) || l.enName.toLowerCase().includes(lower) || l.code.toLowerCase().includes(lower));
+            }, [searchTxt]);
+
+            if (!isVisible && !toastData.show) return null; // 게임 중에는 UI 안보이게 처리 (토스트는 예외 허용)
+
+            return (
+                <div id="langUIWrapper">
+                    {isVisible && (
+                        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999]">
+                            <button id="langTriggerBtn" onClick={handleOpen} className="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg">
+                                <i className="fa-solid fa-globe text-gray-400"></i>
+                                <img src={`https://flagcdn.com/w40/${curT.flag}.png`} alt={curT.flag} className="w-5 h-auto rounded-[2px] shadow-sm"/>
+                                <span className="hidden sm:inline-block text-white">{curT.name}</span>
+                                <i className="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Modal */}
+                    <div id="langModal" className={`modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4 ${isOpen ? 'active' : ''}`} onClick={(e) => { if(e.target.id === 'langModal') handleClose(); }}>
+                        <div className="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+                            
+                            <div className="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <i className="fa-solid fa-language text-yellow-500"></i>
+                                    <span>Language / 언어</span>
+                                </h2>
+                                <button onClick={handleClose} className="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                                    <i className="fa-solid fa-xmark text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div className="p-5 pb-2 bg-gray-900">
+                                <div className="relative">
+                                    <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" value={searchTxt} onChange={(e)=>setSearchTxt(e.target.value)} placeholder="Search / 검색 ..." 
+                                        className="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500" />
+                                </div>
+                            </div>
+
+                            <div className="p-5 overflow-y-auto custom-scrollbar flex-1">
+                                {filteredLangs.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                        {filteredLangs.map(l => {
+                                            const isSelected = l.code === currentLang;
+                                            return (
+                                                <div key={l.code} onClick={() => handleSelect(l.code)} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden ${isSelected ? 'bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50' : 'bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500'}`}>
+                                                    <div className="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                                                        <img src={`https://flagcdn.com/w40/${l.flag}.png`} alt={l.flag} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0 flex flex-col items-start">
+                                                        <span className={`text-sm font-medium truncate w-full ${isSelected ? 'text-yellow-400' : 'text-white'}`}>{l.name}</span>
+                                                        <span className="text-xs text-gray-400 truncate w-full">{l.enName}</span>
+                                                    </div>
+                                                    {isSelected && <i className="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                                        <i className="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                                        <p>No results / 검색 결과 없음</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Toast */}
+                    <div className={`toast-anim fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999] ${toastData.show ? 'show' : 'pointer-events-none'}`}>
+                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                            <i className="fa-solid fa-check"></i>
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-white">{toastData.msg}</p>
+                            <p className="text-xs text-gray-400">{toastData.langName}</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // --- 사운드 유틸리티 ---
+        const playSound = (type) => {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const masterGain = ctx.createGain();
+                masterGain.connect(ctx.destination);
+                masterGain.gain.setValueAtTime(0.5, ctx.currentTime);
+
+                const createOsc = (type, freq, start, dur, vol = 1) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(vol, start + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start(start);
+                    osc.stop(start + dur);
+                };
+
+                const now = ctx.currentTime;
+                if (type === 'step') createOsc('sine', 100, now, 0.05, 0.2);
+                else if (type === 'count') createOsc('triangle', 600, now, 0.2, 0.1);
+                else if (type === 'success') {
+                    createOsc('triangle', 523.25, now, 0.2, 0.3);
+                    createOsc('triangle', 659.25, now + 0.1, 0.2, 0.3);
+                    createOsc('sine', 783.99, now + 0.2, 0.4, 0.3);
+                    createOsc('sine', 1046.50, now + 0.2, 0.4, 0.2);
+                } else if (type === 'gostart') createOsc('square', 440, now, 0.3, 0.1);
+                else if (type === 'error') {
+                    createOsc('sawtooth', 150, now, 0.3, 0.3);
+                    createOsc('sawtooth', 140, now + 0.1, 0.3, 0.3);
+                } else if (type === 'fanfare') {
+                    [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50].forEach((f, i) => 
+                        createOsc('square', f, now + [0, 0.15, 0.3, 0.45, 0.6, 0.75][i], 0.4, 0.2)
+                    );
+                }
+            } catch (e) { console.error(e); }
+        };
+
+        // --- 팡빠레 ---
+        const Confetti = () => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const particles = Array.from({length: 300}, () => ({
+                    x: window.innerWidth/2, y: window.innerHeight/2,
+                    vx: (Math.random()-0.5)*25, vy: (Math.random()-0.5)*25-5,
+                    color: ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'][Math.floor(Math.random()*6)],
+                    size: Math.random()*12+4, rotation: Math.random()*360, drag: 0.96
+                }));
+                let animId;
+                const animate = () => {
+                    ctx.clearRect(0,0,canvas.width,canvas.height);
+                    for(let i=particles.length-1; i>=0; i--){
+                        const p = particles[i];
+                        p.x+=p.vx; p.y+=p.vy; p.vy+=0.4; p.vx*=p.drag; p.vy*=p.drag; p.rotation+=10;
+                        ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation*Math.PI/180);
+                        ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size); ctx.restore();
+                        if(p.y>canvas.height+100) particles.splice(i,1);
+                    }
+                    if(particles.length>0) animId = requestAnimationFrame(animate);
+                };
+                playSound('fanfare');
+                animate();
+                return () => cancelAnimationFrame(animId);
+            }, []);
+            return <canvas ref={canvasRef} className="absolute inset-0 z-[60] pointer-events-none" />;
+        };
+
+        // --- 로직 데이터 ---
+        const generateProblem = (difficulty, prevAns, round) => {
+            if (round === 1) {
+                const startNum = Math.floor(Math.random() * 20) + 10; 
+                return { target: startNum, display: `${startNum}` };
+            }
+            let nextTarget, displayStr, operand;
+            if (difficulty === 'easy') {
+                if (prevAns > 150 || Math.random() > 0.5) {
+                    const maxSub = prevAns; 
+                    operand = maxSub <= 1 ? Math.floor(Math.random()*10)+1 : Math.floor(Math.random()*Math.min(20, maxSub))+1;
+                    nextTarget = maxSub <= 1 ? prevAns + operand : prevAns - operand;
+                    displayStr = maxSub <= 1 ? `${prevAns} + ${operand}` : `${prevAns} - ${operand}`;
+                } else {
+                    operand = Math.floor(Math.random() * 20) + 5;
+                    nextTarget = prevAns + operand;
+                    displayStr = `${prevAns} + ${operand}`;
+                }
+            } else if (difficulty === 'normal') {
+                let divisors = [];
+                for(let i=2; i<=10; i++) if(prevAns % i === 0) divisors.push(i);
+                const type = Math.random();
+                if ((type < 0.4 || prevAns > 150) && divisors.length > 0) {
+                    operand = divisors[Math.floor(Math.random() * divisors.length)];
+                    nextTarget = prevAns / operand;
+                    displayStr = `${prevAns} ÷ ${operand}`;
+                } else if (type < 0.6 && prevAns <= 150) {
+                    operand = Math.floor(Math.random() * 3) + 2; 
+                    nextTarget = prevAns * operand;
+                    displayStr = `${prevAns} × ${operand}`;
+                } else {
+                    operand = Math.floor(Math.random() * 20) + 5;
+                    if(Math.random()>0.5 || prevAns < 10) {
+                        nextTarget = prevAns + operand;
+                        displayStr = `${prevAns} + ${operand}`;
+                    } else {
+                        nextTarget = prevAns - Math.min(operand, prevAns-1);
+                        displayStr = `${prevAns} - ${Math.min(operand, prevAns-1)}`;
+                    }
+                }
+            } else { // Hard
+                const a = Math.floor(Math.random() * 5) + 2;
+                const b = Math.floor(Math.random() * 5) + 2;
+                if(Math.random() > 0.5 && prevAns > a*b) {
+                    nextTarget = prevAns - (a*b);
+                    displayStr = `${prevAns} - (${a} × ${b})`;
+                } else {
+                    nextTarget = prevAns + (a*b);
+                    displayStr = `${prevAns} + (${a} × ${b})`;
+                }
+            }
+            return { target: nextTarget, display: displayStr };
+        };
+
+        // --- 플레이어 컴포넌트 ---
+        const PlayerColumn = ({ id, difficulty, isPlaying, onUpdateScore, currentRank, skinTone, t }) => {
+            const [totalScore, setTotalScore] = useState(0); 
+            const [startOfRound, setStartOfRound] = useState(0); 
+            const [currentVal, setCurrentVal] = useState(0);
+            const [problem, setProblem] = useState({ target: 0, display: "Ready" });
+            const [leftAnim, setLeftAnim] = useState(false);
+            const [rightAnim, setRightAnim] = useState(false);
+            const [status, setStatus] = useState('idle'); 
+            const [countdownNum, setCountdownNum] = useState(null);
+            
+            const waitTimerRef = useRef(null);
+            const countIntervalRef = useRef(null);
+            const currentDist = Math.abs(currentVal - startOfRound);
+
+            useEffect(() => {
+                if (isPlaying) {
+                    setTotalScore(0); setStartOfRound(0); setCurrentVal(0);
+                    setProblem(generateProblem(difficulty, 0, 1));
+                    resetTimers();
+                }
+            }, [isPlaying]);
+
+            const resetTimers = () => {
+                if (waitTimerRef.current) clearTimeout(waitTimerRef.current);
+                if (countIntervalRef.current) clearInterval(countIntervalRef.current);
+                setStatus('idle'); setCountdownNum(null);
+            };
+
+            useEffect(() => {
+                if (!isPlaying) return;
+                if (currentVal === problem.target) {
+                    if (status === 'idle') {
+                        setStatus('waiting');
+                        waitTimerRef.current = setTimeout(startCountdown, 1000);
+                    }
+                } else {
+                    if (status === 'waiting' || status === 'counting') resetTimers();
+                }
+            }, [currentVal, problem, isPlaying]);
+
+            const startCountdown = () => {
+                setStatus('counting');
+                let count = 3;
+                setCountdownNum(count);
+                playSound('count');
+                countIntervalRef.current = setInterval(() => {
+                    count--;
+                    if (count === 0) {
+                        clearInterval(countIntervalRef.current);
+                        handleSuccess();
+                    } else {
+                        setCountdownNum(count);
+                        playSound('count');
+                    }
+                }, 1000);
+            };
+
+            const handleSuccess = () => {
+                setStatus('success');
+                playSound('success');
+                const scoreGained = Math.abs(problem.target - startOfRound);
+                const newTotal = totalScore + scoreGained;
+                setTotalScore(newTotal);
+                onUpdateScore(id, newTotal); 
+                const nextStart = problem.target;
+                setStartOfRound(nextStart); 
+                setTimeout(() => {
+                    resetTimers();
+                    setProblem(generateProblem(difficulty, nextStart, newTotal + 2)); 
+                }, 500);
+            };
+
+            const handleTap = (delta) => {
+                if (!isPlaying || status === 'success') return;
+                playSound('step');
+                if (delta > 0) setRightAnim(p => !p); else setLeftAnim(p => !p);
+                setCurrentVal(p => Math.max(0, p + delta));
+            };
+
+            const themes = ["border-blue-500 bg-gradient-to-b from-blue-900/30 to-blue-900/10", "border-red-500 bg-gradient-to-b from-red-900/30 to-red-900/10", "border-green-500 bg-gradient-to-b from-green-900/30 to-green-900/10", "border-yellow-500 bg-gradient-to-b from-yellow-900/30 to-yellow-900/10"];
+
+            return (
+                <div className={`player-col h-full flex flex-col relative ${themes[id]} ${status === 'success' ? 'flash' : ''}`}>
+                    <div className="p-2 flex flex-col items-center border-b border-white/10 bg-black/20">
+                        <div className="flex items-center gap-2 w-full justify-between px-2">
+                            <div className="flex flex-col items-center">
+                                <span className="text-3xl">{skinTone}</span>
+                                <span className="text-xs text-gray-400">P{id+1}</span>
+                            </div>
+                            <div className="flex flex-col items-end">
+                                <span className="text-2xl text-yellow-400">{currentRank === 1 ? '🥇' : currentRank === 2 ? '🥈' : currentRank === 3 ? '🥉' : ''}</span>
+                                <span className="text-2xl text-white tabular-nums">{totalScore}m</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex-1 flex flex-col items-center justify-center p-2 relative">
+                        <div className="text-5xl bg-black/50 px-4 py-3 rounded-xl border border-white/10 w-full text-center mb-6">
+                            {problem.display === "준비" || problem.display === "Ready" ? (t.code === 'ko' ? "준비" : "Ready") : problem.display}
+                        </div>
+                        <div className="relative w-full flex justify-center items-center h-32">
+                            {status === 'counting' && <div className="absolute inset-0 flex items-center justify-center z-20"><span className="text-9xl text-yellow-300 drop-shadow-[0_0_10px_rgba(0,0,0,0.8)] anim-pop">{countdownNum}</span></div>}
+                            <span className="text-7xl md:text-8xl text-white">{currentVal}</span>
+                        </div>
+                    </div>
+                    <div className="w-full text-center pb-2 flex flex-col items-center gap-2">
+                        <div className="bg-gray-800/80 px-5 py-2 rounded-lg border border-gray-600">
+                            <span className="text-gray-400 text-lg mr-2">{t.distance}</span>
+                            <span className="text-white text-2xl">{currentDist}m</span>
+                        </div>
+                        <span className="text-lg text-yellow-200/90 bg-black/50 px-4 py-1 rounded-full animate-pulse border border-yellow-500/30">{t.stopMsg}</span>
+                    </div>
+                    <div className="h-48 p-2 pb-6 grid grid-cols-2 gap-2">
+                        <button className="bg-gray-700 rounded-xl shadow-[0_4px_0_rgb(55,65,81)] btn-tap flex flex-col items-center justify-center overflow-hidden relative group" onPointerDown={(e) => { e.preventDefault(); handleTap(-1); }}>
+                            <span className="text-6xl filter-white transition-all duration-75">{leftAnim ? '🏃' : '🚶'}</span>
+                            <span className="absolute bottom-2 text-4xl text-white/50">-</span>
+                        </button>
+                        <button className="bg-gray-700 rounded-xl shadow-[0_4px_0_rgb(55,65,81)] btn-tap flex flex-col items-center justify-center overflow-hidden relative group" onPointerDown={(e) => { e.preventDefault(); handleTap(1); }}>
+                            <span className="text-6xl filter-red transition-all duration-75">{rightAnim ? '🏃‍♂️' : '🚶‍♂️'}</span>
+                            <span className="absolute bottom-2 text-4xl text-red-300">+</span>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [lang, setLang] = useState(getInitialLang);
+            const t = TRANSLATIONS[lang]; 
+
+            const [gameState, setGameState] = useState('menu'); 
+            const [startCount, setStartCount] = useState(null);
+            const [difficulty, setDifficulty] = useState('easy');
+            const [playerCount, setPlayerCount] = useState(4); 
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [scores, setScores] = useState([0,0,0,0]);
+            const [ranks, setRanks] = useState([1,1,1,1]);
+            const skinTones = ['🏃🏻', '🏃🏼', '🏃🏾', '🏃🏿'];
+            const timerRef = useRef(null);
+
+            // 언어 변경 함수
+            const changeLang = (newLang) => {
+                setLang(newLang);
+                localStorage.setItem('kingsmath_lang', newLang);
+                const url = new URL(window.location);
+                url.searchParams.set('lang', newLang);
+                window.history.pushState({}, '', url);
+            };
+
+            // 메타데이터 업데이트
+            useEffect(() => {
+                updateMetadata(lang);
+            }, [lang]);
+
+            const toggleFullScreen = () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch((err) => console.log(err));
+                } else {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                }
+            };
+            
+            // 🏠 전체화면 대응 홈버튼 로직
+            const goHome = () => {
+                if (document.fullscreenElement) {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    setGameState('menu');
+                    playSound('click');
+                } else {
+                    window.location.reload();
+                }
+            };
+
+            const handleScoreUpdate = (id, newScore) => {
+                setScores(prev => {
+                    const newScores = [...prev];
+                    newScores[id] = newScore;
+                    const activeScores = newScores.slice(0, playerCount);
+                    const sorted = activeScores.map((s, i) => ({s, i})).sort((a,b) => b.s - a.s);
+                    const newRanks = [...prev];
+                    let currentRank = 1;
+                    for(let i=0; i<sorted.length; i++) {
+                        if (i > 0 && sorted[i].s < sorted[i-1].s) currentRank = i + 1;
+                        newRanks[sorted[i].i] = currentRank;
+                    }
+                    setRanks(newRanks);
+                    return newScores;
+                });
+            };
+
+            const prepareGame = () => {
+                setGameState('starting');
+                let count = 3;
+                setStartCount(count);
+                playSound('gostart');
+                const startInterval = setInterval(() => {
+                    count--;
+                    if (count === 0) {
+                        setStartCount("GO!"); playSound('gostart');
+                    } else if (count < 0) {
+                        clearInterval(startInterval); startGame();
+                    } else {
+                        setStartCount(count); playSound('gostart');
+                    }
+                }, 1000);
+            };
+
+            const startGame = () => {
+                setGameState('playing');
+                setTimeLeft(60);
+                setScores(new Array(4).fill(0));
+                setRanks(new Array(4).fill(1));
+                if (timerRef.current) clearInterval(timerRef.current);
+                timerRef.current = setInterval(() => {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) { clearInterval(timerRef.current); setGameState('result'); return 0; }
+                        return prev - 1;
+                    });
+                }, 1000);
+            };
+
+            return (
+                <div id="game-container" className="w-full h-screen flex flex-col bg-gray-900 overflow-hidden relative">
+                    
+                    {/* 상단 다국어 선택기 연동 (메인 화면에서만 노출) */}
+                    <LanguageSelectorUI currentLang={lang} onSelectLang={changeLang} isVisible={gameState === 'menu'} />
+
+                    {/* 상단 배너 */}
+                    <a href="/" target="_self" className="w-full bg-indigo-600 text-white text-center py-2 text-base hover:bg-indigo-500 transition-colors z-50 shrink-0 shadow-md">
+                        {t.banner}
+                    </a>
+
+                    {/* 플로팅 버튼들 (메뉴 화면에서는 홈 버튼 숨김) */}
+                    {gameState !== 'menu' && (
+                        <button 
+                            onClick={goHome} 
+                            className="fixed left-4 top-1/2 -translate-y-1/2 z-[100] bg-gray-700/80 p-4 rounded-full shadow-xl hover:bg-gray-600 border-2 border-white/20 backdrop-blur-sm transition-all hover:scale-110"
+                            title={t.homeBtn}
+                        >
+                            <span className="text-3xl">🏠</span>
+                        </button>
+                    )}
+                    
+                    <button 
+                        onClick={toggleFullScreen} 
+                        className="fixed right-4 top-1/2 -translate-y-1/2 z-[100] bg-gray-700/80 p-4 rounded-full shadow-xl hover:bg-gray-600 border-2 border-white/20 backdrop-blur-sm transition-all hover:scale-110"
+                        title="FullScreen"
+                    >
+                        <span className="text-3xl">⛶</span>
+                    </button>
+
+                    {/* 게임 헤더 (타이머만 중앙 정렬) */}
+                    {(gameState === 'playing' || gameState === 'starting') && (
+                        <div className="w-full h-14 bg-gray-800 flex items-center justify-center px-4 border-b border-gray-700 shrink-0 z-40">
+                            <div className={`text-4xl font-bold tracking-widest ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+                                ⏰ {timeLeft}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 시작 카운트다운 */}
+                    {gameState === 'starting' && (
+                        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm top-0">
+                            <div className="text-[12rem] text-yellow-400 animate-bounce">{startCount}</div>
+                        </div>
+                    )}
+
+                    {/* 게임 영역 */}
+                    {(gameState === 'playing' || gameState === 'starting') && (
+                        <div className="flex-1 w-full flex overflow-hidden pt-2">
+                            {Array.from({ length: playerCount }).map((_, i) => (
+                                <div key={i} className="flex-1 h-full">
+                                    <PlayerColumn id={i} difficulty={difficulty} isPlaying={gameState === 'playing'} onUpdateScore={handleScoreUpdate} currentRank={ranks[i]} skinTone={skinTones[i]} t={t} />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* 메뉴 화면 */}
+                    {gameState === 'menu' && (
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-4 bg-gray-900 p-4 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                                <div className="absolute top-10 left-10 text-9xl">🏃</div>
+                                <div className="absolute bottom-10 right-10 text-9xl">🏃‍♂️</div>
+                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-[20rem]">👑</div>
+                            </div>
+                            <div className="z-10 text-center space-y-1 mt-4">
+                                <h1 className="text-6xl md:text-8xl text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 italic transform -skew-x-12 px-4 leading-tight">{t.title}</h1>
+                                <p className="text-xl md:text-2xl text-gray-300 tracking-widest">{t.subtitle}</p>
+                            </div>
+                            
+                            <div className="z-10 w-full max-w-2xl bg-gray-800/90 backdrop-blur-md p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-700 flex flex-col items-center gap-6">
+                                <div className="text-gray-200 text-center text-lg bg-black/40 px-6 py-4 rounded-xl leading-relaxed border border-gray-600/50">
+                                    <p className="font-bold text-yellow-300 mb-1">{t.howToTitle}</p>
+                                    <span dangerouslySetInnerHTML={{__html: t.howToDesc1}}></span><br/>
+                                    <span dangerouslySetInnerHTML={{__html: t.howToDesc2}}></span><br/>
+                                    <span dangerouslySetInnerHTML={{__html: t.howToDesc3}}></span><br/>
+                                    <span className="text-sm text-gray-400 mt-2 block">{t.howToTip}</span>
+                                </div>
+
+                                <div className="w-full">
+                                    <label className="block text-lg text-gray-300 mb-2 text-center">{t.players}</label>
+                                    <div className="flex gap-3 justify-center">
+                                        {[1, 2, 3, 4].map(num => (
+                                            <button key={num} onClick={() => setPlayerCount(num)} className={`w-16 h-16 rounded-xl text-2xl transition-all ${playerCount === num ? 'bg-blue-600 text-white ring-4 ring-blue-900 scale-110' : 'bg-gray-700 text-gray-500 hover:bg-gray-600'}`}>{num}{t.unitPerson}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="w-full">
+                                    <label className="block text-lg text-gray-300 mb-2 text-center">{t.difficulty}</label>
+                                    <div className="flex justify-center gap-3 flex-wrap">
+                                        <button onClick={() => setDifficulty('easy')} className={`px-4 py-3 rounded-lg text-sm transition-all ${difficulty === 'easy' ? 'bg-green-600 text-white ring-2 ring-green-900 scale-105' : 'bg-gray-700 text-gray-400'}`}>{t.diffEasy}</button>
+                                        <button onClick={() => setDifficulty('normal')} className={`px-4 py-3 rounded-lg text-sm transition-all ${difficulty === 'normal' ? 'bg-yellow-600 text-white ring-2 ring-yellow-900 scale-105' : 'bg-gray-700 text-gray-400'}`}>{t.diffNormal}</button>
+                                        <button onClick={() => setDifficulty('hard')} className={`px-4 py-3 rounded-lg text-sm transition-all ${difficulty === 'hard' ? 'bg-red-600 text-white ring-2 ring-red-900 scale-105' : 'bg-gray-700 text-gray-400'}`}>{t.diffHard}</button>
+                                    </div>
+                                </div>
+                                <button onClick={prepareGame} className="px-20 w-auto py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-3xl rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg whitespace-nowrap">{t.startBtn}</button>
+                                <a href="/" target="_self" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm bg-gray-700/50 px-4 py-2 rounded-full hover:bg-gray-700"><span>{t.moreGames}</span></a>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 결과 화면 */}
+                    {gameState === 'result' && (
+                        <div className="flex-1 flex flex-col items-center justify-center bg-black/95 p-10 z-50">
+                            <Confetti />
+                            <h2 className="text-6xl text-yellow-400 mb-12 animate-bounce z-50">{t.resultTitle}</h2>
+                            <div className="flex flex-wrap justify-center gap-6 w-full max-w-6xl z-50">
+                                {Array.from({length: playerCount}).map((_, idx) => {
+                                    const rank = ranks[idx];
+                                    const isWinner = rank === 1;
+                                    return (
+                                        <div key={idx} className={`p-8 rounded-3xl flex flex-col items-center justify-center relative min-w-[200px] ${isWinner ? 'bg-gradient-to-b from-yellow-500 to-orange-600 scale-110 z-10 shadow-[0_0_50px_rgba(255,215,0,0.5)]' : 'bg-gray-800'}`}>
+                                            {isWinner && <div className="text-6xl absolute -top-10 animate-bounce">👑</div>}
+                                            <div className="text-5xl mb-2">{skinTones[idx]}</div>
+                                            <div className="text-2xl mb-2 text-white/80">P{idx+1}</div>
+                                            <div className="text-6xl text-white mb-2">{scores[idx]}m</div>
+                                            <div className="text-3xl text-white/90">{rank}{t.rankSuffix}</div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="mt-16 flex flex-col items-center gap-4 z-50">
+                                <button onClick={goHome} className="px-12 py-4 bg-white text-gray-900 text-2xl rounded-full hover:bg-gray-200 transition-colors shadow-xl">{t.homeBtn}</button>
+                                <a href="/" target="_self" className="text-gray-400 hover:text-white transition-colors">{t.moreGames} ➡</a>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

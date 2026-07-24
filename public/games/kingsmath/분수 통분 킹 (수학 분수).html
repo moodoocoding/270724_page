@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2b2b2b">
+    
+    <meta id="meta-desc" name="description" content="통분킹 - 크기가 같은 분수 찾기 대결">
+    <meta id="meta-keywords" name="keywords" content="통분킹, 수학게임, 분수게임, 킹수학, 초등수학">
+    <meta property="og:type" content="website">
+    <meta id="og-title" property="og:title" content="통분킹 👑">
+    <meta id="og-desc" property="og:description" content="친구들과 함께하는 크기가 같은 분수 연결 대결, 통분킹!">
+    
+    <title id="page-title">통분킹 👑</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================
+           [모달 및 언어 선택기 전용 CSS (독립 격리)] 
+           ========================================= */
+        #langModal, #langModal * { box-sizing: border-box !important; }
+        
+        #langSelectorContainer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 99999 !important; /* 최고 수준 Z-index */
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99999 !important; /* 최고 수준 Z-index */
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95) translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        .toast {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 99999 !important; /* 최고 수준 Z-index */
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* 폰트어썸 아이콘 깨짐 방지 강제 적용 */
+        .fa-solid, .fa-regular, .fas, .far {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900;
+        }
+
+        /* =========================================
+           [기존 게임 전용 CSS (원형 유지)] 
+           ========================================= */
+        :root {
+            --bg-color: #2b2b2b;
+            --card-bg: #3a3a3a;
+            --text-color: #f0f0f0;
+            --accent-color: #FFD93D;
+            --btn-active: #6c5ce7;
+            --correct-color: #00cec9;
+            --wrong-color: #ff7675;
+            --border-color: #555;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            touch-action: none; 
+        }
+
+        body {
+            margin: 0; padding: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 기타 언어 설정 시 폰트 모양 보정 */
+        body.lang-non-ko { font-family: 'Arial', sans-serif; }
+        body.lang-zh { font-family: 'Microsoft YaHei', sans-serif; }
+        body.lang-ja { font-family: 'Meiryo', sans-serif; }
+        body.lang-ko { font-family: 'Jua', 'Noto Sans KR', sans-serif; }
+
+        header {
+            background-color: #1e1e1e;
+            padding: 0 20px;
+            height: 70px; 
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 100;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .header-title {
+            position: absolute;
+            left: 20px;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            text-shadow: 1px 1px 0 #000;
+            font-weight: normal;
+        }
+
+        #timer-display {
+            font-size: 2.5rem;
+            color: #fff;
+            background: #444;
+            padding: 2px 30px;
+            border-radius: 15px;
+            border: 5px solid #888; 
+            min-width: 120px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        #timer-display.urgent {
+            color: #ff7675;
+            border-color: #ff7675;
+            animation: blink 0.5s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        #app-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: calc(100% - 70px);
+        }
+
+        .ranking-bar {
+            width: 100%;
+            height: 40px;
+            background: #252525;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            color: #fff;
+            font-size: 1.2rem;
+            z-index: 20;
+            pointer-events: none;
+            flex-shrink: 0;
+        }
+        .rank-item { display: flex; align-items: center; gap: 5px; }
+        .rank-item span { color: var(--accent-color); font-weight: bold; }
+
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-color);
+            z-index: 200;
+        }
+
+        .start-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 3px solid #444;
+            text-align: center;
+            max-width: 90%;
+            width: 500px;
+            transition: all 0.3s;
+        }
+
+        .top-banner-link {
+            color: #FFD93D;
+            text-decoration: none;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            display: block;
+            font-weight: bold;
+        }
+        .top-banner-link:hover { text-decoration: underline; }
+
+        .footer-link {
+            color: #888;
+            text-decoration: none;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            display: inline-block;
+            border-bottom: 1px solid #555;
+            transition: color 0.2s;
+        }
+        .footer-link:hover { color: #fff; border-color: #fff; }
+
+        h1 { 
+            margin: 0 0 20px 0; 
+            font-size: 3rem;
+            color: #fff; 
+            text-shadow: 3px 3px 0 #000; 
+            line-height: 1.2; 
+            font-weight: normal;
+            transition: font-size 0.3s;
+        }
+        h1.long-text { font-size: 2.2rem; }
+        h1.extra-long-text { font-size: 1.8rem; }
+
+        .option-group { display: flex; gap: 10px; margin: 20px 0; justify-content: center; }
+        .btn-option {
+            padding: 10px 20px;
+            font-size: 1.2rem;   
+            border: 2px solid #555;
+            background: #222;
+            color: #aaa;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-option.selected {
+            background-color: var(--btn-active);
+            color: white;
+            border-color: var(--btn-active);
+            transform: scale(1.05);
+            box-shadow: 0 0 10px var(--btn-active);
+        }
+
+        #btn-start {
+            width: 100%;
+            padding: 15px;
+            font-size: 2rem;
+            background-color: var(--wrong-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 6px 0 #d63031;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        .guide-box {
+            background:#222; padding:15px; border-radius:10px; margin-top:20px; text-align:left; font-size:0.9rem; color:#ccc;
+            line-height: 1.4;
+        }
+        .guide-box b { color: #fff; }
+
+        #game-screen {
+            display: none; 
+            width: 100%;
+            flex: 1; 
+            flex-direction: row;
+            overflow: hidden;
+            justify-content: center; 
+        }
+
+        .player-area {
+            flex: 0 0 25%; 
+            border-right: 2px solid #444;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #2b2b2b;
+            overflow: hidden;
+            height: 100%;
+        }
+        .player-area:last-child { border-right: 2px solid #444; } 
+
+        .p-theme-0 { --p-color: #00cec9; background: rgba(0, 206, 201, 0.05); }
+        .p-theme-1 { --p-color: #fdcb6e; background: rgba(253, 203, 110, 0.05); }
+        .p-theme-2 { --p-color: #ff7675; background: rgba(255, 118, 117, 0.05); }
+        .p-theme-3 { --p-color: #a29bfe; background: rgba(162, 155, 254, 0.05); }
+
+        .info-area {
+            height: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 2px dashed rgba(255,255,255,0.1);
+        }
+
+        .player-header {
+            width: 100%;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            padding: 5px 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            gap: 5px;
+        }
+        .p-name { font-size: 2rem; color: var(--p-color); font-weight: bold; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .p-score { font-size: 2.5rem; color: white; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); transition: color 0.3s; }
+
+        .character-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        .animal-icon { font-size: 3.5rem; margin-bottom: 5px; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .combo-box {
+            background: #444;
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid var(--p-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            padding: 5px 15px;
+            min-width: 120px;
+            transition: transform 0.2s;
+        }
+        .combo-box.high-combo {
+            background: var(--wrong-color);
+            border-color: #fff;
+            animation: pulse 0.5s infinite alternate;
+        }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+        
+        .combo-label { font-size: 1rem; color: #aaa; margin-bottom: 0px; }
+        .combo-box.high-combo .combo-label { color: #fff; font-weight: bold; }
+        .combo-num { font-size: 3rem; font-weight: bold; color: white; line-height: 1; text-shadow: 2px 2px 0 #000; }
+
+        .game-board {
+            height: 60%;
+            display: flex;
+            position: relative; 
+            padding: 10px 20px; 
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .num-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around; 
+            height: 100%;
+            width: 70px;
+            z-index: 5;
+            padding: 5px 0;
+        }
+
+        .num-btn {
+            width: 65px; height: 65px;
+            background: #333;
+            border: 3px solid #555;
+            border-radius: 15px;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none; 
+            position: relative;
+            transition: transform 0.1s, opacity 0.3s;
+        }
+        
+        .num-btn.active {
+            background: var(--p-color);
+            color: #000;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+        .num-btn.matched { 
+            background: var(--correct-color); 
+            border-color: #fff; 
+            transform: scale(1.3); 
+            opacity: 0;
+            pointer-events: none;
+        }
+        .num-btn.wrong { background: var(--wrong-color); animation: shake 0.3s; }
+
+        .frac {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            pointer-events: none;
+            line-height: 1;
+        }
+        .frac .f-num { font-size: 1.4rem; margin-bottom: 2px; }
+        .frac .f-den { font-size: 1.4rem; border-top: 2px solid currentColor; width: 60%; text-align: center; padding-top: 2px; }
+
+        .svg-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; 
+            z-index: 4;
+        }
+        .drag-path {
+            stroke-width: 8; 
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+        .result-path {
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            opacity: 1;
+            transition: stroke 0.2s, opacity 0.3s;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #FFD93D;
+            text-shadow: 2px 2px 4px #000;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-50px) scale(1.5); } }
+
+        .result-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); 
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .medal { font-size: 8rem; margin-bottom: 10px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .rank-text { font-size: 4rem; color: white; font-weight: bold; }
+        .final-score { font-size: 2.5rem; color: var(--accent-color); margin-top: 20px; }
+
+        #global-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+        #global-overlay.transparent-bg { background: rgba(0,0,0,0) !important; pointer-events: none; }
+        #global-overlay.transparent-bg button, #global-overlay.transparent-bg a { pointer-events: auto; }
+
+        #countdown-txt { font-size: 8rem; color: var(--accent-color); font-weight: bold; }
+
+        .restart-container {
+            position: absolute;
+            bottom: 10%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 600;
+        }
+
+        .floating-btn {
+            position: absolute;
+            top: 25vh; 
+            width: 60px; height: 60px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid #666;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8rem;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; 
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+        .floating-btn:hover { transform: scale(1.1); background: rgba(0,0,0,0.8); }
+        .floating-btn:active { transform: scale(0.95); }
+
+        #btn-home { left: 10px; }
+        #btn-fs { right: 10px; }
+
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        @media (max-width: 768px) {
+            .header-title { font-size: 1.2rem; }
+            .num-btn { width: 50px; height: 50px; }
+            .frac .f-num, .frac .f-den { font-size: 1.1rem; }
+            .combo-num { font-size: 2.2rem; }
+            .p-name { font-size: 1.5rem; }
+            .p-score { font-size: 1.8rem; }
+            .animal-icon { font-size: 2.5rem; }
+            .ranking-bar { font-size: 1rem; }
+            .floating-btn { width: 45px; height: 45px; font-size: 1.2rem; top: 80px; }
+            #langSelectorContainer { top: 10px; right: 10px; }
+        }
+    </style>
+</head>
+<body class="lang-ko">
+
+    <div id="langSelectorContainer">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/80 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg text-white">
+            <i class="fa-solid fa-globe text-gray-300"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-300 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden font-sans">
+            
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-gray-900">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p>No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+    <header>
+        <div class="header-title" id="header-title-text">통분킹 👑</div>
+        <div id="timer-display">60</div>
+    </header>
+
+    <div id="app-container">
+        
+        <div class="ranking-bar" id="ranking-bar" style="display:none;"></div>
+
+        <div id="start-screen">
+            <div class="start-card">
+                <a href="https://킹수학.com" class="top-banner-link" id="top-link" target="_self">게임으로 수학의 킹이 되어라. 킹수학.com</a>
+
+                <h1 id="main-title">통분킹 👑</h1>
+                
+                <p style="color:#aaa; margin-bottom:10px;" id="player-select-text">플레이어 수 선택</p>
+                <div class="option-group" id="player-options">
+                    <div class="btn-option selected" onclick="selectPlayer(1)" id="p1-text">1인</div>
+                    <div class="btn-option" onclick="selectPlayer(2)" id="p2-text">2인</div>
+                    <div class="btn-option" onclick="selectPlayer(3)" id="p3-text">3인</div>
+                    <div class="btn-option" onclick="selectPlayer(4)" id="p4-text">4인</div>
+                </div>
+
+                <div class="guide-box">
+                    <span id="guide-title">📢 <b>게임 방법</b></span><br>
+                    <span id="guide-1">1. 양쪽에 <b>크기가 같은 분수</b>들이 나타납니다.</span><br>
+                    <span id="guide-2">2. 왼쪽과 오른쪽 분수 중 크기가 같은 것을 찾아 <b>드래그하여 선으로 연결</b>하세요.</span><br>
+                    <span id="guide-3">3. 정답이면 분수가 터지며 점수 획득! 5쌍을 모두 터트리면 새 문제가 나옵니다.</span><br>
+                    <span id="guide-4">4. <b>3콤보 이상부터는 보너스 점수</b>(+10점)가 주어집니다! (틀리면 -5점)</span>
+                </div>
+
+                <button id="btn-start" onclick="initGame()">게임 시작! 🚀</button>
+
+                <a href="/" class="footer-link" id="more-games-link" target="_self">🎮 다른 게임 고르기</a>
+            </div>
+        </div>
+
+        <div id="game-screen"></div>
+
+        <div id="floating-btns" style="display:none;">
+            <div id="btn-home" class="floating-btn" title="Home">🏠</div>
+            <div id="btn-fs" class="floating-btn" onclick="toggleFullScreen()" title="Full Screen">⛶</div>
+        </div>
+
+        <div id="global-overlay">
+            <div id="countdown-txt">3</div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 16개국 국제화(i18n) 데이터 ---
+        const langData = {
+            'ko': {
+                title: "통분킹 👑",
+                metaDesc: "통분킹 - 크기가 같은 분수 찾기 대결",
+                topLinkText: "게임으로 수학의 킹이 되어라. 킹수학.com",
+                topLinkDomain: "/",
+                selectPlayer: "플레이어 수 선택",
+                p1: "1인", p2: "2인", p3: "3인", p4: "4인",
+                guideTitle: "📢 <b>게임 방법</b>",
+                guide1: "1. 양쪽에 <b>크기가 같은 분수</b>들이 나타납니다.",
+                guide2: "2. 서로 크기가 같은 분수를 <b>드래그하여 선으로 연결</b>하세요.",
+                guide3: "3. 5쌍을 모두 연결하면 새로운 분수가 나옵니다.",
+                guide4: "4. <b>3연속 정답(콤보)부터 보너스 점수!</b> (틀리면 -5점)",
+                startBtn: "게임 시작! 🚀",
+                moreGames: "🎮 다른 게임 고르기",
+                score: "점",
+                targetLabel: "COMBO",
+                restartBtn: "다시하기 🔄",
+                rankFormat: "위",
+                animals: ['강아지', '고양이', '토끼', '햄스터']
+            },
+            'en': {
+                title: "Equivalent Fraction King 👑",
+                metaDesc: "Equivalent Fraction King - Math Battle",
+                topLinkText: "Become the King of Math. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Select Players",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P",
+                guideTitle: "📢 <b>How to Play</b>",
+                guide1: "1. Find <b>Equivalent Fractions</b> on both sides.",
+                guide2: "2. <b>Draw a line</b> to connect them.",
+                guide3: "3. Connect all 5 pairs to get new fractions.",
+                guide4: "4. <b>Bonus points for 3+ Combos!</b> (-5 pts for wrong match)",
+                startBtn: "Start Game! 🚀",
+                moreGames: "🎮 More Games",
+                score: "Pts",
+                targetLabel: "COMBO",
+                restartBtn: "Restart 🔄",
+                rankFormat: "", 
+                animals: ['Dog', 'Cat', 'Rabbit', 'Hamster']
+            },
+            'zh': {
+                title: "等值分数王 👑",
+                metaDesc: "等值分数王 - 与朋友的数学对决",
+                topLinkText: "通过游戏成为数学之王。KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "选择玩家人数",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人",
+                guideTitle: "📢 <b>游戏方法</b>",
+                guide1: "1. 两侧会出现<b>等值分数</b>。",
+                guide2: "2. <b>画线</b>连接大小相等的分数。",
+                guide3: "3. 连对5对后会生成新的分数。",
+                guide4: "4. <b>3连击以上获得额外分数！</b> (答错扣5分)",
+                startBtn: "开始游戏! 🚀",
+                moreGames: "🎮 更多游戏",
+                score: "分",
+                targetLabel: "连击",
+                restartBtn: "重玩 🔄",
+                rankFormat: "名",
+                animals: ['小狗', '小猫', '兔子', '仓鼠']
+            },
+            'ja': {
+                title: "通分王(つうぶんおう) 👑",
+                metaDesc: "通分王 - 友達と一緒に分数対決",
+                topLinkText: "ゲームで数学の王様になろう。KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "人数を選択",
+                p1: "1人", p2: "2人", p3: "3人", p4: "4人",
+                guideTitle: "📢 <b>遊び方</b>",
+                guide1: "1. 両側に<b>大きさが同じ分数</b>が現れます。",
+                guide2: "2. 等しい分数を<b>線でつないで</b>ください。",
+                guide3: "3. 5ペアすべてをつなぐと新しい問題が出ます。",
+                guide4: "4. <b>3コンボ以上でボーナス得点！</b> (間違うと-5点)",
+                startBtn: "スタート! 🚀",
+                moreGames: "🎮 他のゲーム",
+                score: "点",
+                targetLabel: "コンボ",
+                restartBtn: "もう一度 🔄",
+                rankFormat: "位",
+                animals: ['イヌ', 'ネコ', 'ウサギ', 'ハムスター']
+            },
+            'es': {
+                title: "Rey de Fracciones 👑",
+                metaDesc: "Rey de las Fracciones Equivalentes - Batalla Matemática",
+                topLinkText: "Conviértete en el Rey de las Matemáticas. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Seleccionar Jugadores",
+                p1: "1J", p2: "2J", p3: "3J", p4: "4J",
+                guideTitle: "📢 <b>Cómo Jugar</b>",
+                guide1: "1. Encuentra <b>Fracciones Equivalentes</b> en ambos lados.",
+                guide2: "2. <b>Dibuja una línea</b> para conectarlas.",
+                guide3: "3. Conecta los 5 pares para obtener nuevas fracciones.",
+                guide4: "4. <b>¡Puntos extra por 3+ Combos!</b> (-5 pts por error)",
+                startBtn: "¡Empezar Juego! 🚀",
+                moreGames: "🎮 Más Juegos",
+                score: "Pts",
+                targetLabel: "COMBO",
+                restartBtn: "Reiniciar 🔄",
+                rankFormat: "º",
+                animals: ['Perro', 'Gato', 'Conejo', 'Hámster']
+            },
+            'fr': {
+                title: "Roi des Fractions 👑",
+                metaDesc: "Roi des Fractions Équivalentes - Bataille Mathématique",
+                topLinkText: "Devenez le Roi des Mathématiques. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Joueurs",
+                p1: "1J", p2: "2J", p3: "3J", p4: "4J",
+                guideTitle: "📢 <b>Comment Jouer</b>",
+                guide1: "1. Trouvez des <b>Fractions Équivalentes</b> des deux côtés.",
+                guide2: "2. <b>Dessinez une ligne</b> pour les connecter.",
+                guide3: "3. Connectez les 5 paires pour obtenir de nouvelles fractions.",
+                guide4: "4. <b>Points bonus pour 3+ Combos !</b> (-5 pts par erreur)",
+                startBtn: "Démarrer ! 🚀",
+                moreGames: "🎮 Plus de Jeux",
+                score: "Pts",
+                targetLabel: "COMBO",
+                restartBtn: "Rejouer 🔄",
+                rankFormat: "e",
+                animals: ['Chien', 'Chat', 'Lapin', 'Hamster']
+            },
+            'ru': {
+                title: "Король Дробей 👑",
+                metaDesc: "Король Эквивалентных Дробей - Математическая Битва",
+                topLinkText: "Станьте королем математики. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Выбрать Игроков",
+                p1: "1И", p2: "2И", p3: "3И", p4: "4И",
+                guideTitle: "📢 <b>Как Играть</b>",
+                guide1: "1. Найдите <b>Равные Дроби</b> с обеих сторон.",
+                guide2: "2. <b>Проведите линию</b>, чтобы соединить их.",
+                guide3: "3. Соедините все 5 пар, чтобы получить новые дроби.",
+                guide4: "4. <b>Бонус за 3+ Комбо!</b> (-5 очков за ошибку)",
+                startBtn: "Начать Игру! 🚀",
+                moreGames: "🎮 Больше Игр",
+                score: " Очк",
+                targetLabel: "КОМБО",
+                restartBtn: "Заново 🔄",
+                rankFormat: " место",
+                animals: ['Собака', 'Кот', 'Кролик', 'Хомяк']
+            },
+            'id': {
+                title: "Raja Pecahan 👑",
+                metaDesc: "Raja Pecahan Senilai - Pertarungan Matematika",
+                topLinkText: "Jadilah Raja Matematika. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Pilih Pemain",
+                p1: "1P", p2: "2P", p3: "3P", p4: "4P",
+                guideTitle: "📢 <b>Cara Bermain</b>",
+                guide1: "1. Temukan <b>Pecahan Senilai</b> di kedua sisi.",
+                guide2: "2. <b>Tarik garis</b> untuk menghubungkannya.",
+                guide3: "3. Hubungkan semua 5 pasang untuk soal baru.",
+                guide4: "4. <b>Poin bonus untuk 3+ Kombo!</b> (-5 poin jika salah)",
+                startBtn: "Mulai Game! 🚀",
+                moreGames: "🎮 Game Lainnya",
+                score: " Poin",
+                targetLabel: "KOMBO",
+                restartBtn: "Ulangi 🔄",
+                rankFormat: "",
+                animals: ['Anjing', 'Kucing', 'Kelinci', 'Hamster']
+            },
+            'vi': {
+                title: "Vua Phân Số 👑",
+                metaDesc: "Vua Phân Số Bằng Nhau - Trận chiến Toán học",
+                topLinkText: "Trở thành Vua Toán Học. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Chọn Người chơi",
+                p1: "1 Ng", p2: "2 Ng", p3: "3 Ng", p4: "4 Ng",
+                guideTitle: "📢 <b>Cách chơi</b>",
+                guide1: "1. Tìm các <b>Phân số bằng nhau</b> ở hai bên.",
+                guide2: "2. <b>Vẽ đường nối</b> để kết nối chúng.",
+                guide3: "3. Nối đủ 5 cặp để nhận các phân số mới.",
+                guide4: "4. <b>Điểm thưởng cho 3+ Combo!</b> (-5 điểm nếu sai)",
+                startBtn: "Bắt đầu! 🚀",
+                moreGames: "🎮 Thêm Trò chơi",
+                score: " Điểm",
+                targetLabel: "COMBO",
+                restartBtn: "Chơi lại 🔄",
+                rankFormat: "",
+                animals: ['Chó', 'Mèo', 'Thỏ', 'Chuột']
+            },
+            'th': {
+                title: "ราชาเศษส่วน 👑",
+                metaDesc: "ราชาเศษส่วนที่เท่ากัน - การต่อสู้ทางคณิตศาสตร์",
+                topLinkText: "มาเป็นราชาแห่งคณิตศาสตร์ KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "เลือกผู้เล่น",
+                p1: "1 คน", p2: "2 คน", p3: "3 คน", p4: "4 คน",
+                guideTitle: "📢 <b>วิธีเล่น</b>",
+                guide1: "1. ค้นหา <b>เศษส่วนที่เท่ากัน</b> ทั้งสองด้าน",
+                guide2: "2. <b>ลากเส้น</b> เพื่อเชื่อมต่อกัน",
+                guide3: "3. จับคู่ครบ 5 คู่เพื่อรับโจทย์ใหม่",
+                guide4: "4. <b>คะแนนพิเศษสำหรับ 3+ คอมโบ!</b> (-5 คะแนนหากตอบผิด)",
+                startBtn: "เริ่มเกม! 🚀",
+                moreGames: "🎮 เกมเพิ่มเติม",
+                score: " คะแนน",
+                targetLabel: "คอมโบ",
+                restartBtn: "เริ่มใหม่ 🔄",
+                rankFormat: "อันดับ",
+                animals: ['สุนัข', 'แมว', 'กระต่าย', 'หนูแฮมสเตอร์']
+            },
+            'pt-br': {
+                title: "Rei das Frações 👑",
+                metaDesc: "Rei das Frações Equivalentes - Batalha de Matemática",
+                topLinkText: "Torne-se o Rei da Matemática. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Selecionar Jogadores",
+                p1: "1J", p2: "2J", p3: "3J", p4: "4J",
+                guideTitle: "📢 <b>Como Jogar</b>",
+                guide1: "1. Encontre <b>Frações Equivalentes</b> em ambos os lados.",
+                guide2: "2. <b>Desenhe uma linha</b> para conectá-las.",
+                guide3: "3. Conecte os 5 pares para obter novas frações.",
+                guide4: "4. <b>Pontos bônus por 3+ Combos!</b> (-5 pts se errar)",
+                startBtn: "Iniciar Jogo! 🚀",
+                moreGames: "🎮 Mais Jogos",
+                score: " Pts",
+                targetLabel: "COMBO",
+                restartBtn: "Reiniciar 🔄",
+                rankFormat: "º",
+                animals: ['Cão', 'Gato', 'Coelho', 'Hamster']
+            },
+            'hi': {
+                title: "समतुल्य भिन्न राजा 👑",
+                metaDesc: "समतुल्य भिन्न राजा - गणित की लड़ाई",
+                topLinkText: "गणित के राजा बनें। KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "खिलाड़ी चुनें",
+                p1: "1 ख", p2: "2 ख", p3: "3 ख", p4: "4 ख",
+                guideTitle: "📢 <b>कैसे खेलें</b>",
+                guide1: "1. दोनों तरफ <b>समान भिन्न</b> खोजें।",
+                guide2: "2. उन्हें जोड़ने के लिए <b>एक रेखा खींचें</b>।",
+                guide3: "3. नए भिन्न प्राप्त करने के लिए सभी 5 जोड़े कनेक्ट करें।",
+                guide4: "4. <b>3+ कॉम्बो के लिए बोनस अंक!</b> (गलत होने पर -5 अंक)",
+                startBtn: "खेल शुरू! 🚀",
+                moreGames: "🎮 और खेल",
+                score: " अंक",
+                targetLabel: "कॉम्बो",
+                restartBtn: "पुनः आरंभ 🔄",
+                rankFormat: " स्थान",
+                animals: ['कुत्ता', 'बिल्ली', 'खरगोश', 'हम्सटर']
+            },
+            'bn': {
+                title: "সমতুল্য ভগ্নাংশ রাজা 👑",
+                metaDesc: "সমতুল্য ভগ্নাংশ রাজা - গণিত যুদ্ধ",
+                topLinkText: "গণিতের রাজা হন। KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "খেলোয়াড় নির্বাচন করুন",
+                p1: "১ জ", p2: "২ জ", p3: "৩ জ", p4: "৪ জ",
+                guideTitle: "📢 <b>কীভাবে খেলবেন</b>",
+                guide1: "1. উভয় পাশে <b>সমান ভগ্নাংশ</b> খুঁজুন।",
+                guide2: "2. সংযোগ করতে <b>একটি রেখা আঁকুন</b>।",
+                guide3: "3. নতুন ভগ্নাংশ পেতে সব ৫টি জোড়া মেলান।",
+                guide4: "4. <b>৩+ কম্বোর জন্য বোনাস পয়েন্ট!</b> (ভুলের জন্য -৫ পয়েন্ট)",
+                startBtn: "খেলা শুরু! 🚀",
+                moreGames: "🎮 আরও গেম",
+                score: " পয়েন্ট",
+                targetLabel: "কম্বো",
+                restartBtn: "পুনরায় খেলুন 🔄",
+                rankFormat: " স্থান",
+                animals: ['কুকুর', 'বিড়াল', 'খরগোশ', 'হ্যামস্টার']
+            },
+            'tr': {
+                title: "Denk Kesir Kralı 👑",
+                metaDesc: "Denk Kesir Kralı - Matematik Savaşı",
+                topLinkText: "Matematik Kralı Olun. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Oyuncu Seçimi",
+                p1: "1O", p2: "2O", p3: "3O", p4: "4O",
+                guideTitle: "📢 <b>Nasıl Oynanır</b>",
+                guide1: "1. Her iki tarafta da <b>Denk Kesirleri</b> bulun.",
+                guide2: "2. Bağlamak için <b>bir çizgi çizin</b>.",
+                guide3: "3. Yeni kesirler almak için 5 çifti de bağlayın.",
+                guide4: "4. <b>3+ Kombo için bonus puan!</b> (Yanlış eşleşmede -5 puan)",
+                startBtn: "Oyuna Başla! 🚀",
+                moreGames: "🎮 Daha Fazla Oyun",
+                score: " Puan",
+                targetLabel: "KOMBO",
+                restartBtn: "Yeniden 🔄",
+                rankFormat: ".",
+                animals: ['Köpek', 'Kedi', 'Tavşan', 'Hamster']
+            },
+            'de': {
+                title: "Bruch König 👑",
+                metaDesc: "König der Äquivalenten Brüche - Mathe-Schlacht",
+                topLinkText: "Werde der König der Mathematik. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Spieleranzahl",
+                p1: "1S", p2: "2S", p3: "3S", p4: "4S",
+                guideTitle: "📢 <b>Spielanleitung</b>",
+                guide1: "1. Finde <b>Äquivalente Brüche</b> auf beiden Seiten.",
+                guide2: "2. <b>Ziehe eine Linie</b>, um sie zu verbinden.",
+                guide3: "3. Verbinde alle 5 Paare für neue Brüche.",
+                guide4: "4. <b>Bonuspunkte ab 3 Combos!</b> (-5 Pkt. bei Fehler)",
+                startBtn: "Spiel Starten! 🚀",
+                moreGames: "🎮 Mehr Spiele",
+                score: " Pkt",
+                targetLabel: "COMBO",
+                restartBtn: "Neustart 🔄",
+                rankFormat: ".",
+                animals: ['Hund', 'Katze', 'Hase', 'Hamster']
+            },
+            'it': {
+                title: "Re delle Frazioni 👑",
+                metaDesc: "Re delle Frazioni Equivalenti - Battaglia di Matematica",
+                topLinkText: "Diventa il Re della Matematica. KingsMath.com",
+                topLinkDomain: "/",
+                selectPlayer: "Seleziona Giocatori",
+                p1: "1G", p2: "2G", p3: "3G", p4: "4G",
+                guideTitle: "📢 <b>Come Giocare</b>",
+                guide1: "1. Trova le <b>Frazioni Equivalenti</b> su entrambi i lati.",
+                guide2: "2. <b>Traccia una linea</b> per collegarle.",
+                guide3: "3. Collega tutte e 5 le coppie per nuove frazioni.",
+                guide4: "4. <b>Punti bonus per 3+ Combo!</b> (-5 p.ti per errore)",
+                startBtn: "Inizia Gioco! 🚀",
+                moreGames: "🎮 Più Giochi",
+                score: " P.ti",
+                targetLabel: "COMBO",
+                restartBtn: "Riavvia 🔄",
+                rankFormat: "º",
+                animals: ['Cane', 'Gatto', 'Coniglio', 'Criceto']
+            }
+        };
+
+        const toastTranslations = {
+            'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+            'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'id': 'Bahasa telah diubah.',
+            'vi': 'Ngôn ngữ đã thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.', 'hi': 'भाषा बदल दी गई है।',
+            'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.', 'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        let currentLang = 'ko';
+
+        /* ---------------- 언어 설정 및 감지 로직 ---------------- */
+        function getInitialLang() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('lang') && langData[urlParams.get('lang')]) return urlParams.get('lang');
+            const stored = localStorage.getItem('kingsmath_lang');
+            if (stored && langData[stored]) return stored;
+            const browserLang = navigator.language.slice(0, 2);
+            if (langData[browserLang]) return browserLang;
+            return 'en'; // 기본값 영어
+        }
+
+        function changeLanguage(langCode) {
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', langCode);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('lang', langCode);
+            window.history.pushState({}, '', url);
+            
+            applyLanguageUI();
+
+            const langObj = languages.find(l => l.code === langCode);
+            if(langObj) {
+                document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+                document.getElementById('currentLangName').textContent = langObj.name;
+                closeModal();
+                showToast(langObj.name, langObj.code);
+                renderLanguages(document.getElementById('searchInput').value);
+            }
+        }
+
+        function applyLanguageUI() {
+            const data = langData[currentLang];
+            
+            // SEO & Title 적용
+            document.title = data.title;
+            document.getElementById('page-title').innerText = data.title;
+            document.getElementById('meta-desc').setAttribute("content", data.metaDesc);
+            document.getElementById('og-title').setAttribute("content", data.title);
+            document.getElementById('og-desc').setAttribute("content", data.metaDesc);
+
+            // 본문 폰트 클래스 업데이트 (동적 폰트 변경 대응)
+            document.body.className = `lang-${currentLang}`;
+            if(!['ko','zh','ja'].includes(currentLang)) document.body.classList.add('lang-non-ko');
+
+            // 텍스트 반영
+            document.getElementById('header-title-text').innerText = data.title;
+            const mainTitle = document.getElementById('main-title');
+            mainTitle.innerText = data.title;
+            mainTitle.className = '';
+            if (data.title.length > 20) mainTitle.classList.add('extra-long-text');
+            else if (data.title.length > 13) mainTitle.classList.add('long-text');
+
+            const topLink = document.getElementById('top-link');
+            topLink.innerText = data.topLinkText;
+            topLink.href = data.topLinkDomain;
+
+            document.getElementById('player-select-text').innerText = data.selectPlayer;
+            document.getElementById('p1-text').innerText = data.p1;
+            document.getElementById('p2-text').innerText = data.p2;
+            document.getElementById('p3-text').innerText = data.p3;
+            document.getElementById('p4-text').innerText = data.p4;
+
+            document.getElementById('guide-title').innerHTML = data.guideTitle;
+            document.getElementById('guide-1').innerHTML = data.guide1;
+            document.getElementById('guide-2').innerHTML = data.guide2;
+            document.getElementById('guide-3').innerHTML = data.guide3;
+            document.getElementById('guide-4').innerHTML = data.guide4;
+
+            document.getElementById('btn-start').innerText = data.startBtn;
+            
+            const moreGamesLink = document.getElementById('more-games-link');
+            moreGamesLink.innerText = data.moreGames;
+            moreGamesLink.href = data.topLinkDomain;
+
+            const restartBtn = document.querySelector('.restart-btn-dynamic');
+            if(restartBtn) restartBtn.innerText = data.restartBtn;
+            const moreGamesLinkDynamic = document.querySelector('.more-games-dynamic');
+            if(moreGamesLinkDynamic) moreGamesLinkDynamic.innerText = data.moreGames;
+        }
+
+        /* ---------------- 모달 스크립트 ---------------- */
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => changeLanguage(lang.code));
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showToast(langName, langCode) {
+            const toastMsg = toastTranslations[langCode] || toastTranslations['en'];
+            document.getElementById('ui-toast').textContent = toastMsg;
+            toastLangName.textContent = langName;
+            
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => { renderLanguages(e.target.value); });
+
+
+        /* ---------------- 오디오 시스템 ---------------- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); 
+                osc.frequency.setValueAtTime(659.25, now + 0.1); 
+                osc.frequency.setValueAtTime(783.99, now + 0.2); 
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(783.99, now + 0.1);
+                osc.frequency.setValueAtTime(1046.50, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.6);
+                osc.start(now); osc.stop(now + 0.6);
+            } else if (type === 'tick') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now); 
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            }
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+        }
+
+        /* ---------------- 게임 핵심 로직 (원형 보존) ---------------- */
+        let playerCount = 1;
+        let gameTime = 60;
+        let timerInterval = null;
+        let rankInterval = null;
+        let players = []; 
+        const animals = ['🐶', '🐱', '🐰', '🐹']; 
+        const themeColors = ['#00cec9', '#fdcb6e', '#ff7675', '#a29bfe'];
+        let activeDrags = {}; 
+
+        function selectPlayer(cnt) {
+            playerCount = cnt;
+            document.querySelectorAll('.btn-option').forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            playSound('click');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // 홈 버튼 클릭 로직 수정 (전체화면 지원)
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                clearInterval(timerInterval);
+                clearInterval(rankInterval);
+                
+                document.getElementById('langSelectorContainer').style.display = 'block';
+                document.getElementById('start-screen').style.display = 'flex';
+                document.getElementById('game-screen').style.display = 'none';
+                document.getElementById('game-screen').innerHTML = ''; 
+                document.getElementById('ranking-bar').style.display = 'none';
+                document.getElementById('global-overlay').style.display = 'none';
+                document.getElementById('global-overlay').classList.remove('transparent-bg');
+                document.getElementById('floating-btns').style.display = 'none';
+                
+                if(window.playSound) window.playSound('click');
+            } else {
+                location.reload();
+            }
+        });
+
+        function resetToHome() {
+            document.getElementById('btn-home').click(); // 모듈화하여 일치시킴
+        }
+
+        function initGame() {
+            playSound('click');
+            
+            // 게임 시작 시 언어 선택기 숨김
+            document.getElementById('langSelectorContainer').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'none';
+            
+            const gameScreen = document.getElementById('game-screen');
+            gameScreen.style.display = 'flex';
+            gameScreen.innerHTML = '';
+            
+            players = [];
+            for (let i = 0; i < playerCount; i++) {
+                players.push({
+                    id: i,
+                    score: 0,
+                    combo: 0,
+                    matchedCount: 0,
+                    lefts: [],
+                    rights: []
+                });
+                createPlayerUI(i);
+                generateProblem(i);
+            }
+
+            document.getElementById('ranking-bar').style.display = 'flex';
+            document.getElementById('floating-btns').style.display = 'block';
+            startCountdown();
+        }
+
+        function createPlayerUI(idx) {
+            const container = document.getElementById('game-screen');
+            const div = document.createElement('div');
+            div.className = `player-area p-theme-${idx}`;
+            div.id = `player-area-${idx}`;
+            
+            if(playerCount <= 2) {
+                div.style.flex = "0 0 33%"; 
+                div.style.maxWidth = "450px"; 
+                if(idx === 0) div.style.borderLeft = "2px solid #444";
+            } else {
+                div.style.flex = "1";
+                div.style.maxWidth = "none";
+                div.style.borderLeft = "none";
+            }
+
+            const data = langData[currentLang];
+            const animalName = data.animals[idx];
+
+            div.innerHTML = `
+                <div class="info-area">
+                    <div class="player-header">
+                        <span class="p-name">${animalName}</span>
+                        <span class="p-score" id="score-${idx}">0${data.score}</span>
+                    </div>
+                    <div class="character-zone">
+                        <div class="animal-icon">${animals[idx]}</div>
+                        <div class="combo-box" id="combo-box-${idx}">
+                            <div class="combo-label">${data.targetLabel}</div>
+                            <div class="combo-num" id="combo-${idx}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-board" id="board-${idx}">
+                    <div class="num-column left-col"></div>
+                    <svg class="svg-layer" id="svg-${idx}"></svg>
+                    <div class="num-column right-col"></div>
+                </div>
+
+                <div class="result-overlay" id="result-${idx}">
+                    <div class="medal" id="medal-${idx}"></div>
+                    <div class="rank-text" id="rank-text-${idx}"></div>
+                    <div class="final-score" id="final-score-${idx}"></div>
+                </div>
+            `;
+            container.appendChild(div);
+
+            const board = div.querySelector('.game-board');
+            board.addEventListener('pointerdown', handlePointerDown);
+            board.addEventListener('pointermove', handlePointerMove);
+            board.addEventListener('pointerup', handlePointerUp);
+        }
+
+        function generateProblem(pIdx) {
+            let lefts = [];
+            let values = new Set();
+            let denCounts = {};
+
+            while (lefts.length < 5) {
+                let den = Math.floor(Math.random() * 8) + 2;
+                let num = Math.floor(Math.random() * (den - 1)) + 1;
+                let val = num / den;
+
+                if (values.has(val)) continue;
+                if ((denCounts[den] || 0) >= 2) continue;
+
+                values.add(val);
+                denCounts[den] = (denCounts[den] || 0) + 1;
+                lefts.push({num, den, val});
+            }
+
+            let rights = lefts.map(f => {
+                let m = Math.floor(Math.random() * 8) + 2;
+                return {num: f.num * m, den: f.den * m, val: f.val};
+            });
+
+            lefts.sort(() => Math.random() - 0.5);
+            rights.sort(() => Math.random() - 0.5);
+
+            players[pIdx].lefts = lefts;
+            players[pIdx].rights = rights;
+            players[pIdx].matchedCount = 0;
+
+            renderFractions(pIdx);
+        }
+
+        function renderFractions(pIdx) {
+            const leftCol = document.querySelector(`#board-${pIdx} .left-col`);
+            const rightCol = document.querySelector(`#board-${pIdx} .right-col`);
+
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            players[pIdx].lefts.forEach((f, i) => {
+                leftCol.innerHTML += `
+                    <div class="num-btn" data-p="${pIdx}" data-side="left" data-val="${f.val}">
+                        <div class="frac"><div class="f-num">${f.num}</div><div class="f-den">${f.den}</div></div>
+                    </div>`;
+            });
+
+            players[pIdx].rights.forEach((f, i) => {
+                rightCol.innerHTML += `
+                    <div class="num-btn" data-p="${pIdx}" data-side="right" data-val="${f.val}">
+                        <div class="frac"><div class="f-num">${f.num}</div><div class="f-den">${f.den}</div></div>
+                    </div>`;
+            });
+        }
+
+        function showFloatingText(boardEl, x, y, text, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.color = color || '#FFD93D';
+            boardEl.appendChild(el);
+            setTimeout(() => { if(el.parentNode) el.parentNode.removeChild(el); }, 1000);
+        }
+
+        function startCountdown() {
+            const overlay = document.getElementById('global-overlay');
+            overlay.classList.remove('transparent-bg'); 
+            overlay.innerHTML = '<div id="countdown-txt">3</div>'; 
+            overlay.style.display = 'flex';
+            let count = 3;
+            document.getElementById('countdown-txt').innerText = count;
+            playSound('click');
+
+            const iv = setInterval(() => {
+                count--;
+                if(count > 0) {
+                    document.getElementById('countdown-txt').innerText = count;
+                    playSound('click');
+                } else if(count === 0) {
+                    document.getElementById('countdown-txt').innerText = "START!";
+                    playSound('correct');
+                } else {
+                    clearInterval(iv);
+                    overlay.style.display = 'none';
+                    startGameLoop();
+                }
+            }, 1000);
+        }
+
+        function startGameLoop() {
+            gameTime = 60;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                gameTime--;
+                updateTimerDisplay();
+                if (gameTime <= 5 && gameTime > 0) playSound('tick');
+                if(gameTime <= 0) endGame();
+            }, 1000);
+
+            rankInterval = setInterval(updateRankingBar, 1000);
+            updateRankingBar();
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer-display');
+            timerEl.innerText = gameTime;
+            if(gameTime <= 10) timerEl.classList.add('urgent');
+            else timerEl.classList.remove('urgent');
+        }
+
+        function handlePointerDown(e) {
+            if (gameTime <= 0) return;
+            const btn = e.target.closest('.num-btn');
+            if (!btn) return;
+
+            e.preventDefault(); 
+            const pIdx = parseInt(btn.dataset.p);
+            const side = btn.dataset.side;
+            const val = parseFloat(btn.dataset.val);
+            const svg = document.getElementById(`svg-${pIdx}`);
+            const boardRect = document.getElementById(`board-${pIdx}`).getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+
+            const startX = btnRect.left + btnRect.width / 2 - boardRect.left;
+            const startY = btnRect.top + btnRect.height / 2 - boardRect.top;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${startX} ${startY}`);
+            path.classList.add('drag-path');
+            path.setAttribute('stroke', themeColors[pIdx]);
+            svg.appendChild(path);
+
+            btn.classList.add('active');
+            playSound('click');
+
+            activeDrags[e.pointerId] = {
+                pIdx, startEl: btn, startSide: side, startVal: val,
+                pathEl: path, points: [{x: startX, y: startY}],
+                boardRect: boardRect, completed: false
+            };
+            btn.setPointerCapture(e.pointerId);
+        }
+
+        function handlePointerMove(e) {
+            const drag = activeDrags[e.pointerId];
+            if (!drag || drag.completed) return;
+            e.preventDefault();
+
+            const currentX = e.clientX - drag.boardRect.left;
+            const currentY = e.clientY - drag.boardRect.top;
+
+            drag.points.push({x: currentX, y: currentY});
+            const d = drag.pathEl.getAttribute('d') + ` L ${currentX} ${currentY}`;
+            drag.pathEl.setAttribute('d', d);
+
+            const hitElement = document.elementFromPoint(e.clientX, e.clientY);
+            const targetBtn = hitElement ? hitElement.closest('.num-btn') : null;
+
+            if (targetBtn && !targetBtn.classList.contains('matched')) {
+                const targetPIdx = parseInt(targetBtn.dataset.p);
+                const targetSide = targetBtn.dataset.side;
+                const targetVal = parseFloat(targetBtn.dataset.val);
+
+                if (targetPIdx === drag.pIdx && targetSide !== drag.startSide) {
+                    const isSuccess = Math.abs(drag.startVal - targetVal) < 0.0001;
+                    completeDrag(drag, targetBtn, isSuccess, e.pointerId);
+                }
+            }
+        }
+
+        function handlePointerUp(e) {
+            const drag = activeDrags[e.pointerId];
+            if (!drag) return;
+            e.preventDefault();
+            
+            if (!drag.completed) {
+                if (drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                drag.startEl.classList.remove('active');
+            }
+            if(drag.startEl && drag.startEl.hasPointerCapture(e.pointerId)) {
+                drag.startEl.releasePointerCapture(e.pointerId);
+            }
+            delete activeDrags[e.pointerId];
+        }
+
+        function completeDrag(drag, targetBtn, isSuccess, pointerId) {
+            drag.completed = true;
+            if(drag.startEl && pointerId) {
+                try { drag.startEl.releasePointerCapture(pointerId); } catch(e){}
+            }
+
+            const btnRect = targetBtn.getBoundingClientRect();
+            const endX = btnRect.left + btnRect.width / 2 - drag.boardRect.left;
+            const endY = btnRect.top + btnRect.height / 2 - drag.boardRect.top;
+            const d = drag.pathEl.getAttribute('d') + ` L ${endX} ${endY}`;
+            drag.pathEl.setAttribute('d', d);
+
+            const pIdx = drag.pIdx;
+            const boardEl = document.getElementById(`board-${pIdx}`);
+            const data = langData[currentLang];
+
+            if (isSuccess) {
+                drag.pathEl.classList.remove('drag-path');
+                drag.pathEl.classList.add('result-path');
+                drag.pathEl.setAttribute('stroke', '#ffffff');
+                
+                drag.startEl.classList.add('matched');
+                targetBtn.classList.add('matched');
+                
+                players[pIdx].combo++;
+                let comboBonus = players[pIdx].combo >= 3 ? 10 : 0;
+                let earnedScore = 10 + comboBonus;
+                players[pIdx].score += earnedScore;
+
+                showFloatingText(boardEl, endX - 20, endY - 20, `+${earnedScore}`, '#00cec9');
+                
+                const comboEl = document.getElementById(`combo-${pIdx}`);
+                const comboBox = document.getElementById(`combo-box-${pIdx}`);
+                comboEl.innerText = players[pIdx].combo;
+                if(players[pIdx].combo >= 3) comboBox.classList.add('high-combo');
+
+                document.getElementById(`score-${pIdx}`).innerText = players[pIdx].score + data.score;
+                playSound('correct');
+
+                setTimeout(() => {
+                    if(drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                    players[pIdx].matchedCount++;
+                    if (players[pIdx].matchedCount >= 5) {
+                        generateProblem(pIdx);
+                    }
+                }, 400);
+
+            } else {
+                drag.pathEl.setAttribute('stroke', '#ff7675'); 
+                drag.startEl.classList.add('wrong');
+                targetBtn.classList.add('wrong');
+                playSound('wrong');
+
+                players[pIdx].combo = 0;
+                players[pIdx].score = Math.max(0, players[pIdx].score - 5);
+                
+                showFloatingText(boardEl, endX - 20, endY - 20, `-5`, '#ff7675');
+
+                document.getElementById(`score-${pIdx}`).innerText = players[pIdx].score + data.score;
+                document.getElementById(`combo-${pIdx}`).innerText = players[pIdx].combo;
+                document.getElementById(`combo-box-${pIdx}`).classList.remove('high-combo');
+
+                setTimeout(() => {
+                    drag.startEl.classList.remove('active', 'wrong');
+                    targetBtn.classList.remove('active', 'wrong');
+                    if(drag.pathEl.parentNode) drag.pathEl.parentNode.removeChild(drag.pathEl);
+                }, 300);
+            }
+        }
+
+        function updateRankingBar() {
+            const sorted = [...players].sort((a,b) => b.score - a.score);
+            const bar = document.getElementById('ranking-bar');
+            const data = langData[currentLang];
+            
+            let html = '';
+            let currentRank = 1;
+            for(let i=0; i<sorted.length; i++) {
+                if (i > 0 && sorted[i].score < sorted[i-1].score) currentRank = i + 1;
+                
+                const p = sorted[i];
+                let rankStr = currentRank + data.rankFormat;
+                if(currentLang === 'en') {
+                    if(currentRank === 1) rankStr = "1st";
+                    else if(currentRank === 2) rankStr = "2nd";
+                    else if(currentRank === 3) rankStr = "3rd";
+                    else rankStr = currentRank + "th";
+                }
+
+                html += `<div class="rank-item"><span>${rankStr}</span> ${data.animals[p.id]}(${p.score})</div>`;
+                if(i < sorted.length -1) html += '<div style="color:#555">|</div>';
+            }
+            bar.innerHTML = html;
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            clearInterval(rankInterval);
+            playSound('win');
+
+            const sortedPlayers = [...players].sort((a,b) => b.score - a.score);
+            const data = langData[currentLang];
+            
+            let currentRank = 1;
+            for(let i=0; i<sortedPlayers.length; i++) {
+                if(i > 0 && sortedPlayers[i].score < sortedPlayers[i-1].score) currentRank = i + 1;
+                sortedPlayers[i].finalRank = currentRank;
+            }
+
+            players.forEach(p => {
+                const overlay = document.getElementById(`result-${p.id}`);
+                const medalEl = document.getElementById(`medal-${p.id}`);
+                const rankTxt = document.getElementById(`rank-text-${p.id}`);
+                const scoreTxt = document.getElementById(`final-score-${p.id}`);
+                
+                const rank = sortedPlayers.find(sp => sp.id === p.id).finalRank;
+                
+                let medal = '👏';
+                if(rank === 1) medal = '🥇';
+                else if(rank === 2) medal = '🥈';
+                else if(rank === 3) medal = '🥉';
+
+                let rankStr = rank + data.rankFormat;
+                if(currentLang === 'en') {
+                    if(rank === 1) rankStr = "1st";
+                    else if(rank === 2) rankStr = "2nd";
+                    else if(rank === 3) rankStr = "3rd";
+                    else rankStr = rank + "th";
+                }
+
+                medalEl.innerText = medal;
+                rankTxt.innerText = rankStr;
+                scoreTxt.innerText = `${p.score}${data.score}`;
+                overlay.style.display = 'flex';
+            });
+
+            const overlay = document.getElementById('global-overlay');
+            overlay.innerHTML = '';
+            overlay.style.display = 'flex';
+            overlay.classList.add('transparent-bg'); 
+
+            const container = document.createElement('div');
+            container.className = 'restart-container';
+
+            const restartBtn = document.createElement('button');
+            restartBtn.innerText = data.restartBtn;
+            restartBtn.className = 'restart-btn-dynamic'; 
+            restartBtn.style.padding = "15px 40px";
+            restartBtn.style.fontSize = "2rem";
+            restartBtn.style.borderRadius = "50px";
+            restartBtn.style.border = "none";
+            restartBtn.style.background = "#6c5ce7";
+            restartBtn.style.color = "white";
+            restartBtn.style.cursor = "pointer";
+            restartBtn.style.fontFamily = "inherit";
+            restartBtn.style.boxShadow = "0 5px 15px rgba(0,0,0,0.5)";
+            restartBtn.onclick = resetToHome;
+
+            const extraLink = document.createElement('a');
+            extraLink.innerText = data.moreGames;
+            extraLink.className = 'more-games-dynamic';
+            extraLink.href = data.topLinkDomain;
+            extraLink.target = "_self"; 
+            extraLink.style.color = "#fff";
+            extraLink.style.textDecoration = "none";
+            extraLink.style.fontSize = "1.2rem";
+            extraLink.style.textShadow = "1px 1px 2px black";
+            extraLink.style.fontWeight = "bold";
+
+            container.appendChild(restartBtn);
+            container.appendChild(extraLink);
+            overlay.appendChild(container);
+        }
+
+        /* ---------------- Init (최초 실행) ---------------- */
+        const initLang = getInitialLang();
+        const foundLang = languages.find(l => l.code === initLang);
+        if(foundLang) {
+            currentLang = initLang;
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${foundLang.country}.png`;
+            document.getElementById('currentLangName').textContent = foundLang.name;
+        }
+        applyLanguageUI();
+        renderLanguages();
+    </script>
+</body>
+</html>

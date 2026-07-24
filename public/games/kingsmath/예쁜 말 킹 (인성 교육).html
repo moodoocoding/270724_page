@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>  
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-5YW0T2C109');
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>예쁜 말 킹!</title>
+    <style>
+        /* --- 다크테마 & 네온 스타일 및 전자칠판 최적화 --- */
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; touch-action: none; 
+            
+            /* 전자칠판 터치/마우스 최적화 */
+            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            -webkit-touch-callout: none; 
+            
+            font-family: 'Malgun Gothic', sans-serif; 
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); 
+            color: #fff;
+        }
+
+        #game-board { display: flex; width: 100%; height: 100%; box-sizing: border-box; }
+        
+        .player-area { 
+            flex: 1; position: relative; height: 100%; box-sizing: border-box; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; 
+            padding-bottom: 40px; 
+        }
+        
+        #left-area { border-right: 2px dashed rgba(255, 255, 255, 0.2); background-color: rgba(0, 229, 255, 0.05); }
+        #right-area { background-color: rgba(255, 0, 127, 0.05); }
+
+        .score-board {
+            position: absolute; top: 100px; width: 100%;
+            text-align: center; font-size: 36px; font-weight: bold; z-index: 10;
+        }
+        #score-left-text { color: #00e5ff; text-shadow: 0 0 15px #00e5ff; }
+        #score-right-text { color: #ff007f; text-shadow: 0 0 15px #ff007f; }
+
+        #timer-display {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            font-size: 40px; font-weight: bold; color: #fff; z-index: 20;
+            background: rgba(0, 0, 0, 0.7); padding: 10px 40px;
+            border-radius: 20px; border: 2px solid #ffcc00; 
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.8); 
+        }
+
+        /* 3x3 카드 그리드 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 80%;
+            max-width: 420px;
+            margin-bottom: 30px;
+        }
+
+        .slot {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            aspect-ratio: 1; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+.card {
+            position: absolute; 
+            /* 슬롯의 테두리(2px)를 덮도록 위치와 크기 보정 */
+            top: -2px; 
+            left: -2px; 
+            width: calc(100% + 4px); 
+            height: calc(100% + 4px);
+            
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(30, 30, 30, 0.95); 
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            cursor: grab;
+            font-size: 20px; font-weight: bold; color: #fff; 
+            z-index: 50;
+            transition: transform 0.2s ease-out; 
+            
+            /* 테두리를 크기에 포함시켜 계산 */
+            box-sizing: border-box; 
+        }
+        
+        .card.dragging {
+            cursor: grabbing; transition: none; z-index: 999;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+        }
+        
+        /* 보너스 하트 전용 스타일 */
+        .bonus-heart {
+            width: 120px; height: 120px;
+            border-color: #ff3366; 
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.8);
+            z-index: 1000;
+        }
+        .bonus-text { color: #ff3366; font-size: 20px; font-weight: bold; }
+        .word-emoji { font-size: 34px; margin-bottom: 5px; }
+
+        /* 각각의 진영에 배치될 드롭존 컨테이너 */
+        .drop-zone-container {
+            position: relative; width: 95%; max-width: 500px;
+            display: flex; justify-content: space-around; pointer-events: none; 
+        }
+        
+        /* 3개가 들어가야 하므로 크기를 140px로 약간 줄임 */
+        .drop-zone {
+            width: 140px; height: 140px; 
+            border-radius: 25px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 22px; font-weight: bold; background-color: rgba(0, 0, 0, 0.6);
+            border: 4px solid #333; pointer-events: auto; z-index: 10;
+        }
+
+        .zone-friend { border-color: #00ffcc; color: #00ffcc; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4), inset 0 0 20px rgba(0, 255, 204, 0.2); }
+        .zone-trash { border-color: #ff3366; color: #ff3366; box-shadow: 0 0 20px rgba(255, 51, 102, 0.4), inset 0 0 20px rgba(255, 51, 102, 0.2); }
+        .zone-emoji { font-size: 45px; margin-bottom: 5px; }
+
+        .modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 20, 25, 0.95); display: flex;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2000; text-align: center; color: #fff;
+        }
+        .modal h1 { font-size: 54px; text-shadow: 0 0 20px rgba(255,255,255,0.8); margin-bottom: 20px; }
+        .modal p { font-size: 26px; color: #ccc; line-height: 1.6; margin-bottom: 10px; }
+        .highlight-good { color: #00ffcc; font-weight: bold; text-shadow: 0 0 8px #00ffcc; }
+        .highlight-bad { color: #ff3366; font-weight: bold; text-shadow: 0 0 8px #ff3366; }
+        .highlight-bonus { color: #ff9800; font-weight: bold; text-shadow: 0 0 8px #ff9800; }
+        .modal button {
+            margin-top: 40px; padding: 20px 50px; font-size: 32px; font-weight: bold;
+            background: linear-gradient(45deg, #ff9800, #ff5722); color: white; 
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 15px;
+            cursor: pointer; box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
+        }
+        .modal button:active { transform: scale(0.95); }
+        .message { font-size: 40px; color: #ffeb3b; font-weight: bold; margin-top: 30px; text-shadow: 0 0 10px #ffeb3b; }
+    </style>
+</head>
+<body oncontextmenu="return false" ondragstart="return false">
+
+<div id="timer-display">⏳ <span id="time-left">60</span>초</div>
+
+<div id="game-board">
+    <div id="left-area" class="player-area">
+        <div class="score-board">왼쪽: <span id="score-left-text">0</span>점</div>
+        <div class="card-grid" id="left-grid"></div>
+        <div class="drop-zone-container">
+            <div class="drop-zone zone-friend" id="left-friend-1"><span class="zone-emoji">🧒🏽</span>친구</div>
+            <div class="drop-zone zone-trash" id="left-trash"><span class="zone-emoji">🗑️</span>쓰레기통</div>
+            <div class="drop-zone zone-friend" id="left-friend-2"><span class="zone-emoji">👧</span>친구</div>
+        </div>
+    </div>
+    
+    <div id="right-area" class="player-area">
+        <div class="score-board">오른쪽: <span id="score-right-text">0</span>점</div>
+        <div class="card-grid" id="right-grid"></div>
+        <div class="drop-zone-container">
+            <div class="drop-zone zone-friend" id="right-friend-1"><span class="zone-emoji">🧒🏽</span>친구</div>
+            <div class="drop-zone zone-trash" id="right-trash"><span class="zone-emoji">🗑️</span>쓰레기통</div>
+            <div class="drop-zone zone-friend" id="right-friend-2"><span class="zone-emoji">👧</span>친구</div>
+        </div>
+    </div>
+</div>
+
+<div id="start-screen" class="modal">
+    <h1>✨예쁜 말 킹</h1>
+    <p><span class="highlight-good">예쁜 말</span>을 <b>양옆의 친구</b>에게 주면 <b>+100점!</b></p>
+    <p><span class="highlight-bad">나쁜 말</span>을 <b>가운데 쓰레기통</b>에 버리면 <b>+10점!</b></p>
+    <p>💖 쓰레기통에 나쁜 말을 버리면 <b>보너스 하트</b>가 뿅!</p>
+    <p>하트를 내 친구에게 주면 <span class="highlight-bonus">+200점 보너스!</span> (틀리면 <b>-10점</b>)</p>
+    <button onclick="initGame()">게임 시작하기</button><button onclick="location.href='/'" style="margin-top: 15px; background: #444; font-size: 22px; padding: 15px 40px; box-shadow: none;">다른 게임 고르기</button>
+</div>
+
+<div id="end-screen" class="modal" style="display:none;">
+    <h1>⏰ 게임 종료!</h1>
+    <p>왼쪽: <b id="final-left" style="color:#00e5ff; font-size:40px; text-shadow: 0 0 10px #00e5ff;">0</b> 점</p>
+    <p>오른쪽: <b id="final-right" style="color:#ff007f; font-size:40px; text-shadow: 0 0 10px #ff007f;">0</b> 점</p>
+    <div class="message">"우리 모두 예쁜 말로 좋은 친구가 되어요! 🥰"</div>
+    <button onclick="resetGame()">다시 하기</button><button onclick="location.href='/'" style="margin-top: 15px; background: #444; font-size: 22px; padding: 15px 40px; box-shadow: none;">다른 게임 고르기</button>
+</div>
+
+<script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration, vol, delay=0) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delay);
+        osc.stop(audioCtx.currentTime + delay + duration);
+    }
+    const sounds = {
+        start: () => { playTone(440, 'sine', 0.1, 0.3); playTone(554, 'sine', 0.1, 0.3, 0.1); playTone(659, 'sine', 0.3, 0.3, 0.2); },
+        goodWord: () => { playTone(600, 'sine', 0.1, 0.3); playTone(800, 'sine', 0.2, 0.3, 0.1); },
+        badWord: () => { playTone(150, 'square', 0.1, 0.2); playTone(100, 'sawtooth', 0.15, 0.2, 0.1); },
+        wrong: () => { playTone(300, 'triangle', 0.2, 0.4); playTone(250, 'triangle', 0.3, 0.4, 0.2); },
+        bonus: () => { playTone(800, 'sine', 0.1, 0.3); playTone(1000, 'sine', 0.1, 0.3, 0.1); playTone(1200, 'sine', 0.3, 0.3, 0.2); },
+        heartSpawn: () => { playTone(900, 'triangle', 0.1, 0.2); }, 
+        end: () => { playTone(523, 'sine', 0.2, 0.3); playTone(659, 'sine', 0.2, 0.3, 0.2); playTone(783, 'sine', 0.4, 0.3, 0.4); }
+    };
+
+    const goodWordsData = [
+        { text: "같이 놀자", emoji: "👬" }, { text: "참 잘했어", emoji: "👍" }, { text: "괜찮아", emoji: "😊" }, { text: "멋지다", emoji: "✨" }, 
+        { text: "넌 소중해", emoji: "💎" }, { text: "넌 특별해", emoji: "🌟" },  { text: "자랑스러워", emoji: "🏆" }, { text: "대단해", emoji: "🤩" }, 
+        { text: "믿음직해", emoji: "🛡️" }, { text: "환영해", emoji: "👐" }, { text: "감동이야", emoji: "🥹" }, { text: "기운 내", emoji: "🌻" }, { text: "다행이다", emoji: "🍀" }, 
+        { text: "따뜻해", emoji: "☕" }, { text: "넌 최고야", emoji: "👑" }, { text: "도와줄게", emoji: "✋" }, { text: "응원할게", emoji: "🎉" }, { text: "양보할게", emoji: "🎁" },
+        { text: "행복해", emoji: "😄" }, { text: "예쁘다", emoji: "🌷" }, { text: "훌륭해", emoji: "👏" }, { text: "기대돼", emoji: "👍" }, { text: "친하게 지내자", emoji: "🤝" }, 
+        { text: "네 편이야", emoji: "💪" }, { text: "수고했어", emoji: "💦" }, { text: "든든해", emoji: "🏰" }, { text: "포기하지마", emoji: "🔥" }, { text: "널 믿어", emoji: "🙏" }, 
+        { text: "축하해", emoji: "🎊" }, { text: "배려 고마워", emoji: "💕" }, { text: "미소 천사", emoji: "👼" }, { text: "사이좋게", emoji: "🧩" }, { text: "네 말이 맞아", emoji: "💡" }, 
+        { text: "보석 같아", emoji: "💍" }, { text: "재밌다", emoji: "😆" }, { text: "신난다", emoji: "🎶" }, { text: "완벽해", emoji: "💯" }, { text: "재능 있어", emoji: "🎨" }, 
+        { text: "참 착하다", emoji: "😇" }, { text: "용기 내", emoji: "🦁" }, { text: "같이 하자", emoji: "🙌" }, { text: "할 수 있어", emoji: "🚀" }, { text: "좋은 하루", emoji: "☀️" }, 
+        { text: "항상 고마워", emoji: "🎀" }, { text: "넌 빛나", emoji: "🎇" }, { text: "소중한 친구", emoji: "💌" }, { text: "마음이 예뻐", emoji: "🌸" }, { text: "최고의 친구", emoji: "🥇" }
+    ].map(w => ({ ...w, type: 'good' }));
+
+    const badWordsData = [
+        { text: "미워", emoji: "☹️" }, { text: "안 놀아", emoji: "🙅" }, { text: "메롱", emoji: "👅" }, { text: "흥", emoji: "😤" }, { text: "싫어", emoji: "😠" }, 
+        { text: "짜증나", emoji: "🗯️" }, { text: "치사해", emoji: "😒" }, { text: "심술쟁이", emoji: "😈" }, { text: "저리 가", emoji: "💨" }, { text: "너만 해", emoji: "🙄" }, 
+        { text: "바보", emoji: "🤪" }, { text: "욕심쟁이", emoji: "🐷" }, { text: "얄미워", emoji: "🦊" }, { text: "삐질거야", emoji: "😠" }, { text: "안 해", emoji: "❌" }, 
+        { text: "거짓말", emoji: "🤥" }, { text: "시끄러워", emoji: "🤫" }, { text: "비켜", emoji: "🚧" }, { text: "내 거야", emoji: "🧸" }, { text: "방해마", emoji: "🛑" }
+    ].map(w => ({ ...w, type: 'bad' }));
+
+    let scoreLeft = 0; let scoreRight = 0;
+    let timeLeft = 60; let isGameRunning = false;
+    let timerIntervalId;
+
+    let sharedWordSequence = []; 
+    let wordIndex = { left: 0, right: 0 }; 
+
+    function initGame() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        sounds.start();
+        document.getElementById('start-screen').style.display = 'none';
+        
+        sharedWordSequence = [];
+        for (let i = 0; i < 500; i++) {
+            if (Math.random() < 0.70) {
+                sharedWordSequence.push(goodWordsData[Math.floor(Math.random() * goodWordsData.length)]);
+            } else {
+                sharedWordSequence.push(badWordsData[Math.floor(Math.random() * badWordsData.length)]);
+            }
+        }
+        wordIndex = { left: 0, right: 0 }; 
+
+        isGameRunning = true;
+
+        createGrid('left');
+        createGrid('right');
+
+        timerIntervalId = setInterval(countdownTimer, 1000);
+    }
+
+    function createGrid(side) {
+        const grid = document.getElementById(`${side}-grid`);
+        grid.innerHTML = '';
+        for (let i = 0; i < 9; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'slot';
+            slot.dataset.side = side;
+            grid.appendChild(slot);
+            spawnCard(slot, side);
+        }
+    }
+
+    function spawnCard(slot, side) {
+        if (!isGameRunning) return;
+        
+        const currentWord = sharedWordSequence[wordIndex[side]];
+        wordIndex[side]++; 
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<div class="word-emoji">${currentWord.emoji}</div><div>${currentWord.text}</div>`;
+        card.dataset.type = currentWord.type;
+        card.dataset.side = side;
+        
+        slot.appendChild(card);
+        makeDraggable(card, slot, side);
+    }
+
+    function spawnBonusHeart(side) {
+        if (!isGameRunning) return;
+        const heartWords = ["사랑해", "고마워", "미안해"];
+        const text = heartWords[Math.floor(Math.random() * heartWords.length)];
+        
+        const heart = document.createElement('div');
+        heart.className = 'card bonus-heart';
+        heart.innerHTML = `<div class="word-emoji">💖</div><div class="bonus-text">${text}</div>`;
+        heart.dataset.type = 'bonus';
+        heart.dataset.side = side; // 하트의 소속 진영 저장
+        
+        const trash = document.getElementById(`${side}-trash`);
+        const trashRect = trash.getBoundingClientRect();
+        
+        const offsetX = (Math.random() - 0.5) * 60;
+        const offsetY = (Math.random() - 0.5) * 40;
+        
+        heart.style.position = 'absolute';
+        heart.style.left = `${trashRect.left + (trashRect.width/2) - 60 + offsetX}px`;
+        heart.style.top = `${trashRect.top - 130 + offsetY}px`;
+        
+        document.body.appendChild(heart);
+        sounds.heartSpawn();
+        
+        makeDraggable(heart, null, side); 
+    }
+
+    function makeDraggable(card, slot, side) {
+        let startX = 0, startY = 0;
+        let currentX = 0, currentY = 0;
+
+        card.addEventListener('pointerdown', (e) => {
+            if (!isGameRunning) return;
+            card.setPointerCapture(e.pointerId);
+            card.classList.add('dragging');
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        card.addEventListener('pointermove', (e) => {
+            if (!isGameRunning || !card.classList.contains('dragging')) return;
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            card.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.15)`;
+        });
+
+        card.addEventListener('pointerup', (e) => {
+            if (!isGameRunning || !card.hasPointerCapture(e.pointerId)) return;
+            card.releasePointerCapture(e.pointerId);
+            card.classList.remove('dragging');
+            
+            checkCollision(card, slot, side);
+        });
+    }
+
+    function checkCollision(card, slot, side) {
+        const type = card.dataset.type;
+        const cardRect = card.getBoundingClientRect();
+        
+        // 내 진영의 드롭존
+        const myFriend1 = document.getElementById(`${side}-friend-1`).getBoundingClientRect();
+        const myFriend2 = document.getElementById(`${side}-friend-2`).getBoundingClientRect();
+        const myTrash = document.getElementById(`${side}-trash`).getBoundingClientRect();
+
+        // 상대방 진영의 드롭존 (오답 처리를 위함)
+        const oppSide = side === 'left' ? 'right' : 'left';
+        const oppFriend1 = document.getElementById(`${oppSide}-friend-1`).getBoundingClientRect();
+        const oppFriend2 = document.getElementById(`${oppSide}-friend-2`).getBoundingClientRect();
+        const oppTrash = document.getElementById(`${oppSide}-trash`).getBoundingClientRect();
+
+        function isOverlap(r1, r2) {
+            return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+        }
+
+        let isHandled = false;
+
+        // 1. 내 친구에게 줬을 때 (1번 혹은 2번 친구)
+        if (isOverlap(cardRect, myFriend1) || isOverlap(cardRect, myFriend2)) {
+            isHandled = true;
+            if (type === 'good') { 
+                updateScore(side, 100); sounds.goodWord(); card.remove();
+                setTimeout(() => { if(isGameRunning && slot) spawnCard(slot, side); }, 3000); 
+            } else if (type === 'bonus') {
+                updateScore(side, 200); sounds.bonus(); card.remove();
+            } else { 
+                updateScore(side, -10); sounds.wrong(); card.style.transform = `translate(0px, 0px) scale(1)`; 
+            }
+        } 
+        // 2. 내 쓰레기통에 버렸을 때
+        else if (isOverlap(cardRect, myTrash)) {
+            isHandled = true;
+            if (type === 'bad') { 
+                updateScore(side, 10); sounds.badWord(); card.remove();
+                spawnBonusHeart(side); // 내 진영에 보너스 하트 생성!
+                setTimeout(() => { if(isGameRunning && slot) spawnCard(slot, side); }, 3000); 
+            } else if (type === 'bonus') {
+                // 하트를 쓰레기통에 버리면 그냥 튕겨나감 (감점 없음)
+                card.style.transform = `translate(0px, 0px) scale(1)`; 
+            } else { 
+                updateScore(side, -10); sounds.wrong(); card.style.transform = `translate(0px, 0px) scale(1)`; 
+            }
+        } 
+        // 3. 상대방 진영의 아무 곳에나 놓았을 때 (무조건 감점)
+        else if (isOverlap(cardRect, oppFriend1) || isOverlap(cardRect, oppFriend2) || isOverlap(cardRect, oppTrash)) {
+            isHandled = true;
+            updateScore(side, -10); sounds.wrong(); card.style.transform = `translate(0px, 0px) scale(1)`;
+        }
+
+        // 아무 곳에도 안 들어갔으면 제자리로
+        if (!isHandled) {
+            card.style.transform = `translate(0px, 0px) scale(1)`;
+        }
+    }
+
+    function updateScore(side, points) {
+        if (side === 'left') {
+            scoreLeft += points;
+            if (scoreLeft < 0) scoreLeft = 0; 
+            document.getElementById('score-left-text').innerText = scoreLeft;
+        } else {
+            scoreRight += points;
+            if (scoreRight < 0) scoreRight = 0; 
+            document.getElementById('score-right-text').innerText = scoreRight;
+        }
+    }
+
+    function countdownTimer() {
+        if (!isGameRunning) return;
+        timeLeft--;
+        document.getElementById('time-left').innerText = timeLeft;
+        if (timeLeft <= 0) endGame();
+    }
+
+    function endGame() {
+        isGameRunning = false;
+        clearInterval(timerIntervalId);
+        sounds.end();
+        
+        document.querySelectorAll('.bonus-heart').forEach(el => el.remove());
+
+        document.getElementById('final-left').innerText = scoreLeft;
+        document.getElementById('final-right').innerText = scoreRight;
+        document.getElementById('end-screen').style.display = 'flex';
+    }
+
+    function resetGame() {
+        scoreLeft = 0; scoreRight = 0; timeLeft = 60;
+        document.getElementById('score-left-text').innerText = '0';
+        document.getElementById('score-right-text').innerText = '0';
+        document.getElementById('time-left').innerText = '60';
+        
+        document.getElementById('left-grid').innerHTML = '';
+        document.getElementById('right-grid').innerHTML = '';
+        document.querySelectorAll('.bonus-heart').forEach(el => el.remove());
+        
+        document.getElementById('end-screen').style.display = 'none';
+        initGame();
+    }
+</script>
+</body>
+</html>

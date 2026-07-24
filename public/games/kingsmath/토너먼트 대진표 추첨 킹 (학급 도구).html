@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">토너먼트 킹 - 최후의 승자는?</title>
+    <meta id="meta-desc" name="description" content="최후의 승자를 가리는 토너먼트 킹 대진표 생성기입니다.">
+    <meta id="meta-keywords" name="keywords" content="토너먼트, 대진표, 게임, 수학, KingsMath">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: { preflight: false }
+        }
+    </script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+        
+        :root {
+            --bg-dark: #3a0013;
+            --bg-light: #6e0023;
+            --card-bg: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --win-color: #ffd700; /* 골드 */
+            --border-color: #333333;
+            
+            /* 연결선 색상 변수 */
+            --line-default: #777777; /* 기본 연결선 (조금 더 연한 회색) */
+            --line-active: #ffff00;  /* 승리 진출선 (밝은 노란색) */
+        }
+
+        /* 게임 본연의 CSS (수정 금지) */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        
+        body {
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /* --- 화면 전환 및 상하 중앙 정렬 --- */
+        .screen { display: none; width: 100%; opacity: 0; transition: opacity 0.5s ease; }
+        .screen.active { 
+            display: flex; 
+            flex-direction: column;
+            min-height: 100vh; /* 화면 전체 높이 차지 */
+            opacity: 1; 
+        }
+
+        /* --- 1. 입력 화면 --- */
+        .input-wrapper { display: flex; justify-content: center; align-items: center; flex: 1; padding: 2rem; }
+        .input-container {
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);
+            padding: 3rem; border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%; max-width: 600px; text-align: center; border: 1px solid var(--line-default);
+        }
+
+        h1.main-title { font-size: 3.5rem; font-weight: 900; margin-bottom: 0.5rem; letter-spacing: 2px; transition: font-size 0.3s; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.2rem; }
+
+        textarea {
+            width: 100%; 
+            height: 450px; 
+            background: rgba(255,255,255,0.05); color: #fff;
+            border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem;
+            font-size: 1.1rem; resize: none; margin-bottom: 1.5rem; transition: all 0.3s;
+            line-height: 1.5;
+            font-family: 'Pretendard', sans-serif;
+        }
+        textarea:focus { border-color: var(--line-active); box-shadow: 0 0 15px rgba(255, 255, 0, 0.2); }
+
+        .btn-start {
+            background: #ff004d; color: white; border: none; padding: 1.2rem 3rem; font-size: 1.2rem;
+            border-radius: 8px; cursor: pointer; font-weight: 800; transition: all 0.3s; letter-spacing: 1px;
+            width: 100%; font-family: 'Pretendard', sans-serif;
+        }
+        .btn-start:hover { background: #e60045; transform: scale(1.02); }
+
+        /* --- 2. 로딩 화면 --- */
+        #screen-loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 9999;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
+        }
+        #screen-loading.active { display: flex; }
+        .spinner {
+            width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1); border-top-color: var(--line-active);
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- 3. 대진표 화면 --- */
+        .top-nav { text-align: left; padding: 1.5rem 2rem 0 2rem; position: absolute; top: 0; left: 0; z-index: 10; }
+        .btn-reset {
+            background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.3);
+            padding: 0.6rem 1.2rem; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 600;
+            font-family: 'Pretendard', sans-serif;
+        }
+        .btn-reset:hover { background: rgba(255,255,255,0.2); border-color: white; }
+
+        .bracket-scroll-container {
+            width: 100%; overflow-x: auto; 
+            display: flex; align-items: center; justify-content: center; 
+            flex: 1; padding: 4rem 2rem;
+        }
+
+        .bracket-layout {
+            display: inline-flex;
+            justify-content: center; align-items: stretch; gap: 2rem; margin: auto;
+        }
+
+        .bracket-side { display: flex; flex: 1; gap: 30px; }
+        .bracket-side.left { flex-direction: row; }
+        .bracket-side.right { flex-direction: row-reverse; }
+
+        .round-col { display: flex; flex-direction: column; justify-content: space-around; flex: 1; min-width: 140px; }
+
+        /* --- 매치 카드 및 연결선 --- */
+        .match-wrapper {
+            position: relative; display: flex; align-items: center; justify-content: center; flex: 1;
+            padding: 10px 0; width: 100%;
+        }
+
+        .match-card {
+            background: var(--card-bg); border-radius: 8px; width: 100%; min-height: 60px;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 1px solid var(--border-color); z-index: 2;
+        }
+        .match-card.bye-match .team { flex: 1; border-bottom: none; }
+
+        .team { padding: 8px 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 8px; position: relative; }
+        .team::before { content: ''; display: inline-block; width: 18px; height: 12px; background: #555; border-radius: 2px; }
+        .team:first-child { border-bottom: 1px solid var(--border-color); }
+        .team:hover:not(.empty) { background: rgba(255, 255, 255, 0.1); }
+        .team.empty { color: #555; font-style: normal; font-weight: 700; cursor: default; justify-content: center;}
+        .team.empty::before { display: none; } 
+        .team.winner { color: var(--win-color); background: rgba(255, 215, 0, 0.1); }
+        .team.winner::before { background: var(--win-color); }
+
+        /* 연결선 디자인 */
+        .match-wrapper::before, .match-wrapper::after { transition: border-color 0.3s ease, border-width 0.3s ease; border-color: var(--line-default); }
+
+        .left .round-col:not(:last-child) .match-wrapper:nth-child(odd)::after {
+            content: ''; position: absolute; right: -15px; top: 50%; width: 15px; height: 50%; border-top: 2px solid; border-right: 2px solid; border-top-right-radius: 6px; z-index: 1;
+        }
+        .left .round-col:not(:last-child) .match-wrapper:nth-child(even)::after {
+            content: ''; position: absolute; right: -15px; bottom: 50%; width: 15px; height: 50%; border-bottom: 2px solid; border-right: 2px solid; border-bottom-right-radius: 6px; z-index: 1;
+        }
+        .left .round-col:not(:first-child) .match-wrapper::before {
+            content: ''; position: absolute; left: -15px; top: 50%; width: 15px; border-top: 2px solid; z-index: 1;
+        }
+        .left .round-col:last-child .match-wrapper::after {
+            content: ''; position: absolute; right: -25px; top: 50%; width: 25px; border-top: 2px solid; z-index: 1;
+        }
+
+        .right .round-col:not(:last-child) .match-wrapper:nth-child(odd)::after {
+            content: ''; position: absolute; left: -15px; top: 50%; width: 15px; height: 50%; border-top: 2px solid; border-left: 2px solid; border-top-left-radius: 6px; z-index: 1;
+        }
+        .right .round-col:not(:last-child) .match-wrapper:nth-child(even)::after {
+            content: ''; position: absolute; left: -15px; bottom: 50%; width: 15px; height: 50%; border-bottom: 2px solid; border-left: 2px solid; border-bottom-left-radius: 6px; z-index: 1;
+        }
+        .right .round-col:not(:first-child) .match-wrapper::before {
+            content: ''; position: absolute; right: -15px; top: 50%; width: 15px; border-top: 2px solid; z-index: 1;
+        }
+        .right .round-col:last-child .match-wrapper::after { 
+            content: ''; position: absolute; left: -25px; top: 50%; width: 25px; border-top: 2px solid; z-index: 1;
+        }
+
+        /* 활성화된 라인 */
+        .match-wrapper.has-winner::after { border-color: var(--line-active) !important; border-width: 3px !important; z-index: 3 !important; }
+        .match-wrapper.has-participant::before { border-color: var(--line-active) !important; border-width: 3px !important; z-index: 3 !important; }
+
+        /* --- 중앙부 (타이틀, 트로피, 결승전) --- */
+        .center-stage { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 280px; padding: 0 1rem; z-index: 5; }
+        .header-titles { text-align: center; margin-bottom: 2rem; }
+        .header-titles h1 { font-size: 3.5rem; font-weight: 900; letter-spacing: -1px; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); margin-bottom: 0.5rem; transition: font-size 0.3s;}
+        .header-titles h3 { color: var(--win-color); font-weight: 600; letter-spacing: 2px; font-size: 1.5rem; }
+
+        .trophy-area { font-size: 8rem; margin-bottom: 2rem; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3)); animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        .final-match-container { display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+
+        .final-box {
+            background: var(--card-bg); border: 2px solid var(--win-color); padding: 12px 20px;
+            border-radius: 8px; font-weight: 800; font-size: 1.3rem; min-width: 140px; text-align: center;
+            cursor: pointer; box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); transition: all 0.3s; position: relative;
+        }
+        .final-box:hover:not(.empty) { transform: scale(1.05); }
+        .final-box.winner { background: var(--win-color); color: #000; box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+        .final-box.empty { border-color: var(--border-color); color: #555; font-weight: 700; box-shadow: none; cursor: default; }
+        .vs-text { font-size: 1.5rem; font-weight: 900; color: #ff004d; font-style: italic; }
+
+        /* 결과 보기 버튼 */
+        .btn-results {
+            display: none;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #000; font-weight: 900; font-size: 1.2rem;
+            padding: 12px 30px; border-radius: 50px; border: none;
+            cursor: pointer; box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Pretendard', sans-serif;
+        }
+        .btn-results:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6); }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.5); } 100% { opacity: 1; transform: scale(1); } }
+
+        /* 결과 팝업(모달) 스타일 */
+        .game-modal-overlay {
+            display: none; position: fixed; z-index: 10000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.85);
+            justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .game-modal-content {
+            background: #141419; border: 2px solid var(--win-color);
+            border-radius: 20px; padding: 2.5rem; width: 90%; max-width: 450px;
+            text-align: center; position: relative; color: white;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+        }
+        @keyframes slideUp { 0% { opacity: 0; transform: translateY(50px); } 100% { opacity: 1; transform: translateY(0); } }
+        .close-game-modal {
+            position: absolute; top: 15px; right: 20px; color: #888;
+            font-size: 30px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .close-game-modal:hover { color: #fff; }
+        
+        .game-modal-title { font-size: 2rem; font-weight: 900; margin-bottom: 1.5rem; color: var(--win-color); }
+        .result-rank { margin: 1rem 0; padding: 1.2rem; border-radius: 12px; background: rgba(255,255,255,0.05); }
+        .result-rank.rank-1 { background: rgba(255, 215, 0, 0.15); border: 1px solid var(--win-color); transform: scale(1.05); margin: 1.5rem 0; }
+        
+        .medal { display: block; font-size: 1rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 600; }
+        .rank-1 .medal { color: var(--win-color); font-weight: 900; font-size: 1.2rem; }
+        .team-name { font-size: 1.6rem; font-weight: 900; }
+        .rank-3 .team-name { font-size: 1.3rem; }
+
+        /* ========================================= */
+        /* 추가: 다국어 모달 및 최상단 UI용 격리 CSS  */
+        /* ========================================= */
+        .top-ui-layer {
+            position: absolute;
+            z-index: 99999 !important; /* 최고 수준 Z-INDEX 보장 */
+        }
+        
+        .btn-home-wrapper { top: 1rem; left: 1rem; }
+        .btn-lang-wrapper { top: 1rem; right: 1rem; }
+
+        .floating-btn {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%; width: 45px; height: 45px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .floating-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+
+        /* 모달 및 내부 박스 사이징 강제 보정 (오류 방지) */
+        #langModal, #langModal * { box-sizing: border-box !important; }
+        
+        /* 폰트 어썸 아이콘 글꼴 깨짐 방지: 
+           i 태그가 아닌 요소에만 다국어 폰트 적용 */
+        #langModal *:not(i) { font-family: 'Noto Sans KR', sans-serif; }
+        
+        /* 모달 스크롤바 커스텀 */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* 모달 등장 애니메이션 */
+        .modal-overlay {
+            opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99999 !important;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        .modal-content-box {
+            transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal-overlay.active .modal-content-box { transform: scale(1) translateY(0); opacity: 1; }
+
+        /* 토스트 알림 애니메이션 */
+        .toast {
+            transform: translateY(100%); opacity: 0; transition: all 0.3s ease;
+            z-index: 99999 !important;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="top-ui-layer btn-home-wrapper">
+        <div id="btn-home" class="floating-btn" title="Home">🏠</div>
+    </div>
+
+    <div id="langBtnContainer" class="top-ui-layer btn-lang-wrapper sm:top-6 sm:right-6">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-800/70 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg text-white">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block font-sans">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="screen-input" class="screen active">
+        <div class="input-wrapper">
+            <div class="input-container">
+                <h1 class="main-title">토너먼트 킹</h1>
+                <div class="subtitle">최후의 승자는?</div>
+                <textarea id="participantsInput" placeholder="참가자 이름이나 팀명을 쉼표(,) 또는 줄바꿈으로 입력하세요.&#10;&#10;예)&#10;한국, 아르헨티나, 프랑스, 브라질&#10;&#10;* 숫자(예: 32)만 입력 시 자동으로 번호가 생성됩니다."></textarea>
+                <button class="btn-start" onclick="startProcess()">대진표 생성하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-loading">
+        <div class="spinner"></div>
+        <h2 id="loading-text" style="letter-spacing: 2px;">DRAWING BRACKETS...</h2>
+    </div>
+
+    <div id="screen-bracket" class="screen">
+        <div class="top-nav">
+            <button class="btn-reset" onclick="location.reload()">← 다시하기</button>
+        </div>
+
+        <div class="bracket-scroll-container">
+            <div class="bracket-layout">
+                <div id="bracket-left" class="bracket-side left"></div>
+
+                <div class="center-stage">
+                    <div class="header-titles">
+                        <h1>토너먼트 킹</h1>
+                        <h3>최후의 승자는?</h3>
+                    </div>
+                    
+                    <div class="trophy-area">🏆</div>
+                    
+                    <div class="final-match-container" id="final-match-area"></div>
+
+                    <button id="btn-show-results" class="btn-results" onclick="openResultsModal()">👑 최종 결과 보기</button>
+                </div>
+
+                <div id="bracket-right" class="bracket-side right"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="results-modal" class="game-modal-overlay">
+        <div class="game-modal-content">
+            <span class="close-game-modal" onclick="closeResultsModal()">&times;</span>
+            <h2 class="game-modal-title">명예의 전당</h2>
+            
+            <div class="result-rank rank-1">
+                <span class="medal">🥇 1위 (우승)</span>
+                <span id="res-1st" class="team-name"></span>
+            </div>
+            
+            <div class="result-rank rank-2">
+                <span class="medal">🥈 2위 (준우승)</span>
+                <span id="res-2nd" class="team-name"></span>
+            </div>
+            
+            <div class="result-rank rank-3">
+                <span class="medal">🥉 공동 3위 (4강 진출)</span>
+                <span id="res-3rd" class="team-name"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="langModal" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content-box bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i>
+                        <span>Language / 언어</span>
+                    </h2>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                </div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="noResultText">No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white font-sans">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400 font-sans">Korean</p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 다국어 데이터베이스 & 번역 가이드 (16개국)
+        // 초등학교 수학 수준의 쉽고 직관적인 어휘 사용
+        // ==========================================
+        const gameTranslations = {
+            'ko': {
+                title: "토너먼트 킹", subtitle: "최후의 승자는?",
+                placeholder: "참가자 이름이나 팀명을 쉼표(,) 또는 줄바꿈으로 입력하세요.\n\n예)\n한국, 아르헨티나, 프랑스, 브라질\n\n* 숫자(예: 32)만 입력 시 자동으로 번호가 생성됩니다.",
+                btnStart: "대진표 생성하기", loading: "DRAWING BRACKETS...", btnReset: "← 다시하기", btnResults: "👑 최종 결과 보기",
+                modalTitle: "명예의 전당", rank1: "🥇 1위 (우승)", rank2: "🥈 2위 (준우승)", rank3: "🥉 공동 3위 (4강 진출)",
+                seoDesc: "최초의 승자를 가리는 토너먼트 킹 대진표 생성기입니다.", toastMsg: "언어가 변경되었습니다.",
+                noResult: "검색 결과 없음", searchHolder: "Search / 검색 ..."
+            },
+            'en': {
+                title: "Tournament King", subtitle: "Who will win?",
+                placeholder: "Enter participant names or teams separated by commas (,) or line breaks.\n\nExample)\nUSA, UK, France, Japan\n\n* Type a number (e.g., 32) to auto-generate numbers.",
+                btnStart: "Make Bracket", loading: "MAKING BRACKETS...", btnReset: "← Restart", btnResults: "👑 See Final Results",
+                modalTitle: "Hall of Fame", rank1: "🥇 1st Place (Winner)", rank2: "🥈 2nd Place", rank3: "🥉 3rd Place",
+                seoDesc: "Tournament King bracket generator to find the ultimate winner.", toastMsg: "Language changed.",
+                noResult: "No results", searchHolder: "Search..."
+            },
+            'zh': {
+                title: "锦标赛之王", subtitle: "谁是最后赢家？",
+                placeholder: "请输入参与者或队伍名称，用逗号(,)或换行隔开。\n\n例如)\n中国, 韩国, 法国, 巴西\n\n* 输入数字(如：32)可自动生成编号。",
+                btnStart: "创建对阵表", loading: "正在创建...", btnReset: "← 重新开始", btnResults: "👑 查看最终结果",
+                modalTitle: "名人堂", rank1: "🥇 第一名 (冠军)", rank2: "🥈 第二名 (亚军)", rank3: "🥉 第三名 (四强)",
+                seoDesc: "锦标赛之王对阵表生成器。", toastMsg: "语言已更改。",
+                noResult: "没有结果", searchHolder: "搜索..."
+            },
+            'ja': {
+                title: "トーナメントキング", subtitle: "最後の勝者は？",
+                placeholder: "参加者やチーム名をカンマ(,)または改行で入力してください。\n\n例)\n日本, 韓国, アメリカ, フランス\n\n* 数字(例:32)を入力すると自動で番号が作成されます。",
+                btnStart: "トーナメント表を作る", loading: "作成中...", btnReset: "← やり直す", btnResults: "👑 最終結果を見る",
+                modalTitle: "名誉の殿堂", rank1: "🥇 1位 (優勝)", rank2: "🥈 2位 (準優勝)", rank3: "🥉 3位 (ベスト4)",
+                seoDesc: "トーナメントキングの対戦表メーカーです。", toastMsg: "言語が変更されました。",
+                noResult: "結果なし", searchHolder: "検索..."
+            },
+            'es': {
+                title: "Rey del Torneo", subtitle: "¿Quién será el ganador?",
+                placeholder: "Ingresa los nombres de los participantes separados por comas (,) o saltos de línea.\n\nEjemplo)\nEspaña, México, Brasil, Perú\n\n* Escribe un número (ej: 32) para crear números automáticos.",
+                btnStart: "Crear Torneo", loading: "CREANDO...", btnReset: "← Reiniciar", btnResults: "👑 Ver Resultados",
+                modalTitle: "Salón de la Fama", rank1: "🥇 1er Lugar (Campeón)", rank2: "🥈 2do Lugar", rank3: "🥉 3er Lugar",
+                seoDesc: "Generador de torneos Rey del Torneo.", toastMsg: "Idioma cambiado.",
+                noResult: "Sin resultados", searchHolder: "Buscar..."
+            },
+            'fr': {
+                title: "Roi du Tournoi", subtitle: "Qui va gagner?",
+                placeholder: "Entrez les noms séparés par des virgules (,) ou des retours à la ligne.\n\nExemple)\nFrance, Belgique, Canada, Suisse\n\n* Tapez un nombre (ex: 32) pour générer des numéros.",
+                btnStart: "Créer le Tournoi", loading: "CRÉATION...", btnReset: "← Recommencer", btnResults: "👑 Voir les Résultats",
+                modalTitle: "Temple de la Renommée", rank1: "🥇 1ère Place (Gagnant)", rank2: "🥈 2ème Place", rank3: "🥉 3ème Place",
+                seoDesc: "Générateur de tournoi Roi du Tournoi.", toastMsg: "Langue modifiée.",
+                noResult: "Aucun résultat", searchHolder: "Rechercher..."
+            },
+            'de': {
+                title: "Turnierkönig", subtitle: "Wer wird gewinnen?",
+                placeholder: "Namen durch Kommas (,) oder Zeilenumbrüche trennen.\n\nBeispiel)\nDeutschland, Österreich, Schweiz, Italien\n\n* Eine Zahl (z.B. 32) eingeben, um Nummern zu erstellen.",
+                btnStart: "Turnier erstellen", loading: "LÄDT...", btnReset: "← Neustart", btnResults: "👑 Ergebnisse sehen",
+                modalTitle: "Ruhmeshalle", rank1: "🥇 1. Platz (Gewinner)", rank2: "🥈 2. Platz", rank3: "🥉 3. Platz",
+                seoDesc: "Turnierkönig Turniergenerator.", toastMsg: "Sprache geändert.",
+                noResult: "Keine Ergebnisse", searchHolder: "Suchen..."
+            },
+            'it': {
+                title: "Re del Torneo", subtitle: "Chi vincerà?",
+                placeholder: "Inserisci i nomi separati da virgole (,) o a capo.\n\nEsempio)\nItalia, Spagna, Francia, Germania\n\n* Inserisci un numero (es: 32) per generare numeri.",
+                btnStart: "Crea Torneo", loading: "CREAZIONE...", btnReset: "← Riavvia", btnResults: "👑 Risultati Finali",
+                modalTitle: "Sala d'Onore", rank1: "🥇 1° Posto (Vincitore)", rank2: "🥈 2° Posto", rank3: "🥉 3° Posto",
+                seoDesc: "Generatore di tornei Re del Torneo.", toastMsg: "Lingua cambiata.",
+                noResult: "Nessun risultato", searchHolder: "Cerca..."
+            },
+            'pt-br': {
+                title: "Rei do Torneio", subtitle: "Quem será o vencedor?",
+                placeholder: "Insira os nomes separados por vírgulas (,) ou quebras de linha.\n\nExemplo)\nBrasil, Portugal, Angola, Japão\n\n* Digite um número (ex: 32) para gerar números.",
+                btnStart: "Criar Torneio", loading: "CRIANDO...", btnReset: "← Recomeçar", btnResults: "👑 Ver Resultados",
+                modalTitle: "Galeria da Fama", rank1: "🥇 1º Lugar (Campeão)", rank2: "🥈 2º Lugar", rank3: "🥉 3º Lugar",
+                seoDesc: "Gerador de chaves Rei do Torneio.", toastMsg: "Idioma alterado.",
+                noResult: "Nenhum resultado", searchHolder: "Buscar..."
+            },
+            'ru': {
+                title: "Король Турнира", subtitle: "Кто победит?",
+                placeholder: "Введите имена через запятую (,) или с новой строки.\n\nПример)\nРоссия, Казахстан, Китай, Индия\n\n* Введите число (напр. 32) для создания номеров.",
+                btnStart: "Создать Турнир", loading: "СОЗДАНИЕ...", btnReset: "← Заново", btnResults: "👑 Итоги Турнира",
+                modalTitle: "Зал Славы", rank1: "🥇 1-е Место (Победитель)", rank2: "🥈 2-е Место", rank3: "🥉 3-е Место",
+                seoDesc: "Генератор турниров Король Турнира.", toastMsg: "Язык изменен.",
+                noResult: "Нет результатов", searchHolder: "Поиск..."
+            },
+            'hi': {
+                title: "टूर्नामेंट किंग", subtitle: "कौन जीतेगा?",
+                placeholder: "प्रतिभागियों के नाम कॉमा (,) या नई लाइन से दर्ज करें।\n\nउदाहरण)\nभारत, नेपाल, श्रीलंका, अमेरिका\n\n* नंबर जनरेट करने के लिए नंबर (जैसे: 32) टाइप करें।",
+                btnStart: "टूर्नामेंट बनाएं", loading: "लोड हो रहा है...", btnReset: "← फिर से शुरू करें", btnResults: "👑 परिणाम देखें",
+                modalTitle: "हॉल ऑफ फेम", rank1: "🥇 पहला स्थान (विजेता)", rank2: "🥈 दूसरा स्थान", rank3: "🥉 तीसरा स्थान",
+                seoDesc: "टूर्नामेंट किंग ब्रैकेट जनरेटर।", toastMsg: "भाषा बदल दी गई है।",
+                noResult: "कोई परिणाम नहीं", searchHolder: "खोजें..."
+            },
+            'bn': {
+                title: "টুর্নামেন্ট কিং", subtitle: "কে জিতবে?",
+                placeholder: "কমা (,) দিয়ে নাম লিখুন।\n\nযেমন)\nবাংলাদেশ, ভারত, নেপাল, ভুটান\n\n* নম্বর (যেমন: ৩২) লিখলে স্বয়ংক্রিয়ভাবে নম্বর তৈরি হবে।",
+                btnStart: "টুর্নামেন্ট তৈরি করুন", loading: "তৈরি হচ্ছে...", btnReset: "← পুনরায় শুরু করুন", btnResults: "👑 ফলাফল দেখুন",
+                modalTitle: "হল অফ ফেম", rank1: "🥇 ১ম স্থান (বিজয়ী)", rank2: "🥈 ২য় স্থান", rank3: "🥉 ৩য় স্থান",
+                seoDesc: "টুর্নামেন্ট কিং জেনারেটর।", toastMsg: "ভাষা পরিবর্তন করা হয়েছে।",
+                noResult: "কোন ফলাফল নেই", searchHolder: "অনুসন্ধান..."
+            },
+            'id': {
+                title: "Raja Turnamen", subtitle: "Siapa pemenangnya?",
+                placeholder: "Masukkan nama peserta dipisahkan koma (,) atau baris baru.\n\nContoh)\nIndonesia, Malaysia, Jepang, Korea\n\n* Ketik angka (misal: 32) untuk buat nomor otomatis.",
+                btnStart: "Buat Turnamen", loading: "MEMBUAT...", btnReset: "← Ulangi", btnResults: "👑 Lihat Hasil",
+                modalTitle: "Daftar Juara", rank1: "🥇 Juara 1 (Pemenang)", rank2: "🥈 Juara 2", rank3: "🥉 Juara 3",
+                seoDesc: "Pembuat bagan Raja Turnamen.", toastMsg: "Bahasa telah diubah.",
+                noResult: "Tidak ada hasil", searchHolder: "Cari..."
+            },
+            'vi': {
+                title: "Vua Giải Đấu", subtitle: "Ai sẽ chiến thắng?",
+                placeholder: "Nhập tên cách nhau bằng dấu phẩy (,) hoặc xuống dòng.\n\nVí dụ)\nViệt Nam, Thái Lan, Hàn Quốc, Mỹ\n\n* Nhập một số (VD: 32) để tạo số tự động.",
+                btnStart: "Tạo Bảng Đấu", loading: "ĐANG TẠO...", btnReset: "← Làm lại", btnResults: "👑 Xem Kết Quả",
+                modalTitle: "Bảng Vàng", rank1: "🥇 Hạng 1 (Vô địch)", rank2: "🥈 Hạng 2", rank3: "🥉 Hạng 3",
+                seoDesc: "Trình tạo bảng đấu Vua Giải Đấu.", toastMsg: "Ngôn ngữ đã thay đổi.",
+                noResult: "Không có kết quả", searchHolder: "Tìm kiếm..."
+            },
+            'th': {
+                title: "ราชาทัวร์นาเมนต์", subtitle: "ใครจะเป็นผู้ชนะ?",
+                placeholder: "พิมพ์ชื่อผู้เข้าร่วม คั่นด้วยลูกน้ำ (,) หรือขึ้นบรรทัดใหม่\n\nตัวอย่าง)\nไทย, ญี่ปุ่น, เกาหลี, จีน\n\n* พิมพ์ตัวเลข (เช่น 32) เพื่อสร้างหมายเลขอัตโนมัติ",
+                btnStart: "สร้างตารางการแข่งขัน", loading: "กำลังสร้าง...", btnReset: "← เริ่มใหม่", btnResults: "👑 ดูผลการแข่งขัน",
+                modalTitle: "หอเกียรติยศ", rank1: "🥇 อันดับ 1 (ผู้ชนะ)", rank2: "🥈 อันดับ 2", rank3: "🥉 อันดับ 3",
+                seoDesc: "เครื่องมือสร้างตารางการแข่งขันราชาทัวร์นาเมนต์", toastMsg: "เปลี่ยนภาษาเรียบร้อยแล้ว",
+                noResult: "ไม่พบผลลัพธ์", searchHolder: "ค้นหา..."
+            },
+            'tr': {
+                title: "Turnuva Kralı", subtitle: "Kim kazanacak?",
+                placeholder: "İsimleri virgülle (,) veya alt alta yazın.\n\nÖrnek)\nTürkiye, Almanya, İtalya, Japonya\n\n* Otomatik numara için sayı (örn: 32) yazın.",
+                btnStart: "Turnuva Oluştur", loading: "YÜKLENİYOR...", btnReset: "← Yeniden Başla", btnResults: "👑 Sonuçları Gör",
+                modalTitle: "Şöhretler Salonu", rank1: "🥇 1. Sıra (Şampiyon)", rank2: "🥈 2. Sıra", rank3: "🥉 3. Sıra",
+                seoDesc: "Turnuva Kralı jeneratörü.", toastMsg: "Dil değiştirildi.",
+                noResult: "Sonuç yok", searchHolder: "Ara..."
+            }
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        let currentLang = 'en';
+
+        // 언어 감지 1,2,3순위 로직
+        function detectInitialLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang && languages.some(l => l.code === urlLang)) return urlLang;
+            
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            if (savedLang && languages.some(l => l.code === savedLang)) return savedLang;
+            
+            const browserLang = navigator.language.slice(0, 2).toLowerCase();
+            if (languages.some(l => l.code === browserLang)) return browserLang;
+            
+            return 'en'; // Default
+        }
+
+        // 폰트 크기 반응형 조절 (레이아웃 대응)
+        function adjustLayoutByTextLength(langCode) {
+            const t = gameTranslations[langCode];
+            
+            // 메인 타이틀 크기
+            const titles = document.querySelectorAll('.main-title, .header-titles h1');
+            titles.forEach(el => {
+                if(t.title.length > 15) el.style.fontSize = '2.2rem';
+                else if(t.title.length > 10) el.style.fontSize = '2.8rem';
+                else el.style.fontSize = ''; // CSS 원본 사용
+            });
+
+            // 시작 버튼 글자 크기
+            const btnStart = document.querySelector('.btn-start');
+            if(t.btnStart.length > 16) btnStart.style.fontSize = '1rem';
+            else btnStart.style.fontSize = '';
+            
+            // 폰트 종류: 한국어만 Pretendard, 나머지는 일반 폰트
+            if(langCode === 'ko') document.body.style.fontFamily = "'Pretendard', sans-serif";
+            else document.body.style.fontFamily = "sans-serif";
+        }
+
+        function applyLanguage(code, showToastMsg = false) {
+            currentLang = code;
+            const t = gameTranslations[code] || gameTranslations['en'];
+            const langObj = languages.find(l => l.code === code);
+
+            // 상태 유지 및 공유 처리
+            localStorage.setItem('kingsmath_lang', code);
+            const url = new URL(window.location);
+            url.searchParams.set('lang', code);
+            window.history.pushState({}, '', url);
+
+            // UI 업데이트
+            document.querySelector('.main-title').innerText = t.title;
+            document.querySelector('.subtitle').innerText = t.subtitle;
+            document.getElementById('participantsInput').placeholder = t.placeholder;
+            document.querySelector('.btn-start').innerText = t.btnStart;
+            document.getElementById('loading-text').innerText = t.loading;
+            document.querySelector('.btn-reset').innerText = t.btnReset;
+            document.querySelector('.header-titles h1').innerText = t.title;
+            document.querySelector('.header-titles h3').innerText = t.subtitle;
+            document.getElementById('btn-show-results').innerText = t.btnResults;
+            
+            // 모달 업데이트
+            document.querySelector('.game-modal-title').innerText = t.modalTitle;
+            document.querySelector('.rank-1 .medal').innerText = t.rank1;
+            document.querySelector('.rank-2 .medal').innerText = t.rank2;
+            document.querySelector('.rank-3 .medal').innerText = t.rank3;
+
+            // 검색창 & 결과없음
+            document.getElementById('searchInput').placeholder = t.searchHolder;
+            document.getElementById('noResultText').innerText = t.noResult;
+
+            // SEO 메타 태그 업데이트
+            document.getElementById('page-title').innerText = `${t.title} - ${t.subtitle}`;
+            document.getElementById('meta-desc').setAttribute('content', t.seoDesc);
+
+            // 상단 토글 버튼 갱신
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            document.getElementById('currentLangName').innerText = langObj.name;
+
+            adjustLayoutByTextLength(code);
+
+            if (showToastMsg) showToast(langObj.name, t.toastMsg);
+        }
+
+        // ==========================================
+        // 모달 및 토스트 UI 로직
+        // ==========================================
+        const triggerBtn = document.getElementById('langTriggerBtn');
+        const modal = document.getElementById('langModal');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        const toast = document.getElementById('toastNotification');
+        const toastLangName = document.getElementById('toastLangName');
+        let toastTimeout;
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            if (filteredLangs.length === 0) {
+                grid.classList.add('hidden');
+                noResult.classList.remove('hidden');
+                noResult.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                noResult.classList.add('hidden');
+                noResult.classList.remove('flex');
+
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                    const stateClasses = isSelected 
+                        ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                        : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+                    const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+                    const btn = document.createElement('div');
+                    btn.className = `${baseClasses} ${stateClasses}`;
+
+                    btn.innerHTML = `
+                        <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                            <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col items-start font-sans">
+                            <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                            <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                    `;
+                    btn.addEventListener('click', () => {
+                        applyLanguage(lang.code, true);
+                        closeModal();
+                        renderLanguages(searchInput.value); // 재렌더링
+                    });
+                    grid.appendChild(btn);
+                });
+            }
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+            // 게임 내 입력 창과 충돌 방지
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showToast(langName, msg) {
+            document.getElementById('ui-toast').textContent = msg;
+            toastLangName.textContent = langName;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        triggerBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('active')) closeModal(); });
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        // ==========================================
+        // 🏠 홈 이모지 전체 화면/초기화 기능
+        // ==========================================
+        document.getElementById('btn-home').addEventListener('click', () => {
+            if (document.fullscreenElement) {
+                // 전체 화면 모드라면 새로고침 없이 강제 초기화
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById('screen-input').classList.add('active');
+                // 게임 진행 시 숨겼던 언어 버튼 다시 표출
+                document.getElementById('langBtnContainer').style.display = 'block';
+            } else {
+                location.reload();
+            }
+        });
+
+        // ==========================================
+        // 게임 원본 로직 (수정 금지, 기능 연동 부분만 추가)
+        // ==========================================
+        let tournamentData = []; 
+        let totalRounds = 0;
+
+        function startProcess() {
+            const players = parseInput();
+            if (!players) return;
+
+            // 추가: 게임 실행 화면에 진입하면 몰입을 위해 언어 선택 UI 숨김 처리
+            document.getElementById('langBtnContainer').style.display = 'none';
+
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-loading').classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('screen-loading').classList.remove('active');
+                logicGenerateBracket(players);
+                document.getElementById('screen-bracket').classList.add('active');
+                renderBracket();
+            }, 1000);
+        }
+
+        function parseInput() {
+            const rawText = document.getElementById('participantsInput').value.trim();
+            if (!rawText) { alert("참가자를 입력해주세요."); return null; }
+
+            let players = [];
+            if (/^\d+$/.test(rawText)) {
+                const num = parseInt(rawText, 10);
+                if (num < 2) { alert("최소 2명 이상이어야 합니다."); return null; }
+                const maxNum = Math.min(num, 32); 
+                for (let i = 1; i <= maxNum; i++) players.push("Team " + i);
+            } else {
+                players = rawText.split(/[\n,]+/).map(p => p.trim()).filter(p => p !== '');
+            }
+
+            if (players.length < 2) { alert("최소 2명 이상 입력해주세요."); return null; }
+            if (players.length > 32) {
+                alert("원활한 좌우 대칭을 위해 최대 32팀까지만 지원됩니다. 32팀으로 컷팅합니다.");
+                players = players.slice(0, 32);
+            }
+            return players;
+        }
+
+        function logicGenerateBracket(players) {
+            const bracketSize = Math.pow(2, Math.ceil(Math.log2(players.length)));
+            const byeCount = bracketSize - players.length;
+
+            players.sort(() => Math.random() - 0.5);
+
+            const firstRoundMatchCount = bracketSize / 2;
+            let initialMatches = Array.from({ length: firstRoundMatchCount }, () => ({ p1: null, p2: null, isBye: false, winner: null }));
+
+            let byeMatchIndices = [];
+            let leftBottom = (firstRoundMatchCount / 2) - 1;
+            let rightBottom = firstRoundMatchCount - 1;
+            
+            let availableSlots = [];
+            for (let i = 0; i < firstRoundMatchCount / 2; i++) {
+                availableSlots.push(rightBottom - i); 
+                availableSlots.push(leftBottom - i);  
+            }
+            for (let i = 0; i < byeCount; i++) byeMatchIndices.push(availableSlots[i]);
+
+            let pIdx = 0;
+            for (let i = 0; i < firstRoundMatchCount; i++) {
+                if (byeMatchIndices.includes(i)) {
+                    initialMatches[i].p1 = players[pIdx++];
+                    initialMatches[i].p2 = null;
+                    initialMatches[i].isBye = true;
+                    initialMatches[i].winner = null; 
+                } else {
+                    initialMatches[i].p1 = players[pIdx++];
+                    initialMatches[i].p2 = players[pIdx++];
+                }
+            }
+
+            totalRounds = Math.log2(bracketSize);
+            tournamentData = [initialMatches];
+
+            for (let r = 1; r < totalRounds; r++) {
+                let matchCount = tournamentData[r - 1].length / 2;
+                tournamentData.push(Array.from({ length: matchCount }, () => ({ p1: null, p2: null, winner: null })));
+            }
+            updateUpperRounds();
+        }
+
+        function updateUpperRounds() {
+            for (let r = 0; r < totalRounds - 1; r++) {
+                for (let m = 0; m < tournamentData[r].length; m++) {
+                    const match = tournamentData[r][m];
+                    const nextMatchIdx = Math.floor(m / 2);
+                    const slot = (m % 2 === 0) ? 'p1' : 'p2';
+                    tournamentData[r + 1][nextMatchIdx][slot] = match.winner;
+                }
+            }
+        }
+
+        function handleTeamClick(roundIdx, matchIdx, clickedPlayerNum) {
+            const match = tournamentData[roundIdx][matchIdx];
+            const clickedName = clickedPlayerNum === 1 ? match.p1 : match.p2;
+
+            if (!clickedName || clickedName === "?") return;
+
+            if (match.winner === clickedName) {
+                match.winner = null;
+                cascadeUndo(roundIdx, matchIdx, clickedName);
+            } else {
+                match.winner = clickedName;
+            }
+            updateUpperRounds();
+            renderBracket();
+        }
+
+        function cascadeUndo(startRound, startMatch, canceledName) {
+            let currR = startRound + 1;
+            let currM = Math.floor(startMatch / 2);
+            while (currR < totalRounds) {
+                let nextMatch = tournamentData[currR][currM];
+                if (nextMatch.p1 === canceledName) nextMatch.p1 = null;
+                if (nextMatch.p2 === canceledName) nextMatch.p2 = null;
+                if (nextMatch.winner === canceledName) nextMatch.winner = null;
+                currR++;
+                currM = Math.floor(currM / 2);
+            }
+        }
+
+        function renderBracket() {
+            const leftContainer = document.getElementById('bracket-left');
+            const rightContainer = document.getElementById('bracket-right');
+            const finalArea = document.getElementById('final-match-area');
+            const btnResults = document.getElementById('btn-show-results');
+            
+            leftContainer.innerHTML = '';
+            rightContainer.innerHTML = '';
+            finalArea.innerHTML = '';
+
+            for (let r = 0; r < totalRounds - 1; r++) {
+                const matchCount = tournamentData[r].length;
+                
+                const leftCol = document.createElement('div');
+                leftCol.className = 'round-col';
+                for (let m = 0; m < matchCount / 2; m++) {
+                    leftCol.appendChild(createMatchDOM(tournamentData[r][m], r, m));
+                }
+                leftContainer.appendChild(leftCol);
+
+                const rightCol = document.createElement('div');
+                rightCol.className = 'round-col';
+                for (let m = matchCount / 2; m < matchCount; m++) {
+                    rightCol.appendChild(createMatchDOM(tournamentData[r][m], r, m));
+                }
+                rightContainer.append(rightCol); 
+            }
+
+            const finalMatchData = tournamentData[totalRounds - 1][0];
+            
+            const finalBox1 = document.createElement('div');
+            finalBox1.className = `final-box ${finalMatchData.p1 ? '' : 'empty'} ${finalMatchData.winner === finalMatchData.p1 && finalMatchData.p1 ? 'winner' : ''}`;
+            finalBox1.innerText = finalMatchData.p1 || "?";
+            finalBox1.onclick = () => handleTeamClick(totalRounds - 1, 0, 1);
+
+            const vsText = document.createElement('div');
+            vsText.className = 'vs-text';
+            vsText.innerText = 'VS';
+
+            const finalBox2 = document.createElement('div');
+            finalBox2.className = `final-box ${finalMatchData.p2 ? '' : 'empty'} ${finalMatchData.winner === finalMatchData.p2 && finalMatchData.p2 ? 'winner' : ''}`;
+            finalBox2.innerText = finalMatchData.p2 || "?";
+            finalBox2.onclick = () => handleTeamClick(totalRounds - 1, 0, 2);
+
+            finalArea.appendChild(finalBox1);
+            finalArea.appendChild(vsText);
+            finalArea.appendChild(finalBox2);
+
+            if (finalMatchData.winner) {
+                btnResults.style.display = 'block';
+            } else {
+                btnResults.style.display = 'none';
+            }
+        }
+
+        function createMatchDOM(match, rIdx, mIdx) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'match-wrapper';
+
+            if (match.winner) wrapper.classList.add('has-winner');
+            if (match.p1 || match.p2) wrapper.classList.add('has-participant');
+
+            const matchCard = document.createElement('div');
+            
+            if (match.isBye) {
+                matchCard.className = 'match-card bye-match';
+                const t1 = createTeamElement(match.p1, match.winner === match.p1, rIdx, mIdx, 1);
+                matchCard.appendChild(t1);
+            } else {
+                matchCard.className = 'match-card';
+                const t1 = createTeamElement(match.p1, match.winner === match.p1, rIdx, mIdx, 1);
+                const t2 = createTeamElement(match.p2, match.winner === match.p2, rIdx, mIdx, 2);
+                matchCard.appendChild(t1);
+                matchCard.appendChild(t2);
+            }
+            
+            wrapper.appendChild(matchCard);
+            return wrapper;
+        }
+
+        function createTeamElement(name, isWinner, rIdx, mIdx, pNum) {
+            const div = document.createElement('div');
+            div.className = 'team';
+            
+            if (!name) {
+                div.classList.add('empty');
+                div.innerText = "?";
+            } else {
+                div.innerText = name;
+                div.onclick = () => handleTeamClick(rIdx, mIdx, pNum);
+                if (isWinner) div.classList.add('winner');
+            }
+            return div;
+        }
+
+        function openResultsModal() {
+            const finalMatch = tournamentData[totalRounds - 1][0];
+            const winner = finalMatch.winner;
+            const runnerUp = (finalMatch.p1 === winner) ? finalMatch.p2 : finalMatch.p1;
+            
+            let thirdPlaces = [];
+            if (totalRounds >= 2) {
+                const semi1 = tournamentData[totalRounds - 2][0];
+                const semi2 = tournamentData[totalRounds - 2][1];
+                
+                const loser1 = (semi1.p1 === semi1.winner) ? semi1.p2 : semi1.p1;
+                const loser2 = (semi2.p1 === semi2.winner) ? semi2.p2 : semi2.p1;
+                
+                if (loser1 && loser1 !== "?") thirdPlaces.push(loser1);
+                if (loser2 && loser2 !== "?") thirdPlaces.push(loser2);
+            }
+
+            document.getElementById('res-1st').innerText = winner || (gameTranslations[currentLang].noResult);
+            document.getElementById('res-2nd').innerText = runnerUp || (gameTranslations[currentLang].noResult);
+            document.getElementById('res-3rd').innerText = thirdPlaces.length > 0 ? thirdPlaces.join(", ") : "없음";
+
+            document.getElementById('results-modal').style.display = 'flex';
+        }
+
+        function closeResultsModal() {
+            document.getElementById('results-modal').style.display = 'none';
+        }
+
+        // ==========================================
+        // 시스템 초기화
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            const initLang = detectInitialLanguage();
+            applyLanguage(initLang);
+            renderLanguages(); // 자주 하는 실수 체크 완료 (목록 그리기 호출)
+        });
+
+    </script>
+</body>
+</html>

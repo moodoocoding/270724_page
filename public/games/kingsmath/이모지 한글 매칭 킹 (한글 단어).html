@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F4C3A">
+
+<title id="metaTitle">이모지 한글 킹</title>
+<meta id="metaDesc" name="description" content="전자칠판을 최고의 학습 도구로 만드세요! 자음과 모음을 조립하는 한글 스펠링 조합 게임.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: {
+      preflight: false,
+    }
+  }
+</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* === 색상 변수 설정 === */
+:root {
+    --bg: #121212;
+    --panel-bg: #1e1e2e;
+    --dark: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-color: #333333;
+
+    /* 팀 배경색 */
+    --dog-color: #332b00;
+    --cat-color: #1e1b2e;
+    --rabbit-color: #2e151a;
+    --hamster-color: #2e1e0f;
+    --panda-color: #0f2e26;
+    --monkey-color: #221826;
+    
+    /* 한글 블록 기본 크기 */
+    --unit: clamp(20px, 2.8vw, 36px);
+}
+
+/* 6인용(혹은 6인 팀전)일 때 블록 크기를 70%로 축소 */
+body.six-players {
+    --unit: clamp(14px, 1.96vw, 25.2px);
+}
+
+/* 폰트 제어 로직: 한국어는 Jua, 그 외는 Noto Sans */
+body.lang-ko { font-family: 'Jua', sans-serif; }
+body:not(.lang-ko) { font-family: 'Noto Sans', sans-serif; }
+
+/* 주아체 굵기 기본 적용 (아이콘 제외) */
+body.lang-ko *:not(i) {
+    font-weight: 400 !important;
+}
+
+/* 폰트어썸 깨짐 방지 예외처리 */
+.fa-solid, .fa-regular, .fa-brands, i[class^="fa-"] {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--dark);
+    overflow: hidden;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+    display: flex; flex-direction: column;
+    height: 100vh; height: -webkit-fill-available; height: 100dvh;
+    box-sizing: border-box;
+}
+
+#overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    opacity: 0.98;
+    display: flex; flex-direction: column;
+    z-index: 100; backdrop-filter: blur(15px);
+    text-align: center; padding: 0;
+    overflow-y: auto; touch-action: pan-y;
+}
+
+.overlay-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0px; width: 100%; box-sizing: border-box;
+}
+
+.title-area { margin-bottom: 15px; }
+
+#msgTitle {
+    font-size: clamp(2.5rem, 5vw, 3.5rem); /* 글자수에 따른 동적 폰트사이즈 방어 */
+    color: var(--dark);
+    margin: 0; font-weight: 500;
+    text-shadow: 0 0 20px rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.2;
+}
+
+.instructions {
+    color: var(--text-muted); font-size: 1.1rem; margin-top: 15px; 
+    line-height: 1.6; background: rgba(0,0,0,0.3); 
+    padding: 15px 20px; border-radius: 12px; display: inline-block; text-align: left;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#setupArea {
+    width: 480px; max-width: 95vw;
+    margin: 0 auto 15px auto;
+    display: flex; flex-direction: column; gap: 15px;
+}
+
+.setup-row { display: flex; gap: 10px; width: 100%; }
+.setup-group { flex: 1; text-align: left; }
+
+.setup-label {
+    font-size: 1.2rem; color: var(--text-muted);
+    margin-bottom: 6px; display: block; margin-left: 5px; font-weight: bold;
+}
+
+.custom-select {
+    width: 100%; font-family: inherit;
+    font-size: 1.2rem; padding: 12px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background: var(--panel-bg);
+    cursor: pointer; outline: none;
+    color: var(--dark);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.math-menu-wrapper { width: 480px; max-width: 95vw; margin: 0 auto; }
+
+.math-menu-container {
+    width: 100%; background: var(--panel-bg);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.level-list { padding: 10px; background: var(--panel-bg); }
+
+.level-item {
+    display: flex; align-items: center; padding: 10px 15px;
+    margin-bottom: 8px; border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background: var(--panel-bg);
+    cursor: pointer; transition: all 0.15s; text-align: left;
+    color: var(--dark);
+}
+.level-item:last-child { margin-bottom: 0; }
+.level-item.selected { border-color: transparent; background-color: #183e5c; border-color: #4dabf7; }
+
+.level-badge {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(128,128,128,0.2); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-right: 15px; flex-shrink: 0; font-weight: bold;
+}
+.level-item.selected .level-badge { color: white; background: #4dabf7; }
+
+.level-info { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; }
+.level-title-group { display: flex; flex-direction: column; }
+.level-title { font-size: 1.2rem; color: var(--dark); font-weight: bold; }
+.level-desc { font-size: 1rem; color: #4dabf7; margin-top: 4px; }
+.level-item.selected .level-desc { color: #a5d8ff; }
+
+.word-view-btn {
+    background: #495057; border: none; color: white; border-radius: 8px;
+    padding: 6px 10px; font-size: 1rem; cursor: pointer;
+    transition: 0.2s; z-index: 10; font-family: inherit; font-weight: bold;
+}
+.word-view-btn:hover { background: #6c757d; }
+
+#startBtn {
+    font-size: 2rem; padding: 12px 0; border-radius: 50px; border: none;
+    background: #4dabf7; color: white; cursor: pointer;
+    box-shadow: 0 6px 0 #1c7ed6; transition: 0.1s;
+    font-family: inherit; font-weight: bold; touch-action: manipulation;
+    width: 470px; max-width: 92vw; margin: 20px auto 0 auto; display: block;
+}
+#startBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c7ed6 !important; }
+
+/* === 인게임 스타일 === */
+#finalPodium { height: 25vh; width: 100%; display: none; flex-direction: row; }
+.podium-col {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; border-top: 4px solid rgba(255,255,255,0.05);
+}
+.podium-medal {
+    font-size: clamp(45px, 5vw, 69px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    margin-bottom: 5px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.podium-name {
+    font-size: clamp(45px, 5vw, 69px); color: var(--dark);
+    display: flex; align-items: center; justify-content: center; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#countdownLayer {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; pointer-events: none; backdrop-filter: blur(5px);
+}
+#countdownText {
+    font-size: 30vw; color: white; font-weight: bold; font-family: sans-serif;
+    text-shadow: 0 0 50px rgba(255,255,255,0.5);
+    animation: countAnim 1s ease-out forwards;
+}
+@keyframes countAnim { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+/* === 헤더 & 타이머 === */
+#header {
+    height: 120px; background: var(--panel-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; z-index: 20;
+    border-bottom: 2px solid #333;
+}
+#timerDisplay {
+    font-size: 90px; padding: 0 20px; color: #ff6b6b;
+    text-align: center; font-weight: bold; font-family: sans-serif; flex-shrink: 0; text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+}
+.timer-urgent { animation: timerBlink 0.5s infinite; background: #c92a2a !important; color: white !important; border-radius: 20px; box-shadow: 0 0 20px #c92a2a; }
+@keyframes timerBlink { 50% { opacity: 0.7; } }
+
+/* === 팀전 전용 스코어보드 === */
+#teamScoreBoard {
+    display: none; width: 100%; height: 25vh;
+    flex-direction: row; justify-content: space-around; align-items: center;
+    background: var(--bg); padding: 0 10px; box-sizing: border-box; z-index: 15;
+}
+.team-card {
+    flex: 1; height: 90%; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin: 0 5px; border: 2px solid rgba(255,255,255,0.05);
+}
+.team-A { background: var(--dog-color); }
+.team-B { background: var(--rabbit-color); }
+.team-C { background: var(--panda-color); display: none; }
+
+.team-card .team-name { font-size: clamp(1.5rem, 3vw, 3rem); color: var(--dark); margin-bottom: 5px; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: bold; }
+.team-card .team-score { font-size: 3.5rem; color: #ff8787; font-family: sans-serif; font-weight: bold; display: flex; align-items: center; gap: 10px; text-shadow: 0 0 10px rgba(255,135,135,0.3); }
+.team-card .team-rank {
+    position: absolute; bottom: -25px; background: #333; color: #ccc;
+    padding: 5px 20px; border-radius: 20px; font-size: 1.8rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid #444;
+}
+.team-card .team-rank.rank-1 {
+    background: #ff6b6b; color: white; transform: scale(1.1);
+    border: none; box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+}
+
+/* === 게임판 레이아웃 === */
+#arena {
+    display: flex; flex: 1; width: 100vw; gap: 0;
+    touch-action: none; background: #000;
+}
+.teamBox {
+    flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 3vh 2px 0 2px; position: relative;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden; z-index: 1;
+}
+body.team-mode .teamTitle, body.team-mode .scoreBadge, body.team-mode .rank-badge { display: none !important; }
+.teamBox:last-child { border-right: none; }
+
+.bg-dog { background: var(--dog-color); }
+.bg-cat { background: var(--cat-color); }
+.bg-rabbit { background: var(--rabbit-color); }
+.bg-hamster { background: var(--hamster-color); }
+.bg-panda { background: var(--panda-color); }
+.bg-monkey { background: var(--monkey-color); }
+
+.teamTitle {
+    font-size: clamp(25px, 4vw, 60px); margin: 0; color: var(--dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+    width: 100%; z-index: 15; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: bold;
+}
+.scoreBadge { display: none !important; }
+.rank-badge { font-size: clamp(35px, 4.5vw, 55px); margin: 0; z-index: 15; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+
+.emoji-display {
+    font-size: clamp(60px, 8vw, 100px);
+    margin: 0;
+    z-index: 15;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* 액션 버튼 */
+.action-area {
+    display: flex; gap: 8px; margin: 0; z-index: 15; justify-content: center; width: 90%;
+}
+.action-btn {
+    flex: 1; position: relative; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2); border-radius: 12px;
+    padding: 8px 5px; font-size: clamp(14px, 2vw, 22px);
+    cursor: pointer; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.1s; touch-action: manipulation;
+    display: flex; align-items: center; justify-content: center; font-family: inherit; font-weight: bold;
+}
+.action-btn:active { transform: scale(0.95); }
+.pass-btn { background: #ff6b6b; }
+.hint-btn { background: #4dabf7; }
+.action-btn.disabled { filter: grayscale(70%); opacity: 0.8; pointer-events: none; }
+.action-bg {
+    position: absolute; left: 0; bottom: 0; height: 100%; width: 0%;
+    background: rgba(255, 255, 255, 0.4); z-index: 1; transition: width 0.1s linear;
+}
+.action-text { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+/* === 한글 조합 블록 시스템 === */
+.drop-area {
+    display: flex; gap: 6px; margin: 0; z-index: 15; justify-content: center; flex-wrap: nowrap;
+    padding: 0 5px;
+}
+.syllable-block {
+    display: grid;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px;
+    border-radius: 8px;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.drop-zone {
+    width: var(--unit);
+    height: var(--unit);
+    border: 2px dashed #777;
+    border-radius: 6px; /* 완벽한 네모 형태 */
+    display: flex; align-items: center; justify-content: center;
+    font-size: calc(var(--unit) * 0.7);
+    color: white; font-family: 'Jua', sans-serif; /* 드롭존 한글 유지 */
+    transition: all 0.2s;
+    justify-self: center; align-self: center;
+}
+.drop-zone.filled {
+    border-style: solid;
+    border-color: #454545;
+    color: #69db7c;
+    background: rgba(105, 219, 124, 0.1);
+}
+.drop-zone.wrong { animation: shake 0.3s; border-style: solid; border-color: #ff6b6b; color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
+
+/* 한글 자소 위치 구조 그리드 매핑 */
+.type-V0 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit); grid-template-areas: "c j"; }
+.type-V1 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit); grid-template-areas: "c j" "b b"; }
+.type-V2 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit); grid-template-areas: "c j" "b1 b2"; }
+.type-H0 { grid-template-columns: var(--unit); grid-template-rows: var(--unit) var(--unit); grid-template-areas: "c" "j"; }
+.type-H1 { grid-template-columns: var(--unit); grid-template-rows: var(--unit) var(--unit) var(--unit); grid-template-areas: "c" "j" "b"; }
+.type-H2 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit) var(--unit); grid-template-areas: "c c" "j j" "b1 b2"; }
+.type-C0 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit); grid-template-areas: "c j2" "j1 j2"; }
+.type-C1 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit) var(--unit); grid-template-areas: "c j2" "j1 j2" "b b"; }
+.type-C2 { grid-template-columns: var(--unit) var(--unit); grid-template-rows: var(--unit) var(--unit) var(--unit); grid-template-areas: "c j2" "j1 j2" "b1 b2"; }
+
+.spacer { display: none; }
+
+/* 드래그 영역 */
+.drag-area {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; z-index: 20;
+    width: 100%; min-height: 80px;
+    padding: 10px; margin: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px 15px 0 0;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+.drag-letter {
+    width: clamp(28px, 3.5vw, 42px);
+    height: clamp(28px, 3.5vw, 42px);
+    background: #2b2b2b; border: 2px solid #555; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(18px, 2.5vw, 28px); color: #e0e0e0; font-family: 'Jua', sans-serif; /* 한글 폰트 고정 */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    cursor: grab; touch-action: none;
+    position: relative;
+}
+.drag-letter.dragging { z-index: 1000; cursor: grabbing; box-shadow: 0 10px 15px rgba(0,0,0,0.6); }
+
+.item-effect {
+    position: absolute; bottom: -80px; font-size: 4rem; pointer-events: none;
+    z-index: 50; animation: itemFlyUp 1.875s ease-in forwards; opacity: 0; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+}
+@keyframes itemFlyUp {
+    0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.8; }
+    100% { transform: translateY(-700px) scale(2.8) rotate(500deg); opacity: 0; }
+}
+
+.combo-text {
+    position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 2.5rem; color: #69db7c; font-weight: bold;
+    text-shadow: 2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000;
+    z-index: 100; pointer-events: none; white-space: nowrap; animation: comboPop 0.8s ease-out forwards;
+}
+@keyframes comboPop {
+    0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+    40% { transform: translate(-50%, -40px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -100px) scale(1); opacity: 0; }
+}
+
+/* 정답 시 단어 표시 애니메이션 */
+.success-word {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(40px, 6vw, 70px);
+    color: #fcc419;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    z-index: 50;
+    animation: wordPop 2s ease-in-out forwards;
+    pointer-events: none;
+    white-space: nowrap;
+    font-family: 'Jua', sans-serif;
+}
+@keyframes wordPop {
+    0% { transform: translate(-50%, 20px) scale(0.5); opacity: 0; }
+    10% { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+    20% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    80% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -30px) scale(0.8); opacity: 0; }
+}
+
+/* 쓩 이모지 애니메이션 */
+@keyframes swooshIn {
+    0% { transform: translateX(100%) scale(0.5) rotate(15deg); opacity: 0; }
+    60% { transform: translateX(-10%) scale(1.1) rotate(-5deg); opacity: 1; }
+    100% { transform: translateX(0) scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* 홈 버튼 좌측 상단, 전체화면 우측 상단 배치 (z-index 극대화) */
+.fixed-btn {
+    position: fixed; top: 15px; z-index: 99999; font-size: 2rem; background: rgba(31, 41, 55, 0.5); 
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+    width: 50px; height: 50px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; outline: none; touch-action: manipulation;
+    backdrop-filter: blur(5px); color: white;
+}
+.fixed-btn:active { transform: scale(0.85); background: rgba(0,0,0,0.8); }
+#btn-home { left: 15px; } 
+#gameFsBtn { right: 15px; } /* 실행화면에서만 보일 수 있도록 처리 */
+
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes winPulse { 0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255,215,0,0.2); } 50% { transform: scale(1.02); box-shadow: 0 4px 25px rgba(255,215,0,0.5); } }
+.gold { background: #332b00 !important; border: 2px solid #fcc419 !important; color: #fcc419; animation: winPulse 0.6s infinite ease-in-out; }
+
+#resultList {margin: 20px 0;padding: 0;list-style: none;width: 470px;max-width: 92vw;}
+#resultList li {
+    font-size: 1.5rem; padding: 15px 20px; margin: 8px 0; background: var(--panel-bg);
+    border-radius: 15px; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid #333; color: var(--dark); font-weight: bold;
+}
+.result-name { display: flex; gap: 10px; align-items: center; }
+
+/* 단어 리스트 모달창 (게임 내부용) */
+.word-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center; z-index: 99990;
+    backdrop-filter: blur(5px);
+}
+.word-modal-content {
+    background: var(--panel-bg); width: 90%; max-width: 450px; max-height: 80vh;
+    border-radius: 20px; border: 2px solid var(--border-color);
+    display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.word-modal-header {
+    padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--border-color); background: #2a2a35; border-radius: 20px 20px 0 0;
+}
+.word-modal-header h2 { margin: 0; font-size: 1.5rem; color: #e0e0e0; font-weight: bold; }
+.word-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #ff6b6b; }
+.word-modal-list {
+    padding: 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px;
+}
+.word-item {
+    display: flex; align-items: center; padding: 10px 15px;
+    background: #1e1e2e; border-radius: 12px; border: 1px solid #333; font-size: 1.2rem;
+}
+.word-item .emoji { font-size: 1.8rem; margin-right: 15px; }
+.word-item .word { color: #e0e0e0; flex: 1; font-family: 'Jua', sans-serif; }
+.word-item .level { color: #a0a0a0; font-size: 1rem; }
+
+/* === 다국어 모달 및 UI 독립적 CSS === */
+/* 충돌을 방지하기 위해 #langModal과 그 하위요소에만 적용되는 CSS */
+#langSelectorContainer { position: absolute; top: 15px; right: 15px; z-index: 99999; display: block; }
+
+#langModal, #langModal * { box-sizing: border-box !important; }
+#langModal {
+    position: fixed; inset: 0; z-index: 99999;
+    display: none; align-items: flex-start; justify-content: center;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+    padding-top: 4rem; padding-left: 1rem; padding-right: 1rem;
+    opacity: 0; transition: all 0.3s ease;
+}
+#langModal.active { display: flex; opacity: 1; }
+#langModal .modal-content-wrapper {
+    background: #111827; border: 1px solid #374151; border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%; max-width: 56rem; max-height: 85vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    transform: scale(0.95) translateY(-10px); transition: all 0.3s ease;
+}
+#langModal.active .modal-content-wrapper { transform: scale(1) translateY(0); }
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+.toast-box {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1f2937;
+    border: 1px solid #374151; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    border-radius: 0.75rem; padding: 1rem; display: flex; align-items: center; gap: 0.75rem;
+    z-index: 99999; transform: translateY(150%); opacity: 0; transition: all 0.3s ease;
+}
+.toast-box.show { transform: translateY(0); opacity: 1; }
+
+/* 좌측 상단 링크 스타일 (다국어 모달 버튼과 디자인 매칭) */
+#topLeftLinkWrapper {
+    position: absolute; top: 15px; left: 80px; z-index: 99998;
+}
+#topLeftLink {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(55, 65, 81, 0.5); border: 1px solid #4b5563;
+    border-radius: 9999px; padding: 0.5rem 1rem; color: #e5e7eb;
+    text-decoration: none; font-size: 0.875rem; font-weight: 500;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transition: all 0.2s; font-family: 'Noto Sans', sans-serif;
+}
+#topLeftLink:hover { background: rgba(55, 65, 81, 1); }
+
+@media (max-width: 768px) {
+    #header { height: 80px; }
+    #timerDisplay { font-size: 60px; }
+    .drag-area { min-height: 60px; padding: 5px; }
+    #langModal { padding-top: 1rem; align-items: center; }
+}
+</style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden lang-ko">
+
+<div id="topLeftLinkWrapper">
+    <a id="topLeftLink" href="/" target="_self">
+        <i class="fa-solid fa-gamepad text-gray-400"></i>
+        <span id="domainText">킹수학.com</span>
+    </a>
+</div>
+
+<div id="langSelectorContainer">
+    <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="height: 40px; font-family: 'Noto Sans', sans-serif;">
+        <i class="fa-solid fa-globe text-gray-400"></i>
+        <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+        <span id="currentLangName" class="hidden sm:inline-block text-white">한국어</span>
+        <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+    </button>
+</div>
+
+<div id="langModal">
+    <div class="modal-content-wrapper">
+        <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2 m-0">
+                    <i class="fa-solid fa-language text-yellow-500"></i>
+                    <span style="font-family: 'Noto Sans', sans-serif;">Language / 언어</span>
+                </h2>
+            </div>
+            <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors border-0 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="p-5 pb-2 bg-gray-900">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                    class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500" style="font-family: 'Noto Sans', sans-serif;">
+            </div>
+        </div>
+
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1 bg-gray-900">
+            <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+            <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                <p style="font-family: 'Noto Sans', sans-serif; margin:0;">No results / 검색 결과 없음</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastNotification" class="toast-box">
+    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+        <i class="fa-solid fa-check"></i>
+    </div>
+    <div>
+        <p id="ui-toast" class="text-sm font-medium text-white m-0" style="font-family: 'Noto Sans', sans-serif;">언어가 변경되었습니다.</p>
+        <p id="toastLangName" class="text-xs text-gray-400 m-0" style="font-family: 'Noto Sans', sans-serif;">Korean</p>
+    </div>
+</div>
+
+<div id="countdownLayer"><div id="countdownText">3</div></div>
+
+<div id="overlay">
+    <div class="overlay-content">
+        <div class="title-area">
+            <h1 id="msgTitle" data-i18n="title">이모지 한글 킹</h1>
+            <div class="instructions" id="gameInstructions" data-i18n="instructions">
+                ☝️ <b>자음 모음 드래그</b>하여 글자 조립!<br>
+                💡 <b>힌트</b>: 자소 1개 자동 완성 (5s ⏳)<br>
+                ⏭️ <b>패스</b>: 다음 단어로 넘어가기 (5s ⏳)
+            </div>
+        </div>
+        
+        <ul id="resultList" style="display:none;"></ul>
+        
+        <div id="setupArea">
+            <div class="setup-row">
+                <div class="setup-group">
+                    <label class="setup-label" data-i18n="timeLabel">⏱️ 시간</label>
+                    <select id="gameTimeLimit" class="custom-select">
+                        <option value="60" selected data-i18n="1min">1분</option>
+                        <option value="120" data-i18n="2min">2분</option>
+                        <option value="180" data-i18n="3min">3분</option>
+                    </select>
+                </div>
+                <div class="setup-group">
+                    <label class="setup-label" data-i18n="modeLabel">👥 게임 모드</label>
+                    <select id="playerCount" class="custom-select">
+                        <option value="1" data-i18n="1p">1인 플레이</option>
+                        <option value="2" data-i18n="2p">2인 플레이</option>
+                        <option value="3" data-i18n="3p">3인 플레이</option>
+                        <option value="4" selected data-i18n="4p">4인 플레이</option>
+                        <option value="5" data-i18n="5p">5인 플레이</option>
+                        <option value="6" data-i18n="6p">6인 플레이</option>
+                        <option value="team2vs2" data-i18n="team2">2:2 팀전</option>
+                        <option value="team3vs3" data-i18n="team3">3:3 팀전</option>
+                        <option value="team2vs2vs2" data-i18n="team222">2:2:2 팀전</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="math-menu-wrapper">
+            <div class="math-menu-container">
+                <div class="level-list" id="levelList"></div>
+            </div>
+        </div>
+        
+        <button id="startBtn" data-i18n="startBtn">게임 시작</button>
+        <a id="otherGameLink" href="/" target="_self" data-i18n="otherGame" style="display: block; margin-top: 15px; padding: 10px 24px; font-size: 1.1rem; color: #e0e0e0; text-decoration: none; background-color: rgba(255, 255, 255, 0.1); border-radius: 30px; transition: all 0.2s;">🎮 다른 게임 하기</a>
+    </div>
+    
+    <div id="finalPodium"></div>
+</div>
+
+<div id="wordModal" class="word-modal">
+    <div class="word-modal-content">
+        <div class="word-modal-header">
+            <h2 id="wordModalTitle">단어 리스트</h2>
+            <button class="word-modal-close" onclick="closeWordModal()">✖</button>
+        </div>
+        <div id="wordModalList" class="word-modal-list custom-scrollbar"></div>
+    </div>
+</div>
+
+<button id="btn-home" class="fixed-btn">🏠</button>
+<button id="gameFsBtn" class="fixed-btn" style="display: none;">↕️</button>
+
+<header id="header">
+    <div id="timerDisplay">60</div>
+</header>
+
+<div id="teamScoreBoard">
+    <div class="team-card team-A" id="teamCardA">
+        <div class="team-name" id="teamNameA">🐶강아지 & 고양이🐱</div>
+        <div class="team-score">🦴 <span id="scoreA">0</span> 🐟</div>
+        <div class="team-rank" id="rankA">🥇</div>
+    </div>
+    <div class="team-card team-B" id="teamCardB">
+        <div class="team-name" id="teamNameB">🐰토끼 & 햄스터🐹</div>
+        <div class="team-score">🥕 <span id="scoreB">0</span> 🥜</div>
+        <div class="team-rank" id="rankB">🥇</div>
+    </div>
+    <div class="team-card team-C" id="teamCardC">
+        <div class="team-name" id="teamNameC">🐼판다 & 원숭이🐵</div>
+        <div class="team-score">🎋 <span id="scoreC">0</span> 🍌</div>
+        <div class="team-rank" id="rankC">🥇</div>
+    </div>
+</div>
+
+<div id="arena">
+    <div class="teamBox bg-dog" id="dogSide">
+        <div class="teamTitle" id="title-dog">🐶 강아지</div>
+        <div class="scoreBadge" id="dogScore">🦴 0</div>
+        <div id="dogRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="dogEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="dogHintBtn" onpointerdown="useHint('dog', event)">
+                <div class="action-bg" id="dogHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="dogPassBtn" onpointerdown="passWord('dog', event)">
+                <div class="action-bg" id="dogPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="dogDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="dogDrags"></div>
+    </div>
+    <div class="teamBox bg-cat" id="catSide">
+        <div class="teamTitle" id="title-cat">🐱 고양이</div>
+        <div class="scoreBadge" id="catScore">🐟 0</div>
+        <div id="catRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="catEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="catHintBtn" onpointerdown="useHint('cat', event)">
+                <div class="action-bg" id="catHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="catPassBtn" onpointerdown="passWord('cat', event)">
+                <div class="action-bg" id="catPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="catDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="catDrags"></div>
+    </div>
+    <div class="teamBox bg-rabbit" id="rabbitSide">
+        <div class="teamTitle" id="title-rabbit">🐰 토끼</div>
+        <div class="scoreBadge" id="rabbitScore">🥕 0</div>
+        <div id="rabbitRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="rabbitEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="rabbitHintBtn" onpointerdown="useHint('rabbit', event)">
+                <div class="action-bg" id="rabbitHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="rabbitPassBtn" onpointerdown="passWord('rabbit', event)">
+                <div class="action-bg" id="rabbitPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="rabbitDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="rabbitDrags"></div>
+    </div>
+    <div class="teamBox bg-hamster" id="hamsterSide">
+        <div class="teamTitle" id="title-hamster">🐹 햄스터</div>
+        <div class="scoreBadge" id="hamsterScore">🥜 0</div>
+        <div id="hamsterRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="hamsterEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="hamsterHintBtn" onpointerdown="useHint('hamster', event)">
+                <div class="action-bg" id="hamsterHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="hamsterPassBtn" onpointerdown="passWord('hamster', event)">
+                <div class="action-bg" id="hamsterPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="hamsterDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="hamsterDrags"></div>
+    </div>
+    <div class="teamBox bg-panda" id="pandaSide">
+        <div class="teamTitle" id="title-panda">🐼 판다</div>
+        <div class="scoreBadge" id="pandaScore">🎋 0</div>
+        <div id="pandaRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="pandaEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="pandaHintBtn" onpointerdown="useHint('panda', event)">
+                <div class="action-bg" id="pandaHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="pandaPassBtn" onpointerdown="passWord('panda', event)">
+                <div class="action-bg" id="pandaPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="pandaDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="pandaDrags"></div>
+    </div>
+    <div class="teamBox bg-monkey" id="monkeySide">
+        <div class="teamTitle" id="title-monkey">🐵 원숭이</div>
+        <div class="scoreBadge" id="monkeyScore">🍌 0</div>
+        <div id="monkeyRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="monkeyEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="monkeyHintBtn" onpointerdown="useHint('monkey', event)">
+                <div class="action-bg" id="monkeyHintBg"></div>
+                <span class="action-text" data-i18n="hint">💡 힌트</span>
+            </button>
+            <button class="action-btn pass-btn" id="monkeyPassBtn" onpointerdown="passWord('monkey', event)">
+                <div class="action-bg" id="monkeyPassBg"></div>
+                <span class="action-text" data-i18n="pass">⏭️ 패스</span>
+            </button>
+        </div>
+        <div class="drop-area" id="monkeyDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="monkeyDrags"></div>
+    </div>
+</div>
+
+<script>
+/* =========================================
+   1. 다국어 데이터베이스 (16개국)
+   ========================================= */
+const dict = {
+    ko: {
+        title: "이모지 한글 킹", domain: "킹수학.com", desc: "전자칠판을 최고의 학습 도구로 만드세요! 자음과 모음을 조립하는 한글 스펠링 조합 게임.",
+        instructions: "☝️ <b>자음 모음 드래그</b>하여 글자 조립!<br>💡 <b>힌트</b>: 자소 1개 자동 완성 (5s ⏳)<br>⏭️ <b>패스</b>: 다음 단어로 넘어가기 (5s ⏳)",
+        timeLabel: "⏱️ 시간", modeLabel: "👥 게임 모드",
+        "1min": "1분", "2min": "2분", "3min": "3분",
+        "1p": "1인 플레이", "2p": "2인 플레이", "3p": "3인 플레이", "4p": "4인 플레이", "5p": "5인 플레이", "6p": "6인 플레이",
+        team2: "2:2 팀전", team3: "3:3 팀전", team222: "2:2:2 팀전",
+        startBtn: "게임 시작", otherGame: "🎮 다른 게임 하기",
+        hint: "💡 힌트", pass: "⏭️ 패스",
+        dog: "🐶 강아지", cat: "🐱 고양이", rabbit: "🐰 토끼", hamster: "🐹 햄스터", panda: "🐼 판다", monkey: "🐵 원숭이",
+        teamDogCat: "🐶강아지&고양이🐱", teamRabbitHamster: "🐰토끼&햄스터🐹", teamPandaMonkey: "🐼판다&원숭이🐵",
+        team3A: "🐶고양이토끼🐰", team3B: "🐹판다원숭이🐵",
+        gameOver: "게임 종료!", playAgain: "다시 하기", totalScore: "총점",
+        levelTitle: ["1단계", "2단계", "3단계", "4단계"], levelDesc: ["1글자 단어", "1~2글자 단어", "1~3글자 단어", "1~4글자 단어 (마스터)"],
+        wordListBtn: "단어 보기", wordModalTitle: "단어 리스트", comboInfo: "🔥 {c}연속! +3"
+    },
+    en: {
+        title: "Emoji Korean King", domain: "KingsMath.com", desc: "Turn your smartboard into the best learning tool! A Korean spelling game to assemble consonants and vowels.",
+        instructions: "☝️ <b>Drag</b> letters to build words!<br>💡 <b>Hint</b>: Auto-fill 1 letter (5s ⏳)<br>⏭️ <b>Pass</b>: Skip word (5s ⏳)",
+        timeLabel: "⏱️ Time", modeLabel: "👥 Mode",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Player", "2p": "2 Players", "3p": "3 Players", "4p": "4 Players", "5p": "5 Players", "6p": "6 Players",
+        team2: "2:2 Team", team3: "3:3 Team", team222: "2:2:2 Team",
+        startBtn: "Start Battle", otherGame: "🎮 Other Games",
+        hint: "💡 Hint", pass: "⏭️ Pass",
+        dog: "🐶 Dog", cat: "🐱 Cat", rabbit: "🐰 Rabbit", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Monkey",
+        teamDogCat: "🐶Dog & Cat🐱", teamRabbitHamster: "🐰Rabbit & Hamster🐹", teamPandaMonkey: "🐼Panda & Monkey🐵",
+        team3A: "🐶DogCatRabbit🐰", team3B: "🐹HamPanMon🐵",
+        gameOver: "Game Over!", playAgain: "Play Again", totalScore: "Total",
+        levelTitle: ["Level 1", "Level 2", "Level 3", "Level 4"], levelDesc: ["1-Letter Word", "1~2-Letter Word", "1~3-Letter Word", "1~4-Letter Word (Master)"],
+        wordListBtn: "Word List", wordModalTitle: "Word List", comboInfo: "🔥 {c} COMBO! +3"
+    },
+    zh: {
+        title: "表情包韩语之王", domain: "KingsMath.com", desc: "把智能黑板变成最好的学习工具！拼写韩语字母的游戏。",
+        instructions: "☝️ <b>拖动</b>字母拼出单词！<br>💡 <b>提示</b>: 自动填1个字母 (5s ⏳)<br>⏭️ <b>跳过</b>: 跳过该词 (5s ⏳)",
+        timeLabel: "⏱️ 时间", modeLabel: "👥 模式",
+        "1min": "1分钟", "2min": "2分钟", "3min": "3分钟",
+        "1p": "1人", "2p": "2人", "3p": "3人", "4p": "4人", "5p": "5人", "6p": "6人",
+        team2: "2:2 组队", team3: "3:3 组队", team222: "2:2:2 组队",
+        startBtn: "开始游戏", otherGame: "🎮 其他游戏",
+        hint: "💡 提示", pass: "⏭️ 跳过",
+        dog: "🐶 狗", cat: "🐱 猫", rabbit: "🐰 兔子", hamster: "🐹 仓鼠", panda: "🐼 熊猫", monkey: "🐵 猴子",
+        teamDogCat: "🐶狗 & 猫🐱", teamRabbitHamster: "🐰兔子 & 仓鼠🐹", teamPandaMonkey: "🐼熊猫 & 猴子🐵",
+        team3A: "🐶猫兔🐰", team3B: "🐹熊猴🐵",
+        gameOver: "游戏结束！", playAgain: "再玩一次", totalScore: "总分",
+        levelTitle: ["第1关", "第2关", "第3关", "第4关"], levelDesc: ["1字词", "1~2字词", "1~3字词", "1~4字词(大师)"],
+        wordListBtn: "单词表", wordModalTitle: "单词表", comboInfo: "🔥 连击 {c}! +3"
+    },
+    ja: {
+        title: "絵文字韓国語王", domain: "KingsMath.com", desc: "電子黒板を最高の学習ツールに！ハングルの子音と母音を組み立てるスペリングゲーム。",
+        instructions: "☝️ <b>ドラッグ</b>して文字を完成！<br>💡 <b>ヒント</b>: 1文字を自動入力 (5s ⏳)<br>⏭️ <b>パス</b>: 単語をスキップ (5s ⏳)",
+        timeLabel: "⏱️ 時間", modeLabel: "👥 モード",
+        "1min": "1分", "2min": "2分", "3min": "3分",
+        "1p": "1人", "2p": "2人", "3p": "3人", "4p": "4人", "5p": "5人", "6p": "6人",
+        team2: "2:2 チーム戦", team3: "3:3 チーム戦", team222: "2:2:2 チーム戦",
+        startBtn: "ゲーム開始", otherGame: "🎮 他のゲーム",
+        hint: "💡 ヒント", pass: "⏭️ パス",
+        dog: "🐶 犬", cat: "🐱 猫", rabbit: "🐰 ウサギ", hamster: "🐹 ハムスター", panda: "🐼 パンダ", monkey: "🐵 サル",
+        teamDogCat: "🐶犬 & 猫🐱", teamRabbitHamster: "🐰ウサギ & ハムスター🐹", teamPandaMonkey: "🐼パンダ & サル🐵",
+        team3A: "🐶猫ウサギ🐰", team3B: "🐹パンサル🐵",
+        gameOver: "ゲームオーバー！", playAgain: "もう一度プレイ", totalScore: "合計",
+        levelTitle: ["レベル1", "レベル2", "レベル3", "レベル4"], levelDesc: ["1文字の単語", "1~2文字の単語", "1~3文字の単語", "1~4文字の単語(マスター)"],
+        wordListBtn: "単語リスト", wordModalTitle: "単語リスト", comboInfo: "🔥 {c}コンボ! +3"
+    },
+    es: {
+        title: "El Rey del Coreano Emoji", domain: "KingsMath.com", desc: "¡Convierte la pizarra digital en la mejor herramienta! Juego de deletreo coreano.",
+        instructions: "☝️ <b>Arrastra</b> las letras.<br>💡 <b>Pista</b>: Auto-completar (5s ⏳)<br>⏭️ <b>Pasar</b>: Saltar palabra (5s ⏳)",
+        timeLabel: "⏱️ Tiempo", modeLabel: "👥 Modo",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Jugador", "2p": "2 Jugadores", "3p": "3 Jugadores", "4p": "4 Jugadores", "5p": "5 Jugadores", "6p": "6 Jugadores",
+        team2: "2:2 Equipo", team3: "3:3 Equipo", team222: "2:2:2 Equipo",
+        startBtn: "Empezar", otherGame: "🎮 Otros Juegos",
+        hint: "💡 Pista", pass: "⏭️ Pasar",
+        dog: "🐶 Perro", cat: "🐱 Gato", rabbit: "🐰 Conejo", hamster: "🐹 Hámster", panda: "🐼 Panda", monkey: "🐵 Mono",
+        teamDogCat: "🐶Perro & Gato🐱", teamRabbitHamster: "🐰Conejo & Hámster🐹", teamPandaMonkey: "🐼Panda & Mono🐵",
+        team3A: "🐶GatoConejo🐰", team3B: "🐹PanMono🐵",
+        gameOver: "¡Juego Terminado!", playAgain: "Jugar de Nuevo", totalScore: "Total",
+        levelTitle: ["Nivel 1", "Nivel 2", "Nivel 3", "Nivel 4"], levelDesc: ["Palabra de 1 letra", "Palabra de 1~2 letras", "Palabra de 1~3 letras", "Palabra de 1~4 letras"],
+        wordListBtn: "Palabras", wordModalTitle: "Lista de Palabras", comboInfo: "🔥 ¡{c} COMBO! +3"
+    },
+    fr: {
+        title: "Le Roi du Coréen Emoji", domain: "KingsMath.com", desc: "Le meilleur outil d'apprentissage! Jeu d'orthographe coréen.",
+        instructions: "☝️ <b>Glissez</b> les lettres.<br>💡 <b>Indice</b>: Auto-remplissage (5s ⏳)<br>⏭️ <b>Passer</b>: Mot suivant (5s ⏳)",
+        timeLabel: "⏱️ Temps", modeLabel: "👥 Mode",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Joueur", "2p": "2 Joueurs", "3p": "3 Joueurs", "4p": "4 Joueurs", "5p": "5 Joueurs", "6p": "6 Joueurs",
+        team2: "2:2 Équipe", team3: "3:3 Équipe", team222: "2:2:2 Équipe",
+        startBtn: "Commencer", otherGame: "🎮 Autres Jeux",
+        hint: "💡 Indice", pass: "⏭️ Passer",
+        dog: "🐶 Chien", cat: "🐱 Chat", rabbit: "🐰 Lapin", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Singe",
+        teamDogCat: "🐶Chien & Chat🐱", teamRabbitHamster: "🐰Lapin & Hamster🐹", teamPandaMonkey: "🐼Panda & Singe🐵",
+        team3A: "🐶ChatLapin🐰", team3B: "🐹PanSinge🐵",
+        gameOver: "Jeu Terminé!", playAgain: "Rejouer", totalScore: "Total",
+        levelTitle: ["Niveau 1", "Niveau 2", "Niveau 3", "Niveau 4"], levelDesc: ["Mot d'une lettre", "Mot de 1~2 lettres", "Mot de 1~3 lettres", "Mot de 1~4 lettres"],
+        wordListBtn: "Mots", wordModalTitle: "Liste de mots", comboInfo: "🔥 {c} COMBO! +3"
+    },
+    de: {
+        title: "Emoji-Koreanisch-König", domain: "KingsMath.com", desc: "Das beste Lernwerkzeug! Koreanisches Buchstabierspiel.",
+        instructions: "☝️ <b>Ziehen</b> Sie die Buchstaben.<br>💡 <b>Tipp</b>: Auto-Ausfüllen (5s ⏳)<br>⏭️ <b>Passen</b>: Überspringen (5s ⏳)",
+        timeLabel: "⏱️ Zeit", modeLabel: "👥 Modus",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Spieler", "2p": "2 Spieler", "3p": "3 Spieler", "4p": "4 Spieler", "5p": "5 Spieler", "6p": "6 Spieler",
+        team2: "2:2 Team", team3: "3:3 Team", team222: "2:2:2 Team",
+        startBtn: "Starten", otherGame: "🎮 Andere Spiele",
+        hint: "💡 Tipp", pass: "⏭️ Passen",
+        dog: "🐶 Hund", cat: "🐱 Katze", rabbit: "🐰 Hase", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Affe",
+        teamDogCat: "🐶Hund & Katze🐱", teamRabbitHamster: "🐰Hase & Hamster🐹", teamPandaMonkey: "🐼Panda & Affe🐵",
+        team3A: "🐶KatzHase🐰", team3B: "🐹PanAffe🐵",
+        gameOver: "Spiel vorbei!", playAgain: "Nochmal spielen", totalScore: "Gesamt",
+        levelTitle: ["Level 1", "Level 2", "Level 3", "Level 4"], levelDesc: ["1-Buchstaben-Wort", "1~2-Buchstaben-Wort", "1~3-Buchstaben-Wort", "1~4-Buchstaben-Wort"],
+        wordListBtn: "Wortliste", wordModalTitle: "Wortliste", comboInfo: "🔥 {c} KOMBO! +3"
+    },
+    ru: {
+        title: "Король Корейского Эмодзи", domain: "KingsMath.com", desc: "Лучший инструмент для обучения! Игра на корейскую орфографию.",
+        instructions: "☝️ <b>Перетащите</b> буквы.<br>💡 <b>Подсказка</b>: Автозаполнение (5s ⏳)<br>⏭️ <b>Пропуск</b>: Следующее слово (5s ⏳)",
+        timeLabel: "⏱️ Время", modeLabel: "👥 Режим",
+        "1min": "1 мин", "2min": "2 мин", "3min": "3 мин",
+        "1p": "1 Игрок", "2p": "2 Игрока", "3p": "3 Игрока", "4p": "4 Игрока", "5p": "5 Игроков", "6p": "6 Игроков",
+        team2: "Команда 2:2", team3: "Команда 3:3", team222: "Команда 2:2:2",
+        startBtn: "Начать", otherGame: "🎮 Другие игры",
+        hint: "💡 Подсказка", pass: "⏭️ Пропуск",
+        dog: "🐶 Собака", cat: "🐱 Кот", rabbit: "🐰 Кролик", hamster: "🐹 Хомяк", panda: "🐼 Панда", monkey: "🐵 Обезьяна",
+        teamDogCat: "🐶Собака & Кот🐱", teamRabbitHamster: "🐰Кролик & Хомяк🐹", teamPandaMonkey: "🐼Панда & Обезьяна🐵",
+        team3A: "🐶КотКролик🐰", team3B: "🐹ПанОбезьяна🐵",
+        gameOver: "Игра окончена!", playAgain: "Играть снова", totalScore: "Всего",
+        levelTitle: ["Уровень 1", "Уровень 2", "Уровень 3", "Уровень 4"], levelDesc: ["Слово из 1 буквы", "Слово из 1~2 букв", "Слово из 1~3 букв", "Слово из 1~4 букв"],
+        wordListBtn: "Слова", wordModalTitle: "Список слов", comboInfo: "🔥 КОМБО {c}! +3"
+    },
+    vi: {
+        title: "Vua Tiếng Hàn Emoji", domain: "KingsMath.com", desc: "Công cụ học tập tốt nhất! Trò chơi chính tả tiếng Hàn.",
+        instructions: "☝️ <b>Kéo</b> các chữ cái.<br>💡 <b>Gợi ý</b>: Tự động điền (5s ⏳)<br>⏭️ <b>Bỏ qua</b>: Chuyển từ (5s ⏳)",
+        timeLabel: "⏱️ Thời gian", modeLabel: "👥 Chế độ",
+        "1min": "1 Phút", "2min": "2 Phút", "3min": "3 Phút",
+        "1p": "1 Người", "2p": "2 Người", "3p": "3 Người", "4p": "4 Người", "5p": "5 Người", "6p": "6 Người",
+        team2: "Đội 2:2", team3: "Đội 3:3", team222: "Đội 2:2:2",
+        startBtn: "Bắt đầu", otherGame: "🎮 Trò chơi khác",
+        hint: "💡 Gợi ý", pass: "⏭️ Bỏ qua",
+        dog: "🐶 Chó", cat: "🐱 Mèo", rabbit: "🐰 Thỏ", hamster: "🐹 Hamster", panda: "🐼 Gấu trúc", monkey: "🐵 Khỉ",
+        teamDogCat: "🐶Chó & Mèo🐱", teamRabbitHamster: "🐰Thỏ & Hamster🐹", teamPandaMonkey: "🐼Trúc & Khỉ🐵",
+        team3A: "🐶MèoThỏ🐰", team3B: "🐹TrúcKhỉ🐵",
+        gameOver: "Kết thúc!", playAgain: "Chơi lại", totalScore: "Tổng cộng",
+        levelTitle: ["Cấp 1", "Cấp 2", "Cấp 3", "Cấp 4"], levelDesc: ["Từ 1 chữ", "Từ 1~2 chữ", "Từ 1~3 chữ", "Từ 1~4 chữ"],
+        wordListBtn: "Từ vựng", wordModalTitle: "Danh sách từ vựng", comboInfo: "🔥 {c} COMBO! +3"
+    },
+    th: {
+        title: "ราชาภาษาเกาหลีอีโมจิ", domain: "KingsMath.com", desc: "เปลี่ยนกระดานอัจฉริยะให้เป็นเครื่องมือการเรียนรู้ที่ดีที่สุด! เกมสะกดคำภาษาเกาหลี",
+        instructions: "☝️ <b>ลาก</b> ตัวอักษร!<br>💡 <b>คำใบ้</b>: เติมอัตโนมัติ 1 ตัว (5s ⏳)<br>⏭️ <b>ผ่าน</b>: ข้ามคำ (5s ⏳)",
+        timeLabel: "⏱️ เวลา", modeLabel: "👥 โหมด",
+        "1min": "1 นาที", "2min": "2 นาที", "3min": "3 นาที",
+        "1p": "1 คน", "2p": "2 คน", "3p": "3 คน", "4p": "4 คน", "5p": "5 คน", "6p": "6 คน",
+        team2: "ทีม 2:2", team3: "ทีม 3:3", team222: "ทีม 2:2:2",
+        startBtn: "เริ่มเกม", otherGame: "🎮 เกมอื่นๆ",
+        hint: "💡 คำใบ้", pass: "⏭️ ผ่าน",
+        dog: "🐶 หมา", cat: "🐱 แมว", rabbit: "🐰 กระต่าย", hamster: "🐹 แฮมสเตอร์", panda: "🐼 แพนด้า", monkey: "🐵 ลิง",
+        teamDogCat: "🐶หมา & แมว🐱", teamRabbitHamster: "🐰กระต่าย & แฮมสเตอร์🐹", teamPandaMonkey: "🐼แพนด้า & ลิง🐵",
+        team3A: "🐶แมวกระต่าย🐰", team3B: "🐹แพนลิง🐵",
+        gameOver: "จบเกม!", playAgain: "เล่นอีกครั้ง", totalScore: "รวม",
+        levelTitle: ["ระดับ 1", "ระดับ 2", "ระดับ 3", "ระดับ 4"], levelDesc: ["คำ 1 พยางค์", "คำ 1~2 พยางค์", "คำ 1~3 พยางค์", "คำ 1~4 พยางค์"],
+        wordListBtn: "คำศัพท์", wordModalTitle: "รายการคำศัพท์", comboInfo: "🔥 {c} คอมโบ! +3"
+    },
+    id: {
+        title: "Raja Bahasa Korea Emoji", domain: "KingsMath.com", desc: "Jadikan papan tulis pintar alat belajar terbaik! Game mengeja bahasa Korea.",
+        instructions: "☝️ <b>Tarik</b> huruf!<br>💡 <b>Petunjuk</b>: Isi otomatis (5s ⏳)<br>⏭️ <b>Lewati</b>: Lewati kata (5s ⏳)",
+        timeLabel: "⏱️ Waktu", modeLabel: "👥 Mode",
+        "1min": "1 Menit", "2min": "2 Menit", "3min": "3 Menit",
+        "1p": "1 Pemain", "2p": "2 Pemain", "3p": "3 Pemain", "4p": "4 Pemain", "5p": "5 Pemain", "6p": "6 Pemain",
+        team2: "Tim 2:2", team3: "Tim 3:3", team222: "Tim 2:2:2",
+        startBtn: "Mulai", otherGame: "🎮 Game Lainnya",
+        hint: "💡 Petunjuk", pass: "⏭️ Lewati",
+        dog: "🐶 Anjing", cat: "🐱 Kucing", rabbit: "🐰 Kelinci", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Monyet",
+        teamDogCat: "🐶Anjing & Kucing🐱", teamRabbitHamster: "🐰Kelinci & Hamster🐹", teamPandaMonkey: "🐼Panda & Monyet🐵",
+        team3A: "🐶KucLinci🐰", team3B: "🐹PanMonyet🐵",
+        gameOver: "Permainan Selesai!", playAgain: "Main Lagi", totalScore: "Total",
+        levelTitle: ["Level 1", "Level 2", "Level 3", "Level 4"], levelDesc: ["Kata 1 Huruf", "Kata 1~2 Huruf", "Kata 1~3 Huruf", "Kata 1~4 Huruf"],
+        wordListBtn: "Daftar Kata", wordModalTitle: "Daftar Kata", comboInfo: "🔥 {c} KOMBO! +3"
+    },
+    'pt-br': {
+        title: "O Rei do Coreano Emoji", domain: "KingsMath.com", desc: "O melhor jogo para aprender coreano!",
+        instructions: "☝️ <b>Arraste</b> as letras.<br>💡 <b>Dica</b>: Preenchimento automático (5s ⏳)<br>⏭️ <b>Pular</b>: Pular palavra (5s ⏳)",
+        timeLabel: "⏱️ Tempo", modeLabel: "👥 Modo",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Jogador", "2p": "2 Jogadores", "3p": "3 Jogadores", "4p": "4 Jogadores", "5p": "5 Jogadores", "6p": "6 Jogadores",
+        team2: "Equipe 2:2", team3: "Equipe 3:3", team222: "Equipe 2:2:2",
+        startBtn: "Começar", otherGame: "🎮 Outros Jogos",
+        hint: "💡 Dica", pass: "⏭️ Pular",
+        dog: "🐶 Cachorro", cat: "🐱 Gato", rabbit: "🐰 Coelho", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Macaco",
+        teamDogCat: "🐶Cachorro & Gato🐱", teamRabbitHamster: "🐰Coelho & Hamster🐹", teamPandaMonkey: "🐼Panda & Macaco🐵",
+        team3A: "🐶GatCoelho🐰", team3B: "🐹PanMacaco🐵",
+        gameOver: "Fim de Jogo!", playAgain: "Jogar Novamente", totalScore: "Total",
+        levelTitle: ["Nível 1", "Nível 2", "Nível 3", "Nível 4"], levelDesc: ["Palavra 1 letra", "Palavra 1~2 letras", "Palavra 1~3 letras", "Palavra 1~4 letras"],
+        wordListBtn: "Palavras", wordModalTitle: "Lista de Palavras", comboInfo: "🔥 {c} COMBO! +3"
+    },
+    it: {
+        title: "Il Re del Coreano Emoji", domain: "KingsMath.com", desc: "Il miglior gioco per imparare l'ortografia coreana!",
+        instructions: "☝️ <b>Trascina</b> le lettere.<br>💡 <b>Aiuto</b>: Compila 1 lettera (5s ⏳)<br>⏭️ <b>Passa</b>: Salta parola (5s ⏳)",
+        timeLabel: "⏱️ Tempo", modeLabel: "👥 Modalità",
+        "1min": "1 Min", "2min": "2 Min", "3min": "3 Min",
+        "1p": "1 Giocatore", "2p": "2 Giocatori", "3p": "3 Giocatori", "4p": "4 Giocatori", "5p": "5 Giocatori", "6p": "6 Giocatori",
+        team2: "Squadra 2:2", team3: "Squadra 3:3", team222: "Squadra 2:2:2",
+        startBtn: "Inizia", otherGame: "🎮 Altri Giochi",
+        hint: "💡 Aiuto", pass: "⏭️ Passa",
+        dog: "🐶 Cane", cat: "🐱 Gatto", rabbit: "🐰 Coniglio", hamster: "🐹 Criceto", panda: "🐼 Panda", monkey: "🐵 Scimmia",
+        teamDogCat: "🐶Cane & Gatto🐱", teamRabbitHamster: "🐰Coniglio & Criceto🐹", teamPandaMonkey: "🐼Panda & Scimmia🐵",
+        team3A: "🐶GatConiglio🐰", team3B: "🐹PanScimmia🐵",
+        gameOver: "Fine Partita!", playAgain: "Gioca di nuovo", totalScore: "Totale",
+        levelTitle: ["Livello 1", "Livello 2", "Livello 3", "Livello 4"], levelDesc: ["Parola 1 lettera", "Parola 1~2 lettere", "Parola 1~3 lettere", "Parola 1~4 lettere"],
+        wordListBtn: "Parole", wordModalTitle: "Lista Parole", comboInfo: "🔥 {c} COMBO! +3"
+    },
+    tr: {
+        title: "Emoji Korece Kralı", domain: "KingsMath.com", desc: "Korece heceleme oyunu!",
+        instructions: "☝️ Harfleri <b>Sürükle</b>.<br>💡 <b>İpucu</b>: Otomatik doldur (5s ⏳)<br>⏭️ <b>Pas</b>: Kelimeyi atla (5s ⏳)",
+        timeLabel: "⏱️ Zaman", modeLabel: "👥 Mod",
+        "1min": "1 Dk", "2min": "2 Dk", "3min": "3 Dk",
+        "1p": "1 Oyuncu", "2p": "2 Oyuncu", "3p": "3 Oyuncu", "4p": "4 Oyuncu", "5p": "5 Oyuncu", "6p": "6 Oyuncu",
+        team2: "Takım 2:2", team3: "Takım 3:3", team222: "Takım 2:2:2",
+        startBtn: "Başla", otherGame: "🎮 Diğer Oyunlar",
+        hint: "💡 İpucu", pass: "⏭️ Pas",
+        dog: "🐶 Köpek", cat: "🐱 Kedi", rabbit: "🐰 Tavşan", hamster: "🐹 Hamster", panda: "🐼 Panda", monkey: "🐵 Maymun",
+        teamDogCat: "🐶Köpek & Kedi🐱", teamRabbitHamster: "🐰Tavşan & Hamster🐹", teamPandaMonkey: "🐼Panda & Maymun🐵",
+        team3A: "🐶KediTavşan🐰", team3B: "🐹PanMaymun🐵",
+        gameOver: "Oyun Bitti!", playAgain: "Tekrar Oyna", totalScore: "Toplam",
+        levelTitle: ["Seviye 1", "Seviye 2", "Seviye 3", "Seviye 4"], levelDesc: ["1 harfli kelime", "1~2 harfli kelime", "1~3 harfli kelime", "1~4 harfli kelime"],
+        wordListBtn: "Kelimeler", wordModalTitle: "Kelime Listesi", comboInfo: "🔥 {c} KOMBO! +3"
+    },
+    hi: {
+        title: "इमोजी कोरियन किंग", domain: "KingsMath.com", desc: "कोरियाई वर्तनी खेल!",
+        instructions: "☝️ अक्षरों को <b>खींचें</b>.<br>💡 <b>सुझाव</b>: स्वचालित भरें (5s ⏳)<br>⏭️ <b>छोड़ें</b>: शब्द छोड़ें (5s ⏳)",
+        timeLabel: "⏱️ समय", modeLabel: "👥 मोड",
+        "1min": "1 मिनट", "2min": "2 मिनट", "3min": "3 मिनट",
+        "1p": "1 खिलाड़ी", "2p": "2 खिलाड़ी", "3p": "3 खिलाड़ी", "4p": "4 खिलाड़ी", "5p": "5 खिलाड़ी", "6p": "6 खिलाड़ी",
+        team2: "टीम 2:2", team3: "टीम 3:3", team222: "टीम 2:2:2",
+        startBtn: "शुरू करें", otherGame: "🎮 अन्य खेल",
+        hint: "💡 सुझाव", pass: "⏭️ छोड़ें",
+        dog: "🐶 कुत्ता", cat: "🐱 बिल्ली", rabbit: "🐰 खरगोश", hamster: "🐹 हम्सटर", panda: "🐼 पांडा", monkey: "🐵 बंदर",
+        teamDogCat: "🐶कुत्ता & बिल्ली🐱", teamRabbitHamster: "🐰खरगोश & हम्सटर🐹", teamPandaMonkey: "🐼पांडा & बंदर🐵",
+        team3A: "🐶बिल्लीखरगोश🐰", team3B: "🐹पांडाबंदर🐵",
+        gameOver: "खेल खत्म!", playAgain: "फिर से खेलें", totalScore: "कुल",
+        levelTitle: ["स्तर 1", "स्तर 2", "स्तर 3", "स्तर 4"], levelDesc: ["1 अक्षर शब्द", "1~2 अक्षर शब्द", "1~3 अक्षर शब्द", "1~4 अक्षर शब्द"],
+        wordListBtn: "शब्द सूची", wordModalTitle: "शब्द सूची", comboInfo: "🔥 {c} कॉम्बो! +3"
+    },
+    bn: {
+        title: "ইমোজি কোরিয়ান কিং", domain: "KingsMath.com", desc: "কোরিয়ান বানান খেলা!",
+        instructions: "☝️ অক্ষরগুলো <b>টানুন</b>.<br>💡 <b>ইঙ্গিত</b>: স্বয়ংক্রিয় পূরণ (5s ⏳)<br>⏭️ <b>পাস</b>: শব্দ এড়িয়ে যান (5s ⏳)",
+        timeLabel: "⏱️ সময়", modeLabel: "👥 মোড",
+        "1min": "১ মিনিট", "2min": "২ মিনিট", "3min": "৩ মিনিট",
+        "1p": "১ খেলোয়াড়", "2p": "২ খেলোয়াড়", "3p": "৩ খেলোয়াড়", "4p": "৪ খেলোয়াড়", "5p": "৫ খেলোয়াড়", "6p": "৬ খেলোয়াড়",
+        team2: "দল ২:২", team3: "দল ৩:৩", team222: "দল ২:২:২",
+        startBtn: "শুরু করুন", otherGame: "🎮 অন্যান্য খেলা",
+        hint: "💡 ইঙ্গিত", pass: "⏭️ পাস",
+        dog: "🐶 কুকুর", cat: "🐱 বিড়াল", rabbit: "🐰 খরগোশ", hamster: "🐹 হ্যামস্টার", panda: "🐼 পান্ডা", monkey: "🐵 বানর",
+        teamDogCat: "🐶কুকুর ও বিড়াল🐱", teamRabbitHamster: "🐰খরগোশ ও হ্যামস্টার🐹", teamPandaMonkey: "🐼পান্ডা ও বানর🐵",
+        team3A: "🐶বিড়ালখরগোশ🐰", team3B: "🐹পান্ডাবানর🐵",
+        gameOver: "খেলা শেষ!", playAgain: "আবার খেলুন", totalScore: "মোট",
+        levelTitle: ["স্তর ১", "স্তর ২", "স্তর ৩", "স্তর ৪"], levelDesc: ["১ অক্ষরের শব্দ", "১~২ অক্ষরের শব্দ", "১~৩ অক্ষরের শব্দ", "১~৪ অক্ষরের শব্দ"],
+        wordListBtn: "শব্দের তালিকা", wordModalTitle: "শব্দের তালিকা", comboInfo: "🔥 {c} কম্বো! +3"
+    }
+};
+
+const languages = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' }
+];
+
+const toastTranslations = {
+    'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+    'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'de': 'Sprache geändert.', 'ru': 'Язык изменен.',
+    'vi': 'Ngôn ngữ đã được thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'id': 'Bahasa telah diubah.',
+    'pt-br': 'Idioma alterado.', 'it': 'Lingua cambiata.', 'tr': 'Dil değiştirildi.', 'hi': 'भाषा बदल दी गई है।', 'bn': 'ভাষা পরিবর্তন করা হয়েছে।'
+};
+
+let currentLang = 'en';
+
+function getInitialLang() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let lang = urlParams.get('lang');
+    if (!lang || !languages.find(l => l.code === lang)) {
+        lang = localStorage.getItem('kingsmath_lang');
+    }
+    if (!lang || !languages.find(l => l.code === lang)) {
+        const browserLang = navigator.language.toLowerCase();
+        lang = languages.find(l => browserLang.startsWith(l.code))?.code;
+    }
+    return lang || 'en';
+}
+
+function applyLanguage(langCode) {
+    currentLang = langCode;
+    const t = dict[langCode];
+    
+    // UI 업데이트
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerHTML = t[key];
+    });
+    
+    // Select 박스 옵션들
+    Array.from(document.getElementById('gameTimeLimit').options).forEach(opt => {
+        const val = opt.value;
+        if(val==='60') opt.textContent = t['1min'];
+        if(val==='120') opt.textContent = t['2min'];
+        if(val==='180') opt.textContent = t['3min'];
+    });
+    Array.from(document.getElementById('playerCount').options).forEach(opt => {
+        const val = opt.value;
+        if(t[val+'p']) opt.textContent = t[val+'p'];
+        if(val==='team2vs2') opt.textContent = t['team2'];
+        if(val==='team3vs3') opt.textContent = t['team3'];
+        if(val==='team2vs2vs2') opt.textContent = t['team222'];
+    });
+
+    // 메타/타이틀/도메인링크
+    document.getElementById('metaTitle').textContent = t.title;
+    document.title = t.title;
+    document.getElementById('metaDesc').content = t.desc;
+    document.getElementById('domainText').textContent = t.domain;
+
+    // Body 클래스 변경 (폰트 제어 및 식별용)
+    const isSixPlayers = document.body.classList.contains('six-players') ? 'six-players' : '';
+    document.body.className = `bg-gray-900 text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden lang-${langCode} ${isSixPlayers}`;
+
+    // 로컬 스토리지 & URL 푸시
+    localStorage.setItem('kingsmath_lang', langCode);
+    const url = new URL(window.location);
+    url.searchParams.set('lang', langCode);
+    window.history.pushState({}, '', url);
+
+    renderMenu(); // 레벨 리스트 재렌더링
+}
+
+/* =========================================
+   2. 다국어 모달 UI 로직
+   ========================================= */
+const triggerBtn = document.getElementById('langTriggerBtn');
+const langModal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const currentFlagImg = document.getElementById('currentFlag');
+const currentLangSpan = document.getElementById('currentLangName');
+const toast = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+let toastTimeout;
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filteredLangs = languages.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden');
+        noResult.classList.remove('hidden');
+        noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        noResult.classList.add('hidden');
+        noResult.classList.remove('flex');
+
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLang;
+            const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+            const stateClasses = isSelected ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+            const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+
+            const btn = document.createElement('div');
+            btn.className = `${baseClasses} ${stateClasses}`;
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start" style="font-family: 'Noto Sans', sans-serif;">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+
+            btn.addEventListener('click', () => {
+                currentFlagImg.src = flagUrl;
+                currentLangSpan.textContent = lang.name;
+                applyLanguage(lang.code);
+                closeModal();
+                showToast(lang.name, lang.code);
+            });
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function openModal() {
+    langModal.classList.add('active');
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeModal() {
+    langModal.classList.remove('active');
+}
+
+function showToast(langName, langCode) {
+    document.getElementById('ui-toast').textContent = toastTranslations[langCode] || toastTranslations['en'];
+    toastLangName.textContent = langName;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+langModal.addEventListener('click', (e) => { if (e.target === langModal) closeModal(); });
+searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+/* =========================================
+   한글 자소 분리 및 레이아웃 설정 시스템
+   ========================================= */
+const CHOSEONG = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const JUNGSEONG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const JONGSEONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+
+const COMPLEX_VOWELS = { 'ㅘ': ['ㅗ', 'ㅏ'], 'ㅙ': ['ㅗ', 'ㅐ'], 'ㅚ': ['ㅗ', 'ㅣ'], 'ㅝ': ['ㅜ', 'ㅓ'], 'ㅞ': ['ㅜ', 'ㅔ'], 'ㅟ': ['ㅜ', 'ㅣ'], 'ㅢ': ['ㅡ', 'ㅣ'] };
+const COMPLEX_CONSONANTS = { 'ㄳ': ['ㄱ','ㅅ'], 'ㄵ': ['ㄴ','ㅈ'], 'ㄶ': ['ㄴ','ㅎ'], 'ㄺ': ['ㄹ','ㄱ'], 'ㄻ': ['ㄹ','ㅁ'], 'ㄼ': ['ㄹ','ㅂ'], 'ㄽ': ['ㄹ','ㅅ'], 'ㄾ': ['ㄹ','ㅌ'], 'ㄿ': ['ㄹ','ㅍ'], 'ㅀ': ['ㄹ','ㅎ'], 'ㅄ': ['ㅂ','ㅅ'] };
+
+const VOWEL_TYPE = { 'ㅏ':'V','ㅐ':'V','ㅑ':'V','ㅒ':'V','ㅓ':'V','ㅔ':'V','ㅕ':'V','ㅖ':'V','ㅣ':'V', 'ㅗ':'H','ㅛ':'H','ㅜ':'H','ㅠ':'H','ㅡ':'H', 'ㅘ':'C','ㅙ':'C','ㅚ':'C','ㅝ':'C','ㅞ':'C','ㅟ':'C','ㅢ':'C' };
+
+function decomposeHangul(word) {
+    let syllables = [];
+    for (let i = 0; i < word.length; i++) {
+        let charCode = word.charCodeAt(i);
+        if (charCode >= 0xAC00 && charCode <= 0xD7A3) {
+            let offset = charCode - 0xAC00;
+            let choIdx = Math.floor(offset / 588);
+            let jungIdx = Math.floor((offset % 588) / 28);
+            let jongIdx = offset % 28;
+
+            let cho = CHOSEONG[choIdx];
+            let jung = JUNGSEONG[jungIdx];
+            let jong = JONGSEONG[jongIdx];
+
+            let vType = VOWEL_TYPE[jung];
+            let jType = '0';
+            if (jong) { jType = COMPLEX_CONSONANTS[jong] ? '2' : '1'; }
+
+            let layoutType = vType + jType;
+            let components = [];
+            components.push({ char: cho, area: 'c' });
+            if (vType === 'C') {
+                let parts = COMPLEX_VOWELS[jung];
+                components.push({ char: parts[0], area: 'j1' });
+                components.push({ char: parts[1], area: 'j2' });
+            } else {
+                components.push({ char: jung, area: 'j' });
+            }
+            if (jong) {
+                if (jType === '2') {
+                    let parts = COMPLEX_CONSONANTS[jong];
+                    components.push({ char: parts[0], area: 'b1' });
+                    components.push({ char: parts[1], area: 'b2' });
+                } else {
+                    components.push({ char: jong, area: 'b' });
+                }
+            }
+            syllables.push({ layoutType, components });
+        }
+    }
+    return syllables;
+}
+
+/* =========================================
+   이모지 영단어 데이터 리스트
+   ========================================= */
+const emojiData = [
+  { "level": 1, "emoji": "🐶", "word": "개" }, { "level": 1, "emoji": "🐮", "word": "소" },
+  { "level": 1, "emoji": "🐴", "word": "말" }, { "level": 1, "emoji": "🐭", "word": "쥐" },
+  { "level": 1, "emoji": "🐦", "word": "새" }, { "level": 1, "emoji": "🐍", "word": "뱀" },
+  { "level": 1, "emoji": "🐔", "word": "닭" }, { "level": 1, "emoji": "🐻", "word": "곰" },
+  { "level": 1, "emoji": "🐑", "word": "양" }, { "level": 1, "emoji": "☀️", "word": "해" },
+  { "level": 1, "emoji": "🌙", "word": "달" }, { "level": 1, "emoji": "⭐", "word": "별" },
+  { "level": 1, "emoji": "☔", "word": "비" }, { "level": 1, "emoji": "🧶", "word": "줄" },
+  { "level": 1, "emoji": "👀", "word": "눈" }, { "level": 1, "emoji": "👃", "word": "코" },
+  { "level": 1, "emoji": "👄", "word": "입" }, { "level": 1, "emoji": "👂", "word": "귀" },
+  { "level": 1, "emoji": "🖐️", "word": "손" }, { "level": 1, "emoji": "🦶", "word": "발" },
+  { "level": 1, "emoji": "🦷", "word": "이" }, { "level": 1, "emoji": "🦴", "word": "뼈" },
+  { "level": 1, "emoji": "🍚", "word": "밥" }, { "level": 1, "emoji": "🍞", "word": "빵" },
+  { "level": 1, "emoji": "🍡", "word": "떡" }, { "level": 1, "emoji": "🍊", "word": "귤" },
+  { "level": 1, "emoji": "🌰", "word": "밤" }, { "level": 1, "emoji": "🍯", "word": "꿀" },
+  { "level": 1, "emoji": "💰", "word": "돈" }, { "level": 1, "emoji": "🚗", "word": "차" },
+  { "level": 1, "emoji": "⛵", "word": "배" }, { "level": 1, "emoji": "🩸", "word": "피" },
+  { "level": 1, "emoji": "📖", "word": "책" }, { "level": 1, "emoji": "⚽", "word": "공" },
+  { "level": 1, "emoji": "🚪", "word": "문" }, { "level": 1, "emoji": "🏠", "word": "집" },
+  { "level": 1, "emoji": "⛰️", "word": "산" }, { "level": 1, "emoji": "🍃", "word": "잎" },
+  { "level": 1, "emoji": "🔥", "word": "불" }, { "level": 1, "emoji": "💧", "word": "물" },
+  { "level": 1, "emoji": "🌸", "word": "꽃" }, { "level": 1, "emoji": "🌿", "word": "풀" },
+  { "level": 1, "emoji": "🛣️", "word": "길" }, { "level": 1, "emoji": "🏝️", "word": "섬" },
+  { "level": 1, "emoji": "💊", "word": "약" }, { "level": 1, "emoji": "🍾", "word": "병" },
+  { "level": 1, "emoji": "✒️", "word": "펜" }, { "level": 1, "emoji": "🔪", "word": "칼" },
+  { "level": 1, "emoji": "🔔", "word": "종" }, { "level": 1, "emoji": "🌲", "word": "숲" },
+  { "level": 2, "emoji": "🍎", "word": "사과" }, { "level": 2, "emoji": "🍇", "word": "포도" },
+  { "level": 2, "emoji": "🍉", "word": "수박" }, { "level": 2, "emoji": "🍓", "word": "딸기" },
+  { "level": 2, "emoji": "🍑", "word": "자두" }, { "level": 2, "emoji": "🍋", "word": "레몬" },
+  { "level": 2, "emoji": "🍒", "word": "체리" }, { "level": 2, "emoji": "🥝", "word": "키위" },
+  { "level": 2, "emoji": "🥕", "word": "당근" }, { "level": 2, "emoji": "🥒", "word": "오이" },
+  { "level": 2, "emoji": "🧅", "word": "양파" }, { "level": 2, "emoji": "🧄", "word": "마늘" },
+  { "level": 2, "emoji": "🍆", "word": "가지" }, { "level": 2, "emoji": "🍄", "word": "버섯" },
+  { "level": 2, "emoji": "🥩", "word": "고기" }, { "level": 2, "emoji": "🥛", "word": "우유" },
+  { "level": 2, "emoji": "🧀", "word": "치즈" }, { "level": 2, "emoji": "🍬", "word": "사탕" },
+  { "level": 2, "emoji": "🍪", "word": "과자" }, { "level": 2, "emoji": "🦁", "word": "사자" },
+  { "level": 2, "emoji": "🐆", "word": "표범" }, { "level": 2, "emoji": "🦒", "word": "기린" },
+  { "level": 2, "emoji": "🦛", "word": "하마" }, { "level": 2, "emoji": "🐪", "word": "낙타" },
+  { "level": 2, "emoji": "🐰", "word": "토끼" }, { "level": 2, "emoji": "🦆", "word": "오리" },
+  { "level": 2, "emoji": "🕷️", "word": "거미" }, { "level": 2, "emoji": "🐜", "word": "개미" },
+  { "level": 2, "emoji": "🦟", "word": "모기" }, { "level": 2, "emoji": "🐷", "word": "돼지" },
+  { "level": 2, "emoji": "🌳", "word": "나무" }, { "level": 2, "emoji": "☁️", "word": "구름" },
+  { "level": 2, "emoji": "☂️", "word": "우산" }, { "level": 2, "emoji": "🎒", "word": "가방" },
+  { "level": 2, "emoji": "⌚", "word": "시계" }, { "level": 2, "emoji": "👓", "word": "안경" },
+  { "level": 2, "emoji": "🍕", "word": "피자" }, { "level": 2, "emoji": "🧢", "word": "모자" },
+  { "level": 2, "emoji": "👖", "word": "바지" }, { "level": 2, "emoji": "👗", "word": "치마" },
+  { "level": 2, "emoji": "🧦", "word": "양말" }, { "level": 2, "emoji": "👟", "word": "신발" },
+  { "level": 2, "emoji": "👛", "word": "지갑" }, { "level": 2, "emoji": "💍", "word": "반지" },
+  { "level": 2, "emoji": "✏️", "word": "연필" }, { "level": 2, "emoji": "✂️", "word": "가위" },
+  { "level": 2, "emoji": "🪑", "word": "의자" }, { "level": 2, "emoji": "🛏️", "word": "침대" },
+  { "level": 2, "emoji": "🌊", "word": "바다" }, { "level": 2, "emoji": "🧻", "word": "휴지" },
+  { "level": 3, "emoji": "🍌", "word": "바나나" }, { "level": 3, "emoji": "🍅", "word": "토마토" },
+  { "level": 3, "emoji": "🍠", "word": "고구마" }, { "level": 3, "emoji": "🐶", "word": "강아지" },
+  { "level": 3, "emoji": "🐱", "word": "고양이" }, { "level": 3, "emoji": "🐘", "word": "코끼리" },
+  { "level": 3, "emoji": "🐒", "word": "원숭이" }, { "level": 3, "emoji": "🐸", "word": "개구리" },
+  { "level": 3, "emoji": "🐢", "word": "거북이" }, { "level": 3, "emoji": "🐿️", "word": "다람쥐" },
+  { "level": 3, "emoji": "🦑", "word": "오징어" }, { "level": 3, "emoji": "🕊️", "word": "갈매기" },
+  { "level": 3, "emoji": "🦅", "word": "독수리" }, { "level": 3, "emoji": "🐦", "word": "비둘기" },
+  { "level": 3, "emoji": "🦉", "word": "부엉이" }, { "level": 3, "emoji": "🐥", "word": "병아리" },
+  { "level": 3, "emoji": "🍔", "word": "햄버거" }, { "level": 3, "emoji": "🌭", "word": "핫도그" },
+  { "level": 3, "emoji": "🍫", "word": "초콜릿" }, { "level": 3, "emoji": "🍰", "word": "케이크" },
+  { "level": 3, "emoji": "✈️", "word": "비행기" }, { "level": 3, "emoji": "🚲", "word": "자전거" },
+  { "level": 3, "emoji": "🚗", "word": "자동차" }, { "level": 3, "emoji": "🚒", "word": "소방차" },
+  { "level": 3, "emoji": "🚓", "word": "경찰차" }, { "level": 3, "emoji": "🚑", "word": "구급차" },
+  { "level": 3, "emoji": "🌀", "word": "선풍기" }, { "level": 3, "emoji": "📻", "word": "라디오" },
+  { "level": 3, "emoji": "💻", "word": "컴퓨터" }, { "level": 3, "emoji": "📷", "word": "카메라" },
+  { "level": 3, "emoji": "📹", "word": "비디오" }, { "level": 3, "emoji": "🎤", "word": "마이크" },
+  { "level": 3, "emoji": "🎧", "word": "헤드폰" }, { "level": 3, "emoji": "🎛️", "word": "리모컨" },
+  { "level": 3, "emoji": "🎹", "word": "피아노" }, { "level": 3, "emoji": "🎺", "word": "트럼펫" },
+  { "level": 3, "emoji": "💉", "word": "주사기" }, { "level": 3, "emoji": "🩹", "word": "반창고" },
+  { "level": 3, "emoji": "🌡️", "word": "온도계" }, { "level": 3, "emoji": "🔍", "word": "돋보기" },
+  { "level": 3, "emoji": "🔭", "word": "망원경" }, { "level": 3, "emoji": "🧸", "word": "장난감" },
+  { "level": 3, "emoji": "⚽", "word": "축구공" }, { "level": 3, "emoji": "🏀", "word": "농구공" },
+  { "level": 3, "emoji": "⚾", "word": "야구공" }, { "level": 3, "emoji": "📿", "word": "목걸이" },
+  { "level": 3, "emoji": "💄", "word": "립스틱" }, { "level": 3, "emoji": "👟", "word": "운동화" },
+  { "level": 3, "emoji": "🔋", "word": "건전지" }, { "level": 3, "emoji": "🧊", "word": "냉장고" },
+  { "level": 4, "emoji": "🍟", "word": "감자튀김" }, { "level": 4, "emoji": "🥪", "word": "샌드위치" },
+  { "level": 4, "emoji": "🍝", "word": "스파게티" }, { "level": 4, "emoji": "🥐", "word": "크루아상" },
+  { "level": 4, "emoji": "🍍", "word": "파인애플" }, { "level": 4, "emoji": "💳", "word": "신용카드" },
+  { "level": 4, "emoji": "🥑", "word": "아보카도" }, { "level": 4, "emoji": "🥦", "word": "브로콜리" },
+  { "level": 4, "emoji": "🎉", "word": "생일파티" }, { "level": 4, "emoji": "📺", "word": "텔레비전" },
+  { "level": 4, "emoji": "📱", "word": "스마트폰" }, { "level": 4, "emoji": "🏍️", "word": "오토바이" },
+  { "level": 4, "emoji": "🚁", "word": "헬리콥터" }, { "level": 4, "emoji": "🛰️", "word": "인공위성" },
+  { "level": 4, "emoji": "🎻", "word": "바이올린" }, { "level": 4, "emoji": "🎸", "word": "일렉기타" },
+  { "level": 4, "emoji": "🎓", "word": "졸업모자" }, { "level": 4, "emoji": "🎷", "word": "클라리넷" },
+  { "level": 4, "emoji": "🦧", "word": "오랑우탄" }, { "level": 4, "emoji": "🦥", "word": "나무늘보" },
+  { "level": 4, "emoji": "🦩", "word": "플라밍고" }, { "level": 4, "emoji": "🐞", "word": "무당벌레" },
+  { "level": 4, "emoji": "🦎", "word": "이구아나" }, { "level": 4, "emoji": "🐍", "word": "아나콘다" },
+  { "level": 4, "emoji": "🦎", "word": "카멜레온" }, { "level": 4, "emoji": "🌻", "word": "해바라기" },
+  { "level": 4, "emoji": "🌸", "word": "카네이션" }, { "level": 4, "emoji": "🍳", "word": "프라이팬" },
+  { "level": 4, "emoji": "🎢", "word": "놀이공원" }, { "level": 4, "emoji": "🌊", "word": "워터파크" },
+  { "level": 4, "emoji": "🖍️", "word": "크레파스" }, { "level": 4, "emoji": "🗒️", "word": "스케치북" },
+  { "level": 4, "emoji": "📓", "word": "다이어리" }, { "level": 4, "emoji": "🚑", "word": "구급상자" },
+  { "level": 4, "emoji": "🏂", "word": "스노보드" }, { "level": 4, "emoji": "🪂", "word": "글라이더" },
+  { "level": 4, "emoji": "🧻", "word": "두루마리" }, { "level": 4, "emoji": "🎁", "word": "보물상자" },
+  { "level": 4, "emoji": "⏳", "word": "모래시계" }, { "level": 4, "emoji": "🎠", "word": "회전목마" },
+  { "level": 4, "emoji": "🧤", "word": "고무장갑" }, { "level": 4, "emoji": "🛍️", "word": "비닐봉투" },
+  { "level": 4, "emoji": "🗑️", "word": "쓰레기통" }, { "level": 4, "emoji": "🚥", "word": "횡단보도" },
+  { "level": 4, "emoji": "👨‍🚒", "word": "소방대원" }, { "level": 4, "emoji": "🦺", "word": "구명조끼" },
+  { "level": 4, "emoji": "🎲", "word": "보드게임" }, { "level": 4, "emoji": "🧩", "word": "퍼즐게임" },
+  { "level": 4, "emoji": "🕶️", "word": "선글라스" }, { "level": 4, "emoji": "🧢", "word": "야구모자" }
+];
+
+const playerIds = ['dog', 'cat', 'rabbit', 'hamster', 'panda', 'monkey'];
+const state = {
+    dog: { id: 'dog', name: '강아지', emoji: '🐶', item: '🦴', score: 0, active: false, rank: 1, colorClass: 'bg-dog', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    cat: { id: 'cat', name: '고양이', emoji: '🐱', item: '🐟', score: 0, active: false, rank: 1, colorClass: 'bg-cat', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    rabbit: { id: 'rabbit', name: '토끼', emoji: '🐰', item: '🥕', score: 0, active: false, rank: 1, colorClass: 'bg-rabbit', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    hamster: { id: 'hamster', name: '햄스터', emoji: '🐹', item: '🥜', score: 0, active: false, rank: 1, colorClass: 'bg-hamster', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    panda: { id: 'panda', name: '판다', emoji: '🐼', item: '🎋', score: 0, active: false, rank: 1, colorClass: 'bg-panda', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    monkey: { id: 'monkey', name: '원숭이', emoji: '🐵', item: '🍌', score: 0, active: false, rank: 1, colorClass: 'bg-monkey', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0, currentWord: '', isAnimating: false },
+    timeLeft: 60, baseTime: 60, timerInterval: null, hintIntervalId: null, isGameOver: true, isCounting: false,
+    count: 4, teamModeType: 'none', currentLevelIndex: 0
+};
+
+// === 오디오 시스템 ===
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+function playBeep(freq, duration, type = 'sine') {
+    if(!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration); osc.stop(audioCtx.currentTime + duration);
+}
+function playSuccessSound() { if(!audioCtx) return; [523.25, 659.25, 783.99].forEach((f, i) => { const osc = audioCtx.createOscillator(); const g = audioCtx.createGain(); osc.frequency.setValueAtTime(f, audioCtx.currentTime + (i*0.07)); g.gain.setValueAtTime(0.4, audioCtx.currentTime + (i*0.07)); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (i*0.07) + 0.3); osc.connect(g); g.connect(audioCtx.destination); osc.start(audioCtx.currentTime + (i*0.07)); osc.stop(audioCtx.currentTime + (i*0.07) + 0.3); }); }
+function playFailSound() { if(!audioCtx) return; playBeep(200, 0.2, 'sawtooth'); }
+function playVictorySound() { if(!audioCtx) return; const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; notes.forEach((f, i) => { const osc = audioCtx.createOscillator(); const g = audioCtx.createGain(); const startTime = audioCtx.currentTime + (i * 0.12); osc.type = (i === notes.length - 1) ? 'square' : 'triangle'; osc.frequency.setValueAtTime(f, startTime); g.gain.setValueAtTime(0.4, startTime); g.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6); osc.connect(g); g.connect(audioCtx.destination); osc.start(startTime); osc.stop(startTime + 0.6); }); }
+
+// === 시작 화면 렌더링 ===
+function renderMenu() {
+    const list = document.getElementById('levelList');
+    list.innerHTML = '';
+    const t = dict[currentLang];
+    const LEVEL_MENU = [
+        { lv: 1, title: t.levelTitle[0], desc: t.levelDesc[0] },
+        { lv: 2, title: t.levelTitle[1], desc: t.levelDesc[1] },
+        { lv: 3, title: t.levelTitle[2], desc: t.levelDesc[2] },
+        { lv: 4, title: t.levelTitle[3], desc: t.levelDesc[3] }
+    ];
+
+    LEVEL_MENU.forEach((level, idx) => {
+        const item = document.createElement('div');
+        item.className = `level-item ${state.currentLevelIndex === idx ? 'selected' : ''}`;
+        item.innerHTML = `
+            <div class="level-badge">${level.lv}</div>
+            <div class="level-info">
+                <div class="level-title-group">
+                    <div class="level-title">${level.title}</div>
+                    <div class="level-desc">${level.desc}</div>
+                </div>
+                <button class="word-view-btn" onclick="openWordModal(${level.lv}, event)">${t.wordListBtn}</button>
+            </div>`;
+        item.onclick = (e) => {
+            if(e.target.classList.contains('word-view-btn')) return;
+            state.currentLevelIndex = idx;
+            renderMenu();
+        };
+        list.appendChild(item);
+    });
+}
+
+function openWordModal(maxLevel, event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('wordModal');
+    const title = document.getElementById('wordModalTitle');
+    const list = document.getElementById('wordModalList');
+    const t = dict[currentLang];
+
+    title.textContent = `${t.wordModalTitle} (Lv.1~${maxLevel})`;
+    list.innerHTML = '';
+
+    let words = emojiData.filter(w => w.level <= maxLevel);
+    words.sort((a, b) => a.word.localeCompare(b.word));
+
+    words.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'word-item';
+        item.innerHTML = `
+            <span class="emoji">${w.emoji}</span>
+            <span class="word">${w.word}</span>
+            <span class="level">Lv.${w.level}</span>
+        `;
+        list.appendChild(item);
+    });
+
+    modal.style.display = 'flex';
+}
+
+function closeWordModal() {
+    document.getElementById('wordModal').style.display = 'none';
+}
+
+function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// === 액션 (힌트, 패스) 컨트롤 ===
+function updateActionUI(team) {
+    const hBtn = document.getElementById(team + 'HintBtn');
+    const hBg = document.getElementById(team + 'HintBg');
+    const pBtn = document.getElementById(team + 'PassBtn');
+    const pBg = document.getElementById(team + 'PassBg');
+    
+    if(!hBtn || !hBg || !pBtn || !pBg) return;
+    const s = state[team];
+
+    if(s.hints > 0) {
+        hBtn.classList.remove('disabled');
+        hBg.style.width = '100%'; hBg.style.background = 'rgba(255, 255, 255, 0.4)';
+    } else {
+        hBtn.classList.add('disabled');
+        hBg.style.width = `${s.hintProgress}%`; hBg.style.background = 'rgba(255, 255, 255, 0.2)';
+    }
+
+    if(s.passes > 0) {
+        pBtn.classList.remove('disabled');
+        pBg.style.width = '100%'; pBg.style.background = 'rgba(255, 255, 255, 0.4)';
+    } else {
+        pBtn.classList.add('disabled');
+        pBg.style.width = `${s.passProgress}%`; pBg.style.background = 'rgba(255, 255, 255, 0.2)';
+    }
+}
+
+function passWord(team, e) {
+    if(e) e.preventDefault();
+    if(state.isGameOver || state.isCounting || state[team].isAnimating) return;
+    
+    const s = state[team];
+    if(s.passes <= 0) return;
+    
+    s.passes = 0; s.passProgress = 0; s.combo = 0;
+    updateActionUI(team);
+    playFailSound();
+    
+    const emojiEl = document.getElementById(team + 'Emoji');
+    emojiEl.style.animation = 'none'; emojiEl.offsetHeight;
+    emojiEl.style.animation = 'shake 0.3s';
+    
+    updateRanks(); renderScore();
+    setTimeout(() => { if(!state.isGameOver && !state.isCounting) generate(team); }, 200);
+}
+
+function useHint(team, e) {
+    if(e) e.preventDefault();
+    if(state.isGameOver || state.isCounting || state[team].isAnimating) return;
+    
+    const s = state[team];
+    if(s.hints <= 0) return;
+    
+    s.hints = 0; s.hintProgress = 0;
+    updateActionUI(team);
+    
+    const drops = Array.from(document.querySelectorAll(`#${team}Side .drop-zone:not(.filled)`));
+    if(drops.length === 0) return;
+    
+    const toFill = 1;
+    shuffle(drops);
+    
+    for(let i=0; i<toFill; i++) {
+        let zone = drops[i]; let char = zone.dataset.char;
+        let dragLetter = Array.from(document.querySelectorAll(`#${team}Side .drag-letter`)).find(el => el.dataset.char === char && !el.classList.contains('dragging') && el.style.opacity !== '0.3');
+        
+        if(dragLetter) {
+            dragLetter.style.pointerEvents = 'none';
+            let zRect = zone.getBoundingClientRect(); let dRect = dragLetter.getBoundingClientRect();
+            let dx = zRect.left - dRect.left + (zRect.width - dRect.width)/2;
+            let dy = zRect.top - dRect.top + (zRect.height - dRect.height)/2;
+            
+            dragLetter.style.transition = 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            dragLetter.style.transform = `translate(${dx}px, ${dy}px) scale(0.5)`;
+            dragLetter.style.opacity = '0.3';
+            playBeep(1000 + (i*150), 0.1, 'triangle');
+            
+            setTimeout(() => {
+                if(!document.body.contains(zone)) return;
+                zone.classList.add('filled'); zone.textContent = char;
+                zone.style.transform = 'scale(1.2)';
+                setTimeout(() => zone.style.transform = 'scale(1)', 150);
+                dragLetter.remove();
+                checkWordComplete(team);
+            }, 400);
+        }
+    }
+}
+
+// === 드래그 앤 드롭 시스템 ===
+const activeDrags = {};
+function initPointerEvents() {
+    document.addEventListener('pointermove', handlePointerMove, { passive: false });
+    document.addEventListener('pointerup', handlePointerUp, { passive: false });
+    document.addEventListener('pointercancel', handlePointerUp, { passive: false });
+}
+
+function handlePointerDown(e) {
+    if (!e.target.classList.contains('drag-letter')) return;
+    let team = e.target.dataset.team;
+    if(state[team].isAnimating) return;
+
+    e.preventDefault(); e.target.setPointerCapture(e.pointerId);
+    activeDrags[e.pointerId] = { el: e.target, startX: e.clientX, startY: e.clientY };
+    e.target.style.transition = 'none'; e.target.classList.add('dragging');
+    playBeep(300, 0.05, 'sine');
+}
+
+function handlePointerMove(e) {
+    if (!activeDrags[e.pointerId]) return; e.preventDefault();
+    let drag = activeDrags[e.pointerId]; let dx = e.clientX - drag.startX; let dy = e.clientY - drag.startY;
+    drag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.1)`;
+}
+
+function handlePointerUp(e) {
+    if (!activeDrags[e.pointerId]) return; e.preventDefault();
+    let drag = activeDrags[e.pointerId]; let el = drag.el;
+    
+    el.releasePointerCapture(e.pointerId); el.classList.remove('dragging');
+    let team = el.dataset.team; let char = el.dataset.char;
+    let dropZones = document.querySelectorAll(`#${team}Side .drop-zone:not(.filled)`);
+    let dropped = false;
+    let elRect = el.getBoundingClientRect();
+    let elCenter = { x: elRect.left + elRect.width/2, y: elRect.top + elRect.height/2 };
+
+    for (let zone of dropZones) {
+        let zRect = zone.getBoundingClientRect();
+        if (elCenter.x > zRect.left && elCenter.x < zRect.right && elCenter.y > zRect.top && elCenter.y < zRect.bottom) {
+            if (zone.dataset.char === char) {
+                zone.classList.add('filled'); zone.textContent = char;
+                zone.style.transform = 'scale(1.2)'; setTimeout(() => zone.style.transform = 'scale(1)', 150);
+                el.remove(); dropped = true;
+                playBeep(600, 0.1, 'sine'); checkWordComplete(team);
+                break;
+            } else {
+                zone.classList.add('wrong'); setTimeout(() => zone.classList.remove('wrong'), 300);
+                playFailSound(); state[team].combo = 0;
+            }
+        }
+    }
+
+    if (!dropped) { el.style.transition = 'transform 0.2s'; el.style.transform = 'translate(0px, 0px) scale(1)'; }
+    delete activeDrags[e.pointerId];
+}
+
+function generate(team) {
+    const maxLevel = state.currentLevelIndex + 1;
+    const pool = emojiData.filter(d => d.level === maxLevel);
+    const targetWord = pool[Math.floor(Math.random() * pool.length)];
+    
+    state[team].currentWord = targetWord.word;
+    state[team].isAnimating = false;
+
+    const emojiEl = document.getElementById(team + 'Emoji');
+    const dropsEl = document.getElementById(team + 'Drops');
+    const dragsEl = document.getElementById(team + 'Drags');
+    
+    emojiEl.textContent = targetWord.emoji;
+    emojiEl.style.animation = 'none'; emojiEl.offsetHeight;
+    emojiEl.style.animation = 'swooshIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    
+    dropsEl.innerHTML = ''; dragsEl.innerHTML = '';
+    
+    const syllables = decomposeHangul(targetWord.word);
+    let allJamo = [];
+
+    syllables.forEach(syl => {
+        const block = document.createElement('div');
+        block.className = `syllable-block type-${syl.layoutType}`;
+        syl.components.forEach(comp => {
+            const zone = document.createElement('div');
+            zone.className = 'drop-zone'; zone.style.gridArea = comp.area; zone.dataset.char = comp.char;
+            block.appendChild(zone); allJamo.push(comp.char);
+        });
+        dropsEl.appendChild(block);
+    });
+    
+    const shuffledArr = shuffle(allJamo);
+    shuffledArr.forEach((char) => {
+        const letter = document.createElement('div');
+        letter.className = 'drag-letter'; letter.textContent = char;
+        letter.dataset.char = char; letter.dataset.team = team;
+        letter.addEventListener('pointerdown', handlePointerDown);
+        dragsEl.appendChild(letter);
+    });
+}
+
+function checkWordComplete(team) {
+    const drops = document.querySelectorAll(`#${team}Side .drop-zone`);
+    if(drops.length === 0) return;
+    const allFilled = Array.from(drops).every(zone => zone.classList.contains('filled'));
+    const s = state[team];
+
+    if (allFilled && !s.isAnimating) {
+        s.isAnimating = true; // 중복 애니메이션 방지
+        playSuccessSound(); s.combo++;
+        
+        let addScore = 1;
+        if (s.combo > 0 && s.combo % 3 === 0) { addScore = 3; showComboEffect(team, s.combo); }
+        
+        let currentMax = 0; let t1, t2, t3;
+        if (state.teamModeType === '2vs2') { t1 = state.dog.score + state.cat.score; t2 = state.rabbit.score + state.hamster.score; currentMax = Math.max(t1, t2); } 
+        else if (state.teamModeType === '3vs3') { t1 = state.dog.score + state.cat.score + state.rabbit.score; t2 = state.hamster.score + state.panda.score + state.monkey.score; currentMax = Math.max(t1, t2); } 
+        else if (state.teamModeType === '2vs2vs2') { t1 = state.dog.score + state.cat.score; t2 = state.rabbit.score + state.hamster.score; t3 = state.panda.score + state.monkey.score; currentMax = Math.max(t1, t2, t3); } 
+        else { const activeTeams = playerIds.map(id => state[id]).filter(t => t.active); currentMax = Math.max(...activeTeams.map(t => t.score)); }
+
+        s.score += addScore;
+        let becomeFirst = false;
+        if (state.teamModeType !== 'none') {
+            let myTeamScore = 0;
+            if (state.teamModeType === '2vs2') { if (team==='dog'||team==='cat') myTeamScore = state.dog.score + state.cat.score; else myTeamScore = state.rabbit.score + state.hamster.score; } 
+            else if (state.teamModeType === '3vs3') { if (team==='dog'||team==='cat'||team==='rabbit') myTeamScore = state.dog.score + state.cat.score + state.rabbit.score; else myTeamScore = state.hamster.score + state.panda.score + state.monkey.score; } 
+            else if (state.teamModeType === '2vs2vs2') { if (team==='dog'||team==='cat') myTeamScore = state.dog.score + state.cat.score; else if (team==='rabbit'||team==='hamster') myTeamScore = state.rabbit.score + state.hamster.score; else myTeamScore = state.panda.score + state.monkey.score; }
+            becomeFirst = (myTeamScore >= currentMax && currentMax > 0);
+        } else { becomeFirst = (s.score >= currentMax && currentMax > 0); }
+        
+        spawnItem(team, becomeFirst); updateRanks(); renderScore();
+
+        // 성공한 단어 애니메이션 노출
+        const parent = document.getElementById(team + 'Side');
+        const wordEl = document.createElement('div');
+        wordEl.className = 'success-word';
+        wordEl.textContent = s.currentWord;
+        parent.appendChild(wordEl);
+
+        setTimeout(() => { 
+            if(wordEl) wordEl.remove();
+            if(!state.isGameOver && !state.isCounting) generate(team); 
+        }, 2000);
+    }
+}
+
+function spawnItem(team, isGold) {
+    const parent = document.getElementById(team + 'Side');
+    const itemEl = document.createElement('div'); itemEl.className = 'item-effect';
+    itemEl.textContent = isGold ? '🥇' : state[team].item;
+    itemEl.style.left = (Math.random() * 70 + 10) + '%';
+    parent.appendChild(itemEl); setTimeout(() => itemEl.remove(), 1875);
+}
+
+function showComboEffect(team, count) {
+    const parent = document.getElementById(team + 'Side');
+    const comboEl = document.createElement('div');
+    comboEl.className = 'combo-text';
+    const t = dict[currentLang];
+    comboEl.innerHTML = t.comboInfo.replace('{c}', count);
+    parent.appendChild(comboEl);
+    setTimeout(() => comboEl.remove(), 800);
+}
+
+function updateRanks() {
+    if (state.teamModeType !== 'none') {
+        let scores = [];
+        if (state.teamModeType === '2vs2') { scores.push({ id:'A', val: state.dog.score + state.cat.score }); scores.push({ id:'B', val: state.rabbit.score + state.hamster.score }); } 
+        else if (state.teamModeType === '3vs3') { scores.push({ id:'A', val: state.dog.score + state.cat.score + state.rabbit.score }); scores.push({ id:'B', val: state.hamster.score + state.panda.score + state.monkey.score }); } 
+        else if (state.teamModeType === '2vs2vs2') { scores.push({ id:'A', val: state.dog.score + state.cat.score }); scores.push({ id:'B', val: state.rabbit.score + state.hamster.score }); scores.push({ id:'C', val: state.panda.score + state.monkey.score }); }
+        scores.sort((a,b) => b.val - a.val);
+        let currentRank = 1;
+        for(let i=0; i<scores.length; i++) { 
+            if(i > 0 && scores[i].val < scores[i-1].val) { currentRank = i + 1; } 
+            const rankEl = document.getElementById('rank' + scores[i].id); 
+            if(rankEl) { rankEl.textContent = getRankSymbol(currentRank); rankEl.classList.remove('rank-1'); if(currentRank === 1) rankEl.classList.add('rank-1'); } 
+        }
+    } else {
+        const activeTeams = playerIds.map(id => state[id]).filter(t => t.active);
+        const sortedScores = activeTeams.map(t => t.score).sort((a, b) => b - a);
+        activeTeams.forEach(t => { const rank = sortedScores.indexOf(t.score) + 1; state[t.id].rank = rank; updateBadge(t.id, rank); });
+    }
+}
+
+function updateBadge(id, rank) {
+    const badge = document.getElementById(id + 'Rank');
+    if (badge) { badge.className = 'rank-badge'; badge.textContent = getRankSymbol(rank); }
+}
+
+function getRankSymbol(rank) { const symbols = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']; return symbols[rank-1] || rank; }
+
+function renderScore() {
+    const timerDisp = document.getElementById('timerDisplay');
+    if(state.teamModeType !== 'none') {
+        let sa=0, sb=0, sc=0;
+        if(state.teamModeType === '2vs2' || state.teamModeType === '2vs2vs2') { sa = state.dog.score + state.cat.score; sb = state.rabbit.score + state.hamster.score; if(state.teamModeType === '2vs2vs2') sc = state.panda.score + state.monkey.score; } 
+        else if(state.teamModeType === '3vs3') { sa = state.dog.score + state.cat.score + state.rabbit.score; sb = state.hamster.score + state.panda.score + state.monkey.score; }
+        document.getElementById('scoreA').textContent = sa; document.getElementById('scoreB').textContent = sb; if(state.teamModeType === '2vs2vs2') document.getElementById('scoreC').textContent = sc;
+    }
+    timerDisp.textContent = state.timeLeft;
+    if (state.timeLeft <= 5 && state.timeLeft > 0) timerDisp.classList.add('timer-urgent'); else timerDisp.classList.remove('timer-urgent');
+}
+
+async function startCountdown() {
+    state.isCounting = true;
+    const layer = document.getElementById('countdownLayer');
+    const text = document.getElementById('countdownText');
+    const counts = ['3', '2', '1', 'GO!'];
+    
+    layer.style.display = 'flex';
+    for(let i = 0; i < counts.length; i++) {
+        if (state.isGameOver) { layer.style.display = 'none'; state.isCounting = false; return; }
+        text.textContent = counts[i];
+        if (i === counts.length - 1) playBeep(880, 0.4, 'triangle'); else playBeep(440, 0.2, 'sine');
+        text.style.animation = 'none'; text.offsetHeight; text.style.animation = 'countAnim 1s ease-out forwards';
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none'; state.isCounting = false;
+}
+
+async function prepareGame() {
+    initAudio(); state.isGameOver = false;
+    const t = dict[currentLang];
+
+    const pVal = document.getElementById('playerCount').value;
+    const tVal = document.getElementById('gameTimeLimit').value; 
+    state.teamModeType = 'none';
+    
+    if(pVal === 'team2vs2') { state.count = 4; state.teamModeType = '2vs2'; } 
+    else if(pVal === 'team3vs3') { state.count = 6; state.teamModeType = '3vs3'; } 
+    else if(pVal === 'team2vs2vs2') { state.count = 6; state.teamModeType = '2vs2vs2'; } 
+    else { state.count = parseInt(pVal); state.teamModeType = 'none'; }
+    state.baseTime = parseInt(tVal); 
+
+    if (state.count === 6) {
+        document.body.classList.add('six-players');
+    } else {
+        document.body.classList.remove('six-players');
+    }
+
+    // UI 숨기기
+    document.getElementById('langSelectorContainer').style.display = 'none';
+    document.getElementById('topLeftLinkWrapper').style.display = 'none';
+    
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('resultList').style.display = 'none';
+    document.getElementById('finalPodium').style.display = 'none';
+    document.getElementById('setupArea').style.display = 'none';
+    document.querySelector('.math-menu-wrapper').style.display = 'none';
+    document.getElementById('gameInstructions').style.display = 'none';
+    document.getElementById('gameFsBtn').style.display = 'flex';
+    
+    const scoreBoard = document.getElementById('teamScoreBoard');
+    const cardB = document.getElementById('teamCardB');
+    const cardC = document.getElementById('teamCardC');
+    
+    if (state.teamModeType !== 'none') {
+        document.body.classList.add('team-mode');
+        scoreBoard.style.display = 'flex';
+        cardB.style.background = ''; 
+        cardB.querySelector('.team-score').innerHTML = '🥕 <span id="scoreB">0</span> 🥜'; 
+        
+        if (state.teamModeType === '2vs2vs2') {
+            cardC.style.display = 'flex';
+            document.getElementById('teamNameA').textContent = t.teamDogCat;
+            document.getElementById('teamNameB').textContent = t.teamRabbitHamster;
+            document.getElementById('teamNameC').textContent = t.teamPandaMonkey;
+        } else if (state.teamModeType === '3vs3') {
+            cardC.style.display = 'none';
+            document.getElementById('teamNameA').textContent = t.team3A;
+            document.getElementById('teamNameB').textContent = t.team3B;
+            cardB.style.background = 'var(--hamster-color)';
+            cardB.querySelector('.team-score').innerHTML = '🥜 <span id="scoreB">0</span> 🍌';
+        } else {
+            cardC.style.display = 'none';
+            document.getElementById('teamNameA').textContent = t.teamDogCat;
+            document.getElementById('teamNameB').textContent = t.teamRabbitHamster;
+        }
+    } else {
+        document.body.classList.remove('team-mode');
+        scoreBoard.style.display = 'none';
+    }
+    
+    playerIds.forEach((id, idx) => {
+        const box = document.getElementById(id + 'Side');
+        document.getElementById('title-' + id).textContent = t[id];
+        if (idx < state.count) {
+            state[id].active = true; state[id].score = 0; state[id].combo = 0; 
+            state[id].hints = 1; state[id].hintProgress = 0; state[id].passes = 1; state[id].passProgress = 0; 
+            box.style.display = 'flex'; updateActionUI(id); generate(id);
+        } else {
+            state[id].active = false; box.style.display = 'none';
+        }
+    });
+    
+    state.timeLeft = state.baseTime; 
+    updateRanks(); renderScore(); 
+    await startCountdown();
+    if(state.isGameOver) return;
+    state.timeLeft = state.baseTime; startTimer();
+}
+
+function startTimer() {
+    clearInterval(state.timerInterval); clearInterval(state.hintIntervalId);
+    state.timerInterval = setInterval(() => {
+        state.timeLeft--;
+        if (state.timeLeft <= 5 && state.timeLeft > 0) playBeep(900, 0.1);
+        else if (state.timeLeft === 0) playBeep(400, 0.5);
+        renderScore();
+        if (state.timeLeft <= 0) endGame();
+    }, 1000);
+    
+    state.hintIntervalId = setInterval(() => {
+        playerIds.forEach(id => {
+            if(state[id].active && !state.isGameOver && !state.isCounting) {
+                let updated = false;
+                if (state[id].hints === 0) {
+                    state[id].hintProgress += 2;
+                    if(state[id].hintProgress >= 100) { state[id].hints = 1; state[id].hintProgress = 0; playBeep(700, 0.05, 'sine'); }
+                    updated = true;
+                }
+                if (state[id].passes === 0) {
+                    state[id].passProgress += 2;
+                    if(state[id].passProgress >= 100) { state[id].passes = 1; state[id].passProgress = 0; playBeep(700, 0.05, 'sine'); }
+                    updated = true;
+                }
+                if(updated) updateActionUI(id);
+            }
+        });
+    }, 100);
+}
+
+function goToMenu() {
+    state.isGameOver = true; state.isCounting = false;
+    clearInterval(state.timerInterval); clearInterval(state.hintIntervalId);
+    const t = dict[currentLang];
+
+    document.getElementById('langSelectorContainer').style.display = 'block';
+    document.getElementById('topLeftLinkWrapper').style.display = 'block';
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('resultList').style.display = 'none';
+    document.getElementById('finalPodium').style.display = 'none';
+    document.getElementById('setupArea').style.display = 'flex'; 
+    document.querySelector('.math-menu-wrapper').style.display = 'block';
+    document.getElementById('countdownLayer').style.display = 'none';
+    document.getElementById('msgTitle').textContent = t.title;
+    document.getElementById('gameInstructions').style.display = 'inline-block';
+    document.getElementById('startBtn').textContent = t.startBtn;
+    document.getElementById('gameFsBtn').style.display = 'none';
+}
+
+function endGame() {
+    state.isGameOver = true; clearInterval(state.timerInterval); clearInterval(state.hintIntervalId); playVictorySound();
+    const t = dict[currentLang];
+    
+    document.getElementById('setupArea').style.display = 'none'; 
+    document.querySelector('.math-menu-wrapper').style.display = 'none';
+    document.getElementById('langSelectorContainer').style.display = 'block';
+    document.getElementById('topLeftLinkWrapper').style.display = 'block';
+    document.getElementById('gameFsBtn').style.display = 'none';
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('msgTitle').textContent = t.gameOver;
+    document.getElementById('gameInstructions').style.display = 'none'; 
+    
+    const resultList = document.getElementById('resultList');
+    const podium = document.getElementById('finalPodium');
+    resultList.innerHTML = ''; podium.innerHTML = ''; podium.style.display = 'flex';
+    
+    if (state.teamModeType !== 'none') {
+        let teams = [];
+        if (state.teamModeType === '2vs2') { teams = [ { name: t.teamDogCat, score: state.dog.score + state.cat.score, ids: ['dog','cat'], class: 'bg-dog' }, { name: t.teamRabbitHamster, score: state.rabbit.score + state.hamster.score, ids: ['rabbit','hamster'], class: 'bg-rabbit' } ]; } 
+        else if (state.teamModeType === '3vs3') { teams = [ { name: t.team3A, score: state.dog.score + state.cat.score + state.rabbit.score, ids: ['dog','cat','rabbit'], class: 'bg-dog' }, { name: t.team3B, score: state.hamster.score + state.panda.score + state.monkey.score, ids: ['hamster','panda','monkey'], class: 'bg-hamster' } ]; } 
+        else if (state.teamModeType === '2vs2vs2') { teams = [ { name: t.teamDogCat, score: state.dog.score + state.cat.score, ids: ['dog','cat'], class: 'bg-dog' }, { name: t.teamRabbitHamster, score: state.rabbit.score + state.hamster.score, ids: ['rabbit','hamster'], class: 'bg-rabbit' }, { name: t.teamPandaMonkey, score: state.panda.score + state.monkey.score, ids: ['panda','monkey'], class: 'bg-panda' } ]; }
+        teams.sort((a,b) => b.score - a.score);
+        let currentRank = 1; for(let i=0; i<teams.length; i++){ if(i>0 && teams[i].score < teams[i-1].score) currentRank = i+1; teams[i].rank = currentRank; }
+        teams.forEach(tr => { const li = document.createElement('li'); if(tr.rank === 1) li.className = 'gold'; const symbol = getRankSymbol(tr.rank); li.innerHTML = `<div class="result-name"><span style="font-family: 'Noto Sans', sans-serif;">${symbol}</span><span style="font-family: 'Noto Sans', sans-serif;">${tr.name}</span></div><div class="result-score" style="font-family: 'Noto Sans', sans-serif;">${t.totalScore} ${tr.score}</div>`; resultList.appendChild(li); });
+        playerIds.forEach(id => { if(state[id].active) { const myTeam = teams.find(tr => tr.ids.includes(id)); const rank = myTeam ? myTeam.rank : 6; const tInfo = state[id]; const col = document.createElement('div'); col.className = `podium-col ${tInfo.colorClass}`; col.innerHTML = ` <div class="podium-medal">${getRankSymbol(rank)}</div> <div class="podium-name">${tInfo.emoji}</div> `; podium.appendChild(col); } });
+    } else {
+        const activeTeams = playerIds.map(id => state[id]).filter(tm => tm.active);
+        const finalSort = [...activeTeams].sort((a, b) => b.score - a.score);
+        const allScores = activeTeams.map(tm => tm.score).sort((a,b) => b-a);
+        finalSort.forEach((tm) => { const li = document.createElement('li'); const rank = allScores.indexOf(tm.score) + 1; if(rank === 1) li.className = 'gold'; const symbol = getRankSymbol(rank); li.innerHTML = `<div class="result-name"><span style="font-family: 'Noto Sans', sans-serif;">${symbol}</span><span style="font-family: 'Noto Sans', sans-serif;">${tm.emoji}${t[tm.id].substring(3)}</span></div><div class="result-score" style="font-family: 'Noto Sans', sans-serif;">${tm.item} ${tm.score}</div>`; resultList.appendChild(li); });
+        playerIds.forEach(id => { const tm = state[id]; if(tm.active) { const rank = allScores.indexOf(tm.score) + 1; const col = document.createElement('div'); col.className = `podium-col ${tm.colorClass}`; col.innerHTML = ` <div class="podium-medal">${getRankSymbol(rank)}</div> <div class="podium-name">${tm.emoji}</div> `; podium.appendChild(col); } });
+    }
+    resultList.style.display = 'block';
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.textContent = t.playAgain;
+    startBtn.style.background = "#ff7675"; startBtn.style.boxShadow = "0 6px 0 #fa5252"; 
+    startBtn.onpointerdown = null;
+    startBtn.onclick = (e) => { 
+        e.preventDefault(); goToMenu(); 
+        startBtn.onclick = null; startBtn.onpointerdown = (e) => { e.preventDefault(); prepareGame(); };
+    };
+}
+
+function toggleFullScreen() {
+    var doc = window.document; var docEl = doc.documentElement;
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+    var activeFullScreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+    if (!requestFullScreen) return;
+    if (!activeFullScreen) requestFullScreen.call(docEl); else cancelFullScreen.call(doc);
+}
+
+// === 필수 요청: 홈버튼 로직 ===
+document.getElementById('btn-home').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        state.isPlaying = false;
+        clearInterval(state.timerInterval);
+        clearInterval(state.hintIntervalId);
+        goToMenu();
+    } else {
+        location.reload();
+    }
+});
+document.getElementById('gameFsBtn').onclick = (e) => { toggleFullScreen(); };
+document.getElementById('startBtn').onpointerdown = (e) => { e.preventDefault(); prepareGame(); };
+
+document.addEventListener('touchmove', function(e) { if (e.scale !== 1) { e.preventDefault(); } }, { passive: false });
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// === 초기 세팅 및 실행 ===
+const initialLang = getInitialLang();
+const initialLangObj = languages.find(l => l.code === initialLang) || languages[1];
+
+currentFlagImg.src = `https://flagcdn.com/w40/${initialLangObj.country}.png`;
+currentLangSpan.textContent = initialLangObj.name;
+applyLanguage(initialLang);
+
+initPointerEvents();
+renderLanguages();
+
+</script>
+</body>
+</html>

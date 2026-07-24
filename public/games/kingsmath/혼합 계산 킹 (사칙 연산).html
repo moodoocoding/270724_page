@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F4C3A">
+
+<title id="pageTitle">혼합계산킹</title>
+<meta id="pageDesc" name="description" content="혼합계산킹! 순수 한국어 버전 수학 퀴즈 배틀.">
+<meta id="pageKeywords" name="keywords" content="킹수학, 수학게임, 혼합계산, 초등수학">
+<link rel="canonical" href="/">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+/* ==============================================================
+   [게임 기본 폰트 설정 및 언어별 폰트 분기]
+   - 한국어는 주아체(Jua), 영문 및 다국어는 시스템 기본 고딕 사용
+   ============================================================== */
+body { font-family: 'Jua', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-weight: normal; }
+body.lang-en, body.lang-es, body.lang-fr, body.lang-de, body.lang-it, body.lang-pt-br, 
+body.lang-ru, body.lang-id, body.lang-vi, body.lang-tr { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; }
+body.lang-zh { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif !important; }
+body.lang-ja { font-family: 'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif !important; }
+body.lang-th { font-family: 'Leelawadee UI', 'Tahoma', sans-serif !important; }
+body.lang-hi { font-family: 'Mangal', 'Arial Unicode MS', sans-serif !important; }
+body.lang-bn { font-family: 'Vrinda', 'Arial Unicode MS', sans-serif !important; }
+
+/* 폰트 어썸 아이콘 깨짐 방지용 강제 보호 처리 */
+i[class^="fa-"], i[class*=" fa-"], .fa-solid, .fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+}
+
+:root {
+    --bg: #121212;
+    --panel-bg: #1e1e2e;
+    --dark: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-color: #333333;
+
+    --dog-color: #332b00;
+    --cat-color: #1e1b2e;
+    --rabbit-color: #2e151a;
+    --hamster-color: #2e1e0f;
+    --panda-color: #0f2e26;
+    --monkey-color: #221826;
+
+    --correct: #69db7c;
+    --wrong: #ff6b6b;
+    --eliminated: #333333;
+}
+
+body {
+    margin: 0; background: var(--bg); color: var(--dark); overflow: hidden;
+    user-select: none; -webkit-user-select: none; 
+    touch-action: none; 
+    display: flex; flex-direction: column; height: 100vh; height: 100dvh;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* ==============================================================
+   [모달 및 글로벌 UI 전용 스타일] (기존 CSS와 독립)
+   ============================================================== */
+#langModal, #langModal * { box-sizing: border-box !important; }
+#langModal span, #langModal p, #langModal input, #langModal h2 { font-family: 'Noto Sans KR', sans-serif; }
+#langTriggerContainer button { font-family: 'Noto Sans KR', sans-serif; }
+
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+.modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal-content { transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+.toast-anim { transform: translateY(100%); opacity: 0; font-family: 'Noto Sans KR', sans-serif; transition: all 0.3s ease; }
+.toast-anim.show { transform: translateY(0); opacity: 1; }
+
+/* ==============================================================
+   [게임 UI Components]
+   ============================================================== */
+#overlay {
+    position: fixed; inset: 0; background: var(--bg); opacity: 0.98;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; backdrop-filter: blur(15px);
+    text-align: center; overflow-y: auto; padding-bottom: 50px;
+}
+
+.title-area { margin: 8px 0 4px 0; }
+#msgTitle { font-size: clamp(2rem, 5vw, 3.5rem); color: var(--dark); margin: 0; text-shadow: 0 4px 10px rgba(0,0,0,0.2); font-weight: normal; line-height: 1.2; padding: 0 10px; transition: font-size 0.3s;}
+.subtitle { color: var(--text-muted); font-size: clamp(1rem, 3vw, 1.2rem); margin-top: 0px; font-weight: normal; word-break: keep-all; }
+.top-link { color: #339af0; text-decoration: none; font-weight: bold; }
+
+#setupArea { width: 500px; max-width: 95vw; margin: 0 auto; display: flex; flex-direction: column; gap: 5px; }
+.setup-group { text-align: left; }
+.setup-label { font-size: 1.3rem; color: var(--dark); margin-bottom: 8px; display: block; font-weight: normal; }
+
+.custom-select {
+    width: 100%; font-family: inherit; font-size: 1.2rem; padding: 15px;
+    border-radius: 15px; border: 2px solid var(--border-color);
+    background: var(--panel-bg); color: var(--dark); outline: none;
+    cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: normal;
+}
+
+.btn-large {
+    font-size: clamp(1.5rem, 4vw, 2rem); padding: 8px 0; border-radius: 50px; border: none;
+    background: #339af0; color: white; cursor: pointer; box-shadow: 0 6px 0 #1c7ed6;
+    transition: 0.1s; font-family: inherit; width: 100%; margin-top: 7px; font-weight: normal; word-break: keep-all;
+}
+.btn-large:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c7ed6; }
+#otherGameLink { display: block; margin-top: 20px; color: var(--text-muted); text-decoration: underline; font-size: 1.1rem; }
+
+/* 사이드 버튼 - 상단 20% 지점으로 이동 */
+.side-btn {
+    position: fixed; top: 20%; transform: translateY(-50%);
+    font-size: 2.1rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9999; color: #fff; text-decoration: none;
+    transition: 0.2s; -webkit-tap-highlight-color: transparent; font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+}
+.side-btn:active { transform: translateY(-50%) scale(0.9); background: rgba(0,0,0,0.8); }
+.left-btn { left: 20px; }
+.right-btn { right: 20px; }
+
+/* Game Screen Structure */
+#topZone { position: relative; display: flex; flex-direction: column; z-index: 10; }
+#header { height: 100px; background: var(--panel-bg); display: flex; align-items: center; justify-content: center; padding: 0 20px; border-bottom: 2px solid var(--border-color); position: relative; }
+.header-title { font-size: clamp(1.2rem, 3vw, 2rem); color: var(--dark); display: flex; align-items: center; gap: 10px; position: absolute; left: 20px; font-weight: normal; word-break: keep-all;}
+.timer-box { font-size: 4rem; font-weight: normal; color: #ff6b6b; background: rgba(0,0,0,0.1); padding: 5px 30px; border-radius: 20px; min-width: 120px; text-align: center; }
+.timer-urgent { color: #fff; background: #ff6b6b; animation: pulse 0.5s infinite; }
+
+#mainQuestionBoard { background: var(--panel-bg); padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; flex-grow: 1; position: relative; }
+#qNumber { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 5px; font-weight: normal; }
+
+#bigQuestion { font-size: clamp(2rem, 5vw, 4.5rem); color: var(--dark); line-height: 1.3; font-family: 'Noto Sans KR', sans-serif; font-weight: 700; word-break: keep-all; padding: 0 20px; letter-spacing: 2px; }
+
+/* Result Popup */
+#resultPopup { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(30, 30, 46, 0.98); backdrop-filter: blur(10px); z-index: 100; flex-direction: column; align-items: center; justify-content: center; border-bottom: 4px solid var(--border-color); }
+#resultTitle { font-size: 3rem; margin: 0 0 20px 0; color: var(--dark); font-weight: normal; text-align: center;}
+.result-list { list-style: none; padding: 0; margin: 0; width: 80%; max-width: 600px; max-height: 60%; overflow-y: auto; }
+.result-item { display: flex; justify-content: space-between; padding: 15px; background: rgba(128,128,128,0.1); margin-bottom: 8px; border-radius: 12px; font-size: 1.5rem; color: var(--dark); border: 1px solid var(--border-color); font-weight: normal; }
+.rank-1 { background: #ffd43b; color: #000; font-weight: normal; border: none; }
+
+/* Player Arena */
+#arena { display: flex; flex: 1; width: 100vw; overflow: hidden; background: var(--bg); }
+.player-col { flex: 1; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 10px 5px; position: relative; transition: opacity 0.3s; }
+.player-col:last-child { border-right: none; }
+.player-col.eliminated { opacity: 0.3; filter: grayscale(100%); pointer-events: none; }
+
+.p-header { text-align: center; margin-bottom: 5px; width: 100%; flex-shrink: 0;}
+.p-emoji { font-size: 2rem; display: block; }
+.p-name { font-size: 1rem; white-space: nowrap; font-weight: normal; }
+.p-info { font-size: 1rem; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 10px; margin-top: 2px; color: var(--dark); font-weight: normal; }
+
+.mini-question { font-size: 1.1rem; color: var(--dark); margin: 5px 0; text-align: center; word-break: break-all; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; width: 90%; min-height: 1.5em; font-family: 'Noto Sans KR', sans-serif; font-weight: 500; letter-spacing: 1px; }
+
+/* Keypad Styles */
+.p-answer-display {
+    font-size: 1.8rem; background: #fff; color: #000; border-radius: 8px;
+    margin: 5px 0; min-height: 40px; display: flex; align-items: center; justify-content: center; width: 90%; max-width: 250px;
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 700; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); letter-spacing: 2px;
+}
+.p-answer-display:empty::before { content: '?'; color: #ccc; }
+
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 90%; max-width: 250px; flex: 1; align-content: center; padding-bottom: 10px; }
+.kp-btn {
+    background: var(--panel-bg); border: 2px solid var(--border-color); border-radius: 8px; color: var(--dark);
+    font-size: 1.5rem; font-family: 'Noto Sans KR', sans-serif; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1); transition: 0.1s; min-height: 45px;
+}
+.kp-btn:active { transform: translateY(2px); box-shadow: none; }
+.kp-btn.kp-del { background: #ff6b6b; color: #fff; font-size: 1rem; border-color: #e03131; font-family: inherit; } 
+.kp-btn.kp-enter { background: #339af0; color: #fff; font-size: 1rem; border-color: #1c7ed6; font-family: inherit; }
+
+/* Feedback Overlay */
+.feedback-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; flex-direction: column; font-size: 5rem; z-index: 20; border-radius: 0; }
+.feedback-overlay.secret { background: #000000 !important; opacity: 1; display: flex; color: white; transition: none; animation: none; }
+.feedback-overlay.show-result { display: flex; animation: none; }
+.submitted-text { font-size: 1.5rem; margin-top: 15px; color: #fff; text-align: center; line-height: 1.5; font-weight: normal; }
+.final-status { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; box-sizing: border-box; background: rgba(0,0,0,0.85); padding: 15px 10px; border-radius: 15px; text-align: center; z-index: 50; border: 2px solid #fff; display: none; animation: popIn 0.5s; word-break: keep-all; overflow-wrap: break-word; }
+.final-status h3 { margin: 0; font-size: 1.2rem; color: #fff; font-weight: normal; }
+.final-status p { margin: 5px 0 0 0; font-size: 1.8rem; color: #ffd43b; font-weight: normal; line-height: 1.2;}
+
+/* Countdown */
+#countdownLayer { position: fixed; inset: 0; background: #000000; z-index: 2000; display: none; align-items: center; justify-content: center; }
+#countdownText { font-size: 25rem; color: #ffec99; text-shadow: 0 0 50px rgba(255, 212, 59, 0.8); font-weight: normal; opacity: 0; }
+@keyframes countPop { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1.0); opacity: 0; } }
+.count-animate { animation: countPop 0.8s ease-in-out forwards; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-title span:last-child { display: none; } 
+    .p-name { display: none; } 
+    .p-info { font-size: 0.8rem; } 
+    .kp-btn { min-height: 35px; font-size: 1.2rem; }
+    .p-answer-display { font-size: 1.5rem; min-height: 35px; }
+}
+
+.bg-dog { background: var(--dog-color); } .bg-cat { background: var(--cat-color); } .bg-rabbit { background: var(--rabbit-color); } .bg-hamster { background: var(--hamster-color); } .bg-panda { background: var(--panda-color); } .bg-monkey { background: var(--monkey-color); }
+</style>
+</head>
+
+<body>
+
+    <div id="langTriggerContainer" style="z-index: 99999 !important;" class="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg font-sans">
+            <i class="fa-solid fa-globe text-gray-400"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block text-white">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="langModal" style="z-index: 99999 !important;" class="modal-overlay fixed inset-0 flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+        <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-language text-yellow-500"></i> <span id="ui-title">Language / 언어</span>
+                    </h2>
+                    <p id="ui-desc" class="text-sm text-gray-400 mt-1">Select your preferred language.</p>
+                </div>
+                <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-5 pb-2 bg-gray-900">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                        class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                </div>
+            </div>
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                    <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                    <p id="ui-empty">No results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" style="z-index: 99999 !important;" class="toast-anim fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+            <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+            <p id="ui-toast" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+        </div>
+    </div>
+
+    <div id="btn-home" class="side-btn left-btn" title="Home" style="cursor:pointer;">🏠</div>
+    <button id="fullscreenBtn" class="side-btn right-btn" title="Full Screen">⛶</button>
+
+    <div id="overlay">
+        <div class="title-area">
+            <span style="font-size: 1.2rem; color: #339af0;">
+                <span data-lang-key="intro">게임으로 수학의 킹이 되어라.</span> 
+                <a id="topLink" href="/" target="_self" class="top-link" data-lang-key="domain_txt">킹수학.com</a>
+            </span><br>
+            <h1 id="msgTitle" data-lang-key="title">🔔혼합계산킹</h1>
+            <div class="subtitle" data-lang-key="slogan">오직 숫자로 승부하세요!</div>
+        </div>
+
+        <div id="setupArea">
+            <div class="setup-group">
+                <label class="setup-label" data-lang-key="label_diff">📚 난이도 선택</label>
+                <select id="difficulty" class="custom-select"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label" data-lang-key="label_mode">🏆 게임 모드</label>
+                <select id="gameMode" class="custom-select"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label" data-lang-key="label_time">⏱️ 제한 시간</label>
+                <select id="timeLimit" class="custom-select"></select>
+            </div>
+            <div class="setup-group">
+                <label class="setup-label" data-lang-key="label_player">👥 참가 인원</label>
+                <select id="playerCount" class="custom-select"></select>
+            </div>
+            <button id="startBtn" class="btn-large" data-lang-key="btn_start">게임 시작하기</button>
+            <a id="otherGameLink" href="/" target="_self" data-lang-key="link_other">🎮 다른 게임 고르기</a>
+        </div>
+    </div>
+
+    <div id="countdownLayer">
+        <div id="countdownText">3</div>
+    </div>
+
+    <div id="topZone">
+        <header id="header">
+            <div class="header-title">
+                <span style="font-size:2rem;">👑</span>
+                <span data-lang-key="header_title">혼합계산킹</span>
+            </div>
+            <div id="mainTimer" class="timer-box">30</div>
+        </header>
+
+        <div id="mainQuestionBoard">
+            <div id="qNumber">문제 1 / 10</div>
+            <div id="bigQuestion">준비...</div>
+        </div>
+
+        <div id="resultPopup">
+            <h2 id="resultTitle" data-lang-key="result_title">결과 발표</h2>
+            <ul id="finalResultList" class="result-list"></ul>
+            <button id="restartBtn" class="btn-large" style="margin-top:20px; font-size:clamp(1rem, 3vw, 1.5rem); width: auto; padding: 10px 40px;" data-lang-key="btn_restart">처음으로 돌아가기</button>
+        </div>
+    </div>
+
+    <div id="arena"></div>
+
+<script>
+/* =========================================
+   Localization & Multi-language Support (16 Languages)
+   ========================================= */
+const STRINGS = {
+    ko: {
+        title: "🔔혼합계산킹", pageTitle: "혼합계산킹 - 수학 퀴즈 배틀", desc: "혼합계산킹! 순수 한국어 버전 수학 퀴즈 배틀.", keywords: "킹수학, 수학게임, 혼합계산, 초등수학",
+        intro: "게임으로 수학의 킹이 되어라.", slogan: "오직 숫자로 승부하세요!", label_diff: "📚 난이도 선택", label_mode: "🏆 게임 모드", label_player: "👥 참가 인원",
+        label_time: "⏱️ 제한 시간", time_unlimited: "무제한 (수업용)", time_30: "30초", time_60: "60초",
+        btn_start: "게임 시작하기", btn_restart: "처음으로 돌아가기", link_other: "🎮 다른 게임 고르기", header_title: "혼합계산킹", result_title: "결과 발표",
+        q_num: "문제", ready: "준비...", submitted: "답안 제출 완료", score_pt: "점", survived_count: "문제 생존", eliminated: "탈락", winner: "우승!", rank: "위", final_score: "최종 점수", record: "기록",
+        diff_easy: "쉬움 ( ) 있는 숫자 3~4개", diff_normal: "보통 { } ( ) 있는 숫자 5~6개", diff_hard: "어려움 [ ] { } 다 나오는 숫자 7~10개", diff_mix: "모두 랜덤 출제",
+        mode_chall: "🏅 챌린지 (10문제 대결)", mode_surv: "☠️ 골든벨 (10문제 생존)", p_1: "1인 연습", p_n: "인 플레이",
+        domain_txt: "킹수학.com", domain_url: "/", team_dog: "강아지", team_cat: "고양이", team_rabbit: "토끼", team_hamster: "햄스터", team_panda: "판다", team_monkey: "원숭이",
+        ui_title: "언어 및 지역 선택", ui_desc: "선호하는 언어와 지역을 선택하세요.", ui_search: "언어 검색 (예: English, 한국어...)", ui_empty: "검색 결과가 없습니다.", ui_toast: "언어가 변경되었습니다.", btn_del: "지우기", btn_enter: "입력"
+    },
+    en: {
+        title: "🔔Mixed Calc King", pageTitle: "Mixed Calc King - Math Battle", desc: "Mixed Calc King! The ultimate math quiz battle.", keywords: "Math King, math games, mixed calculations",
+        intro: "Play to be the King of Math.", slogan: "Win with numbers only!", label_diff: "📚 Difficulty", label_mode: "🏆 Game Mode", label_player: "👥 Players",
+        label_time: "⏱️ Time Limit", time_unlimited: "Unlimited (Class)", time_30: "30 Sec", time_60: "60 Sec",
+        btn_start: "Start Game", btn_restart: "Back to Title", link_other: "🎮 More Games", header_title: "Mixed Calc King", result_title: "Final Results",
+        q_num: "Q", ready: "Ready...", submitted: "Submitted", score_pt: "pts", survived_count: "Survived", eliminated: "Out", winner: "Winner!", rank: "Rank", final_score: "Final Score", record: "Record",
+        diff_easy: "Easy ( 3-4 numbers )", diff_normal: "Normal { 5-6 numbers }", diff_hard: "Hard [ 7-10 numbers ]", diff_mix: "Random Mix",
+        mode_chall: "🏅 Challenge (10 Qs)", mode_surv: "☠️ Golden Bell (Survival)", p_1: "1 Player", p_n: " Players",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Dog", team_cat: "Cat", team_rabbit: "Rabbit", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monkey",
+        ui_title: "Language & Region", ui_desc: "Select your preferred language and region.", ui_search: "Search language", ui_empty: "No results found.", ui_toast: "Language changed.", btn_del: "Del", btn_enter: "Enter"
+    },
+    zh: {
+        title: "🔔混合计算之王", pageTitle: "混合计算之王 - 数学对决", desc: "通过游戏成为数学之王。", keywords: "数学游戏, 混合计算,  KingsMath",
+        intro: "通过游戏成为数学之王。", slogan: "只用数字决胜负！", label_diff: "📚 难度选择", label_mode: "🏆 游戏模式", label_player: "👥 玩家人数",
+        label_time: "⏱️ 时间限制", time_unlimited: "无限制(课堂)", time_30: "30秒", time_60: "60秒",
+        btn_start: "开始游戏", btn_restart: "返回首页", link_other: "🎮 更多游戏", header_title: "混合计算王", result_title: "最终结果",
+        q_num: "第", ready: "准备...", submitted: "已提交", score_pt: "分", survived_count: "题存活", eliminated: "淘汰", winner: "冠军!", rank: "名", final_score: "最终得分", record: "记录",
+        diff_easy: "简单 ( 3-4 个数字 )", diff_normal: "普通 { 5-6 个数字 }", diff_hard: "困难 [ 7-10 个数字 ]", diff_mix: "随机出题",
+        mode_chall: "🏅 挑战模式 (10题对决)", mode_surv: "☠️ 生存模式 (生存到底)", p_1: "单人练习", p_n: " 人对决",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "小狗", team_cat: "小猫", team_rabbit: "兔子", team_hamster: "仓鼠", team_panda: "熊猫", team_monkey: "猴子",
+        ui_title: "语言和地区", ui_desc: "选择您首选的语言。", ui_search: "搜索语言...", ui_empty: "未找到结果。", ui_toast: "语言已更改。", btn_del: "删除", btn_enter: "输入"
+    },
+    ja: {
+        title: "🔔ミックス計算王", pageTitle: "ミックス計算王 - 算数バトル", desc: "ミックス計算王！究極の算数クイズバトル。", keywords: "算数ゲーム, 混合計算, 算数王",
+        intro: "ゲームで算数の王になろう。", slogan: "数字だけで勝負しろ！", label_diff: "📚 難易度", label_mode: "🏆 モード", label_player: "👥 参加人数",
+        label_time: "⏱️ 制限時間", time_unlimited: "無制限 (授業用)", time_30: "30秒", time_60: "60秒",
+        btn_start: "ゲーム開始", btn_restart: "最初に戻る", link_other: "🎮 他のゲーム", header_title: "ミックス計算王", result_title: "結果発表",
+        q_num: "問題", ready: "準備...", submitted: "提出完了", score_pt: "点", survived_count: "問 生存", eliminated: "脱落", winner: "優勝!", rank: "位", final_score: "最終スコア", record: "記録",
+        diff_easy: "簡単 ( 3〜4つの数字 )", diff_normal: "普通 { 5〜6つの数字 }", diff_hard: "難しい [ 7〜10の数字 ]", diff_mix: "ランダム",
+        mode_chall: "🏅 チャレンジ (10問勝負)", mode_surv: "☠️ サバイバル (最後まで生存)", p_1: "1人練習", p_n: "人プレイ",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "犬", team_cat: "猫", team_rabbit: "うさぎ", team_hamster: "ハムスター", team_panda: "パンダ", team_monkey: "猿",
+        ui_title: "言語と地域", ui_desc: "希望の言語を選択してください。", ui_search: "言語を検索", ui_empty: "結果がありません。", ui_toast: "言語が変更されました。", btn_del: "消す", btn_enter: "入力"
+    },
+    es: {
+        title: "🔔Rey del Cálculo", pageTitle: "Rey del Cálculo Mixto - Batalla", desc: "El mejor juego de matemáticas escolares.", keywords: "juegos de matemáticas, Rey de las Matemáticas",
+        intro: "Juega para ser el Rey.", slogan: "¡Gana solo con números!", label_diff: "📚 Dificultad", label_mode: "🏆 Modo de juego", label_player: "👥 Jugadores",
+        label_time: "⏱️ Tiempo", time_unlimited: "Sin límite", time_30: "30 Seg", time_60: "60 Seg",
+        btn_start: "Empezar juego", btn_restart: "Volver al inicio", link_other: "🎮 Más juegos", header_title: "Rey del Cálculo", result_title: "Resultados",
+        q_num: "P", ready: "Listos...", submitted: "Enviado", score_pt: "pts", survived_count: "Sobrevivido", eliminated: "Eliminado", winner: "¡Ganador!", rank: "Lugar", final_score: "Puntaje final", record: "Récord",
+        diff_easy: "Fácil ( 3-4 números )", diff_normal: "Normal { 5-6 números }", diff_hard: "Difícil [ 7-10 números ]", diff_mix: "Aleatorio",
+        mode_chall: "🏅 Desafío (10 Preguntas)", mode_surv: "☠️ Supervivencia", p_1: "1 Jugador", p_n: " Jugadores",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Perro", team_cat: "Gato", team_rabbit: "Conejo", team_hamster: "Hámster", team_panda: "Panda", team_monkey: "Mono",
+        ui_title: "Idioma y región", ui_desc: "Seleccione su idioma preferido.", ui_search: "Buscar idioma", ui_empty: "No hay resultados.", ui_toast: "Idioma cambiado.", btn_del: "Borr", btn_enter: "Enter"
+    },
+    fr: {
+        title: "🔔Roi du Calcul", pageTitle: "Roi du Calcul - Bataille", desc: "Jeu de calculs mixtes pour devenir le Roi.", keywords: "Mathématiques, Jeux de maths",
+        intro: "Devenez le Roi des Maths.", slogan: "Gagnez avec des nombres!", label_diff: "📚 Difficulté", label_mode: "🏆 Mode de Jeu", label_player: "👥 Joueurs",
+        label_time: "⏱️ Temps Limite", time_unlimited: "Illimité", time_30: "30 Sec", time_60: "60 Sec",
+        btn_start: "Démarrer", btn_restart: "Retour", link_other: "🎮 Plus de jeux", header_title: "Roi du Calcul", result_title: "Résultats",
+        q_num: "Q", ready: "Prêt...", submitted: "Envoyé", score_pt: "pts", survived_count: "Survécu", eliminated: "Éliminé", winner: "Gagnant!", rank: "Rang", final_score: "Score Final", record: "Record",
+        diff_easy: "Facile ( 3-4 nombres )", diff_normal: "Normal { 5-6 nombres }", diff_hard: "Difficile [ 7-10 nombres ]", diff_mix: "Aléatoire",
+        mode_chall: "🏅 Défi (10 Questions)", mode_surv: "☠️ Survie (Sans erreur)", p_1: "1 Joueur", p_n: " Joueurs",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Chien", team_cat: "Chat", team_rabbit: "Lapin", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Singe",
+        ui_title: "Langue et région", ui_desc: "Sélectionnez votre langue.", ui_search: "Rechercher", ui_empty: "Aucun résultat.", ui_toast: "Langue modifiée.", btn_del: "Eff", btn_enter: "Entrer"
+    },
+    ru: {
+        title: "🔔Король Вычислений", pageTitle: "Король Вычислений - Математическая битва", desc: "Стань Королем математики.", keywords: "игры по математике, Король Вычислений",
+        intro: "Играй и стань Королем.", slogan: "Побеждай только цифрами!", label_diff: "📚 Сложность", label_mode: "🏆 Режим", label_player: "👥 Игроки",
+        label_time: "⏱️ Время", time_unlimited: "Безлимит", time_30: "30 Сек", time_60: "60 Сек",
+        btn_start: "Начать игру", btn_restart: "В главное меню", link_other: "🎮 Другие игры", header_title: "Король Вычислений", result_title: "Результаты",
+        q_num: "В", ready: "Готов...", submitted: "Ответил", score_pt: "очк", survived_count: "Выжил", eliminated: "Выбыл", winner: "Победитель!", rank: "Место", final_score: "Финальный счет", record: "Рекорд",
+        diff_easy: "Легко ( 3-4 числа )", diff_normal: "Средне { 5-6 чисел }", diff_hard: "Сложно [ 7-10 чисел ]", diff_mix: "Случайно",
+        mode_chall: "🏅 Испытание (10 Вопросов)", mode_surv: "☠️ Выживание", p_1: "1 Игрок", p_n: " Игроков",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Пес", team_cat: "Кот", team_rabbit: "Кролик", team_hamster: "Хомяк", team_panda: "Панда", team_monkey: "Обезьяна",
+        ui_title: "Язык и регион", ui_desc: "Выберите язык.", ui_search: "Поиск языка", ui_empty: "Нет результатов.", ui_toast: "Язык изменен.", btn_del: "Удал", btn_enter: "Ввод"
+    },
+    id: {
+        title: "🔔Raja Hitung Campuran", pageTitle: "Raja Hitung Campuran - Kuis", desc: "Jadilah Raja Matematika dengan bermain.", keywords: "Game Matematika, Raja Matematika",
+        intro: "Bermain untuk jadi Raja.", slogan: "Menang dengan angka!", label_diff: "📚 Kesulitan", label_mode: "🏆 Mode Game", label_player: "👥 Pemain",
+        label_time: "⏱️ Batas Waktu", time_unlimited: "Tanpa Batas", time_30: "30 Detik", time_60: "60 Detik",
+        btn_start: "Mulai Main", btn_restart: "Kembali Awal", link_other: "🎮 Game Lain", header_title: "Raja Hitung", result_title: "Hasil Akhir",
+        q_num: "Soal", ready: "Siap...", submitted: "Terkirim", score_pt: "poin", survived_count: "Bertahan", eliminated: "Gugur", winner: "Pemenang!", rank: "Peringkat", final_score: "Skor Akhir", record: "Rekor",
+        diff_easy: "Mudah ( 3-4 angka )", diff_normal: "Normal { 5-6 angka }", diff_hard: "Sulit [ 7-10 angka ]", diff_mix: "Acak",
+        mode_chall: "🏅 Tantangan (10 Soal)", mode_surv: "☠️ Bertahan Hidup", p_1: "1 Pemain", p_n: " Pemain",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Anjing", team_cat: "Kucing", team_rabbit: "Kelinci", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Monyet",
+        ui_title: "Bahasa & Wilayah", ui_desc: "Pilih bahasa Anda.", ui_search: "Cari bahasa", ui_empty: "Tidak ada hasil.", ui_toast: "Bahasa telah diubah.", btn_del: "Hapus", btn_enter: "Masuk"
+    },
+    vi: {
+        title: "🔔Vua Phép Tính", pageTitle: "Vua Phép Tính - Trận Chiến Toán", desc: "Trận chiến tính toán hỗn hợp tuyệt đỉnh.", keywords: "Toán học, Vua Toán Học",
+        intro: "Trở thành Vua Toán học.", slogan: "Chiến thắng bằng con số!", label_diff: "📚 Độ Khó", label_mode: "🏆 Chế Độ", label_player: "👥 Người Chơi",
+        label_time: "⏱️ Thời Gian", time_unlimited: "Không giới hạn", time_30: "30 Giây", time_60: "60 Giây",
+        btn_start: "Bắt Đầu", btn_restart: "Quay Lại", link_other: "🎮 Trò Chơi Khác", header_title: "Vua Phép Tính", result_title: "Kết Quả",
+        q_num: "Câu", ready: "Sẵn sàng...", submitted: "Đã nộp", score_pt: "điểm", survived_count: "Sống sót", eliminated: "Loại bỏ", winner: "Người Thắng!", rank: "Hạng", final_score: "Điểm Cuối", record: "Kỷ lục",
+        diff_easy: "Dễ ( 3-4 số )", diff_normal: "Thường { 5-6 số }", diff_hard: "Khó [ 7-10 số ]", diff_mix: "Ngẫu nhiên",
+        mode_chall: "🏅 Thử thách (10 Câu)", mode_surv: "☠️ Sinh Tồn", p_1: "1 Người", p_n: " Người",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Chó", team_cat: "Mèo", team_rabbit: "Thỏ", team_hamster: "Chuột", team_panda: "Gấu trúc", team_monkey: "Khỉ",
+        ui_title: "Ngôn ngữ & Khu vực", ui_desc: "Chọn ngôn ngữ của bạn.", ui_search: "Tìm ngôn ngữ", ui_empty: "Không có kết quả.", ui_toast: "Ngôn ngữ đã thay đổi.", btn_del: "Xóa", btn_enter: "Nhập"
+    },
+    th: {
+        title: "🔔ราชาคณิตศาสตร์", pageTitle: "ราชาการคำนวณแบบผสม - การต่อสู้ทางคณิตศาสตร์", desc: "สุดยอดการต่อสู้ทางคณิตศาสตร์", keywords: "เกมคณิตศาสตร์, ราชาคณิตศาสตร์",
+        intro: "เล่นเพื่อเป็นราชา", slogan: "ชนะด้วยตัวเลขเท่านั้น!", label_diff: "📚 ความยาก", label_mode: "🏆 โหมดเกม", label_player: "👥 ผู้เล่น",
+        label_time: "⏱️ เวลา", time_unlimited: "ไม่จำกัด", time_30: "30 วินาที", time_60: "60 วินาที",
+        btn_start: "เริ่มเกม", btn_restart: "กลับไปหน้าแรก", link_other: "🎮 เกมอื่นๆ", header_title: "ราชาคณิตศาสตร์", result_title: "ผลลัพธ์",
+        q_num: "ข้อ", ready: "พร้อม...", submitted: "ส่งแล้ว", score_pt: "คะแนน", survived_count: "รอดชีวิต", eliminated: "ตกรอบ", winner: "ผู้ชนะ!", rank: "อันดับ", final_score: "คะแนนสุดท้าย", record: "บันทึก",
+        diff_easy: "ง่าย ( 3-4 ตัวเลข )", diff_normal: "ปานกลาง { 5-6 ตัวเลข }", diff_hard: "ยาก [ 7-10 ตัวเลข ]", diff_mix: "สุ่ม",
+        mode_chall: "🏅 แข่งขัน (10 ข้อ)", mode_surv: "☠️ เอาชีวิตรอด", p_1: "1 ผู้เล่น", p_n: " ผู้เล่น",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "สุนัข", team_cat: "แมว", team_rabbit: "กระต่าย", team_hamster: "หนูแฮมสเตอร์", team_panda: "แพนด้า", team_monkey: "ลิง",
+        ui_title: "ภาษาและภูมิภาค", ui_desc: "เลือกภาษาของคุณ", ui_search: "ค้นหาภาษา", ui_empty: "ไม่พบผลลัพธ์", ui_toast: "เปลี่ยนภาษาเรียบร้อยแล้ว", btn_del: "ลบ", btn_enter: "เข้า"
+    },
+    'pt-br': {
+        title: "🔔Rei do Cálculo", pageTitle: "Rei do Cálculo Mixto - Batalha de Matemática", desc: "Torne-se o Rei da Matemática.", keywords: "Matemática, jogos de matemática",
+        intro: "Jogue para ser o Rei.", slogan: "Vença apenas com números!", label_diff: "📚 Dificuldade", label_mode: "🏆 Modo de Jogo", label_player: "👥 Jogadores",
+        label_time: "⏱️ Limite de Tempo", time_unlimited: "Ilimitado", time_30: "30 Seg", time_60: "60 Seg",
+        btn_start: "Iniciar Jogo", btn_restart: "Voltar", link_other: "🎮 Mais Jogos", header_title: "Rei do Cálculo", result_title: "Resultados",
+        q_num: "P", ready: "Pronto...", submitted: "Enviado", score_pt: "pts", survived_count: "Sobreviveu", eliminated: "Eliminado", winner: "Vencedor!", rank: "Lugar", final_score: "Pontuação Final", record: "Recorde",
+        diff_easy: "Fácil ( 3-4 números )", diff_normal: "Normal { 5-6 números }", diff_hard: "Difícil [ 7-10 números ]", diff_mix: "Aleatório",
+        mode_chall: "🏅 Desafio (10 Perguntas)", mode_surv: "☠️ Sobrevivência", p_1: "1 Jogador", p_n: " Jogadores",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Cão", team_cat: "Gato", team_rabbit: "Coelho", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Macaco",
+        ui_title: "Idioma e Região", ui_desc: "Selecione seu idioma.", ui_search: "Buscar idioma", ui_empty: "Nenhum resultado.", ui_toast: "Idioma alterado.", btn_del: "Apag", btn_enter: "Enter"
+    },
+    hi: {
+        title: "🔔गणित का राजा", pageTitle: "गणित का राजा - मिश्रित गणना", desc: "गणित के राजा बनें।", keywords: "गणित के खेल, गणित का राजा",
+        intro: "राजा बनने के लिए खेलें।", slogan: "केवल संख्याओं से जीतें!", label_diff: "📚 कठिनाई", label_mode: "🏆 खेल मोड", label_player: "👥 खिलाड़ी",
+        label_time: "⏱️ समय सीमा", time_unlimited: "असीमित", time_30: "30 सेकंड", time_60: "60 सेकंड",
+        btn_start: "खेल शुरू करें", btn_restart: "वापस जाएं", link_other: "🎮 अधिक खेल", header_title: "गणित का राजा", result_title: "अंतिम परिणाम",
+        q_num: "प्रश्न", ready: "तैयार...", submitted: "दर्ज किया गया", score_pt: "अंक", survived_count: "जीवित रहे", eliminated: "बाहर", winner: "विजेता!", rank: "रैंक", final_score: "अंतिम स्कोर", record: "रिकॉर्ड",
+        diff_easy: "आसान ( 3-4 अंक )", diff_normal: "सामान्य { 5-6 अंक }", diff_hard: "कठिन [ 7-10 अंक ]", diff_mix: "यादृच्छिक",
+        mode_chall: "🏅 चुनौती (10 प्रश्न)", mode_surv: "☠️ जीवन रक्षा", p_1: "1 खिलाड़ी", p_n: " खिलाड़ी",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "कुत्ता", team_cat: "बिल्ली", team_rabbit: "खरगोश", team_hamster: "हम्सटर", team_panda: "पांडा", team_monkey: "बंदर",
+        ui_title: "भाषा और क्षेत्र", ui_desc: "अपनी भाषा चुनें।", ui_search: "भाषा खोजें", ui_empty: "कोई परिणाम नहीं।", ui_toast: "भाषा बदल दी गई है।", btn_del: "मिटाएं", btn_enter: "दर्ज"
+    },
+    bn: {
+        title: "🔔গণিতের রাজা", pageTitle: "গণিতের রাজা - কুইজ যুদ্ধ", desc: "গণিতের রাজা হতে খেলুন।", keywords: "গণিত গেম, গণিতের রাজা",
+        intro: "রাজা হতে খেলুন।", slogan: "শুধুমাত্র সংখ্যা দিয়ে জিতুন!", label_diff: "📚 কাঠিন্য", label_mode: "🏆 গেম মোড", label_player: "👥 খেলোয়াড়",
+        label_time: "⏱️ সময় সীমা", time_unlimited: "সীমাহীন", time_30: "৩০ সেকেন্ড", time_60: "৬০ সেকেন্ড",
+        btn_start: "খেলা শুরু করুন", btn_restart: "ফিরে যান", link_other: "🎮 আরও গেম", header_title: "গণিতের রাজা", result_title: "ফলাফল",
+        q_num: "প্রশ্ন", ready: "প্রস্তুত...", submitted: "জমা দেওয়া হয়েছে", score_pt: "পয়েন্ট", survived_count: "বেঁচে আছেন", eliminated: "বাদ", winner: "বিজয়ী!", rank: "র‍্যাঙ্ক", final_score: "চূড়ান্ত স্কোর", record: "রেকর্ড",
+        diff_easy: "সহজ ( 3-4 সংখ্যা )", diff_normal: "সাধারণ { 5-6 সংখ্যা }", diff_hard: "কঠিন [ 7-10 সংখ্যা ]", diff_mix: "এলোমেলো",
+        mode_chall: "🏅 চ্যালেঞ্জ (১০ প্রশ্ন)", mode_surv: "☠️ টিকে থাকা", p_1: "১ খেলোয়াড়", p_n: " খেলোয়াড়",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "কুকুর", team_cat: "বিড়াল", team_rabbit: "খরগোশ", team_hamster: "হ্যামস্টার", team_panda: "পান্ডা", team_monkey: "বানর",
+        ui_title: "ভাষা এবং অঞ্চল", ui_desc: "আপনার ভাষা নির্বাচন করুন।", ui_search: "ভাষা অনুসন্ধান", ui_empty: "কোন ফলাফল নেই।", ui_toast: "ভাষা পরিবর্তিত হয়েছে।", btn_del: "মুছুন", btn_enter: "প্রবেশ"
+    },
+    tr: {
+        title: "🔔İşlem Kralı", pageTitle: "İşlem Kralı - Matematik Savaşı", desc: "Matematik oyunlarıyla Kral ol.", keywords: "Matematik Oyunları, Matematik Kralı",
+        intro: "Kral olmak için oyna.", slogan: "Sadece sayılarla kazan!", label_diff: "📚 Zorluk", label_mode: "🏆 Oyun Modu", label_player: "👥 Oyuncular",
+        label_time: "⏱️ Süre", time_unlimited: "Sınırsız", time_30: "30 San", time_60: "60 San",
+        btn_start: "Oyuna Başla", btn_restart: "Başa Dön", link_other: "🎮 Diğer Oyunlar", header_title: "İşlem Kralı", result_title: "Sonuçlar",
+        q_num: "S", ready: "Hazır...", submitted: "Gönderildi", score_pt: "puan", survived_count: "Hayatta Kaldı", eliminated: "Elendi", winner: "Kazanan!", rank: "Sıra", final_score: "Son Puan", record: "Rekor",
+        diff_easy: "Kolay ( 3-4 sayı )", diff_normal: "Normal { 5-6 sayı }", diff_hard: "Zor [ 7-10 sayı ]", diff_mix: "Rastgele",
+        mode_chall: "🏅 Meydan Okuma (10 Soru)", mode_surv: "☠️ Hayatta Kalma", p_1: "1 Oyuncu", p_n: " Oyuncu",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Köpek", team_cat: "Kedi", team_rabbit: "Tavşan", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Maymun",
+        ui_title: "Dil ve Bölge", ui_desc: "Tercih ettiğiniz dili seçin.", ui_search: "Dil ara", ui_empty: "Sonuç bulunamadı.", ui_toast: "Dil değiştirildi.", btn_del: "Sil", btn_enter: "Giriş"
+    },
+    de: {
+        title: "🔔Rechenkönig", pageTitle: "Rechenkönig - Mathe-Battle", desc: "Werde der Rechenkönig.", keywords: "Mathe-Spiele, Rechenkönig",
+        intro: "Spiele, um König zu werden.", slogan: "Gewinne nur mit Zahlen!", label_diff: "📚 Schwierigkeit", label_mode: "🏆 Spielmodus", label_player: "👥 Spieler",
+        label_time: "⏱️ Zeitlimit", time_unlimited: "Unbegrenzt", time_30: "30 Sek", time_60: "60 Sek",
+        btn_start: "Spiel starten", btn_restart: "Zurück zum Start", link_other: "🎮 Mehr Spiele", header_title: "Rechenkönig", result_title: "Ergebnisse",
+        q_num: "F", ready: "Bereit...", submitted: "Gesendet", score_pt: "Pkte", survived_count: "Überlebt", eliminated: "Ausgeschieden", winner: "Gewinner!", rank: "Platz", final_score: "Endstand", record: "Rekord",
+        diff_easy: "Leicht ( 3-4 Zahlen )", diff_normal: "Normal { 5-6 Zahlen }", diff_hard: "Schwer [ 7-10 Zahlen ]", diff_mix: "Zufällig",
+        mode_chall: "🏅 Herausforderung (10 Fragen)", mode_surv: "☠️ Überleben", p_1: "1 Spieler", p_n: " Spieler",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Hund", team_cat: "Katze", team_rabbit: "Hase", team_hamster: "Hamster", team_panda: "Panda", team_monkey: "Affe",
+        ui_title: "Sprache & Region", ui_desc: "Wähle deine Sprache.", ui_search: "Sprache suchen", ui_empty: "Keine Ergebnisse.", ui_toast: "Sprache geändert.", btn_del: "Löschen", btn_enter: "Enter"
+    },
+    it: {
+        title: "🔔Re del Calcolo", pageTitle: "Re del Calcolo - Battaglia di Matematica", desc: "Diventa il Re della matematica.", keywords: "Giochi di matematica, Re del Calcolo",
+        intro: "Gioca per essere il Re.", slogan: "Vinci solo con i numeri!", label_diff: "📚 Difficoltà", label_mode: "🏆 Modalità", label_player: "👥 Giocatori",
+        label_time: "⏱️ Limite di Tempo", time_unlimited: "Illimitato", time_30: "30 Sec", time_60: "60 Sec",
+        btn_start: "Inizia Gioco", btn_restart: "Torna all'inizio", link_other: "🎮 Altri giochi", header_title: "Re del Calcolo", result_title: "Risultati",
+        q_num: "D", ready: "Pronto...", submitted: "Inviato", score_pt: "pti", survived_count: "Sopravvissuto", eliminated: "Eliminato", winner: "Vincitore!", rank: "Posto", final_score: "Punteggio Finale", record: "Record",
+        diff_easy: "Facile ( 3-4 numeri )", diff_normal: "Normale { 5-6 numeri }", diff_hard: "Difficile [ 7-10 numeri ]", diff_mix: "Casuale",
+        mode_chall: "🏅 Sfida (10 Domande)", mode_surv: "☠️ Sopravvivenza", p_1: "1 Giocatore", p_n: " Giocatori",
+        domain_txt: "KingsMath.com", domain_url: "/", team_dog: "Cane", team_cat: "Gatto", team_rabbit: "Coniglio", team_hamster: "Criceto", team_panda: "Panda", team_monkey: "Scimmia",
+        ui_title: "Lingua e Regione", ui_desc: "Seleziona la tua lingua.", ui_search: "Cerca lingua", ui_empty: "Nessun risultato.", ui_toast: "Lingua cambiata.", btn_del: "Canc", btn_enter: "Invio"
+    }
+};
+const fallbackLang = 'en';
+
+const languages = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+];
+
+/* 2. 언어 감지 및 초기 설정 로직 */
+function getInitialLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('lang')) {
+        const langParam = urlParams.get('lang').toLowerCase();
+        if (languages.find(l => l.code === langParam)) return langParam;
+    }
+    
+    const storedLang = localStorage.getItem('kingsmath_lang');
+    if (storedLang && languages.find(l => l.code === storedLang)) return storedLang;
+    
+    const browserLangFull = navigator.language.toLowerCase();
+    const browserLang = browserLangFull.substring(0, 2);
+    if (languages.find(l => l.code === browserLangFull)) return browserLangFull;
+    if (languages.find(l => l.code === browserLang)) return browserLang;
+    
+    return fallbackLang;
+}
+
+let currentLang = getInitialLanguage();
+
+/* UI Elements */
+const triggerContainer = document.getElementById('langTriggerContainer');
+const triggerBtn = document.getElementById('langTriggerBtn');
+const modal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const currentFlagImg = document.getElementById('currentFlag');
+const currentLangSpan = document.getElementById('currentLangName');
+const toast = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+let toastTimeout;
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    const filteredLangs = languages.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden'); noResult.classList.remove('hidden'); noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden'); noResult.classList.add('hidden'); noResult.classList.remove('flex');
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLang;
+            const btn = document.createElement('div');
+            btn.className = `flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden ${isSelected ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500"}`;
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+            btn.addEventListener('click', () => selectLanguage(lang));
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function selectLanguage(lang) {
+    currentLang = lang.code;
+    
+    // 3. 상태 유지 및 공유 기능 (URL & LocalStorage 업데이트)
+    localStorage.setItem('kingsmath_lang', currentLang);
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('lang', currentLang);
+    window.history.pushState(null, '', newUrl);
+
+    applyLanguage();
+    
+    // 모달 닫기
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // 토스트 띄우기
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+    document.getElementById('ui-toast').textContent = txt.ui_toast;
+    toastLangName.textContent = lang.name;
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+}
+
+function openModal() { modal.classList.add('active'); document.body.style.overflow = 'hidden'; renderLanguages(); setTimeout(() => searchInput.focus(), 100); }
+function closeModal() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+function updateSelectOptions() {
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+    
+    const diffSelect = document.getElementById('difficulty');
+    diffSelect.innerHTML = `<option value="easy">${txt.diff_easy}</option><option value="normal" selected>${txt.diff_normal}</option><option value="hard">${txt.diff_hard}</option>`;
+
+    const modeSelect = document.getElementById('gameMode');
+    modeSelect.innerHTML = `<option value="challenge">${txt.mode_chall}</option><option value="survival">${txt.mode_surv}</option>`;
+
+    const timeSelect = document.getElementById('timeLimit');
+    timeSelect.innerHTML = `<option value="0">${txt.time_unlimited}</option><option value="30" selected>${txt.time_30}</option><option value="60">${txt.time_60}</option>`;
+
+    const playerSelect = document.getElementById('playerCount');
+    playerSelect.innerHTML = '';
+    for(let i=1; i<=6; i++) {
+        const opt = document.createElement('option');
+        opt.value = i; opt.innerText = i === 1 ? txt.p_1 : `${i}${txt.p_n}`;
+        playerSelect.appendChild(opt);
+    }
+    playerSelect.value = '6';
+}
+
+function updateSEO(txt) {
+    document.title = txt.pageTitle;
+    document.getElementById('pageTitle').innerText = txt.pageTitle;
+    document.getElementById('pageDesc').setAttribute("content", txt.desc);
+    document.getElementById('pageKeywords').setAttribute("content", txt.keywords);
+}
+
+function applyLanguage() {
+    const langObj = languages.find(l => l.code === currentLang) || languages[1];
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+    
+    document.body.className = `lang-${currentLang}`;
+    currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+    currentLangSpan.textContent = langObj.name;
+    
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.getAttribute('data-lang-key');
+        if (txt[key]) el.innerText = txt[key];
+    });
+    
+    document.getElementById('ui-title').innerText = txt.ui_title;
+    document.getElementById('ui-desc').innerText = txt.ui_desc;
+    document.getElementById('searchInput').placeholder = txt.ui_search;
+    document.getElementById('ui-empty').innerText = txt.ui_empty;
+
+    updateSelectOptions();
+    updateSEO(txt);
+}
+
+/* =========================================
+   Game Logic & State
+   ========================================= */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+
+function playSound(type) {
+    if(!audioCtx) return;
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); const t = audioCtx.currentTime;
+    if (type === 'start') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.5);
+    } else if (type === 'count') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(600, t);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.1);
+    } else if (type === 'click') {
+        osc.type = 'square'; osc.frequency.setValueAtTime(1200, t);
+        gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.05);
+    } else if (type === 'correct') {
+        const osc2 = audioCtx.createOscillator(); const gain2 = audioCtx.createGain();
+        osc.frequency.setValueAtTime(523.25, t); osc2.frequency.setValueAtTime(659.25, t + 0.1);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.4);
+        gain2.gain.setValueAtTime(0, t); gain2.gain.linearRampToValueAtTime(0.3, t + 0.1); gain2.gain.linearRampToValueAtTime(0, t + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc2.connect(gain2); gain2.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.4); osc2.start(t); osc2.stop(t + 0.5);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.linearRampToValueAtTime(100, t + 0.3);
+        gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.3);
+    } else if (type === 'end') {
+        const freqs = [523.25, 659.25, 783.99, 1046.50];
+        freqs.forEach((f, i) => {
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = 'triangle'; o.frequency.value = f;
+            g.gain.setValueAtTime(0.2, t + i*0.1); g.gain.linearRampToValueAtTime(0, t + i*0.1 + 0.5);
+            o.connect(g); g.connect(audioCtx.destination); o.start(t + i*0.1); o.stop(t + i*0.1 + 0.5);
+        });
+    }
+}
+
+const state = {
+    players: [], mode: 'challenge', difficulty: 'normal', timeLimit: 30,
+    currentQ: 0, maxQ: 10, timer: 30, timerInterval: null,
+    phase: 'setup', problem: null
+};
+
+const TEAM_DATA = [
+    { id: 'dog', icon: '🐶', color: 'bg-dog' },
+    { id: 'cat', icon: '🐱', color: 'bg-cat' },
+    { id: 'rabbit', icon: '🐰', color: 'bg-rabbit' },
+    { id: 'hamster', icon: '🐹', color: 'bg-hamster' },
+    { id: 'panda', icon: '🐼', color: 'bg-panda' },
+    { id: 'monkey', icon: '🐵', color: 'bg-monkey' }
+];
+
+function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function generateMixedCalc(diff) {
+    let minL = 3, maxL = 4;
+    if(diff === 'normal') { minL = 5; maxL = 6; }
+    else if(diff === 'hard') { minL = 7; maxL = 10; }
+
+    let targetLeaves = getRandomInt(minL, maxL);
+    let targetAns = getRandomInt(10, 50);
+    let tree = { type: 'val', val: targetAns };
+    let currentLeaves = 1;
+
+    while(currentLeaves < targetLeaves) {
+        let valNodes = [];
+        function traverse(n, parent, side) {
+            if(n.type === 'val') valNodes.push({node: n, parent: parent, side: side});
+            else { traverse(n.left, n, 'left'); traverse(n.right, n, 'right'); }
+        }
+        traverse(tree, null, null);
+
+        let t = valNodes[Math.floor(Math.random() * valNodes.length)];
+        let v = t.node.val;
+        let op = ['+', '-', '*', '/'][Math.floor(Math.random() * 4)];
+
+        if (v <= 2 && op === '*') op = '+';
+        if (v <= 1 && op === '/') op = '+';
+
+        let l, r;
+        if (op === '+') { l = getRandomInt(1, Math.max(1, v - 1)); r = v - l; }
+        else if (op === '-') { r = getRandomInt(2, 20); l = v + r; }
+        else if (op === '*') {
+            let facts = [];
+            for (let i = 2; i <= Math.floor(Math.sqrt(v)); i++) {
+                if (v % i === 0) facts.push(i);
+            }
+            if (facts.length === 0) {
+                op = ['+', '-'][Math.floor(Math.random()*2)];
+                if(op==='+'){ l=getRandomInt(1, Math.max(1,v-1)); r=v-l; }
+                else { r=getRandomInt(2,15); l=v+r; }
+            } else {
+                l = facts[Math.floor(Math.random() * facts.length)];
+                r = v / l;
+                if (Math.random()>0.5) [l,r]=[r,l];
+            }
+        } else if (op === '/') {
+            r = getRandomInt(2, 9);
+            l = v * r;
+            if(l > 200) { op = '-'; r = getRandomInt(2, 20); l = v + r; }
+        }
+
+        let newNode = { type: 'op', op: op, left: {type: 'val', val: l}, right: {type: 'val', val: r} };
+        if (t.parent === null) tree = newNode;
+        else t.parent[t.side] = newNode;
+        currentLeaves++;
+    }
+
+    function formatNode(node, isRoot, diffMode) {
+        if (node.type === 'val') return { str: node.val.toString(), depth: 0 };
+        let left = formatNode(node.left, false, diffMode);
+        let right = formatNode(node.right, false, diffMode);
+        let maxDepth = Math.max(left.depth, right.depth);
+        let myDepth = isRoot ? 0 : maxDepth + 1;
+
+        let opStr = node.op === '*' ? '×' : node.op === '/' ? '÷' : node.op;
+        let innerStr = `${left.str} ${opStr} ${right.str}`;
+
+        if (isRoot) return { str: innerStr, depth: myDepth };
+        let bL = '( ', bR = ' )';
+        if (diffMode === 'normal') { if (myDepth >= 2) { bL = '{ '; bR = ' }'; } } 
+        else if (diffMode === 'hard') { if (myDepth === 2) { bL = '{ '; bR = ' }'; } if (myDepth >= 3) { bL = '[ '; bR = ' ]'; } }
+        return { str: `${bL}${innerStr}${bR}`, depth: myDepth };
+    }
+
+    let result = formatNode(tree, true, diff);
+    return { q: result.str + ' = ?', a: targetAns.toString() };
+}
+
+function initGame() {
+    initAudio();
+    const pCount = parseInt(document.getElementById('playerCount').value);
+    state.difficulty = document.getElementById('difficulty').value;
+    state.mode = document.getElementById('gameMode').value;
+    state.timeLimit = parseInt(document.getElementById('timeLimit').value);
+    
+    state.currentQ = 0; state.maxQ = 10;
+    state.players = [];
+
+    const arena = document.getElementById('arena');
+    arena.innerHTML = '';
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+
+    for(let i=0; i<pCount; i++) {
+        const teamName = txt[`team_${TEAM_DATA[i].id}`];
+        state.players.push({ ...TEAM_DATA[i], name: teamName, score: 0, survived: 0, alive: true, answered: false, selected: null, answerTime: 0, currentInput: '' });
+        
+        const col = document.createElement('div');
+        col.className = `player-col ${state.players[i].color}`;
+        col.id = `p-${i}`;
+        
+        col.innerHTML = `
+            <div class="p-header">
+                <span class="p-emoji">${state.players[i].icon}</span>
+                <span class="p-name">${teamName}</span>
+                <div class="p-info" id="p-info-${i}">${state.mode==='challenge' ? '0' : '0'}${state.mode==='challenge' ? txt.score_pt : ''}</div>
+            </div>
+            <div class="mini-question" id="p-q-${i}">...</div>
+            <div class="p-answer-display" id="p-ans-${i}"></div>
+            <div class="keypad" id="p-keypad-${i}">
+                <button class="kp-btn" data-val="1">1</button><button class="kp-btn" data-val="2">2</button><button class="kp-btn" data-val="3">3</button>
+                <button class="kp-btn" data-val="4">4</button><button class="kp-btn" data-val="5">5</button><button class="kp-btn" data-val="6">6</button>
+                <button class="kp-btn" data-val="7">7</button><button class="kp-btn" data-val="8">8</button><button class="kp-btn" data-val="9">9</button>
+                <button class="kp-btn kp-del" data-val="del">${txt.btn_del}</button><button class="kp-btn" data-val="0">0</button><button class="kp-btn kp-enter" data-val="enter">${txt.btn_enter}</button>
+            </div>
+            <div class="feedback-overlay" id="p-fb-${i}"></div>
+            <div class="final-status" id="p-final-${i}"></div>
+        `;
+        arena.appendChild(col);
+        bindKeypad(i);
+    }
+
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('resultPopup').style.display = 'none';
+    
+    // 게임 시작 시 언어 선택 모달 버튼 숨김 처리 (몰입 유지)
+    document.getElementById('langTriggerContainer').style.display = 'none';
+
+    playSound('start');
+    nextTurn();
+}
+
+function bindKeypad(pIdx) {
+    const keypad = document.getElementById(`p-keypad-${pIdx}`);
+    const display = document.getElementById(`p-ans-${pIdx}`);
+    
+    keypad.addEventListener('pointerdown', (e) => {
+        const p = state.players[pIdx];
+        if(!p.alive || p.answered || state.phase !== 'playing') return;
+        
+        const btn = e.target.closest('.kp-btn');
+        if(!btn) return;
+        e.preventDefault();
+        playSound('click');
+
+        const val = btn.getAttribute('data-val');
+        if(val === 'del') { p.currentInput = p.currentInput.slice(0, -1); } 
+        else if(val === 'enter') { if(p.currentInput.length > 0) submitAnswer(pIdx, p.currentInput); } 
+        else { if(p.currentInput.length < 5) p.currentInput += val; }
+        display.innerText = p.currentInput;
+    });
+}
+
+function submitAnswer(pIdx, val) {
+    const p = state.players[pIdx];
+    p.answered = true; p.selected = val; p.answerTime = Date.now();
+
+    document.getElementById(`p-keypad-${pIdx}`).style.opacity = '0.5';
+
+    const fb = document.getElementById(`p-fb-${pIdx}`);
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+    fb.innerHTML = `<div style="font-size:3rem; margin-bottom:10px;">🔒</div><div class="submitted-text">${txt.submitted}</div>`;
+    fb.classList.add('secret');
+
+    if(state.players.filter(pl => pl.alive).every(pl => pl.answered)) finishRound();
+}
+
+async function nextTurn() {
+    const aliveCount = state.players.filter(p=>p.alive).length;
+    if (state.mode === 'survival' && aliveCount <= 1 && state.players.length > 1) { endGame(); return; }
+    if (state.mode === 'survival' && aliveCount === 0) { endGame(); return; }
+    if (state.currentQ >= 10) { endGame(); return; }
+
+    state.currentQ++; state.phase = 'counting';
+    state.players.forEach((p, idx) => {
+        if(p.alive) {
+            p.answered = false; p.selected = null; p.answerTime = 0; p.currentInput = '';
+            document.getElementById(`p-ans-${idx}`).innerText = '';
+            document.getElementById(`p-keypad-${idx}`).style.opacity = '1';
+            const fb = document.getElementById(`p-fb-${idx}`);
+            fb.className = 'feedback-overlay'; fb.innerHTML = '';
+            document.getElementById(`p-q-${idx}`).innerText = '';
+        }
+    });
+
+    state.problem = generateMixedCalc(state.difficulty);
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+    
+    document.getElementById('qNumber').innerText = `${txt.q_num} ${state.currentQ} / 10`;
+    document.getElementById('bigQuestion').innerText = txt.ready;
+    document.getElementById('bigQuestion').style.fontSize = 'clamp(2.5rem, 6vw, 5rem)';
+    
+    await runCountdown();
+
+    state.phase = 'playing';
+    const qStr = state.problem.q; const qLen = qStr.length;
+    const bigQ = document.getElementById('bigQuestion');
+    bigQ.innerHTML = qStr;
+    
+    if (qLen > 30) bigQ.style.fontSize = 'clamp(1.5rem, 3vw, 2.5rem)';
+    else if (qLen > 20) bigQ.style.fontSize = 'clamp(2rem, 4vw, 3.5rem)';
+    else bigQ.style.fontSize = 'clamp(2.5rem, 6vw, 5rem)';
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const mq = document.getElementById(`p-q-${idx}`);
+        mq.innerHTML = qStr;
+        if(qLen > 30) mq.style.fontSize = '0.8rem';
+        else if(qLen > 20) mq.style.fontSize = '0.9rem';
+        else mq.style.fontSize = '1.1rem';
+    });
+    
+    startTimer();
+}
+
+async function runCountdown() {
+    const layer = document.getElementById('countdownLayer');
+    const txt = document.getElementById('countdownText');
+    layer.style.display = 'flex';
+    for(let i=3; i>0; i--) {
+        txt.innerText = i; txt.classList.remove('count-animate');
+        void txt.offsetWidth; txt.classList.add('count-animate');
+        playSound('count'); await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none';
+}
+
+function startTimer() {
+    state.timer = state.timeLimit;
+    const tBox = document.getElementById('mainTimer');
+    tBox.classList.remove('timer-urgent');
+    
+    if(state.timerInterval) clearInterval(state.timerInterval);
+    if (state.timeLimit === 0) { tBox.innerText = '∞'; return; }
+
+    tBox.innerText = state.timer;
+    state.timerInterval = setInterval(() => {
+        state.timer--; tBox.innerText = state.timer;
+        if(state.timer <= 5 && state.timer > 0) { tBox.classList.add('timer-urgent'); playSound('count'); }
+        if(state.timer <= 0) finishRound();
+    }, 1000);
+}
+
+function finishRound() {
+    clearInterval(state.timerInterval);
+    state.phase = 'result';
+    const correctAns = state.problem.a; let someoneWrong = false;
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+
+    let correctPlayers = state.players.filter(p => p.alive && p.selected === correctAns);
+    correctPlayers.sort((a, b) => a.answerTime - b.answerTime);
+    correctPlayers.forEach((p, index) => {
+        const bonusList = [50, 30, 10];
+        p.currentRoundScore = 100 + (bonusList[index] || 0);
+    });
+
+    document.getElementById('bigQuestion').innerHTML = state.problem.q.replace('?', `<span style="color:#69db7c">${correctAns}</span>`);
+
+    state.players.forEach((p, idx) => {
+        if(!p.alive) return;
+        const fb = document.getElementById(`p-fb-${idx}`);
+        const info = document.getElementById(`p-info-${idx}`);
+        const display = document.getElementById(`p-ans-${idx}`);
+
+        fb.classList.remove('secret'); fb.innerHTML = '';
+        
+        if(p.selected === correctAns) {
+            display.style.color = '#40c057'; fb.innerHTML = '<span style="color:#69db7c">⭕</span>'; 
+            if(state.mode === 'challenge') { 
+                p.score += p.currentRoundScore; info.innerText = `${p.score}${txt.score_pt}`; 
+                fb.innerHTML += `<div style="font-size:1.5rem; color:#ffd43b; margin-top:10px; font-weight:bold; font-family:inherit;">+${p.currentRoundScore}</div>`;
+            } else { info.innerText = `${p.survived + 1} ${txt.survived_count}`; }
+            fb.classList.add('show-result'); p.survived++;
+        } else {
+            someoneWrong = true; display.style.color = '#fa5252';
+            fb.innerHTML = '<span style="color:#ff6b6b">❌</span>'; fb.classList.add('show-result');
+            if(state.mode === 'survival') {
+                p.alive = false;
+                setTimeout(() => { document.getElementById(`p-${idx}`).classList.add('eliminated'); info.innerText = `${txt.eliminated} (${p.survived})`; }, 1500);
+            }
+        }
+    });
+    if(!someoneWrong) playSound('correct'); else playSound('wrong');
+    setTimeout(() => nextTurn(), 3000);
+}
+
+function endGame() {
+    clearInterval(state.timerInterval); state.phase = 'gameover'; playSound('end');
+    const popup = document.getElementById('resultPopup');
+    const list = document.getElementById('finalResultList');
+    popup.style.display = 'flex'; list.innerHTML = '';
+    const txt = STRINGS[currentLang] || STRINGS[fallbackLang];
+
+    state.players.forEach((p, idx) => {
+        const finalDiv = document.getElementById(`p-final-${idx}`); finalDiv.style.display = 'block';
+        if (state.mode === 'challenge') { finalDiv.innerHTML = `<h3>${txt.final_score}</h3><p>${p.score}${txt.score_pt}</p>`; }
+        else { finalDiv.innerHTML = p.alive ? `<h3>${txt.record}</h3><p>${txt.winner}</p>` : `<h3>${txt.record}</h3><p>${p.survived}</p>`; if(p.alive) finalDiv.style.border = "4px solid #ffd43b"; }
+    });
+
+    let ranked = [...state.players];
+    if(state.mode === 'challenge') ranked.sort((a,b) => b.score - a.score);
+    else ranked.sort((a,b) => { if (a.alive && !b.alive) return -1; if (!a.alive && b.alive) return 1; return b.survived - a.survived; });
+
+    let currentRank = 1;
+    ranked.forEach((p, i) => {
+        if (i > 0) {
+            const prev = ranked[i-1]; let isTie = false;
+            if (state.mode === 'challenge') { if (p.score === prev.score) isTie = true; } 
+            else { if (p.alive && prev.alive) isTie = true; else if (!p.alive && !prev.alive && p.survived === prev.survived) isTie = true; }
+            if (!isTie) currentRank = i + 1;
+        } else { currentRank = 1; }
+
+        const li = document.createElement('li');
+        li.className = `result-item ${currentRank===1 ? 'rank-1' : ''}`;
+        let status = state.mode === 'challenge' ? `${p.score}${txt.score_pt}` : (p.alive ? txt.winner : `${p.survived}`);
+        li.innerHTML = `<span>${currentRank}${txt.rank} ${p.icon} ${p.name}</span><span>${status}</span>`;
+        list.appendChild(li);
+    });
+}
+
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e => console.log(e));
+    else document.exitFullscreen();
+});
+
+document.getElementById('startBtn').addEventListener('click', initGame);
+document.getElementById('restartBtn').addEventListener('click', () => { location.reload(); });
+
+// 4. 홈 이모지 전체 화면 지체 없이 첫 화면으로 가는 소스
+document.getElementById('btn-home').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        clearInterval(state.timerInterval);
+        state.phase = 'setup';
+        
+        // 게임 오버 혹은 플레이 요소 숨기기 및 세팅화면 부활
+        document.getElementById('resultPopup').style.display = 'none';
+        document.getElementById('countdownLayer').style.display = 'none';
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('langTriggerContainer').style.display = 'block';
+        document.getElementById('arena').innerHTML = ''; // 플레이어 보드 리셋
+        if(window.playSound) window.playSound('click');
+    } else {
+        location.reload();
+    }
+});
+
+// Block gestures
+document.addEventListener('dblclick', function(event) { event.preventDefault(); }, { passive: false });
+document.addEventListener('contextmenu', event => event.preventDefault());
+document.addEventListener('dragstart', event => event.preventDefault());
+
+window.addEventListener('DOMContentLoaded', () => {
+    renderLanguages();
+    applyLanguage();
+});
+</script>
+</body>
+</html>

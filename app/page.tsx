@@ -519,10 +519,10 @@ function GemsLab({ data, fromStep1, onChange }: { data: Record<string, string>; 
 }
 
 const gameCatalog = [
-  { id: "spacing", title: "띄어쓰기 킹", tag: "국어 · 맞춤법", task: "문장을 보고 띄어쓰기 고치기", src: "/games/spacing.html" },
-  { id: "alphabet", title: "알파벳 매칭 킹", tag: "영어 · 기초", task: "대문자와 소문자 연결하기", src: "/games/alphabet.html" },
-  { id: "kind-words", title: "예쁜 말 킹", tag: "인성 · 언어", task: "상황에 맞는 따뜻한 말 고르기", src: "/games/kind-words.html" },
-  { id: "magnet", title: "자석 디펜스 킹", tag: "과학 · 자석", task: "자석의 성질로 목표 지키기", src: "/games/magnet.html" },
+  { id: "tenpang", rank: 1, title: "10 만들기 텐팡 킹", tag: "수학 · 연산", task: "10을 만드는 빠른 수 조합", src: "/games/kingsmath/10 만들기 텐팡 킹 (수학 연산).html" },
+  { id: "omok", rank: 2, title: "오목 동물 배틀 킹", tag: "전략 · 보드", task: "규칙을 세워 완성하는 오목", src: "/games/kingsmath/오목 동물 배틀 킹 (전략 보드게임).html" },
+  { id: "connect-four", rank: 3, title: "사목 동물 배틀 킹", tag: "전략 · 보드", task: "네 칸을 먼저 잇는 전략 게임", src: "/games/kingsmath/사목킹 동물 배틀 (Connect 4).html" },
+  { id: "divisor-mole", rank: 4, title: "약수·배수 두더지 킹", tag: "수학 · 연산", task: "약수와 배수를 빠르게 구분하기", src: "/games/kingsmath/약수 배수 두더지 킹 (수학 연산).html" },
 ] as const;
 
 function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
@@ -556,10 +556,10 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
           <section className="game-browser">
             <div className="guide-head">
               <div>
-                <h2>추천 게임 4개</h2>
-                <p>하나를 골라 3분만 해 보세요.</p>
+                <h2>교실 인기 TOP 10 중 추천 4개</h2>
+                <p>상위 4개 중 하나를 골라 3분만 해 보세요.</p>
               </div>
-              <span className="source-note">270725_webgame 원본</span>
+              <a className="secondary small-button" href="/games/kingsmath/kingsmath-library.html" target="_blank" rel="noreferrer">킹수학 전체 게임 보기</a>
             </div>
             <div className="game-cards">
               {gameCatalog.map((game) => (
@@ -569,7 +569,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                   className={selected === game.id ? "selected" : ""}
                   onClick={() => chooseGame(game.id, game.title)}
                 >
-                  <span>{game.tag}</span>
+                  <span>TOP {game.rank} · {game.tag}</span>
                   <strong>{game.title}</strong>
                   <small>{game.task}</small>
                 </button>

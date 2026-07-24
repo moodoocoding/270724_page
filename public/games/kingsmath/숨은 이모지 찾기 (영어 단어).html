@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta name="description" content="Hidden Emoji King! Interactive Whiteboard Game for Classrooms. Free & No Install." id="meta-desc">
+<meta name="keywords" content="interactive whiteboard, emoji game, KingsMath, brain game, ESL game, English vocabulary" id="meta-keywords">
+<link rel="canonical" href="https://킹수학.com">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hidden Emoji King | KingsMath" id="og-title">
+<meta property="og:description" content="Find the hidden emojis! Interactive Whiteboard Game." id="og-desc">
+<meta property="og:image" content="http://11ukul.com/wp-content/uploads/2026/01/당구킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+<meta property="og:url" content="https://킹수학.com">
+<meta property="og:site_name" content="KingsMath" id="og-site-name">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hidden Emoji King | KingsMath" id="tw-title">
+<meta name="twitter:description" content="Find the hidden emojis! Interactive Whiteboard Game." id="tw-desc">
+<meta name="twitter:image" content="http://11ukul.com/wp-content/uploads/2026/01/당구킹_킹수학-전자칠판-전용-수학-배틀-게임.png">
+
+<meta name="theme-color" content="#121212">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title id="page-title">Hidden Emoji King</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+    /* 파란화면(선택), 드래그, 기본 터치 액션 강제 차단 */
+    * {
+        -webkit-touch-callout: none !important;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-user-drag: none !important;
+    }
+
+    :root {
+        --app-height: 100vh;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #121212;
+        font-family: 'Noto Sans', sans-serif;
+        width: 100%;
+        height: 100vh; 
+        height: 100dvh; 
+        height: var(--app-height); 
+        
+        touch-action: none; 
+        -webkit-tap-highlight-color: transparent; 
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        color: #fff;
+    }
+
+    /* --- Top Information Area --- */
+    #top-area {
+        flex: 0 0 auto;
+        min-height: 90px;
+        padding-top: 5px;
+        background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center; 
+        align-items: center;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    #scoreboard-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        width: 100%;
+        padding: 10px 30px; 
+        flex: 1;
+        gap: 20px;
+    }
+
+    .team-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 10px 20px;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        position: relative; 
+        overflow: hidden;
+    }
+    .p1-panel { border: 3px solid #ff4d4d; }
+    .p2-panel { border: 3px solid #4d88ff; }
+
+    .player-label { font-size: clamp(14px, 3vw, 36px); font-weight: 900; letter-spacing: 1px; margin-bottom: 2px; }
+    .p1-label { color: #ff4d4d; }
+    .p2-label { color: #4d88ff; }
+    .score { font-size: clamp(35px, 6vw, 80px); font-weight: 900; line-height: 1; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+
+    /* Win Overlay */
+    .win-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-weight: 900;
+        z-index: 20;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .win-overlay.win { color: #ffcc00; font-size: clamp(40px, 6vw, 80px); text-shadow: 0 0 20px rgba(255,204,0,0.8); }
+    .win-overlay.lose { color: #777; font-size: clamp(24px, 3vw, 40px); text-shadow: none; }
+    .win-overlay.draw { color: #fff; font-size: clamp(30px, 5vw, 60px); }
+
+    @keyframes popIn {
+        0% { transform: scale(0.5); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Timer Text Area */
+    .timer-container {
+        width: 20%;
+        max-width: 250px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .timer-label { 
+        color: #ffcc00; 
+        font-size: clamp(24px, 4vw, 50px); 
+        font-weight: 900; 
+        letter-spacing: 2px; 
+        text-shadow: 0 4px 10px rgba(0,0,0,0.8);
+    }
+
+    /* Progress Timer Bar */
+    #top-timer-bar {
+        width: 100%;
+        height: 12px; 
+        background: #333;
+        flex-shrink: 0;
+    }
+    #top-timer-fill {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, #ff3b30, #ffcc00, #4cd964);
+        transition: width 1s linear;
+    }
+
+    /* --- Bottom Game Area --- */
+    #game-area-wrapper {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end; 
+        padding: 8px 40px 12px 40px; 
+        background-color: #0d0d0d;
+        position: relative;
+        min-height: 0; 
+    }
+
+    #game-area {
+        width: 100%;
+        max-width: 1800px; 
+        height: 100%; 
+        display: flex;
+        gap: 20px; 
+        justify-content: center;
+        min-height: 0; 
+    }
+
+    .player-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end; 
+        gap: 8px;
+        min-width: 0;
+        height: 100%;
+    }
+
+    /* 상단 타겟 단어 영역 - 무조건 2줄 Grid로 변경 */
+    .targets-container {
+        display: grid;
+        grid-template-rows: repeat(2, 1fr);
+        gap: 4px;
+        width: 100%;
+        flex: 0 0 auto; 
+    }
+
+    .target-chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #555;
+        border-radius: 8px;
+        padding: 4px; 
+        font-size: clamp(12px, 2vw, 22px);
+        font-weight: 700;
+        word-break: keep-all; /* 줄바꿈은 허용하되 단어가 쪼개지지 않도록 */
+        text-align: center;
+        line-height: 1.1;
+        transition: all 0.3s ease;
+        min-width: 0;
+    }
+
+    .target-chip.found {
+        background: rgba(76, 217, 100, 0.2);
+        border-color: #4cd964;
+        color: #4cd964;
+        transform: scale(1.00);
+    }
+
+    .emoji-icon { font-size: clamp(14px, 2vw, 22px); flex-shrink: 0; }
+    
+    .target-chip span:last-child {
+        word-break: keep-all; /* 잘림 방지 */
+    }
+
+    /* 이모지 보드 - Grid 속성은 JS에서 동적 주입 */
+    .grid-container {
+        background: #1a1a1a;
+        border-radius: 12px;
+        border: 4px solid #333;
+        padding: 6px;
+        display: grid;
+        gap: 4px;
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        transition: filter 0.3s, opacity 0.3s;
+        flex: 1 1 0; 
+        min-height: 0; 
+    }
+
+    .p1-board { border-color: rgba(255, 77, 77, 0.4); }
+    .p2-board { border-color: rgba(77, 136, 255, 0.4); }
+
+    .emoji-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: clamp(14px, 4vmin, 30px); /* vmin을 사용해 박스 크기를 벗어나지 않게 제어 */
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.1s, filter 0.8s, opacity 0.8s;
+        width: 100%;
+        height: 100%;
+        position: relative; 
+        box-sizing: border-box;
+        padding: 1px;
+    }
+
+    .emoji-btn:active {
+        transform: scale(0.85);
+        background: rgba(255,255,255,0.15);
+    }
+
+    .emoji-btn.hidden-emoji {
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .emoji-btn.hint-fade {
+        filter: grayscale(100%);
+        opacity: 0.15;
+        pointer-events: none;
+        transform: scale(0.9);
+    }
+
+    /* 게임 종료 시 못 맞춘 정답 O 표시 */
+    .missed-target {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: scale(1.1) !important;
+        pointer-events: none;
+    }
+    .missed-target::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85%; height: 85%;
+        border-radius: 50%;
+        border: 6px solid;
+        box-sizing: border-box;
+        z-index: 10;
+        box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    }
+    .missed-p1::after { border-color: #ff4d4d; }
+    .missed-p2::after { border-color: #4d88ff; }
+
+    .penalty-mode {
+        filter: grayscale(100%) opacity(0.3);
+        pointer-events: none;
+        border-color: #ff3333 !important;
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .divider {
+        width: 6px; 
+        background: rgba(255, 215, 0, 0.5);
+        border-radius: 3px;
+        margin-top: auto;
+        height: 80%; 
+    }
+
+    /* Floating Buttons */
+    .float-btn {
+        position: fixed; bottom: 20px; width: 40px; height: 40px;
+        background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%; cursor: pointer; z-index: 1000;
+        display: flex; justify-content: center; align-items: center;
+        color: white; font-size: 20px; transition: all 0.2s;
+        backdrop-filter: blur(4px); pointer-events: auto;
+    }
+    .float-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
+    .float-btn:active { transform: scale(0.95); }
+    #fullscreen-btn { right: 20px; }
+    #home-btn { left: 20px; }
+
+    /* Overlay (초기 시작화면) */
+    #overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 100; backdrop-filter: blur(8px);
+    }
+    
+    .modal-content {
+        background: rgba(30, 30, 30, 0.95); padding: 40px 60px;
+        border-radius: 30px; border: 2px solid rgba(197, 160, 89, 0.5);
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; max-width: 900px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+        pointer-events: auto;
+    }
+
+ .modal-content h1 { 
+        font-size: clamp(28px, 6vw, 46px) !important; 
+        margin: 0 0 15px 0; 
+        font-weight: 900 !important;
+        color: #ffcc00;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    
+    .result-msg { font-size: clamp(20px, 3vw, 32px); font-weight: bold; margin: 15px 0; color: #fff; }
+    .sub-msg { font-size: clamp(16px, 2vw, 22px); color: #ccc; line-height: 1.6; font-weight: bold; margin-bottom: 25px; }
+    .sub-msg b { color: #ffcc00; }
+
+    /* 레벨 버튼 디자인 */
+    .level-btns {
+        display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 10px;
+    }
+    .level-btn {
+        padding: 8px 18px; font-size: clamp(18px, 2.5vw, 26px); font-weight: 900;
+        border: 4px solid #fff; border-radius: 60px; color: #fff; cursor: pointer;
+        transition: transform 0.1s, filter 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .level-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+    .level-btn:active { transform: scale(0.95); }
+    
+    .btn-l1 { background: linear-gradient(to bottom, #4cd964, #28a745); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l2 { background: linear-gradient(to bottom, #5ac8fa, #007aff); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l3 { background: linear-gradient(to bottom, #ff9500, #ff2d55); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+    .btn-l4 { background: linear-gradient(to bottom, #ff3b30, #5856d6); text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+
+    /* 다시하기 버튼 등 공통버튼 */
+    .action-btn {
+        padding: 15px 50px; font-size: clamp(20px, 3vw, 28px); font-weight: 900;
+        background: linear-gradient(to bottom, #4cd964, #28a745);
+        border: 4px solid #fff; border-radius: 60px; color: #fff; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
+        transition: transform 0.1s, box-shadow 0.2s;
+    }
+    .action-btn:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(40, 167, 69, 0.7); }
+    .action-btn:active { transform: scale(0.95); }
+
+    /* 중앙 하단 다시하기 버튼 영역 */
+    #restart-container {
+        position: fixed;
+        bottom: 40px;
+        left: 0;
+        width: 100%;
+        display: none; 
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        pointer-events: none; 
+    }
+    #restart-container .action-btn { pointer-events: auto; animation: popIn 0.5s ease-out forwards; }
+
+    /* Countdown Overlay */
+    #countdown-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: black; color: white; display: none; flex-direction: column; 
+        justify-content: center; align-items: center; z-index: 9999; 
+        font-size: clamp(80px, 20vw, 250px); font-weight: 900; 
+        text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+    .count-anim {
+        animation: popCount 1s ease-in-out forwards;
+    }
+    @keyframes popCount {
+        0% { transform: scale(0.5); opacity: 0; }
+        20% { transform: scale(1.2); opacity: 1; }
+        80% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+</style>
+</head>
+<body>
+
+    <div id="top-area">
+        <div id="scoreboard-row">
+            <div class="team-panel p1-panel">
+                <span class="player-label p1-label">🔴 TEAM RED</span>
+                <span class="score" id="score-p1">0</span>
+                <div class="win-overlay" id="win-p1"></div>
+            </div>
+            
+            <div class="timer-container">
+                <div class="timer-label">⏱️ TIME</div>
+            </div>
+
+            <div class="team-panel p2-panel">
+                <span class="player-label p2-label">🔵 TEAM BLUE</span>
+                <span class="score" id="score-p2">0</span>
+                <div class="win-overlay" id="win-p2"></div>
+            </div>
+        </div>
+        
+        <div id="top-timer-bar"><div id="top-timer-fill"></div></div>
+    </div>
+
+    <div id="game-area-wrapper">
+        <div id="game-area">
+            
+            <div class="player-section" id="p1-section">
+                <div class="targets-container" id="p1-targets"></div>
+                <div id="p1-grid" class="grid-container p1-board"></div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="player-section" id="p2-section">
+                <div class="targets-container" id="p2-targets"></div>
+                <div id="p2-grid" class="grid-container p2-board"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="home-btn" class="float-btn" onpointerdown="location.reload()" title="Home">🏠</div>
+    <div id="fullscreen-btn" class="float-btn" onpointerdown="toggleFullscreen()" title="Fullscreen">⛶</div>
+
+    <div id="restart-container">
+        <button class="action-btn" onpointerdown="startCountdown(currentLevelNum)">🔄 PLAY AGAIN</button>
+    </div>
+
+    <div id="overlay">
+        <div class="modal-content">
+            <h1>👑 Emoji Hunter King 👑</h1>
+            <div class="result-msg" id="main-msg">
+                <span style="color:#ff4d4d">🔴 TEAM RED</span> vs <span style="color:#4d88ff">🔵 TEAM BLUE</span>
+            </div>
+            <div class="sub-msg" id="txt-instruct">
+                👆 Touch the matching <b>Emoji</b> in your grid!<br>
+                💡 Hint: Wrong emojis fade every 10s<br>
+                🚫 Wrong touch = <b>3s Penalty</b> ⏱️
+            </div>
+            
+            <div class="level-btns">
+                <button class="level-btn btn-l1" onpointerdown="startCountdown(1)">LEVEL 1</button>
+                <button class="level-btn btn-l2" onpointerdown="startCountdown(2)">LEVEL 2</button>
+                <button class="level-btn btn-l3" onpointerdown="startCountdown(3)">LEVEL 3</button>
+                <button class="level-btn btn-l4" onpointerdown="startCountdown(4)">LEVEL 4</button>
+            </div>
+
+<a href="/?cg=kingen" style="display: inline-block; margin-top: 25px; color: #aaaaaa; font-size: clamp(16px, 2vw, 22px); font-weight: bold; text-decoration: underline; text-underline-offset: 4px;" onpointerdown="window.location.href=this.href; return false;">🎮 More</a>
+
+        </div>
+    </div>
+
+    <div id="countdown-overlay">
+        <span id="countdown-text"></span>
+    </div>
+
+<script>
+    const emojiData = [
+      { "category": "fruit", "emoji": "🍎", "word": "apple", "level": 1 },
+      { "category": "fruit", "emoji": "🍌", "word": "banana", "level": 1 },
+      { "category": "animal", "emoji": "🐶", "word": "dog", "level": 1 },
+      { "category": "animal", "emoji": "🐱", "word": "cat", "level": 1 },
+      { "category": "animal", "emoji": "🐻", "word": "bear", "level": 1 },
+      { "category": "animal", "emoji": "🐮", "word": "cow", "level": 1 },
+      { "category": "animal", "emoji": "🐷", "word": "pig", "level": 1 },
+      { "category": "animal", "emoji": "🦁", "word": "lion", "level": 1 },
+      { "category": "body", "emoji": "👀", "word": "eyes", "level": 1 },
+      { "category": "body", "emoji": "👃", "word": "nose", "level": 1 },
+      { "category": "body", "emoji": "👂", "word": "ear", "level": 1 },
+      { "category": "body", "emoji": "🖐️", "word": "hand", "level": 1 },
+      { "category": "body", "emoji": "💪", "word": "arm", "level": 1 },
+      { "category": "body", "emoji": "🦵", "word": "leg", "level": 1 },
+      { "category": "number", "emoji": "0️⃣", "word": "zero", "level": 1 },
+      { "category": "number", "emoji": "1️⃣", "word": "one", "level": 1 },
+      { "category": "number", "emoji": "2️⃣", "word": "two", "level": 1 },
+      { "category": "number", "emoji": "3️⃣", "word": "three", "level": 1 },
+      { "category": "number", "emoji": "4️⃣", "word": "four", "level": 1 },
+      { "category": "number", "emoji": "5️⃣", "word": "five", "level": 1 },
+      { "category": "number", "emoji": "6️⃣", "word": "six", "level": 1 },
+      { "category": "number", "emoji": "7️⃣", "word": "seven", "level": 1 },
+      { "category": "number", "emoji": "8️⃣", "word": "eight", "level": 1 },
+      { "category": "number", "emoji": "9️⃣", "word": "nine", "level": 1 },
+      { "category": "number", "emoji": "🔟", "word": "ten", "level": 1 },
+      { "category": "school", "emoji": "🖊️", "word": "pen", "level": 1 },
+      { "category": "school", "emoji": "📖", "word": "book", "level": 1 },
+      { "category": "vehicle", "emoji": "🚗", "word": "car", "level": 1 },
+      { "category": "vehicle", "emoji": "🚌", "word": "bus", "level": 1 },
+      { "category": "vehicle", "emoji": "🚕", "word": "taxi", "level": 1 },
+      { "category": "nature", "emoji": "☀️", "word": "sun", "level": 1 },
+      { "category": "nature", "emoji": "🌧️", "word": "rain", "level": 1 },
+      { "category": "nature", "emoji": "❄️", "word": "snow", "level": 1 },
+      { "category": "nature", "emoji": "⭐", "word": "star", "level": 1 },
+      { "category": "emotion", "emoji": "😀", "word": "happy", "level": 1 },
+      { "category": "emotion", "emoji": "😢", "word": "sad", "level": 1 },
+      { "category": "food", "emoji": "🍕", "word": "pizza", "level": 1 },
+      { "category": "food", "emoji": "🍳", "word": "egg", "level": 1 },
+      { "category": "clothes", "emoji": "🧢", "word": "hat", "level": 1 },
+      { "category": "shape", "emoji": "🔴", "word": "red", "level": 1 },
+      { "category": "shape", "emoji": "🔵", "word": "blue", "level": 1 },
+      { "category": "shape", "emoji": "🟡", "word": "yellow", "level": 1 },
+      { "category": "shape", "emoji": "🟢", "word": "green", "level": 1 },
+      { "category": "shape", "emoji": "⚫", "word": "black", "level": 1 },
+      { "category": "shape", "emoji": "⚪", "word": "white", "level": 1 },
+      { "category": "shape", "emoji": "❤️", "word": "heart", "level": 1 },
+      { "category": "family", "emoji": "👶", "word": "baby", "level": 1 },
+      { "category": "family", "emoji": "👦", "word": "boy", "level": 1 },
+      { "category": "family", "emoji": "👧", "word": "girl", "level": 1 },
+      { "category": "family", "emoji": "👨", "word": "man", "level": 1 },
+      { "category": "family", "emoji": "👩", "word": "woman", "level": 1 },
+      { "category": "place", "emoji": "🏠", "word": "house", "level": 1 },
+      { "category": "place", "emoji": "🏫", "word": "school", "level": 1 },
+      { "category": "place", "emoji": "🎡", "word": "park", "level": 1 },
+      { "category": "toy", "emoji": "🎮", "word": "game", "level": 1 },
+      
+      { "category": "fruit", "emoji": "🍇", "word": "grape", "level": 2 },
+      { "category": "fruit", "emoji": "🍑", "word": "peach", "level": 2 },
+      { "category": "fruit", "emoji": "🍋", "word": "lemon", "level": 2 },
+      { "category": "fruit", "emoji": "🍊", "word": "orange", "level": 2 },
+      { "category": "fruit", "emoji": "🍈", "word": "melon", "level": 2 },
+      { "category": "animal", "emoji": "🐭", "word": "mouse", "level": 2 },
+      { "category": "animal", "emoji": "🐰", "word": "rabbit", "level": 2 },
+      { "category": "animal", "emoji": "🐼", "word": "panda", "level": 2 },
+      { "category": "animal", "emoji": "🐯", "word": "tiger", "level": 2 },
+      { "category": "animal", "emoji": "🐸", "word": "frog", "level": 2 },
+      { "category": "animal", "emoji": "🐵", "word": "monkey", "level": 2 },
+      { "category": "animal", "emoji": "🐔", "word": "chicken", "level": 2 },
+      { "category": "animal", "emoji": "🦊", "word": "fox", "level": 2 },
+      { "category": "body", "emoji": "👄", "word": "mouth", "level": 2 },
+      { "category": "body", "emoji": "🦶", "word": "foot", "level": 2 },
+      { "category": "job", "emoji": "👮", "word": "police", "level": 2 },
+      { "category": "job", "emoji": "👨‍⚕️", "word": "doctor", "level": 2 },
+      { "category": "job", "emoji": "👩‍🏫", "word": "teacher", "level": 2 },
+      { "category": "job", "emoji": "👨‍🍳", "word": "cook", "level": 2 },
+      { "category": "job", "emoji": "👨‍🌾", "word": "farmer", "level": 2 },
+      { "category": "job", "emoji": "👨‍🎤", "word": "singer", "level": 2 },
+      { "category": "school", "emoji": "✏️", "word": "pencil", "level": 2 },
+      { "category": "vehicle", "emoji": "🚓", "word": "police car", "level": 2 },
+      { "category": "vehicle", "emoji": "🚂", "word": "train", "level": 2 },
+      { "category": "vehicle", "emoji": "🚢", "word": "ship", "level": 2 },
+      { "category": "nature", "emoji": "☁️", "word": "cloud", "level": 2 },
+      { "category": "nature", "emoji": "🌬️", "word": "wind", "level": 2 },
+      { "category": "nature", "emoji": "🌙", "word": "moon", "level": 2 },
+      { "category": "nature", "emoji": "🌲", "word": "tree", "level": 2 },
+      { "category": "nature", "emoji": "🌺", "word": "flower", "level": 2 },
+      { "category": "emotion", "emoji": "😡", "word": "angry", "level": 2 },
+      { "category": "emotion", "emoji": "😴", "word": "sleepy", "level": 2 },
+      { "category": "emotion", "emoji": "🤢", "word": "sick", "level": 2 },
+      { "category": "emotion", "emoji": "😭", "word": "crying", "level": 2 },
+      { "category": "food", "emoji": "🌭", "word": "hot dog", "level": 2 },
+      { "category": "food", "emoji": "🍞", "word": "bread", "level": 2 },
+      { "category": "food", "emoji": "🍦", "word": "ice cream", "level": 2 },
+      { "category": "food", "emoji": "🍰", "word": "cake", "level": 2 },
+      { "category": "food", "emoji": "🍬", "word": "candy", "level": 2 },
+      { "category": "clothes", "emoji": "👕", "word": "t-shirt", "level": 2 },
+      { "category": "clothes", "emoji": "👖", "word": "pants", "level": 2 },
+      { "category": "clothes", "emoji": "👗", "word": "dress", "level": 2 },
+      { "category": "clothes", "emoji": "👟", "word": "shoes", "level": 2 },
+      { "category": "sport", "emoji": "⚽", "word": "soccer", "level": 2 },
+      { "category": "sport", "emoji": "🏃", "word": "running", "level": 2 },
+      { "category": "shape", "emoji": "🟤", "word": "brown", "level": 2 },
+      { "category": "instrument", "emoji": "🎹", "word": "piano", "level": 2 },
+      { "category": "instrument", "emoji": "🥁", "word": "drum", "level": 2 },
+      { "category": "instrument", "emoji": "🔔", "word": "bell", "level": 2 },
+      { "category": "family", "emoji": "🤴", "word": "king", "level": 2 },
+      { "category": "family", "emoji": "👸", "word": "queen", "level": 2 },
+      { "category": "family", "emoji": "🧑‍🤝‍🧑", "word": "friend", "level": 2 },
+      { "category": "place", "emoji": "🏦", "word": "bank", "level": 2 },
+      { "category": "place", "emoji": "🏪", "word": "store", "level": 2 },
+      { "category": "insect", "emoji": "🐝", "word": "bee", "level": 2 },
+      { "category": "insect", "emoji": "🐜", "word": "ant", "level": 2 },
+      { "category": "toy", "emoji": "🪆", "word": "doll", "level": 2 },
+
+      { "category": "fruit", "emoji": "🍉", "word": "watermelon", "level": 3 },
+      { "category": "fruit", "emoji": "🍒", "word": "cherry", "level": 3 },
+      { "category": "fruit", "emoji": "🥝", "word": "kiwi", "level": 3 },
+      { "category": "animal", "emoji": "🐘", "word": "elephant", "level": 3 },
+      { "category": "animal", "emoji": "🐺", "word": "wolf", "level": 3 },
+      { "category": "body", "emoji": "🦷", "word": "tooth", "level": 3 },
+      { "category": "body", "emoji": "🦴", "word": "bone", "level": 3 },
+      { "category": "job", "emoji": "👨‍✈️", "word": "pilot", "level": 3 },
+      { "category": "job", "emoji": "👨‍🎨", "word": "artist", "level": 3 },
+      { "category": "job", "emoji": "👷", "word": "builder", "level": 3 },
+      { "category": "school", "emoji": "🖍️", "word": "crayon", "level": 3 },
+      { "category": "school", "emoji": "🎒", "word": "backpack", "level": 3 },
+      { "category": "school", "emoji": "📏", "word": "ruler", "level": 3 },
+      { "category": "school", "emoji": "📓", "word": "notebook", "level": 3 },
+      { "category": "school", "emoji": "📎", "word": "clip", "level": 3 },
+      { "category": "school", "emoji": "💻", "word": "computer", "level": 3 },
+      { "category": "vehicle", "emoji": "🚒", "word": "fire truck", "level": 3 },
+      { "category": "vehicle", "emoji": "🚲", "word": "bicycle", "level": 3 },
+      { "category": "vehicle", "emoji": "✈️", "word": "airplane", "level": 3 },
+      { "category": "nature", "emoji": "🌈", "word": "rainbow", "level": 3 },
+      { "category": "nature", "emoji": "🌊", "word": "wave", "level": 3 },
+      { "category": "nature", "emoji": "🌍", "word": "earth", "level": 3 },
+      { "category": "nature", "emoji": "🍃", "word": "leaf", "level": 3 },
+      { "category": "emotion", "emoji": "😨", "word": "scared", "level": 3 },
+      { "category": "emotion", "emoji": "😍", "word": "lovely", "level": 3 },
+      { "category": "food", "emoji": "🍔", "word": "hamburger", "level": 3 },
+      { "category": "food", "emoji": "🍟", "word": "fries", "level": 3 },
+      { "category": "food", "emoji": "🧀", "word": "cheese", "level": 3 },
+      { "category": "food", "emoji": "🥗", "word": "salad", "level": 3 },
+      { "category": "food", "emoji": "🍩", "word": "donut", "level": 3 },
+      { "category": "clothes", "emoji": "🧥", "word": "coat", "level": 3 },
+      { "category": "clothes", "emoji": "🧦", "word": "socks", "level": 3 },
+      { "category": "clothes", "emoji": "👢", "word": "boots", "level": 3 },
+      { "category": "clothes", "emoji": "👓", "word": "glasses", "level": 3 },
+      { "category": "sport", "emoji": "🏀", "word": "basketball", "level": 3 },
+      { "category": "sport", "emoji": "⚾", "word": "baseball", "level": 3 },
+      { "category": "sport", "emoji": "🎾", "word": "tennis", "level": 3 },
+      { "category": "sport", "emoji": "🏊", "word": "swimming", "level": 3 },
+      { "category": "shape", "emoji": "🟥", "word": "square", "level": 3 },
+      { "category": "instrument", "emoji": "🎸", "word": "guitar", "level": 3 },
+      { "category": "family", "emoji": "👴", "word": "grandfather", "level": 3 },
+      { "category": "family", "emoji": "👵", "word": "grandmother", "level": 3 },
+      { "category": "family", "emoji": "👼", "word": "angel", "level": 3 },
+      { "category": "place", "emoji": "🏥", "word": "hospital", "level": 3 },
+      { "category": "place", "emoji": "🏰", "word": "castle", "level": 3 },
+      { "category": "place", "emoji": "⛺", "word": "tent", "level": 3 },
+      { "category": "insect", "emoji": "🦋", "word": "butterfly", "level": 3 },
+      { "category": "insect", "emoji": "🕷️", "word": "spider", "level": 3 },
+      { "category": "insect", "emoji": "🐌", "word": "snail", "level": 3 },
+      { "category": "insect", "emoji": "🪱", "word": "worm", "level": 3 },
+      { "category": "toy", "emoji": "🧸", "word": "teddy bear", "level": 3 },
+      { "category": "toy", "emoji": "🎈", "word": "balloon", "level": 3 },
+      { "category": "toy", "emoji": "🪁", "word": "kite", "level": 3 },
+      { "category": "space", "emoji": "🚀", "word": "rocket", "level": 3 },
+
+      { "category": "fruit", "emoji": "🍓", "word": "strawberry", "level": 4 },
+      { "category": "fruit", "emoji": "🍍", "word": "pineapple", "level": 4 },
+      { "category": "body", "emoji": "👅", "word": "tongue", "level": 4 },
+      { "category": "body", "emoji": "🧠", "word": "brain", "level": 4 },
+      { "category": "job", "emoji": "👩‍🚒", "word": "firefighter", "level": 4 },
+      { "category": "job", "emoji": "👩‍🚀", "word": "astronaut", "level": 4 },
+      { "category": "job", "emoji": "🕵️", "word": "detective", "level": 4 },
+      { "category": "school", "emoji": "✂️", "word": "scissors", "level": 4 },
+      { "category": "school", "emoji": "📋", "word": "clipboard", "level": 4 },
+      { "category": "vehicle", "emoji": "🚑", "word": "ambulance", "level": 4 },
+      { "category": "vehicle", "emoji": "🏍️", "word": "motorcycle", "level": 4 },
+      { "category": "vehicle", "emoji": "🚁", "word": "helicopter", "level": 4 },
+      { "category": "nature", "emoji": "⚡", "word": "lightning", "level": 4 },
+      { "category": "emotion", "emoji": "😲", "word": "surprised", "level": 4 },
+      { "category": "emotion", "emoji": "😆", "word": "excited", "level": 4 },
+      { "category": "food", "emoji": "🥪", "word": "sandwich", "level": 4 },
+      { "category": "food", "emoji": "🍫", "word": "chocolate", "level": 4 },
+      { "category": "clothes", "emoji": "🧣", "word": "scarf", "level": 4 },
+      { "category": "clothes", "emoji": "🧤", "word": "gloves", "level": 4 },
+      { "category": "sport", "emoji": "🏐", "word": "volleyball", "level": 4 },
+      { "category": "sport", "emoji": "🎳", "word": "bowling", "level": 4 },
+      { "category": "sport", "emoji": "🏓", "word": "ping pong", "level": 4 },
+      { "category": "sport", "emoji": "🏸", "word": "badminton", "level": 4 },
+      { "category": "sport", "emoji": "⛷️", "word": "skiing", "level": 4 },
+      { "category": "sport", "emoji": "⛸️", "word": "skating", "level": 4 },
+      { "category": "shape", "emoji": "🔺", "word": "triangle", "level": 4 },
+      { "category": "instrument", "emoji": "🎻", "word": "violin", "level": 4 },
+      { "category": "instrument", "emoji": "🎺", "word": "trumpet", "level": 4 },
+      { "category": "instrument", "emoji": "🎷", "word": "saxophone", "level": 4 },
+      { "category": "instrument", "emoji": "🪈", "word": "flute", "level": 4 },
+      { "category": "instrument", "emoji": "🎤", "word": "microphone", "level": 4 },
+      { "category": "instrument", "emoji": "🎧", "word": "headphones", "level": 4 },
+      { "category": "place", "emoji": "🏤", "word": "post office", "level": 4 },
+      { "category": "place", "emoji": "🏭", "word": "factory", "level": 4 },
+      { "category": "place", "emoji": "🏟️", "word": "stadium", "level": 4 },
+      { "category": "insect", "emoji": "🐞", "word": "ladybug", "level": 4 },
+      { "category": "insect", "emoji": "🐛", "word": "caterpillar", "level": 4 },
+      { "category": "toy", "emoji": "🪀", "word": "yo-yo", "level": 4 },
+      { "category": "toy", "emoji": "🧩", "word": "puzzle", "level": 4 },
+      { "category": "toy", "emoji": "🎲", "word": "dice", "level": 4 },
+      { "category": "space", "emoji": "👽", "word": "alien", "level": 4 },
+      { "category": "space", "emoji": "🛸", "word": "ufo", "level": 4 },
+      { "category": "space", "emoji": "🪐", "word": "planet", "level": 4 },
+      { "category": "space", "emoji": "☄️", "word": "comet", "level": 4 },
+      { "category": "space", "emoji": "🔭", "word": "telescope", "level": 4 },
+      { "category": "space", "emoji": "🛰️", "word": "satellite", "level": 4 }
+    ];
+
+    // 레벨별 설정값
+    const levelConfigs = {
+        1: { maxLvl: 1, total: 20, targets: 4, cols: 5, rows: 4, hide: 2 },
+        2: { maxLvl: 2, total: 40, targets: 6, cols: 8, rows: 5, hide: 4 },
+        3: { maxLvl: 3, total: 80, targets: 8, cols: 10, rows: 8, hide: 7 },
+        4: { maxLvl: 4, total: 96, targets: 10, cols: 12, rows: 8, hide: 8 }
+    };
+
+    let currentLevelNum = 4;
+    let currentConfig = levelConfigs[currentLevelNum];
+
+    // Audio Engine for zero-dependency sound effects
+    const AudioEngine = {
+        ctx: null,
+        init: function() {
+            if (!this.ctx) {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+            } else if (this.ctx.state === 'suspended') {
+                this.ctx.resume();
+            }
+        },
+        playTone: function(freq, type, duration, vol=0.3, startTime=null) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            const now = startTime || this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now);
+            gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        },
+        playCorrect: function(isP1) { 
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const base = isP1 ? 660 : 880; 
+            this.playTone(base, 'square', 0.1, 0.15, now);
+            this.playTone(base * 1.25, 'triangle', 0.2, 0.2, now + 0.1);
+            this.playTone(base * 1.5, 'sine', 0.4, 0.2, now + 0.2);
+        },
+        playWrong: function() { 
+            this.playTone(150, 'sawtooth', 0.3, 0.4);
+            setTimeout(() => this.playTone(100, 'sawtooth', 0.4, 0.4), 150);
+        },
+        playHint: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            this.playTone(300, 'sine', 0.1, 0.05, now); 
+            this.playTone(400, 'sine', 0.1, 0.05, now + 0.1);
+        },
+        playCountdown: function() { this.playTone(1200, 'sine', 0.1, 0.2); },
+        playStart: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            this.playTone(600, 'square', 0.1, 0.3, now);
+            this.playTone(800, 'square', 0.4, 0.4, now + 0.15);
+            this.playTone(1200, 'sine', 0.5, 0.2, now + 0.3);
+        },
+        playFanfare: function() {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            [523, 659, 783, 1046, 783, 1046].forEach((freq, i) => {
+                this.playTone(freq, 'square', 0.2, 0.3, now + i*0.15);
+            });
+        }
+    };
+
+    // Prevent default touch behaviors and text highlighting (blue screen)
+    document.addEventListener('contextmenu', e => { e.preventDefault(); e.stopPropagation(); }, { passive: false });
+    document.addEventListener('dragstart', e => e.preventDefault(), { passive: false });
+    document.addEventListener('selectstart', e => e.preventDefault(), { passive: false });
+    // 불필요하게 빠른 다중 터치를 방해하던 touchend/touchmove 제어 로직을 삭제했습니다.
+    // 화면 드래그 방지는 CSS의 touch-action: none과 위 이벤트 차단으로 완벽하게 제어됩니다.
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log("Fullscreen not supported or allowed");
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    // --- Game Logic ---
+    let state = {
+        p1: { score: 0, found: new Set(), targets: [] },
+        p2: { score: 0, found: new Set(), targets: [] }
+    };
+    
+    let timeLeft = 60;
+    const maxTime = 60;
+    let timerId;
+    let hintTimerId;
+    let isPlaying = false;
+
+    function renderTargets(playerStr, targets) {
+        const container = document.getElementById(`${playerStr}-targets`);
+        
+        // 무조건 2줄을 만들기 위해 컬럼 개수를 타겟 수의 절반(올림)으로 설정
+        container.style.gridTemplateColumns = `repeat(${Math.ceil(targets.length / 2)}, 1fr)`;
+
+        container.innerHTML = targets.map(t => {
+            // 단어 길이에 따라 폰트 크기를 동적으로 조절하여 1줄에 맞춤
+            let wordStyle = '';
+            if (t.word.length > 8) {
+                wordStyle = 'style="font-size: 0.7em; letter-spacing: -0.5px;"';
+            } else if (t.word.length > 6) {
+                wordStyle = 'style="font-size: 0.85em; letter-spacing: -0.2px;"';
+            }
+
+            return `
+            <div id="${playerStr}-target-${t.word}" class="target-chip">
+                <span class="emoji-icon grayscale opacity-40">❓</span>
+                <span ${wordStyle}>${t.word.toLowerCase()}</span>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function renderGrid(playerStr, emojiArray) {
+        const container = document.getElementById(`${playerStr}-grid`);
+        // 레벨 설정에 맞게 동적으로 Grid 속성 주입
+        container.style.gridTemplateColumns = `repeat(${currentConfig.cols}, 1fr)`;
+        container.style.gridTemplateRows = `repeat(${currentConfig.rows}, 1fr)`;
+
+        // onclick 대신 onpointerdown을 사용하여 터치 지연 없이 다중 터치로 즉각 반응하게 수정
+        container.innerHTML = emojiArray.map((e) => {
+            const isTarget = state[playerStr].targets.some(t => t.word === e.word);
+            return `<div class="emoji-btn" data-word="${e.word}" data-istarget="${isTarget}" onpointerdown="handleTap('${playerStr}', '${e.word}', this); event.preventDefault();">
+                ${e.emoji}
+            </div>`;
+        }).join('');
+    }
+
+    function initGame() {
+        document.getElementById('win-p1').style.display = 'none';
+        document.getElementById('win-p2').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+
+        // 해당 레벨 이하의 이모지들만 필터링
+        let availablePool = emojiData.filter(e => e.level <= currentConfig.maxLvl);
+        let shuffled = [...availablePool].sort(() => Math.random() - 0.5);
+        
+        // 정답 개수만큼 추출
+        let targets = shuffled.slice(0, currentConfig.targets);
+        
+        // 오답(filler) 추출
+        let remaining = shuffled.slice(currentConfig.targets);
+        let fillers = remaining.slice(0, currentConfig.total - currentConfig.targets);
+        
+        // 정답과 오답을 합쳐서 최종 풀 생성
+        let pool = [...targets, ...fillers];
+
+        state.p1 = { score: 0, found: new Set(), targets: [...targets] };
+        state.p2 = { score: 0, found: new Set(), targets: [...targets] };
+
+        document.getElementById('score-p1').textContent = '0';
+        document.getElementById('score-p2').textContent = '0';
+
+        renderTargets('p1', targets);
+        renderTargets('p2', targets);
+
+        // 독립적으로 섞어서 보드 렌더링
+        renderGrid('p1', [...pool].sort(() => Math.random() - 0.5));
+        renderGrid('p2', [...pool].sort(() => Math.random() - 0.5));
+    }
+
+    function applyHint(playerStr) {
+        const grid = document.getElementById(`${playerStr}-grid`);
+        const fillers = Array.from(grid.querySelectorAll('.emoji-btn[data-istarget="false"]:not(.hidden-emoji):not(.hint-fade)'));
+        
+        if(fillers.length === 0) return false;
+
+        fillers.sort(() => Math.random() - 0.5);
+        // 레벨별 설정된 소거 개수 적용
+        const toHide = fillers.slice(0, currentConfig.hide);
+        
+        toHide.forEach(btn => {
+            btn.classList.add('hint-fade');
+        });
+
+        return true;
+    }
+
+    function handleTap(playerStr, word, element) {
+        if(!isPlaying) return;
+
+        const playerState = state[playerStr];
+        const target = playerState.targets.find(t => t.word === word);
+
+        if (target && !playerState.found.has(word)) {
+            // Correct Touch
+            playerState.found.add(word);
+            element.classList.add('hidden-emoji');
+            AudioEngine.playCorrect(playerStr === 'p1');
+
+            // Update Target UI
+            const targetUI = document.getElementById(`${playerStr}-target-${word}`);
+            targetUI.classList.add('found');
+            const icon = targetUI.querySelector('.emoji-icon');
+            icon.textContent = target.emoji;
+            icon.classList.remove('grayscale', 'opacity-40');
+
+            // Update Score
+            playerState.score++;
+            document.getElementById(`score-${playerStr}`).textContent = playerState.score;
+
+            // Win condition (설정된 정답 개수와 비교)
+            if (playerState.score >= currentConfig.targets) {
+                endGame();
+            }
+        } else {
+            // Wrong Touch - Apply Penalty
+            AudioEngine.playWrong();
+            const grid = document.getElementById(`${playerStr}-grid`);
+            grid.classList.add('penalty-mode');
+
+            setTimeout(() => {
+                grid.classList.remove('penalty-mode');
+            }, 3000);
+        }
+    }
+
+    function startCountdown(level) {
+        AudioEngine.init();
+        currentLevelNum = level;
+        currentConfig = levelConfigs[level];
+
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+        
+        const countOverlay = document.getElementById('countdown-overlay');
+        const countText = document.getElementById('countdown-text');
+        countOverlay.style.display = 'flex';
+        
+        let count = 3;
+        let countInt; 
+        
+        function updateCount() {
+            countText.classList.remove('count-anim');
+            void countText.offsetWidth; // trigger reflow
+            countText.classList.add('count-anim');
+            
+            if(count > 0) {
+                countText.textContent = count;
+                AudioEngine.playTone(800, 'square', 0.1, 0.3); // Beep
+            } else if(count === 0) {
+                countText.textContent = 'START!';
+                AudioEngine.playTone(1200, 'sine', 0.5, 0.4); // High beep
+            } else {
+                clearInterval(countInt); 
+                countOverlay.style.display = 'none'; 
+                startGame(); 
+                return; 
+            }
+            count--;
+        }
+        
+        updateCount(); // 초기 3 바로 표시
+        countInt = setInterval(updateCount, 1000); // 1초마다 실행
+    }
+
+    function startGame() {
+        if(isPlaying) return;
+        
+        initGame();
+
+        timeLeft = maxTime;
+        isPlaying = true;
+
+        const timerFill = document.getElementById('top-timer-fill');
+        timerFill.style.width = '100%';
+
+        clearInterval(timerId);
+        clearInterval(hintTimerId);
+
+        // 메인 타이머
+        timerId = setInterval(() => {
+            timeLeft--;
+            let pct = (timeLeft / maxTime) * 100;
+            timerFill.style.width = pct + '%';
+            
+            if (timeLeft <= 10 && timeLeft > 0) AudioEngine.playCountdown();
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+
+        // 10초마다 힌트 제공 타이머
+        hintTimerId = setInterval(() => {
+            if(!isPlaying) return;
+            const h1 = applyHint('p1');
+            const h2 = applyHint('p2');
+            
+            if(h1 || h2) AudioEngine.playHint();
+        }, 10000);
+    }
+
+    function endGame() {
+        isPlaying = false;
+        clearInterval(timerId);
+        clearInterval(hintTimerId);
+        AudioEngine.playFanfare();
+
+        // 1. 못 찾은 이모지에 O 표시
+        ['p1', 'p2'].forEach(playerStr => {
+            const playerState = state[playerStr];
+            playerState.targets.forEach(t => {
+                if (!playerState.found.has(t.word)) {
+                    const grid = document.getElementById(`${playerStr}-grid`);
+                    const btn = grid.querySelector(`.emoji-btn[data-word="${t.word}"]`);
+                    if (btn) {
+                        btn.classList.add('missed-target');
+                        btn.classList.add(playerStr === 'p1' ? 'missed-p1' : 'missed-p2');
+                        btn.classList.remove('hint-fade'); 
+                    }
+                }
+            });
+        });
+
+        // 2. 상단 패널에 승/패 표시
+        const winP1 = document.getElementById('win-p1');
+        const winP2 = document.getElementById('win-p2');
+
+        winP1.style.display = 'flex';
+        winP2.style.display = 'flex';
+        
+        // 이전 클래스 제거
+        winP1.className = 'win-overlay';
+        winP2.className = 'win-overlay';
+
+        if (state.p1.score > state.p2.score) {
+            winP1.innerHTML = '🏆 WIN!';
+            winP1.classList.add('win');
+            winP2.innerHTML = '😥 LOSE';
+            winP2.classList.add('lose');
+        } else if (state.p2.score > state.p1.score) {
+            winP2.innerHTML = '🏆 WIN!';
+            winP2.classList.add('win');
+            winP1.innerHTML = '😥 LOSE';
+            winP1.classList.add('lose');
+        } else {
+            winP1.innerHTML = '🤝 DRAW';
+            winP1.classList.add('draw');
+            winP2.innerHTML = '🤝 DRAW';
+            winP2.classList.add('draw');
+        }
+
+        // 3. 3초 후 다시하기 버튼 노출
+        setTimeout(() => {
+            document.getElementById('restart-container').style.display = 'flex';
+        }, 3000);
+    }
+
+    const setAppHeight = () => {
+        const doc = document.documentElement;
+        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+    }
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    setAppHeight();
+
+</script>
+
+</body>
+</html>

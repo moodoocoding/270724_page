@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0F4C3A">
+
+<title>Emoji Spelling King</title>
+<meta name="description" content="전자칠판을 최고의 영어 학습 도구로 만드세요! 팀전으로 즐기는 멀티터치 스펠링 조합 게임.">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    corePlugins: {
+      preflight: false,
+    }
+  }
+</script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* === 색상 변수 설정 === */
+:root {
+    --bg: #121212;
+    --panel-bg: #1e1e2e;
+    --dark: #e0e0e0;
+    --text-muted: #a0a0a0;
+    --border-color: #333333;
+
+    /* 팀 배경색 */
+    --dog-color: #332b00;
+    --cat-color: #1e1b2e;
+    --rabbit-color: #2e151a;
+    --hamster-color: #2e1e0f;
+    --panda-color: #0f2e26;
+    --monkey-color: #221826;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--dark);
+    font-family: 'Noto Sans KR', sans-serif;
+    overflow: hidden;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+    display: flex; flex-direction: column;
+    height: 100vh; height: -webkit-fill-available; height: 100dvh;
+    box-sizing: border-box;
+}
+
+i[class^="fa-"] { font-family: "Font Awesome 6 Free" !important; font-weight: 900 !important; }
+
+#overlay {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    opacity: 0.98;
+    display: flex; flex-direction: column;
+    z-index: 100; backdrop-filter: blur(15px);
+    text-align: center; padding: 0;
+    overflow-y: auto; touch-action: pan-y;
+}
+
+.overlay-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0px; width: 100%; box-sizing: border-box;
+}
+
+.title-area { margin-bottom: 15px; }
+
+#msgTitle {
+    font-size: 2.6rem;
+    color: var(--dark);
+    margin: 0; font-weight: 500;
+    text-shadow: 0 0 20px rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.2;
+}
+
+.instructions {
+    color: var(--text-muted); font-size: 1.1rem; margin-top: 15px; 
+    line-height: 1.6; background: rgba(0,0,0,0.3); 
+    padding: 15px 20px; border-radius: 12px; display: inline-block; text-align: left;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+#setupArea {
+    width: 480px; max-width: 95vw;
+    margin: 0 auto 15px auto;
+    display: flex; flex-direction: column; gap: 15px;
+}
+
+.setup-row { display: flex; gap: 10px; width: 100%; }
+.setup-group { flex: 1; text-align: left; }
+
+.setup-label {
+    font-size: 1.2rem; color: var(--text-muted);
+    margin-bottom: 6px; display: block; margin-left: 5px;
+}
+
+.custom-select {
+    width: 100%; font-family: inherit;
+    font-size: 1.2rem; padding: 12px;
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background: var(--panel-bg);
+    cursor: pointer; outline: none;
+    color: var(--dark);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.math-menu-wrapper { width: 480px; max-width: 95vw; margin: 0 auto; }
+
+.math-menu-container {
+    width: 100%; background: var(--panel-bg);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.level-list { padding: 10px; background: var(--panel-bg); }
+
+.level-item {
+    display: flex; align-items: center; padding: 10px 15px;
+    margin-bottom: 8px; border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background: var(--panel-bg);
+    cursor: pointer; transition: all 0.15s; text-align: left;
+    color: var(--dark);
+}
+.level-item:last-child { margin-bottom: 0; }
+.level-item.selected { border-color: transparent; background-color: #183e5c; border-color: #4dabf7; }
+
+.level-badge {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(128,128,128,0.2); color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; font-weight: bold; margin-right: 15px; flex-shrink: 0;
+}
+.level-item.selected .level-badge { color: white; background: #4dabf7; }
+
+.level-info { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; }
+.level-title-group { display: flex; flex-direction: column; }
+.level-title { font-size: 1.2rem; color: var(--dark); font-weight: bold; }
+.level-desc { font-size: 1rem; color: #4dabf7; margin-top: 4px; }
+.level-item.selected .level-desc { color: #a5d8ff; }
+
+.word-view-btn {
+    background: #495057; border: none; color: white; border-radius: 8px;
+    padding: 6px 10px; font-size: 0.9rem; cursor: pointer;
+    transition: 0.2s; z-index: 10;
+}
+.word-view-btn:hover { background: #6c757d; }
+
+#startBtn {
+    font-size: 2.2rem; padding: 12px 0; border-radius: 50px; border: none;
+    background: #4dabf7; color: white; cursor: pointer;
+    box-shadow: 0 6px 0 #1c7ed6; transition: 0.1s;
+    font-family: inherit; touch-action: manipulation;
+    width: 470px; max-width: 92vw; margin: 20px auto 0 auto; display: block;
+}
+#startBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1c7ed6 !important; }
+
+/* === 인게임 스타일 === */
+#finalPodium { height: 25vh; width: 100%; display: none; flex-direction: row; }
+.podium-col {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; border-top: 4px solid rgba(255,255,255,0.05);
+}
+.podium-medal {
+    font-size: clamp(45px, 5vw, 69px); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+    margin-bottom: 5px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.podium-name {
+    font-size: clamp(45px, 5vw, 69px); color: var(--dark);
+    display: flex; align-items: center; justify-content: center; line-height: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+#countdownLayer {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; pointer-events: none; backdrop-filter: blur(5px);
+}
+#countdownText {
+    font-size: 30vw; color: white;
+    text-shadow: 0 0 50px rgba(255,255,255,0.5);
+    animation: countAnim 1s ease-out forwards;
+}
+@keyframes countAnim { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+/* === 헤더 & 타이머 === */
+#header {
+    height: 120px; background: var(--panel-bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; z-index: 20;
+    border-bottom: 2px solid #333;
+}
+#timerDisplay {
+    font-size: 90px; padding: 0 20px; color: #ff6b6b;
+    text-align: center; font-weight: bold; flex-shrink: 0; text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+}
+.timer-urgent { animation: timerBlink 0.5s infinite; background: #c92a2a !important; color: white !important; border-radius: 20px; box-shadow: 0 0 20px #c92a2a; }
+@keyframes timerBlink { 50% { opacity: 0.7; } }
+
+/* === 팀전 전용 스코어보드 === */
+#teamScoreBoard {
+    display: none; width: 100%; height: 25vh;
+    flex-direction: row; justify-content: space-around; align-items: center;
+    background: var(--bg); padding: 0 10px; box-sizing: border-box; z-index: 15;
+}
+.team-card {
+    flex: 1; height: 90%; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); margin: 0 5px; border: 2px solid rgba(255,255,255,0.05);
+}
+.team-A { background: var(--dog-color); }
+.team-B { background: var(--rabbit-color); }
+.team-C { background: var(--panda-color); display: none; }
+
+.team-card .team-name { font-size: 3rem; color: var(--dark); margin-bottom: 5px; white-space: nowrap; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.team-card .team-score { font-size: 3.5rem; color: #ff8787; font-weight: bold; display: flex; align-items: center; gap: 10px; text-shadow: 0 0 10px rgba(255,135,135,0.3); }
+.team-card .team-rank {
+    position: absolute; bottom: -25px; background: #333; color: #ccc;
+    padding: 5px 20px; border-radius: 20px; font-size: 1.8rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid #444;
+}
+.team-card .team-rank.rank-1 {
+    background: #ff6b6b; color: white; transform: scale(1.1);
+    border: none; font-weight: bold; box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+}
+
+/* === 게임판 레이아웃 === */
+#arena {
+    display: flex; flex: 1; width: 100vw; gap: 0;
+    touch-action: none; background: #000;
+}
+/* 요소들을 균등하게 배치 (space-between) */
+.teamBox {
+    flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-between;
+    padding: 3vh 2px 0 2px; position: relative;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden; z-index: 1;
+}
+body.team-mode .teamTitle, body.team-mode .scoreBadge, body.team-mode .rank-badge { display: none !important; }
+.teamBox:last-child { border-right: none; }
+
+.bg-dog { background: var(--dog-color); }
+.bg-cat { background: var(--cat-color); }
+.bg-rabbit { background: var(--rabbit-color); }
+.bg-hamster { background: var(--hamster-color); }
+.bg-panda { background: var(--panda-color); }
+.bg-monkey { background: var(--monkey-color); }
+
+/* 마진 제거하여 flex space-between이 균등 간격을 만들도록 함 */
+.teamTitle {
+    font-size: clamp(35px, 4vw, 42px); margin: 0; color: var(--dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+    width: 100%; z-index: 15; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.scoreBadge { font-size: clamp(35px, 4vw, 50px); color: #ff8787; margin: 0; z-index: 15; text-shadow: 0 0 5px rgba(255,135,135,0.3); }
+.rank-badge { font-size: clamp(35px, 4.5vw, 55px); margin: 0; z-index: 15; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+
+/* === 스펠링 게임 전용 UI === */
+.emoji-display {
+    font-size: clamp(60px, 8vw, 100px);
+    margin: 0;
+    z-index: 15;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    animation: popIn 0.3s ease-out;
+}
+
+/* 액션 버튼 (패스, 힌트) */
+.action-area {
+    display: flex; gap: 8px; margin: 0; z-index: 15; justify-content: center; width: 90%;
+}
+.action-btn {
+    flex: 1; position: relative; overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.2); border-radius: 12px;
+    padding: 8px 5px; font-size: clamp(14px, 2.5vw, 18px); font-weight: bold;
+    cursor: pointer; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.1s; touch-action: manipulation;
+    display: flex; align-items: center; justify-content: center;
+}
+.action-btn:active { transform: scale(0.95); }
+.pass-btn { background: #ff6b6b; }
+.hint-btn { background: #4dabf7; }
+.action-btn.disabled { filter: grayscale(70%); opacity: 0.8; pointer-events: none; }
+.action-bg {
+    position: absolute; left: 0; bottom: 0; height: 100%; width: 0%;
+    background: rgba(255, 255, 255, 0.4); z-index: 1; transition: width 0.1s linear;
+}
+.action-text { position: relative; z-index: 2; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+/* 드롭존 영역 (원형) - 60% 축소됨 */
+.drop-area {
+    display: flex; gap: 8px; margin: 0; z-index: 15; justify-content: center; flex-wrap: wrap;
+    padding: 0 5px;
+}
+.drop-zone {
+    width: clamp(21px, 2.7vw, 36px);
+    height: clamp(21px, 2.7vw, 36px);
+    border-radius: 50%;
+    border: 3px dashed #777;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(14px, 2.1vw, 24px);
+    font-weight: bold; color: white;
+    transition: all 0.2s;
+}
+.drop-zone.filled { border-style: solid; border-color: #69db7c; color: #69db7c; background: rgba(105, 219, 124, 0.1); }
+.drop-zone.wrong { animation: shake 0.3s; border-style: solid; border-color: #ff6b6b; color: #ff6b6b; background: rgba(255, 107, 107, 0.1); }
+
+/* spacer는 이제 필요 없으므로 숨김 (간격 분할로 대체) */
+.spacer { display: none; }
+
+/* 드래그 영역 (하단 고정) - 60% 축소됨 */
+.drag-area {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; z-index: 20;
+    width: 100%; min-height: 80px;
+    padding: 10px; margin: 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px 15px 0 0;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+.drag-letter {
+    width: clamp(24px, 3vw, 39px);
+    height: clamp(27px, 3.3vw, 42px);
+    background: #2b2b2b; border: 2px solid #555; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(15px, 2.1vw, 27px); font-weight: bold; color: #e0e0e0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    cursor: grab; touch-action: none;
+    position: relative;
+}
+.drag-letter.dragging { z-index: 1000; cursor: grabbing; box-shadow: 0 10px 15px rgba(0,0,0,0.6); }
+
+.item-effect {
+    position: absolute; bottom: -80px; font-size: 4rem; pointer-events: none;
+    z-index: 50; animation: itemFlyUp 1.875s ease-in forwards; opacity: 0; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+}
+@keyframes itemFlyUp {
+    0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0; }
+    20% { opacity: 0.8; }
+    100% { transform: translateY(-700px) scale(2.8) rotate(500deg); opacity: 0; }
+}
+
+.combo-text {
+    position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 2.5rem; font-weight: 800; color: #69db7c;
+    text-shadow: 2px 2px 0px #000, -2px -2px 0px #000, 2px -2px 0px #000, -2px 2px 0px #000;
+    z-index: 100; pointer-events: none; white-space: nowrap; animation: comboPop 0.8s ease-out forwards;
+}
+@keyframes comboPop {
+    0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+    40% { transform: translate(-50%, -40px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -100px) scale(1); opacity: 0; }
+}
+
+.fixed-btn {
+    position: fixed; top: 15px; z-index: 500; font-size: 2.5rem; background: rgba(0,0,0,0.5); 
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+    width: 60px; height: 60px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; outline: none; touch-action: manipulation;
+    backdrop-filter: blur(5px); color: white;
+}
+.fixed-btn:active { transform: scale(0.85); background: rgba(0,0,0,0.8); }
+#resetBtn { left: 15px; } #gameFsBtn { right: 15px; }
+
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes winPulse { 0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255,215,0,0.2); } 50% { transform: scale(1.02); box-shadow: 0 4px 25px rgba(255,215,0,0.5); } }
+.gold { background: #332b00 !important; border: 2px solid #fcc419 !important; color: #fcc419; animation: winPulse 0.6s infinite ease-in-out; }
+
+#resultList {margin: 20px 0;padding: 0;list-style: none;width: 470px;max-width: 92vw;}
+#resultList li {
+    font-size: 1.5rem; padding: 15px 20px; margin: 8px 0; background: var(--panel-bg);
+    border-radius: 15px; display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid #333; color: var(--dark);
+}
+.result-name { display: flex; gap: 10px; align-items: center; }
+
+/* === 단어 리스트 모달창 === */
+.word-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: none; align-items: center; justify-content: center; z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+.word-modal-content {
+    background: var(--panel-bg); width: 90%; max-width: 450px; max-height: 80vh;
+    border-radius: 20px; border: 2px solid var(--border-color);
+    display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.word-modal-header {
+    padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--border-color); background: #2a2a35; border-radius: 20px 20px 0 0;
+}
+.word-modal-header h2 { margin: 0; font-size: 1.5rem; color: #e0e0e0; }
+.word-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #ff6b6b; }
+.word-modal-list {
+    padding: 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px;
+}
+.word-item {
+    display: flex; align-items: center; padding: 10px 15px;
+    background: #1e1e2e; border-radius: 12px; border: 1px solid #333; font-size: 1.2rem;
+}
+.word-item .emoji { font-size: 1.8rem; margin-right: 15px; }
+.word-item .word { color: #e0e0e0; flex: 1; font-weight: bold; }
+.word-item .level { color: #a0a0a0; font-size: 0.9rem; }
+
+@media (max-width: 768px) {
+    #header { height: 80px; }
+    #timerDisplay { font-size: 60px; }
+    #msgTitle { font-size: 2.2rem; }
+    .fixed-btn { width: 45px; height: 45px; font-size: 1.8rem; }
+    .drag-area { min-height: 60px; padding: 5px; }
+    .instructions { font-size: 0.9rem; padding: 10px; }
+}
+
+</style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col relative overflow-x-hidden lang-ko">
+
+<div id="countdownLayer"><div id="countdownText">3</div></div>
+
+<div id="overlay">
+    <div class="overlay-content">
+        <div class="title-area">
+            <h1 id="msgTitle">Emoji Spelling King</h1>
+            <div class="instructions" id="gameInstructions">
+                ☝️ <b>Drag & Drop</b> to spell!<br>
+                💡 <b>Hint</b>: Auto-fill 1 letter (5s ⏳)<br>
+                ⏭️ <b>Pass</b>: Skip word, No penalty (5s ⏳)
+            </div>
+        </div>
+        
+        <ul id="resultList" style="display:none;"></ul>
+        
+        <div id="setupArea">
+            <div class="setup-row">
+                <div class="setup-group">
+                    <label class="setup-label">⏱️ Time</label>
+                    <select id="gameTimeLimit" class="custom-select">
+                        <option value="60" selected>1 Min</option>
+                        <option value="120">2 Min</option>
+                        <option value="180">3 Min</option>
+                    </select>
+                </div>
+                <div class="setup-group">
+                    <label class="setup-label">👥 Mode</label>
+                    <select id="playerCount" class="custom-select">
+                        <option value="1">1 Player</option>
+                        <option value="2">2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4" selected>4 Players</option>
+                        <option value="5">5 Players</option>
+                        <option value="6">6 Players</option>
+                        <option value="team2vs2">2:2 Team</option>
+                        <option value="team3vs3">3:3 Team</option>
+                        <option value="team2vs2vs2">2:2:2 Team</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="math-menu-wrapper">
+            <div class="math-menu-container">
+                <div class="level-list" id="levelList"></div>
+            </div>
+        </div>
+        
+        <button id="startBtn">Start Battle</button>
+        <a id="otherGameLink" href="/?cg=kingen" target="_self" style="display: block; margin-top: 15px; padding: 10px 24px; font-size: 1.1rem; font-weight: 700; color: #e0e0e0; text-decoration: none; background-color: rgba(255, 255, 255, 0.1); border-radius: 30px; transition: all 0.2s;">🎮 Other Games</a>
+    </div>
+    
+    <div id="finalPodium"></div>
+</div>
+
+<div id="wordModal" class="word-modal">
+    <div class="word-modal-content">
+        <div class="word-modal-header">
+            <h2 id="wordModalTitle">Word List</h2>
+            <button class="word-modal-close" onclick="closeWordModal()">✖</button>
+        </div>
+        <div id="wordModalList" class="word-modal-list custom-scrollbar"></div>
+    </div>
+</div>
+
+<button id="resetBtn" class="fixed-btn">🏠</button>
+<button id="gameFsBtn" class="fixed-btn">↕️</button>
+
+<header id="header">
+    <div id="timerDisplay">60</div>
+</header>
+
+<div id="teamScoreBoard">
+    <div class="team-card team-A" id="teamCardA">
+        <div class="team-name" id="teamNameA">🐶Dog & Cat🐱</div>
+        <div class="team-score">🦴 <span id="scoreA">0</span> 🐟</div>
+        <div class="team-rank" id="rankA">🥇</div>
+    </div>
+    <div class="team-card team-B" id="teamCardB">
+        <div class="team-name" id="teamNameB">🐰Rabbit & Hamster🐹</div>
+        <div class="team-score">🥕 <span id="scoreB">0</span> 🥜</div>
+        <div class="team-rank" id="rankB">🥇</div>
+    </div>
+    <div class="team-card team-C" id="teamCardC">
+        <div class="team-name" id="teamNameC">🐼Panda & Monkey🐵</div>
+        <div class="team-score">🎋 <span id="scoreC">0</span> 🍌</div>
+        <div class="team-rank" id="rankC">🥇</div>
+    </div>
+</div>
+
+<div id="arena">
+    <div class="teamBox bg-dog" id="dogSide">
+        <div class="teamTitle" id="title-dog">🐶 Dog</div>
+        <div class="scoreBadge" id="dogScore">🦴 0</div>
+        <div id="dogRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="dogEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="dogHintBtn" onpointerdown="useHint('dog', event)">
+                <div class="action-bg" id="dogHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="dogPassBtn" onpointerdown="passWord('dog', event)">
+                <div class="action-bg" id="dogPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="dogDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="dogDrags"></div>
+    </div>
+    <div class="teamBox bg-cat" id="catSide">
+        <div class="teamTitle" id="title-cat">🐱 Cat</div>
+        <div class="scoreBadge" id="catScore">🐟 0</div>
+        <div id="catRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="catEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="catHintBtn" onpointerdown="useHint('cat', event)">
+                <div class="action-bg" id="catHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="catPassBtn" onpointerdown="passWord('cat', event)">
+                <div class="action-bg" id="catPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="catDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="catDrags"></div>
+    </div>
+    <div class="teamBox bg-rabbit" id="rabbitSide">
+        <div class="teamTitle" id="title-rabbit">🐰 Rabbit</div>
+        <div class="scoreBadge" id="rabbitScore">🥕 0</div>
+        <div id="rabbitRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="rabbitEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="rabbitHintBtn" onpointerdown="useHint('rabbit', event)">
+                <div class="action-bg" id="rabbitHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="rabbitPassBtn" onpointerdown="passWord('rabbit', event)">
+                <div class="action-bg" id="rabbitPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="rabbitDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="rabbitDrags"></div>
+    </div>
+    <div class="teamBox bg-hamster" id="hamsterSide">
+        <div class="teamTitle" id="title-hamster">🐹 Hamster</div>
+        <div class="scoreBadge" id="hamsterScore">🥜 0</div>
+        <div id="hamsterRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="hamsterEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="hamsterHintBtn" onpointerdown="useHint('hamster', event)">
+                <div class="action-bg" id="hamsterHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="hamsterPassBtn" onpointerdown="passWord('hamster', event)">
+                <div class="action-bg" id="hamsterPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="hamsterDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="hamsterDrags"></div>
+    </div>
+    <div class="teamBox bg-panda" id="pandaSide">
+        <div class="teamTitle" id="title-panda">🐼 Panda</div>
+        <div class="scoreBadge" id="pandaScore">🎋 0</div>
+        <div id="pandaRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="pandaEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="pandaHintBtn" onpointerdown="useHint('panda', event)">
+                <div class="action-bg" id="pandaHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="pandaPassBtn" onpointerdown="passWord('panda', event)">
+                <div class="action-bg" id="pandaPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="pandaDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="pandaDrags"></div>
+    </div>
+    <div class="teamBox bg-monkey" id="monkeySide">
+        <div class="teamTitle" id="title-monkey">🐵 Monkey</div>
+        <div class="scoreBadge" id="monkeyScore">🍌 0</div>
+        <div id="monkeyRank" class="rank-badge">🥇</div>
+        <div class="emoji-display" id="monkeyEmoji"></div>
+        <div class="action-area">
+            <button class="action-btn hint-btn" id="monkeyHintBtn" onpointerdown="useHint('monkey', event)">
+                <div class="action-bg" id="monkeyHintBg"></div>
+                <span class="action-text">💡 Hint</span>
+            </button>
+            <button class="action-btn pass-btn" id="monkeyPassBtn" onpointerdown="passWord('monkey', event)">
+                <div class="action-bg" id="monkeyPassBg"></div>
+                <span class="action-text">⏭️ Pass</span>
+            </button>
+        </div>
+        <div class="drop-area" id="monkeyDrops"></div>
+        <div class="spacer"></div>
+        <div class="drag-area" id="monkeyDrags"></div>
+    </div>
+</div>
+
+<script>
+/* =========================================
+   이모지 영단어 데이터 리스트
+   ========================================= */
+const emojiData = [
+  { "category": "fruit", "emoji": "🍎", "word": "apple", "level": 1 },
+  { "category": "fruit", "emoji": "🍌", "word": "banana", "level": 1 },
+  { "category": "animal", "emoji": "🐶", "word": "dog", "level": 1 },
+  { "category": "animal", "emoji": "🐱", "word": "cat", "level": 1 },
+  { "category": "animal", "emoji": "🐻", "word": "bear", "level": 1 },
+  { "category": "animal", "emoji": "🐮", "word": "cow", "level": 1 },
+  { "category": "animal", "emoji": "🐷", "word": "pig", "level": 1 },
+  { "category": "animal", "emoji": "🦁", "word": "lion", "level": 1 },
+  { "category": "body", "emoji": "👀", "word": "eyes", "level": 1 },
+  { "category": "body", "emoji": "👃", "word": "nose", "level": 1 },
+  { "category": "body", "emoji": "👂", "word": "ear", "level": 1 },
+  { "category": "body", "emoji": "🖐️", "word": "hand", "level": 1 },
+  { "category": "body", "emoji": "💪", "word": "arm", "level": 1 },
+  { "category": "body", "emoji": "🦵", "word": "leg", "level": 1 },
+  { "category": "number", "emoji": "0️⃣", "word": "zero", "level": 1 },
+  { "category": "number", "emoji": "1️⃣", "word": "one", "level": 1 },
+  { "category": "number", "emoji": "2️⃣", "word": "two", "level": 1 },
+  { "category": "number", "emoji": "3️⃣", "word": "three", "level": 1 },
+  { "category": "number", "emoji": "4️⃣", "word": "four", "level": 1 },
+  { "category": "number", "emoji": "5️⃣", "word": "five", "level": 1 },
+  { "category": "number", "emoji": "6️⃣", "word": "six", "level": 1 },
+  { "category": "number", "emoji": "7️⃣", "word": "seven", "level": 1 },
+  { "category": "number", "emoji": "8️⃣", "word": "eight", "level": 1 },
+  { "category": "number", "emoji": "9️⃣", "word": "nine", "level": 1 },
+  { "category": "number", "emoji": "🔟", "word": "ten", "level": 1 },
+  { "category": "school", "emoji": "🖊️", "word": "pen", "level": 1 },
+  { "category": "school", "emoji": "📖", "word": "book", "level": 1 },
+  { "category": "vehicle", "emoji": "🚗", "word": "car", "level": 1 },
+  { "category": "vehicle", "emoji": "🚌", "word": "bus", "level": 1 },
+  { "category": "vehicle", "emoji": "🚕", "word": "taxi", "level": 1 },
+  { "category": "nature", "emoji": "☀️", "word": "sun", "level": 1 },
+  { "category": "nature", "emoji": "🌧️", "word": "rain", "level": 1 },
+  { "category": "nature", "emoji": "❄️", "word": "snow", "level": 1 },
+  { "category": "nature", "emoji": "⭐", "word": "star", "level": 1 },
+  { "category": "emotion", "emoji": "😀", "word": "happy", "level": 1 },
+  { "category": "emotion", "emoji": "😢", "word": "sad", "level": 1 },
+  { "category": "food", "emoji": "🍕", "word": "pizza", "level": 1 },
+  { "category": "food", "emoji": "🍳", "word": "egg", "level": 1 },
+  { "category": "clothes", "emoji": "🧢", "word": "hat", "level": 1 },
+  { "category": "shape", "emoji": "🔴", "word": "red", "level": 1 },
+  { "category": "shape", "emoji": "🔵", "word": "blue", "level": 1 },
+  { "category": "shape", "emoji": "🟡", "word": "yellow", "level": 1 },
+  { "category": "shape", "emoji": "🟢", "word": "green", "level": 1 },
+  { "category": "shape", "emoji": "⚫", "word": "black", "level": 1 },
+  { "category": "shape", "emoji": "⚪", "word": "white", "level": 1 },
+  { "category": "shape", "emoji": "❤️", "word": "heart", "level": 1 },
+  { "category": "family", "emoji": "👶", "word": "baby", "level": 1 },
+  { "category": "family", "emoji": "👦", "word": "boy", "level": 1 },
+  { "category": "family", "emoji": "👧", "word": "girl", "level": 1 },
+  { "category": "family", "emoji": "👨", "word": "man", "level": 1 },
+  { "category": "family", "emoji": "👩", "word": "woman", "level": 1 },
+  { "category": "place", "emoji": "🏠", "word": "house", "level": 1 },
+  { "category": "place", "emoji": "🏫", "word": "school", "level": 1 },
+  { "category": "place", "emoji": "🎡", "word": "park", "level": 1 },
+  { "category": "toy", "emoji": "🎮", "word": "game", "level": 1 },
+
+  { "category": "fruit", "emoji": "🍇", "word": "grape", "level": 2 },
+  { "category": "fruit", "emoji": "🍑", "word": "peach", "level": 2 },
+  { "category": "fruit", "emoji": "🍋", "word": "lemon", "level": 2 },
+  { "category": "fruit", "emoji": "🍊", "word": "orange", "level": 2 },
+  { "category": "fruit", "emoji": "🍈", "word": "melon", "level": 2 },
+  { "category": "animal", "emoji": "🐭", "word": "mouse", "level": 2 },
+  { "category": "animal", "emoji": "🐰", "word": "rabbit", "level": 2 },
+  { "category": "animal", "emoji": "🐼", "word": "panda", "level": 2 },
+  { "category": "animal", "emoji": "🐯", "word": "tiger", "level": 2 },
+  { "category": "animal", "emoji": "🐸", "word": "frog", "level": 2 },
+  { "category": "animal", "emoji": "🐵", "word": "monkey", "level": 2 },
+  { "category": "animal", "emoji": "🐔", "word": "chicken", "level": 2 },
+  { "category": "animal", "emoji": "🦊", "word": "fox", "level": 2 },
+  { "category": "body", "emoji": "👄", "word": "mouth", "level": 2 },
+  { "category": "body", "emoji": "🦶", "word": "foot", "level": 2 },
+  { "category": "job", "emoji": "👮", "word": "police", "level": 2 },
+  { "category": "job", "emoji": "👨‍⚕️", "word": "doctor", "level": 2 },
+  { "category": "job", "emoji": "👩‍🏫", "word": "teacher", "level": 2 },
+  { "category": "job", "emoji": "👨‍🍳", "word": "cook", "level": 2 },
+  { "category": "job", "emoji": "👨‍🌾", "word": "farmer", "level": 2 },
+  { "category": "job", "emoji": "👨‍🎤", "word": "singer", "level": 2 },
+  { "category": "school", "emoji": "✏️", "word": "pencil", "level": 2 },
+  { "category": "vehicle", "emoji": "🚓", "word": "police car", "level": 2 },
+  { "category": "vehicle", "emoji": "🚂", "word": "train", "level": 2 },
+  { "category": "vehicle", "emoji": "🚢", "word": "ship", "level": 2 },
+  { "category": "nature", "emoji": "☁️", "word": "cloud", "level": 2 },
+  { "category": "nature", "emoji": "🌬️", "word": "wind", "level": 2 },
+  { "category": "nature", "emoji": "🌙", "word": "moon", "level": 2 },
+  { "category": "nature", "emoji": "🌲", "word": "tree", "level": 2 },
+  { "category": "nature", "emoji": "🌺", "word": "flower", "level": 2 },
+  { "category": "emotion", "emoji": "😡", "word": "angry", "level": 2 },
+  { "category": "emotion", "emoji": "😴", "word": "sleepy", "level": 2 },
+  { "category": "emotion", "emoji": "🤢", "word": "sick", "level": 2 },
+  { "category": "emotion", "emoji": "😭", "word": "crying", "level": 2 },
+  { "category": "food", "emoji": "🌭", "word": "hot dog", "level": 2 },
+  { "category": "food", "emoji": "🍞", "word": "bread", "level": 2 },
+  { "category": "food", "emoji": "🍦", "word": "ice cream", "level": 2 },
+  { "category": "food", "emoji": "🍰", "word": "cake", "level": 2 },
+  { "category": "food", "emoji": "🍬", "word": "candy", "level": 2 },
+  { "category": "clothes", "emoji": "👕", "word": "t-shirt", "level": 2 },
+  { "category": "clothes", "emoji": "👖", "word": "pants", "level": 2 },
+  { "category": "clothes", "emoji": "👗", "word": "dress", "level": 2 },
+  { "category": "clothes", "emoji": "👟", "word": "shoes", "level": 2 },
+  { "category": "sport", "emoji": "⚽", "word": "soccer", "level": 2 },
+  { "category": "sport", "emoji": "🏃", "word": "running", "level": 2 },
+  { "category": "shape", "emoji": "🟤", "word": "brown", "level": 2 },
+  { "category": "instrument", "emoji": "🎹", "word": "piano", "level": 2 },
+  { "category": "instrument", "emoji": "🥁", "word": "drum", "level": 2 },
+  { "category": "instrument", "emoji": "🔔", "word": "bell", "level": 2 },
+  { "category": "family", "emoji": "🤴", "word": "king", "level": 2 },
+  { "category": "family", "emoji": "👸", "word": "queen", "level": 2 },
+  { "category": "family", "emoji": "🧑‍🤝‍🧑", "word": "friend", "level": 2 },
+  { "category": "place", "emoji": "🏦", "word": "bank", "level": 2 },
+  { "category": "place", "emoji": "🏪", "word": "store", "level": 2 },
+  { "category": "insect", "emoji": "🐝", "word": "bee", "level": 2 },
+  { "category": "insect", "emoji": "🐜", "word": "ant", "level": 2 },
+  { "category": "toy", "emoji": "🪆", "word": "doll", "level": 2 },
+
+  { "category": "fruit", "emoji": "🍉", "word": "watermelon", "level": 3 },
+  { "category": "fruit", "emoji": "🍒", "word": "cherry", "level": 3 },
+  { "category": "fruit", "emoji": "🥝", "word": "kiwi", "level": 3 },
+  { "category": "animal", "emoji": "🐘", "word": "elephant", "level": 3 },
+  { "category": "animal", "emoji": "🐺", "word": "wolf", "level": 3 },
+  { "category": "body", "emoji": "🦷", "word": "tooth", "level": 3 },
+  { "category": "body", "emoji": "🦴", "word": "bone", "level": 3 },
+  { "category": "job", "emoji": "👨‍✈️", "word": "pilot", "level": 3 },
+  { "category": "job", "emoji": "👨‍🎨", "word": "artist", "level": 3 },
+  { "category": "job", "emoji": "👷", "word": "builder", "level": 3 },
+  { "category": "school", "emoji": "🖍️", "word": "crayon", "level": 3 },
+  { "category": "school", "emoji": "🎒", "word": "backpack", "level": 3 },
+  { "category": "school", "emoji": "📏", "word": "ruler", "level": 3 },
+  { "category": "school", "emoji": "📓", "word": "notebook", "level": 3 },
+  { "category": "school", "emoji": "📎", "word": "clip", "level": 3 },
+  { "category": "school", "emoji": "💻", "word": "computer", "level": 3 },
+  { "category": "vehicle", "emoji": "🚒", "word": "fire truck", "level": 3 },
+  { "category": "vehicle", "emoji": "🚲", "word": "bicycle", "level": 3 },
+  { "category": "vehicle", "emoji": "✈️", "word": "airplane", "level": 3 },
+  { "category": "nature", "emoji": "🌈", "word": "rainbow", "level": 3 },
+  { "category": "nature", "emoji": "🌊", "word": "wave", "level": 3 },
+  { "category": "nature", "emoji": "🌍", "word": "earth", "level": 3 },
+  { "category": "nature", "emoji": "🍃", "word": "leaf", "level": 3 },
+  { "category": "emotion", "emoji": "😨", "word": "scared", "level": 3 },
+  { "category": "emotion", "emoji": "😍", "word": "lovely", "level": 3 },
+  { "category": "food", "emoji": "🍔", "word": "hamburger", "level": 3 },
+  { "category": "food", "emoji": "🍟", "word": "fries", "level": 3 },
+  { "category": "food", "emoji": "🧀", "word": "cheese", "level": 3 },
+  { "category": "food", "emoji": "🥗", "word": "salad", "level": 3 },
+  { "category": "food", "emoji": "🍩", "word": "donut", "level": 3 },
+  { "category": "clothes", "emoji": "🧥", "word": "coat", "level": 3 },
+  { "category": "clothes", "emoji": "🧦", "word": "socks", "level": 3 },
+  { "category": "clothes", "emoji": "👢", "word": "boots", "level": 3 },
+  { "category": "clothes", "emoji": "👓", "word": "glasses", "level": 3 },
+  { "category": "sport", "emoji": "🏀", "word": "basketball", "level": 3 },
+  { "category": "sport", "emoji": "⚾", "word": "baseball", "level": 3 },
+  { "category": "sport", "emoji": "🎾", "word": "tennis", "level": 3 },
+  { "category": "sport", "emoji": "🏊", "word": "swimming", "level": 3 },
+  { "category": "shape", "emoji": "🟥", "word": "square", "level": 3 },
+  { "category": "instrument", "emoji": "🎸", "word": "guitar", "level": 3 },
+  { "category": "family", "emoji": "👴", "word": "grandfather", "level": 3 },
+  { "category": "family", "emoji": "👵", "word": "grandmother", "level": 3 },
+  { "category": "family", "emoji": "👼", "word": "angel", "level": 3 },
+  { "category": "place", "emoji": "🏥", "word": "hospital", "level": 3 },
+  { "category": "place", "emoji": "🏰", "word": "castle", "level": 3 },
+  { "category": "place", "emoji": "⛺", "word": "tent", "level": 3 },
+  { "category": "insect", "emoji": "🦋", "word": "butterfly", "level": 3 },
+  { "category": "insect", "emoji": "🕷️", "word": "spider", "level": 3 },
+  { "category": "insect", "emoji": "🐌", "word": "snail", "level": 3 },
+  { "category": "insect", "emoji": "🪱", "word": "worm", "level": 3 },
+  { "category": "toy", "emoji": "🧸", "word": "teddy bear", "level": 3 },
+  { "category": "toy", "emoji": "🎈", "word": "balloon", "level": 3 },
+  { "category": "toy", "emoji": "🪁", "word": "kite", "level": 3 },
+  { "category": "space", "emoji": "🚀", "word": "rocket", "level": 3 },
+
+  { "category": "fruit", "emoji": "🍓", "word": "strawberry", "level": 4 },
+  { "category": "fruit", "emoji": "🍍", "word": "pineapple", "level": 4 },
+  { "category": "body", "emoji": "👅", "word": "tongue", "level": 4 },
+  { "category": "body", "emoji": "🧠", "word": "brain", "level": 4 },
+  { "category": "job", "emoji": "👩‍🚒", "word": "firefighter", "level": 4 },
+  { "category": "job", "emoji": "👩‍🚀", "word": "astronaut", "level": 4 },
+  { "category": "job", "emoji": "🕵️", "word": "detective", "level": 4 },
+  { "category": "school", "emoji": "✂️", "word": "scissors", "level": 4 },
+  { "category": "school", "emoji": "📋", "word": "clipboard", "level": 4 },
+  { "category": "vehicle", "emoji": "🚑", "word": "ambulance", "level": 4 },
+  { "category": "vehicle", "emoji": "🏍️", "word": "motorcycle", "level": 4 },
+  { "category": "vehicle", "emoji": "🚁", "word": "helicopter", "level": 4 },
+  { "category": "nature", "emoji": "⚡", "word": "lightning", "level": 4 },
+  { "category": "emotion", "emoji": "😲", "word": "surprised", "level": 4 },
+  { "category": "emotion", "emoji": "😆", "word": "excited", "level": 4 },
+  { "category": "food", "emoji": "🥪", "word": "sandwich", "level": 4 },
+  { "category": "food", "emoji": "🍫", "word": "chocolate", "level": 4 },
+  { "category": "clothes", "emoji": "🧣", "word": "scarf", "level": 4 },
+  { "category": "clothes", "emoji": "🧤", "word": "gloves", "level": 4 },
+  { "category": "sport", "emoji": "🏐", "word": "volleyball", "level": 4 },
+  { "category": "sport", "emoji": "🎳", "word": "bowling", "level": 4 },
+  { "category": "sport", "emoji": "🏓", "word": "ping pong", "level": 4 },
+  { "category": "sport", "emoji": "🏸", "word": "badminton", "level": 4 },
+  { "category": "sport", "emoji": "⛷️", "word": "skiing", "level": 4 },
+  { "category": "sport", "emoji": "⛸️", "word": "skating", "level": 4 },
+  { "category": "shape", "emoji": "🔺", "word": "triangle", "level": 4 },
+  { "category": "instrument", "emoji": "🎻", "word": "violin", "level": 4 },
+  { "category": "instrument", "emoji": "🎺", "word": "trumpet", "level": 4 },
+  { "category": "instrument", "emoji": "🎷", "word": "saxophone", "level": 4 },
+  { "category": "instrument", "emoji": "🪈", "word": "flute", "level": 4 },
+  { "category": "instrument", "emoji": "🎤", "word": "microphone", "level": 4 },
+  { "category": "instrument", "emoji": "🎧", "word": "headphones", "level": 4 },
+  { "category": "place", "emoji": "🏤", "word": "post office", "level": 4 },
+  { "category": "place", "emoji": "🏭", "word": "factory", "level": 4 },
+  { "category": "place", "emoji": "🏟️", "word": "stadium", "level": 4 },
+  { "category": "insect", "emoji": "🐞", "word": "ladybug", "level": 4 },
+  { "category": "insect", "emoji": "🐛", "word": "caterpillar", "level": 4 },
+  { "category": "toy", "emoji": "🪀", "word": "yo-yo", "level": 4 },
+  { "category": "toy", "emoji": "🧩", "word": "puzzle", "level": 4 },
+  { "category": "toy", "emoji": "🎲", "word": "dice", "level": 4 },
+  { "category": "space", "emoji": "👽", "word": "alien", "level": 4 },
+  { "category": "space", "emoji": "🛸", "word": "ufo", "level": 4 },
+  { "category": "space", "emoji": "🪐", "word": "planet", "level": 4 },
+  { "category": "space", "emoji": "☄️", "word": "comet", "level": 4 },
+  { "category": "space", "emoji": "🔭", "word": "telescope", "level": 4 },
+  { "category": "space", "emoji": "🛰️", "word": "satellite", "level": 4 }
+];
+
+const LEVEL_MENU = [
+    { lv: 1, title: 'Easy', desc: '초급 단어장' },
+    { lv: 2, title: 'Normal', desc: '중급 단어장' },
+    { lv: 3, title: 'Hard', desc: '고급 단어장' },
+    { lv: 4, title: 'Expert', desc: '마스터 단어장' }
+];
+
+const playerIds = ['dog', 'cat', 'rabbit', 'hamster', 'panda', 'monkey'];
+const state = {
+    dog: { id: 'dog', name: 'Dog', emoji: '🐶', item: '🦴', score: 0, active: false, rank: 1, colorClass: 'bg-dog', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    cat: { id: 'cat', name: 'Cat', emoji: '🐱', item: '🐟', score: 0, active: false, rank: 1, colorClass: 'bg-cat', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    rabbit: { id: 'rabbit', name: 'Rabbit', emoji: '🐰', item: '🥕', score: 0, active: false, rank: 1, colorClass: 'bg-rabbit', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    hamster: { id: 'hamster', name: 'Hamster', emoji: '🐹', item: '🥜', score: 0, active: false, rank: 1, colorClass: 'bg-hamster', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    panda: { id: 'panda', name: 'Panda', emoji: '🐼', item: '🎋', score: 0, active: false, rank: 1, colorClass: 'bg-panda', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    monkey: { id: 'monkey', name: 'Monkey', emoji: '🐵', item: '🍌', score: 0, active: false, rank: 1, colorClass: 'bg-monkey', combo: 0, hints: 1, hintProgress: 0, passes: 1, passProgress: 0 },
+    timeLeft: 60, baseTime: 60, timerInterval: null, hintIntervalId: null, isGameOver: true, isCounting: false,
+    count: 4, teamModeType: 'none', currentLevelIndex: 0
+};
+
+// === 오디오 시스템 ===
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+function playBeep(freq, duration, type = 'sine') {
+    if(!audioCtx) return; const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration); osc.stop(audioCtx.currentTime + duration);
+}
+function playSuccessSound() { if(!audioCtx) return; [523.25, 659.25, 783.99].forEach((f, i) => { const osc = audioCtx.createOscillator(); const g = audioCtx.createGain(); osc.frequency.setValueAtTime(f, audioCtx.currentTime + (i*0.07)); g.gain.setValueAtTime(0.4, audioCtx.currentTime + (i*0.07)); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (i*0.07) + 0.3); osc.connect(g); g.connect(audioCtx.destination); osc.start(audioCtx.currentTime + (i*0.07)); osc.stop(audioCtx.currentTime + (i*0.07) + 0.3); }); }
+function playFailSound() { if(!audioCtx) return; playBeep(200, 0.2, 'sawtooth'); }
+function playVictorySound() { if(!audioCtx) return; const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; notes.forEach((f, i) => { const osc = audioCtx.createOscillator(); const g = audioCtx.createGain(); const startTime = audioCtx.currentTime + (i * 0.12); osc.type = (i === notes.length - 1) ? 'square' : 'triangle'; osc.frequency.setValueAtTime(f, startTime); g.gain.setValueAtTime(0.4, startTime); g.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6); osc.connect(g); g.connect(audioCtx.destination); osc.start(startTime); osc.stop(startTime + 0.6); }); }
+
+// === 시작 화면 렌더링 ===
+function renderMenu() {
+    const list = document.getElementById('levelList');
+    list.innerHTML = '';
+    LEVEL_MENU.forEach((level, idx) => {
+        const item = document.createElement('div');
+        item.className = `level-item ${state.currentLevelIndex === idx ? 'selected' : ''}`;
+        item.innerHTML = `
+            <div class="level-badge">${level.lv}</div>
+            <div class="level-info">
+                <div class="level-title-group">
+                    <div class="level-title">${level.title}</div>
+                    <div class="level-desc">${level.desc}</div>
+                </div>
+                <button class="word-view-btn" onclick="openWordModal(${level.lv}, event)">Word List</button>
+            </div>`;
+        item.onclick = (e) => {
+            if(e.target.classList.contains('word-view-btn')) return;
+            state.currentLevelIndex = idx;
+            renderMenu();
+        };
+        list.appendChild(item);
+    });
+}
+
+function openWordModal(maxLevel, event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('wordModal');
+    const title = document.getElementById('wordModalTitle');
+    const list = document.getElementById('wordModalList');
+
+    title.textContent = `Level 1~${maxLevel} Words`;
+    list.innerHTML = '';
+
+    let words = emojiData.filter(w => w.level <= maxLevel);
+    
+    // 영어 알파벳 순서대로 정렬
+    words.sort((a, b) => a.word.localeCompare(b.word));
+
+    words.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'word-item';
+        item.innerHTML = `
+            <span class="emoji">${w.emoji}</span>
+            <span class="word">${w.word}</span>
+            <span class="level">Lv.${w.level}</span>
+        `;
+        list.appendChild(item);
+    });
+
+    modal.style.display = 'flex';
+}
+
+function closeWordModal() {
+    document.getElementById('wordModal').style.display = 'none';
+}
+
+function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// === 액션 (힌트, 패스) 컨트롤 ===
+function updateActionUI(team) {
+    const hBtn = document.getElementById(team + 'HintBtn');
+    const hBg = document.getElementById(team + 'HintBg');
+    const pBtn = document.getElementById(team + 'PassBtn');
+    const pBg = document.getElementById(team + 'PassBg');
+    
+    if(!hBtn || !hBg || !pBtn || !pBg) return;
+
+    const s = state[team];
+
+    if(s.hints > 0) {
+        hBtn.classList.remove('disabled');
+        hBg.style.width = '100%';
+        hBg.style.background = 'rgba(255, 255, 255, 0.4)';
+    } else {
+        hBtn.classList.add('disabled');
+        hBg.style.width = `${s.hintProgress}%`;
+        hBg.style.background = 'rgba(255, 255, 255, 0.2)';
+    }
+
+    if(s.passes > 0) {
+        pBtn.classList.remove('disabled');
+        pBg.style.width = '100%';
+        pBg.style.background = 'rgba(255, 255, 255, 0.4)';
+    } else {
+        pBtn.classList.add('disabled');
+        pBg.style.width = `${s.passProgress}%`;
+        pBg.style.background = 'rgba(255, 255, 255, 0.2)';
+    }
+}
+
+function passWord(team, e) {
+    if(e) e.preventDefault();
+    if(state.isGameOver || state.isCounting) return;
+    
+    const s = state[team];
+    if(s.passes <= 0) return;
+    
+    s.passes = 0;
+    s.passProgress = 0;
+    s.combo = 0; // 패스하면 콤보만 초기화되고 감점은 없음
+    
+    updateActionUI(team);
+    playFailSound();
+    
+    const emojiEl = document.getElementById(team + 'Emoji');
+    emojiEl.style.animation = 'none'; emojiEl.offsetHeight;
+    emojiEl.style.animation = 'shake 0.3s';
+    
+    updateRanks();
+    renderScore();
+    
+    setTimeout(() => {
+        if(!state.isGameOver && !state.isCounting) generate(team);
+    }, 200);
+}
+
+function useHint(team, e) {
+    if(e) e.preventDefault();
+    if(state.isGameOver || state.isCounting) return;
+    
+    const s = state[team];
+    if(s.hints <= 0) return;
+    
+    s.hints = 0;
+    s.hintProgress = 0;
+    updateActionUI(team);
+    
+    const drops = Array.from(document.querySelectorAll(`#${team}Side .drop-zone:not(.filled)`));
+    if(drops.length === 0) return;
+    
+    const toFill = 1; // 힌트는 무조건 1개의 알파벳만 이동
+    shuffle(drops);
+    
+    for(let i=0; i<toFill; i++) {
+        let zone = drops[i];
+        let char = zone.dataset.char;
+        
+        let dragLetter = Array.from(document.querySelectorAll(`#${team}Side .drag-letter`)).find(el => el.dataset.char === char && !el.classList.contains('dragging') && el.style.opacity !== '0.3');
+        
+        if(dragLetter) {
+            dragLetter.style.pointerEvents = 'none';
+            
+            let zRect = zone.getBoundingClientRect();
+            let dRect = dragLetter.getBoundingClientRect();
+            let dx = zRect.left - dRect.left + (zRect.width - dRect.width)/2;
+            let dy = zRect.top - dRect.top + (zRect.height - dRect.height)/2;
+            
+            dragLetter.style.transition = 'all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            dragLetter.style.transform = `translate(${dx}px, ${dy}px) scale(0.5)`;
+            dragLetter.style.opacity = '0.3';
+            
+            playBeep(1000 + (i*150), 0.1, 'triangle');
+            
+            setTimeout(() => {
+                if(!document.body.contains(zone)) return; // 안전장치
+                zone.classList.add('filled');
+                zone.textContent = char;
+                zone.style.transform = 'scale(1.2)';
+                setTimeout(() => zone.style.transform = 'scale(1)', 150);
+                dragLetter.remove();
+                
+                checkWordComplete(team);
+            }, 400);
+        }
+    }
+}
+
+// === 드래그 앤 드롭 시스템 ===
+const activeDrags = {};
+
+function initPointerEvents() {
+    document.addEventListener('pointermove', handlePointerMove, { passive: false });
+    document.addEventListener('pointerup', handlePointerUp, { passive: false });
+    document.addEventListener('pointercancel', handlePointerUp, { passive: false });
+}
+
+function handlePointerDown(e) {
+    if (!e.target.classList.contains('drag-letter')) return;
+    e.preventDefault();
+    e.target.setPointerCapture(e.pointerId);
+
+    activeDrags[e.pointerId] = {
+        el: e.target,
+        startX: e.clientX,
+        startY: e.clientY,
+    };
+    
+    e.target.style.transition = 'none';
+    e.target.classList.add('dragging');
+    playBeep(300, 0.05, 'sine');
+}
+
+function handlePointerMove(e) {
+    if (!activeDrags[e.pointerId]) return;
+    e.preventDefault();
+    let drag = activeDrags[e.pointerId];
+    let dx = e.clientX - drag.startX;
+    let dy = e.clientY - drag.startY;
+    drag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.1)`;
+}
+
+function handlePointerUp(e) {
+    if (!activeDrags[e.pointerId]) return;
+    e.preventDefault();
+    let drag = activeDrags[e.pointerId];
+    let el = drag.el;
+    
+    el.releasePointerCapture(e.pointerId);
+    el.classList.remove('dragging');
+    
+    let team = el.dataset.team;
+    let char = el.dataset.char;
+    let dropZones = document.querySelectorAll(`#${team}Side .drop-zone:not(.filled)`);
+    let dropped = false;
+
+    let elRect = el.getBoundingClientRect();
+    let elCenter = { x: elRect.left + elRect.width/2, y: elRect.top + elRect.height/2 };
+
+    for (let zone of dropZones) {
+        let zRect = zone.getBoundingClientRect();
+        if (elCenter.x > zRect.left && elCenter.x < zRect.right &&
+            elCenter.y > zRect.top && elCenter.y < zRect.bottom) {
+            
+            if (zone.dataset.char === char) {
+                // 맞는 슬롯
+                zone.classList.add('filled');
+                zone.textContent = char;
+                zone.style.transform = 'scale(1.2)';
+                setTimeout(() => zone.style.transform = 'scale(1)', 150);
+                el.remove();
+                dropped = true;
+                playBeep(600, 0.1, 'sine');
+                checkWordComplete(team);
+                break; // 하나만 채움
+            } else {
+                // 틀린 슬롯
+                zone.classList.add('wrong');
+                setTimeout(() => zone.classList.remove('wrong'), 300);
+                playFailSound();
+                state[team].combo = 0;
+            }
+        }
+    }
+
+    if (!dropped) {
+        el.style.transition = 'transform 0.2s';
+        el.style.transform = 'translate(0px, 0px) scale(1)';
+    }
+
+    delete activeDrags[e.pointerId];
+}
+
+// === 단어 출제 시스템 ===
+function generate(team) {
+    const maxLevel = state.currentLevelIndex + 1;
+    const pool = emojiData.filter(d => d.level <= maxLevel);
+    const targetWord = pool[Math.floor(Math.random() * pool.length)];
+    
+    const emojiEl = document.getElementById(team + 'Emoji');
+    const dropsEl = document.getElementById(team + 'Drops');
+    const dragsEl = document.getElementById(team + 'Drags');
+    
+    emojiEl.textContent = targetWord.emoji;
+    emojiEl.style.animation = 'none';
+    emojiEl.offsetHeight; // 리플로우
+    emojiEl.style.animation = 'popIn 0.3s ease-out';
+    
+    dropsEl.innerHTML = '';
+    dragsEl.innerHTML = '';
+    
+    const wordArr = targetWord.word.split('');
+    const shuffledArr = shuffle(wordArr);
+    
+    // 원형 드롭존 생성
+    wordArr.forEach((char) => {
+        if(char === ' ') return; // 띄어쓰기 생략
+        const zone = document.createElement('div');
+        zone.className = 'drop-zone';
+        zone.dataset.char = char;
+        dropsEl.appendChild(zone);
+    });
+    
+    // 흩어진 알파벳(조작부) 생성
+    shuffledArr.forEach((char) => {
+        if(char === ' ') return;
+        const letter = document.createElement('div');
+        letter.className = 'drag-letter';
+        letter.textContent = char;
+        letter.dataset.char = char;
+        letter.dataset.team = team;
+        letter.addEventListener('pointerdown', handlePointerDown);
+        dragsEl.appendChild(letter);
+    });
+}
+
+function checkWordComplete(team) {
+    const drops = document.querySelectorAll(`#${team}Side .drop-zone`);
+    if(drops.length === 0) return; // 드롭존이 없는 상태로 호출 시 예외 처리
+    const allFilled = Array.from(drops).every(zone => zone.classList.contains('filled'));
+    
+    if (allFilled) {
+        const s = state[team];
+        playSuccessSound();
+        s.combo++;
+        
+        let addScore = 1;
+        if (s.combo > 0 && s.combo % 3 === 0) {
+            addScore = 3; 
+            showComboEffect(team, s.combo);
+        }
+        
+        // 현재 최고점 계산 (이펙트용)
+        let currentMax = 0; let t1, t2, t3;
+        if (state.teamModeType === '2vs2') { t1 = state.dog.score + state.cat.score; t2 = state.rabbit.score + state.hamster.score; currentMax = Math.max(t1, t2); } 
+        else if (state.teamModeType === '3vs3') { t1 = state.dog.score + state.cat.score + state.rabbit.score; t2 = state.hamster.score + state.panda.score + state.monkey.score; currentMax = Math.max(t1, t2); } 
+        else if (state.teamModeType === '2vs2vs2') { t1 = state.dog.score + state.cat.score; t2 = state.rabbit.score + state.hamster.score; t3 = state.panda.score + state.monkey.score; currentMax = Math.max(t1, t2, t3); } 
+        else { const activeTeams = playerIds.map(id => state[id]).filter(t => t.active); currentMax = Math.max(...activeTeams.map(t => t.score)); }
+
+        s.score += addScore;
+        
+        let becomeFirst = false;
+        if (state.teamModeType !== 'none') {
+            let myTeamScore = 0;
+            if (state.teamModeType === '2vs2') { if (team==='dog'||team==='cat') myTeamScore = state.dog.score + state.cat.score; else myTeamScore = state.rabbit.score + state.hamster.score; } 
+            else if (state.teamModeType === '3vs3') { if (team==='dog'||team==='cat'||team==='rabbit') myTeamScore = state.dog.score + state.cat.score + state.rabbit.score; else myTeamScore = state.hamster.score + state.panda.score + state.monkey.score; } 
+            else if (state.teamModeType === '2vs2vs2') { if (team==='dog'||team==='cat') myTeamScore = state.dog.score + state.cat.score; else if (team==='rabbit'||team==='hamster') myTeamScore = state.rabbit.score + state.hamster.score; else myTeamScore = state.panda.score + state.monkey.score; }
+            becomeFirst = (myTeamScore >= currentMax && currentMax > 0);
+        } else { becomeFirst = (s.score >= currentMax && currentMax > 0); }
+        
+        spawnItem(team, becomeFirst);
+        updateRanks();
+        renderScore();
+        
+        setTimeout(() => {
+            if(!state.isGameOver && !state.isCounting) generate(team);
+        }, 400);
+    }
+}
+
+function spawnItem(team, isGold) {
+    const parent = document.getElementById(team + 'Side');
+    const itemEl = document.createElement('div'); itemEl.className = 'item-effect';
+    itemEl.textContent = isGold ? '🥇' : state[team].item;
+    itemEl.style.left = (Math.random() * 70 + 10) + '%';
+    parent.appendChild(itemEl); setTimeout(() => itemEl.remove(), 1875);
+}
+
+function showComboEffect(team, count) {
+    const parent = document.getElementById(team + 'Side');
+    const comboEl = document.createElement('div');
+    comboEl.className = 'combo-text';
+    comboEl.innerHTML = `🔥 ${count} COMBO! +3`;
+    parent.appendChild(comboEl);
+    setTimeout(() => comboEl.remove(), 800);
+}
+
+// === 스코어 및 랭크 업데이트 ===
+function updateRanks() {
+    if (state.teamModeType !== 'none') {
+        let scores = [];
+        if (state.teamModeType === '2vs2') { scores.push({ id:'A', val: state.dog.score + state.cat.score }); scores.push({ id:'B', val: state.rabbit.score + state.hamster.score }); } 
+        else if (state.teamModeType === '3vs3') { scores.push({ id:'A', val: state.dog.score + state.cat.score + state.rabbit.score }); scores.push({ id:'B', val: state.hamster.score + state.panda.score + state.monkey.score }); } 
+        else if (state.teamModeType === '2vs2vs2') { scores.push({ id:'A', val: state.dog.score + state.cat.score }); scores.push({ id:'B', val: state.rabbit.score + state.hamster.score }); scores.push({ id:'C', val: state.panda.score + state.monkey.score }); }
+        scores.sort((a,b) => b.val - a.val);
+        let currentRank = 1;
+        for(let i=0; i<scores.length; i++) { 
+            if(i > 0 && scores[i].val < scores[i-1].val) { currentRank = i + 1; } 
+            const rankEl = document.getElementById('rank' + scores[i].id); 
+            if(rankEl) { 
+                rankEl.textContent = getRankSymbol(currentRank); 
+                rankEl.classList.remove('rank-1'); 
+                if(currentRank === 1) rankEl.classList.add('rank-1'); 
+            } 
+        }
+    } else {
+        const activeTeams = playerIds.map(id => state[id]).filter(t => t.active);
+        const sortedScores = activeTeams.map(t => t.score).sort((a, b) => b - a);
+        activeTeams.forEach(t => { 
+            const rank = sortedScores.indexOf(t.score) + 1; 
+            state[t.id].rank = rank; 
+            updateBadge(t.id, rank); 
+        });
+    }
+}
+
+function updateBadge(id, rank) {
+    const badge = document.getElementById(id + 'Rank');
+    if (badge) {
+        badge.className = 'rank-badge';
+        badge.textContent = getRankSymbol(rank);
+    }
+}
+
+function getRankSymbol(rank) { 
+    const symbols = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣']; 
+    return symbols[rank-1] || rank; 
+}
+
+function renderScore() {
+    const timerDisp = document.getElementById('timerDisplay');
+    if(state.teamModeType !== 'none') {
+        let sa=0, sb=0, sc=0;
+        if(state.teamModeType === '2vs2' || state.teamModeType === '2vs2vs2') { sa = state.dog.score + state.cat.score; sb = state.rabbit.score + state.hamster.score; if(state.teamModeType === '2vs2vs2') sc = state.panda.score + state.monkey.score; } 
+        else if(state.teamModeType === '3vs3') { sa = state.dog.score + state.cat.score + state.rabbit.score; sb = state.hamster.score + state.panda.score + state.monkey.score; }
+        document.getElementById('scoreA').textContent = sa; document.getElementById('scoreB').textContent = sb; if(state.teamModeType === '2vs2vs2') document.getElementById('scoreC').textContent = sc;
+    }
+    playerIds.forEach(id => { 
+        const t = state[id]; 
+        if(t && t.active) { 
+            const scoreBadge = document.getElementById(t.id+'Score'); 
+            if (scoreBadge && state.teamModeType === 'none') { 
+                scoreBadge.textContent = `${t.item} ${t.score}`; 
+            } 
+        } 
+    });
+    timerDisp.textContent = state.timeLeft;
+    if (state.timeLeft <= 5 && state.timeLeft > 0) timerDisp.classList.add('timer-urgent'); else timerDisp.classList.remove('timer-urgent');
+}
+
+// === 게임 흐름 제어 ===
+async function startCountdown() {
+    state.isCounting = true;
+    const layer = document.getElementById('countdownLayer');
+    const text = document.getElementById('countdownText');
+    const counts = ['3', '2', '1', 'GO!'];
+    
+    layer.style.display = 'flex';
+    for(let i = 0; i < counts.length; i++) {
+        if (state.isGameOver) { layer.style.display = 'none'; state.isCounting = false; return; }
+        text.textContent = counts[i];
+        if (i === counts.length - 1) playBeep(880, 0.4, 'triangle'); else playBeep(440, 0.2, 'sine');
+        text.style.animation = 'none'; text.offsetHeight; text.style.animation = 'countAnim 1s ease-out forwards';
+        await new Promise(r => setTimeout(r, 1000));
+    }
+    layer.style.display = 'none'; state.isCounting = false;
+}
+
+async function prepareGame() {
+    initAudio(); state.isGameOver = false;
+
+    const pVal = document.getElementById('playerCount').value;
+    const tVal = document.getElementById('gameTimeLimit').value; 
+    state.teamModeType = 'none';
+    
+    if(pVal === 'team2vs2') { state.count = 4; state.teamModeType = '2vs2'; } 
+    else if(pVal === 'team3vs3') { state.count = 6; state.teamModeType = '3vs3'; } 
+    else if(pVal === 'team2vs2vs2') { state.count = 6; state.teamModeType = '2vs2vs2'; } 
+    else { state.count = parseInt(pVal); state.teamModeType = 'none'; }
+    state.baseTime = parseInt(tVal); 
+
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('resultList').style.display = 'none';
+    document.getElementById('finalPodium').style.display = 'none';
+    document.getElementById('setupArea').style.display = 'none';
+    document.querySelector('.math-menu-wrapper').style.display = 'none';
+    document.getElementById('gameInstructions').style.display = 'none'; // 게임 시작 시 설명 숨기기
+    
+    const scoreBoard = document.getElementById('teamScoreBoard');
+    const cardB = document.getElementById('teamCardB');
+    const cardC = document.getElementById('teamCardC');
+    
+    if (state.teamModeType !== 'none') {
+        document.body.classList.add('team-mode');
+        scoreBoard.style.display = 'flex';
+        cardB.style.background = ''; 
+        cardB.querySelector('.team-score').innerHTML = '🥕 <span id="scoreB">0</span> 🥜'; 
+        
+        if (state.teamModeType === '2vs2vs2') {
+            cardC.style.display = 'flex';
+            document.getElementById('teamNameA').textContent = '🐶Dog & Cat🐱';
+            document.getElementById('teamNameB').textContent = '🐰Rabbit & Hamster🐹';
+            document.getElementById('teamNameC').textContent = '🐼Panda & Monkey🐵';
+        } else if (state.teamModeType === '3vs3') {
+            cardC.style.display = 'none';
+            document.getElementById('teamNameA').textContent = '🐶DogCatRabbit🐰';
+            document.getElementById('teamNameB').textContent = '🐹HamPanMon🐵';
+            cardB.style.background = 'var(--hamster-color)';
+            cardB.querySelector('.team-score').innerHTML = '🥜 <span id="scoreB">0</span> 🍌';
+        } else {
+            cardC.style.display = 'none';
+            document.getElementById('teamNameA').textContent = '🐶Dog & Cat🐱';
+            document.getElementById('teamNameB').textContent = '🐰Rabbit & Hamster🐹';
+        }
+    } else {
+        document.body.classList.remove('team-mode');
+        scoreBoard.style.display = 'none';
+    }
+    
+    playerIds.forEach((id, idx) => {
+        const box = document.getElementById(id + 'Side');
+        if (idx < state.count) {
+            state[id].active = true; state[id].score = 0;
+            state[id].combo = 0; 
+            state[id].hints = 1; state[id].hintProgress = 0; 
+            state[id].passes = 1; state[id].passProgress = 0; 
+            box.style.display = 'flex';
+            updateActionUI(id);
+            generate(id);
+        } else {
+            state[id].active = false; box.style.display = 'none';
+        }
+    });
+    
+    state.timeLeft = state.baseTime; 
+    updateRanks(); renderScore(); 
+    await startCountdown();
+    if(state.isGameOver) return;
+    state.timeLeft = state.baseTime; startTimer();
+}
+
+function startTimer() {
+    clearInterval(state.timerInterval);
+    clearInterval(state.hintIntervalId);
+    
+    state.timerInterval = setInterval(() => {
+        state.timeLeft--;
+        if (state.timeLeft <= 5 && state.timeLeft > 0) playBeep(900, 0.1);
+        else if (state.timeLeft === 0) playBeep(400, 0.5);
+        renderScore();
+        if (state.timeLeft <= 0) endGame();
+    }, 1000);
+    
+    // 힌트/패스 게이지 타이머 (100ms 당 2% 증가 = 5초에 100%)
+    state.hintIntervalId = setInterval(() => {
+        playerIds.forEach(id => {
+            if(state[id].active && !state.isGameOver && !state.isCounting) {
+                let updated = false;
+                
+                if (state[id].hints === 0) {
+                    state[id].hintProgress += 2;
+                    if(state[id].hintProgress >= 100) {
+                        state[id].hints = 1;
+                        state[id].hintProgress = 0;
+                        playBeep(700, 0.05, 'sine');
+                    }
+                    updated = true;
+                }
+                
+                if (state[id].passes === 0) {
+                    state[id].passProgress += 2;
+                    if(state[id].passProgress >= 100) {
+                        state[id].passes = 1;
+                        state[id].passProgress = 0;
+                        playBeep(700, 0.05, 'sine');
+                    }
+                    updated = true;
+                }
+                
+                if(updated) updateActionUI(id);
+            }
+        });
+    }, 100);
+}
+
+function goToMenu() {
+    state.isGameOver = true; state.isCounting = false;
+    clearInterval(state.timerInterval);
+    clearInterval(state.hintIntervalId);
+
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('resultList').style.display = 'none';
+    document.getElementById('finalPodium').style.display = 'none';
+    document.getElementById('setupArea').style.display = 'flex'; 
+    document.querySelector('.math-menu-wrapper').style.display = 'block';
+    document.getElementById('countdownLayer').style.display = 'none';
+    document.getElementById('msgTitle').textContent = 'Emoji Spelling King';
+    document.getElementById('gameInstructions').style.display = 'inline-block'; // 메인 메뉴에서 설명 다시 표시
+    document.getElementById('startBtn').textContent = "Start Battle";
+}
+
+function endGame() {
+    state.isGameOver = true; clearInterval(state.timerInterval); clearInterval(state.hintIntervalId); playVictorySound();
+    
+    document.getElementById('setupArea').style.display = 'none'; 
+    document.querySelector('.math-menu-wrapper').style.display = 'none';
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('msgTitle').textContent = "Game Over!";
+    document.getElementById('gameInstructions').style.display = 'none'; // 게임 오버 화면에서는 설명 숨기기
+    
+    const resultList = document.getElementById('resultList');
+    const podium = document.getElementById('finalPodium');
+    resultList.innerHTML = ''; podium.innerHTML = ''; podium.style.display = 'flex';
+    
+    if (state.teamModeType !== 'none') {
+        let teams = [];
+        if (state.teamModeType === '2vs2') { teams = [ { name: '🐶Dog & Cat🐱', score: state.dog.score + state.cat.score, ids: ['dog','cat'], class: 'bg-dog' }, { name: '🐰Rabbit & Hamster🐹', score: state.rabbit.score + state.hamster.score, ids: ['rabbit','hamster'], class: 'bg-rabbit' } ]; } 
+        else if (state.teamModeType === '3vs3') { teams = [ { name: '🐶DogCatRabbit🐰', score: state.dog.score + state.cat.score + state.rabbit.score, ids: ['dog','cat','rabbit'], class: 'bg-dog' }, { name: '🐹HamPanMon🐵', score: state.hamster.score + state.panda.score + state.monkey.score, ids: ['hamster','panda','monkey'], class: 'bg-hamster' } ]; } 
+        else if (state.teamModeType === '2vs2vs2') { teams = [ { name: '🐶Dog & Cat🐱', score: state.dog.score + state.cat.score, ids: ['dog','cat'], class: 'bg-dog' }, { name: '🐰Rabbit & Hamster🐹', score: state.rabbit.score + state.hamster.score, ids: ['rabbit','hamster'], class: 'bg-rabbit' }, { name: '🐼Panda & Monkey🐵', score: state.panda.score + state.monkey.score, ids: ['panda','monkey'], class: 'bg-panda' } ]; }
+        teams.sort((a,b) => b.score - a.score);
+        let currentRank = 1; for(let i=0; i<teams.length; i++){ if(i>0 && teams[i].score < teams[i-1].score) currentRank = i+1; teams[i].rank = currentRank; }
+        teams.forEach(t => { const li = document.createElement('li'); if(t.rank === 1) li.className = 'gold'; const symbol = getRankSymbol(t.rank); li.innerHTML = `<div class="result-name"><span>${symbol}</span><span>${t.name}</span></div><div class="result-score">Total ${t.score}</div>`; resultList.appendChild(li); });
+        playerIds.forEach(id => { if(state[id].active) { const myTeam = teams.find(t => t.ids.includes(id)); const rank = myTeam ? myTeam.rank : 6; const tInfo = state[id]; const col = document.createElement('div'); col.className = `podium-col ${tInfo.colorClass}`; col.innerHTML = ` <div class="podium-medal">${getRankSymbol(rank)}</div> <div class="podium-name">${tInfo.emoji}</div> `; podium.appendChild(col); } });
+    } else {
+        const activeTeams = playerIds.map(id => state[id]).filter(t => t.active);
+        const finalSort = [...activeTeams].sort((a, b) => b.score - a.score);
+        const allScores = activeTeams.map(t => t.score).sort((a,b) => b-a);
+        finalSort.forEach((t) => { const li = document.createElement('li'); const rank = allScores.indexOf(t.score) + 1; if(rank === 1) li.className = 'gold'; const symbol = getRankSymbol(rank); li.innerHTML = `<div class="result-name"><span>${symbol}</span><span>${t.emoji}${t.name}</span></div><div class="result-score">${t.item} ${t.score}</div>`; resultList.appendChild(li); });
+        playerIds.forEach(id => { const t = state[id]; if(t.active) { const rank = allScores.indexOf(t.score) + 1; const col = document.createElement('div'); col.className = `podium-col ${t.colorClass}`; col.innerHTML = ` <div class="podium-medal">${getRankSymbol(rank)}</div> <div class="podium-name">${t.emoji}</div> `; podium.appendChild(col); } });
+    }
+    resultList.style.display = 'block';
+    
+    const startBtn = document.getElementById('startBtn');
+    startBtn.textContent = "Play Again";
+    startBtn.style.background = "#ff7675"; startBtn.style.boxShadow = "0 6px 0 #fa5252"; 
+    startBtn.onpointerdown = null;
+    startBtn.onclick = (e) => { 
+        e.preventDefault(); goToMenu(); 
+        startBtn.onclick = null; startBtn.onpointerdown = (e) => { e.preventDefault(); prepareGame(); };
+    };
+}
+
+function toggleFullScreen() {
+    var doc = window.document; var docEl = doc.documentElement;
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+    var activeFullScreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+    if (!requestFullScreen) return;
+    if (!activeFullScreen) requestFullScreen.call(docEl); else cancelFullScreen.call(doc);
+}
+
+// 이벤트 리스너 등록
+document.getElementById('resetBtn').onpointerdown = (e) => { 
+    e.preventDefault(); 
+    if (document.fullscreenElement) {
+        state.isPlaying = false;
+        clearInterval(state.timerInterval);
+        clearInterval(state.hintIntervalId);
+        goToMenu();
+    } else {
+        state.isPlaying = false;
+        clearInterval(state.timerInterval);
+        clearInterval(state.hintIntervalId);
+        goToMenu();
+    }
+};
+document.getElementById('gameFsBtn').onclick = (e) => { toggleFullScreen(); };
+document.getElementById('startBtn').onpointerdown = (e) => { e.preventDefault(); prepareGame(); };
+
+document.addEventListener('touchmove', function(e) { if (e.scale !== 1) { e.preventDefault(); } }, { passive: false });
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// 초기화
+initPointerEvents();
+renderMenu();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5YW0T2C109');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title id="meta-title">부피킹 겉넓이킹</title>
+    <meta name="description" id="meta-desc" content="직육면체와 정육면체의 부피와 겉넓이를 구하며 대결하는 수학 게임.">
+    <meta name="keywords" id="meta-keys" content="수학게임, 부피, 겉넓이, 킹수학, 초등수학">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false, // 기존 게임 폰트/레이아웃 크기 축소 버그 완벽 방지
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700&display=swap');
+    /* Global Font fallback for other languages */
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Noto+Sans+SC:wght@700&family=Noto+Sans+JP:wght@700&display=swap');
+
+    :root {
+        --bg-gradient: linear-gradient(135deg, #1e1e2e 0%, #232526 100%);
+        --primary: #4facfe; 
+        --dark: #f5f6fa;    
+        
+        --dog-color: #ffb142;   
+        --cat-color: #48dbfb;   
+        --rab-color: #ff9ff3;   
+        --ham-color: #55efc4;   
+
+        --dog-text: #ffb142;
+        --cat-text: #48dbfb;
+        --rab-text: #ff9ff3;
+        --ham-text: #55efc4;
+        
+        --shape-stroke: #2d3436; 
+        --shape-fill: #ffffff;      
+        --dim-color: #ff6b6b;        
+    }
+
+    * { 
+        box-sizing: border-box; 
+        touch-action: manipulation; 
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg-gradient);
+        font-family: 'Jua', 'Noto Sans KR', 'Fredoka', 'Noto Sans SC', 'Noto Sans JP', sans-serif; 
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        color: #f5f6fa; 
+    }
+
+    /* === 모달 및 언어 선택 UI 전용 독립 CSS (게임과 충돌 방지) === */
+    #langTriggerContainer, #langModal, #toastNotification {
+        font-family: 'Noto Sans KR', sans-serif !important;
+    }
+    #langTriggerContainer *, #langModal *, #toastNotification * {
+        box-sizing: border-box !important;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+    .modal-overlay {
+        opacity: 0; visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .modal-content {
+        transform: scale(0.95) translateY(-10px); opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+    .toast {
+        transform: translateY(100%); opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* === 시작 화면 (Intro) === */
+    #introScreen {
+        position: fixed; inset: 0; z-index: 100;
+        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center;
+    }
+
+    .top-link-area {
+        color: rgba(255,255,255,0.7); font-size: 1.5rem; margin-bottom: 10px; font-weight: normal;
+    }
+    .top-link-area a {
+        color: #4facfe; text-decoration: underline; font-weight: bold; text-underline-offset: 5px;
+    }
+
+    .intro-title {
+        font-size: 5rem; color: white; margin: 0; text-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+        animation: bounce 2s infinite; font-weight: normal; line-height: 1.2; padding: 0 20px; word-break: keep-all;
+    }
+    .intro-title.long-text { font-size: 3.5rem; }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-20px);}
+        60% {transform: translateY(-10px);}
+    }
+
+    .intro-box {
+        background: rgba(30, 30, 40, 0.85); 
+        padding: 30px 50px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        margin-top: 30px; width: 90%; max-width: 650px; border: 2px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .setting-row { margin-bottom: 25px; text-align: center; }
+    .setting-label { font-size: 1.6rem; color: #dfe6e9; display: block; margin-bottom: 12px; font-weight: normal; }
+
+    .mode-select { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+
+    .mode-btn {
+        flex: 1; padding: 15px 10px; border: 2px solid #444; border-radius: 20px;
+        background: #2d3436; cursor: pointer; font-size: 1.4rem; font-family: inherit;
+        transition: all 0.2s; min-width: 90px; color: #b2bec3; font-weight: normal;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; word-break: keep-all;
+    }
+    .mode-btn.long-text { font-size: 1.1rem; }
+
+    .mode-btn.selected {
+        border-color: var(--primary); background: #0984e3; color: white; 
+        transform: scale(1.05); box-shadow: 0 0 15px rgba(9, 132, 227, 0.6);
+    }
+
+    #startBtn {
+        width: 100%; padding: 18px; font-size: 2.2rem; border-radius: 50px; border: none; 
+        background: linear-gradient(45deg, #ff6b6b, #ee5253); color: white; cursor: pointer;
+        box-shadow: 0 6px 0 #b33939; font-family: inherit; margin-top: 15px; transition: transform 0.1s; font-weight: normal;
+    }
+    #startBtn:active { transform: translateY(6px); box-shadow: 0 0 0; }
+
+    .other-game-link {
+        display: block; margin-top: 25px; color: #636e72; text-decoration: underline;
+        font-size: 1.3rem; transition: color 0.2s; text-underline-offset: 4px;
+    }
+    .other-game-link:hover { color: #dfe6e9; }
+
+    /* === 게임 화면 === */
+    #gameScreen { display: none; flex: 1; position: relative; flex-direction: column; }
+
+    #header {
+        height: auto; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 10px 20px; background: rgba(20, 20, 30, 0.85); backdrop-filter: blur(5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3); z-index: 20; gap: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .formula-bar {
+        width: 100%; text-align: center; font-size:1.6rem; color: #b2bec3; word-break: keep-all; line-height: 1.4; font-weight: normal;
+    }
+    .formula-bar.long-text { font-size: 1.1rem; }
+
+    @media (max-width: 600px) {
+        .formula-bar { font-size: 0.85rem; }
+        .intro-title { font-size: 3rem; }
+        .intro-box { padding: 20px; }
+    }
+
+    #homeBtnFixed {
+        position: fixed; bottom: 20px; left: 20px; width: 50px; height: 50px; background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        font-size: 2.2rem; cursor: pointer; z-index: 1000; transition: background 0.3s; color: #eee;
+    }
+    #homeBtnFixed:hover { background: rgba(255,255,255,0.2); }
+    #homeBtnFixed:active { transform: scale(0.9); }
+
+    .timer-box { font-size: 3.5rem; font-weight: normal; color: #ff9f43; text-shadow: 0 0 10px rgba(255, 159, 67, 0.5); margin-bottom: -5px; }
+    .timer-urgent { color: #ff5252; animation: blink 0.5s infinite; transform-origin: center; text-shadow: 0 0 10px rgba(255, 82, 82, 0.5); }
+    @keyframes blink { 50% { transform: scale(1.1); opacity: 0.8; } }
+
+    #arena {
+        flex: 1; margin: 10px 20px; background: rgba(0, 0, 0, 0.3); border-radius: 30px;
+        border: 4px dashed #555; display: flex; align-items: center; justify-content: space-around;
+        padding: 10px; position: relative;
+    }
+
+    .shape-slot {
+        width: 18%; height: 90%; background: #2d3436; border-radius: 25px; border: 3px solid #636e72;
+        display: flex; align-items: center; justify-content: center; position: relative; 
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    }
+    .shape-slot.empty { opacity: 0; transform: scale(0); }
+    .shape-slot.matched { transform: scale(1.1) rotate(5deg); border-color: #00b894; box-shadow: 0 0 30px #00b894; z-index: 10; background: #000; }
+
+    svg { width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    text { font-family: 'Jua', 'Noto Sans KR', sans-serif; font-weight: normal; pointer-events: none; }
+    .dim-text { 
+        fill: var(--dim-color); font-size: 20px; font-weight: normal;
+        stroke: rgba(30, 30, 46, 0.8); stroke-width: 6px; paint-order: stroke;
+    }
+    .cube-label {
+        fill: #a29bfe; font-size: 22px; font-weight: bold; stroke: rgba(30,30,46,0.8); stroke-width: 4px; paint-order: stroke;
+    }
+
+    #playerZone {
+        height: 340px; background: linear-gradient(135deg, #2c3e50 0%, #000000 100%);
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.5); display: flex; justify-content: space-evenly;
+        align-items: flex-end; padding-bottom: 10px; z-index: 30;
+    }
+
+    .player-ctrl {
+        width: 22%; max-width: 250px; height: 98%; border-radius: 25px 25px 0 0; padding: 8px;
+        display: flex; flex-direction: column; gap: 5px; background: #2d3436; 
+        border-top: 5px solid transparent; transition: all 0.3s; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .p1-theme { background: #3e2723; border-color: var(--dog-color); color: var(--dog-color); }
+    .p2-theme { background: #192a56; border-color: var(--cat-color); color: var(--cat-color); }
+    .p3-theme { background: #3c1f41; border-color: var(--rab-color); color: var(--rab-color); }
+    .p4-theme { background: #1e3728; border-color: var(--ham-color); color: var(--ham-color); }
+
+    .info-row { display: flex; justify-content: center; align-items: center; gap: 5px; padding: 2px 0; white-space: nowrap; }
+    .p-name { font-size: 1.6rem; font-weight: normal; overflow: hidden; text-overflow: ellipsis; }
+    .p-score-box { 
+        background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 10px; font-size: 1.3rem; font-weight: normal; 
+        display: flex; align-items: center; color: white;
+    }
+
+    .rich-badge {
+        position: absolute; top: -45px; left: -14%; transform: rotate(-15deg);
+        background: linear-gradient(45deg, #f1c40f, #f39c12); color: #2c3e50; border: 3px solid #2c3e50;
+        padding: 8px 18px; border-radius: 30px; font-size: 1.6em; font-weight: normal;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: floatBadge 1.5s infinite ease-in-out;
+        display: none; z-index: 50; white-space: nowrap;
+    }
+    .rich-badge.long-text { font-size: 1.2em; padding: 5px 10px; }
+
+    @keyframes floatBadge { 
+        0%,100% {transform: rotate(-15deg) translateY(0) scale(1);} 
+        50% {transform: rotate(-15deg) translateY(-8px) scale(1.05);} 
+    }
+
+    .input-container { position: relative; width: 90%; margin: 0 auto; }
+    .input-display {
+        background: #1e1e1e; border-radius: 12px; height: 45px; line-height: 45px;
+        font-size: 1.6rem; text-align: center; border: 2px solid #555; color: #fff;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); padding-right: 30px; font-weight: normal;
+    }
+    .unit-mark {
+        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+        font-size: 1.2rem; color: #888; font-weight: normal; pointer-events: none;
+    }
+
+    .keypad { 
+        width: 90%; margin: 0 auto; flex: 1; display: grid; 
+        grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 4px; 
+    }
+
+    .key {
+        background: #4a4a4a; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; cursor: pointer; box-shadow: 0 4px 0 #222; color: #eee; font-weight: normal;
+        transition: transform 0.05s; height: 100%;
+    }
+    .key:active { transform: translateY(4px); box-shadow: none; background: #666; }
+    .key-del { background: #c0392b; color: #fff; font-size: 1.2rem; box-shadow: 0 4px 0 #7f261c; }
+    .key-ok { background: #27ae60; color: #fff; font-size: 1.2rem; box-shadow: 0 4px 0 #186a3b; }
+
+    #fsBtn {
+        position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: rgba(255,255,255,0.1);
+        border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; cursor: pointer; z-index: 1000; transition: background 0.3s; color: #eee; border: 1px solid rgba(255,255,255,0.2);
+    }
+    #fsBtn:hover { background: rgba(255,255,255,0.2); }
+
+    @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
+    .shake { animation: shake 0.3s; background: #c0392b !important; }
+
+    .pop-in { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    #resultModal {
+        display: none; position: fixed; inset: 0; z-index: 200;
+        background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); align-items: center; justify-content: center; flex-direction: column;
+    }
+    .result-card {
+        background: #2d3436; padding: 40px; border-radius: 40px; text-align: center;
+        width: 80%; max-width: 800px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 3px solid #555; animation: popIn 0.5s; color: #fff;
+    }
+
+    .graph-container {
+        display: flex; align-items: flex-end; justify-content: space-around; height: 300px; margin: 30px 0; border-bottom: 3px solid #555; padding-bottom: 10px;
+    }
+
+    .bar-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; width: 15%; }
+    .bar-val { font-size: 1.5rem; font-weight: normal; margin-bottom: 5px; opacity: 0; animation: fadeUp 1s forwards 0.5s; color: #fff; }
+    .bar {
+        width: 100%; background: #555; border-radius: 15px 15px 0 0; transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        height: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: relative;
+    }
+    .bar-icon { font-size: 3rem; margin-top: 10px; }
+    .bar-name { font-size: 1.2rem; margin-top: 5px; color: #b2bec3; }
+    .winner-crown { 
+        position: absolute; top: -40px; left: 50%; transform: translateX(-50%); 
+        font-size: 3rem; animation: bounce 1s infinite; display: none;
+    }
+
+    @keyframes fadeUp { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+    </style>
+</head>
+<body oncontextmenu="return false">
+
+<div id="langTriggerContainer" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-[99999]">
+    <button id="langTriggerBtn" class="flex items-center gap-2 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 rounded-full px-4 py-2 transition-all duration-200 text-sm font-medium shadow-lg" style="color:white; z-index:99999;">
+        <i class="fa-solid fa-globe text-gray-400"></i>
+        <img id="currentFlag" src="https://flagcdn.com/w40/us.png" alt="US" class="w-5 h-auto rounded-[2px] shadow-sm">
+        <span id="currentLangName" class="hidden sm:inline-block">English</span>
+        <i class="fa-solid fa-chevron-down text-gray-400 ml-1 text-xs"></i>
+    </button>
+</div>
+
+<div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+    <div class="modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+        <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+            <div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-language text-yellow-500"></i>
+                    <span>Language / 언어</span>
+                </h2>
+            </div>
+            <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="p-5 pb-2 bg-gray-900">
+            <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                    class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+            </div>
+        </div>
+        <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+            <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+            <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                <p>No results / 검색 결과 없음</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999]">
+    <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+        <i class="fa-solid fa-check"></i>
+    </div>
+    <div>
+        <p id="ui-toast" class="text-sm font-medium text-white">Language changed.</p>
+        <p id="toastLangName" class="text-xs text-gray-400">English</p>
+    </div>
+</div>
+
+<div id="fsBtn" onclick="toggleFullScreen()">⛶</div>
+<div id="homeBtnFixed" style="display:none; cursor:pointer;">🏠</div>
+
+<div id="introScreen">
+    <div class="top-link-area">
+        <span id="txt-top-desc">Become the Math King!</span> 
+        <a href="/" target="_self" id="txt-top-link">KingsMath.com</a>
+    </div>
+    <h1 class="intro-title" id="txt-game-title">📦 Volume King & Area King</h1>
+    
+    <div class="intro-box">
+        <div class="setting-row">
+            <span class="setting-label" id="txt-select-game">🎮 Select Game</span>
+            <div class="mode-select" id="typeSelect">
+                <div class="mode-btn selected" onclick="setGameType('volume')" id="txt-type-vol">Find<br>Volume</div>
+                <div class="mode-btn" onclick="setGameType('surface')" id="txt-type-surf">Find<br>Area</div>
+            </div>
+        </div>
+
+        <div class="setting-row">
+            <span class="setting-label" id="txt-label-players">👥 How many players?</span>
+            <div class="mode-select" id="playerSelect">
+                <div class="mode-btn" onclick="setPlayers(1)" id="txt-mode-1">1 P</div>
+                <div class="mode-btn selected" onclick="setPlayers(2)" id="txt-mode-2">2 P</div>
+                <div class="mode-btn" onclick="setPlayers(3)" id="txt-mode-3">3 P</div>
+                <div class="mode-btn" onclick="setPlayers(4)" id="txt-mode-4">4 P</div>
+            </div>
+        </div>
+        
+        <button id="startBtn" onclick="gameStart()">Start Game!</button>
+        <a href="/" target="_self" class="other-game-link" id="link-other-game">🎮 More Games</a>
+    </div>
+</div>
+
+<div id="gameScreen">
+    <header id="header">
+        <div style="text-align:center;">
+             <span class="timer-box" id="timer">60</span>
+        </div>
+        <div class="formula-bar" id="txt-formula-bar">
+            Cuboid (W × D × H) | Cube (Side × Side × Side)
+        </div>
+    </header>
+
+    <div id="arena">
+    </div>
+
+    <div id="playerZone">
+    </div>
+</div>
+
+<div id="resultModal">
+    <div class="result-card">
+        <h1 style="font-size:3rem; margin:0; color:#feca57; font-weight: normal;" id="txt-res-title">👑 Results 👑</h1>
+        <div style="font-size:1.5rem; color:#b2bec3; margin-bottom:20px; font-weight: normal;" id="txt-res-sub">Who got the highest score?</div>
+        
+        <div class="graph-container" id="resultGraph">
+        </div>
+        
+        <button id="restartBtn" style="background:#ff7675; width:200px; margin-top:20px; font-family: inherit; font-size: 1.5rem; border:none; border-radius:30px; padding:10px; color:white; cursor:pointer;" onclick="softReset()">Play Again</button>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// 홈 버튼 최적화 (전체 화면 유지)
+// ==========================================
+document.getElementById('homeBtnFixed').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+        gameState.active = false;
+        clearInterval(gameState.interval);
+        
+        // 홈 이모지 클릭시 게임, 결과 가리고 첫 화면 및 언어 모달 버튼 활성화
+        document.getElementById('langTriggerContainer').style.display = 'block';
+        document.getElementById('resultModal').style.display = 'none';
+        document.getElementById('gameScreen').style.display = 'none';
+        document.getElementById('introScreen').style.display = 'flex';
+        document.getElementById('homeBtnFixed').style.display = 'none';
+        
+        if(window.playSound) window.playSound('pop'); // 효과음
+    } else {
+        location.reload();
+    }
+});
+
+
+// ==========================================
+// 다국어 처리 (Translation Logic 16개국어)
+// ==========================================
+const languages = [
+    { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+    { code: 'en', country: 'us', name: 'English', enName: 'English' },
+    { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+    { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+    { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+    { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+    { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+    { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+    { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+    { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+    { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+    { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+    { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+    { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' },
+    { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+    { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' }
+];
+
+const toastTranslations = {
+    'ko': '언어가 변경되었습니다.', 'en': 'Language changed.', 'zh': '语言已更改。', 'ja': '言語が変更されました。',
+    'es': 'Idioma cambiado.', 'fr': 'Langue modifiée.', 'ru': 'Язык изменен.', 'id': 'Bahasa telah diubah.',
+    'vi': 'Ngôn ngữ đã được thay đổi.', 'th': 'เปลี่ยนภาษาเรียบร้อยแล้ว', 'pt-br': 'Idioma alterado.',
+    'hi': 'भाषा बदल दी गई है।', 'bn': 'ভাষা পরিবর্তন করা হয়েছে।', 'tr': 'Dil değiştirildi.',
+    'de': 'Sprache geändert.', 'it': 'Lingua cambiata.'
+};
+
+const translations = {
+    ko: {
+        title: "부피킹 겉넓이킹", desc: "직육면체와 정육면체의 부피와 겉넓이를 구하며 대결하는 수학 게임.",
+        topDesc: "게임으로 수학의 킹이 되어라.", topLink: "킹수학.com", gameTitle: "📦 부피킹 겉넓이킹",
+        selectGame: "🎮 게임 선택", typeVol: "부피<br>구하기", typeSurf: "겉넓이<br>구하기",
+        howMany: "👥 함께 할 친구 수", p1: "1명", p2: "2명", p3: "3명", p4: "4명", start: "게임 시작!", otherGames: "🎮 다른 게임 고르기",
+        formula: "직육면체(가로×세로×높이) | 정육면체(한 모서리×한 모서리×한 모서리)", resTitle: "👑 결과 발표 👑", resSub: "가장 많은 점수를 모은 친구는 누구일까요?",
+        restart: "다시 하기", badgeVol: "👑부피킹!", badgeSurf: "👑겉넓이킹!", cubeLabel: "정육면체", success: "성공!", del: "지움", ok: "입력",
+        chars: ["강아지", "고양이", "토끼", "햄스터"]
+    },
+    en: {
+        title: "Volume King & Area King", desc: "A math battle game to solve volume and surface area!",
+        topDesc: "Become the Math King!", topLink: "KingsMath.com", gameTitle: "📦 Volume & Area King",
+        selectGame: "🎮 Select Game", typeVol: "Find<br>Volume", typeSurf: "Find<br>Area",
+        howMany: "👥 How many players?", p1: "1 P", p2: "2 P", p3: "3 P", p4: "4 P", start: "Start Game!", otherGames: "🎮 More Games",
+        formula: "Cuboid (Length×Width×Height) | Cube (Side×Side×Side)", resTitle: "👑 Results 👑", resSub: "Who got the highest score?",
+        restart: "Play Again", badgeVol: "👑Vol King!", badgeSurf: "👑Area King!", cubeLabel: "Cube", success: "Good!", del: "DEL", ok: "OK",
+        chars: ["Dog", "Cat", "Bunny", "Hamster"]
+    },
+    zh: {
+        title: "体积王 & 表面积王", desc: "通过计算长方体和正方体的体积与表面积来对决的数学游戏。",
+        topDesc: "用游戏成为数学之王！", topLink: "KingsMath.com", gameTitle: "📦 体积王 & 表面积王",
+        selectGame: "🎮 选择游戏", typeVol: "计算<br>体积", typeSurf: "计算<br>表面积",
+        howMany: "👥 几位朋友一起玩？", p1: "1人", p2: "2人", p3: "3人", p4: "4人", start: "开始游戏！", otherGames: "🎮 选择其他游戏",
+        formula: "长方体(长×宽×高) | 正方体(棱长×棱长×棱长)", resTitle: "👑 游戏结果 👑", resSub: "谁的分数最高？",
+        restart: "再玩一次", badgeVol: "👑体积王!", badgeSurf: "👑表面积王!", cubeLabel: "正方体", success: "成功!", del: "删除", ok: "输入",
+        chars: ["小狗", "小猫", "兔子", "仓鼠"]
+    },
+    ja: {
+        title: "体積王 & 表面積王", desc: "直方体と立方体の体積・表面積を計算して対決する数学ゲーム。",
+        topDesc: "ゲームで数学の王になろう！", topLink: "KingsMath.com", gameTitle: "📦 体積王 & 表面積王",
+        selectGame: "🎮 ゲーム選択", typeVol: "体積を<br>求める", typeSurf: "表面積を<br>求める",
+        howMany: "👥 何人で遊びますか？", p1: "1人", p2: "2人", p3: "3人", p4: "4人", start: "スタート！", otherGames: "🎮 他のゲーム",
+        formula: "直方体(縦×横×高さ) | 立方体(一辺×一辺×一辺)", resTitle: "👑 結果発表 👑", resSub: "一番点数が高いのは誰かな？",
+        restart: "もう一度", badgeVol: "👑体積王!", badgeSurf: "👑表面積王!", cubeLabel: "立方体", success: "正解!", del: "削除", ok: "決定",
+        chars: ["イヌ", "ネコ", "ウサギ", "ハムスター"]
+    },
+    es: {
+        title: "Rey del Volumen y Área", desc: "¡Juego de matemáticas para calcular volumen y área!",
+        topDesc: "¡Conviértete en el Rey de las Matemáticas!", topLink: "KingsMath.com", gameTitle: "📦 Rey del Volumen y Área",
+        selectGame: "🎮 Modo", typeVol: "Hallar<br>Volumen", typeSurf: "Hallar<br>Área",
+        howMany: "👥 ¿Cuántos jugadores?", p1: "1 P", p2: "2 P", p3: "3 P", p4: "4 P", start: "¡Empezar!", otherGames: "🎮 Otros Juegos",
+        formula: "Ortoedro(Largo×Ancho×Alto) | Cubo(Lado×Lado×Lado)", resTitle: "👑 Resultados 👑", resSub: "¿Quién tiene la puntuación más alta?",
+        restart: "Reiniciar", badgeVol: "👑Rey Vol!", badgeSurf: "👑Rey Área!", cubeLabel: "Cubo", success: "¡Bien!", del: "Borrar", ok: "OK",
+        chars: ["Perro", "Gato", "Conejo", "Hámster"]
+    },
+    fr: {
+        title: "Roi du Volume et de l'Aire", desc: "Jeu de mathématiques pour calculer le volume et l'aire !",
+        topDesc: "Deviens le roi des maths !", topLink: "KingsMath.com", gameTitle: "📦 Roi du Volume et de l'Aire",
+        selectGame: "🎮 Mode", typeVol: "Trouver<br>Volume", typeSurf: "Trouver<br>Aire",
+        howMany: "👥 Combien de joueurs ?", p1: "1 J", p2: "2 J", p3: "3 J", p4: "4 J", start: "Commencer !", otherGames: "🎮 Autres jeux",
+        formula: "Pavé droit(L×l×h) | Cube(Côté×Côté×Côté)", resTitle: "👑 Résultats 👑", resSub: "Qui a le meilleur score ?",
+        restart: "Rejouer", badgeVol: "👑Roi Vol!", badgeSurf: "👑Roi Aire!", cubeLabel: "Cube", success: "Bravo!", del: "Effacer", ok: "Valider",
+        chars: ["Chien", "Chat", "Lapin", "Hamster"]
+    },
+    ru: {
+        title: "Король Объёма и Площади", desc: "Математическая битва: вычисляй объем и площадь!",
+        topDesc: "Стань королем математики!", topLink: "KingsMath.com", gameTitle: "📦 Король Объёма и Площади",
+        selectGame: "🎮 Режим", typeVol: "Найти<br>Объём", typeSurf: "Найти<br>Площадь",
+        howMany: "👥 Сколько игроков?", p1: "1 И", p2: "2 И", p3: "3 И", p4: "4 И", start: "Начать!", otherGames: "🎮 Другие игры",
+        formula: "Параллелепипед(Д×Ш×В) | Куб(Грань×Грань×Грань)", resTitle: "👑 Результаты 👑", resSub: "Кто набрал больше всех очков?",
+        restart: "Заново", badgeVol: "👑Король!", badgeSurf: "👑Король!", cubeLabel: "Куб", success: "Верно!", del: "Удал.", ok: "Ввод",
+        chars: ["Собака", "Кот", "Заяц", "Хомяк"]
+    },
+    id: {
+        title: "Raja Volume & Luas", desc: "Game matematika untuk menghitung volume dan luas!",
+        topDesc: "Jadilah Raja Matematika!", topLink: "KingsMath.com", gameTitle: "📦 Raja Volume & Luas",
+        selectGame: "🎮 Pilih Game", typeVol: "Cari<br>Volume", typeSurf: "Cari<br>Luas",
+        howMany: "👥 Berapa pemain?", p1: "1 P", p2: "2 P", p3: "3 P", p4: "4 P", start: "Mulai!", otherGames: "🎮 Game Lain",
+        formula: "Balok (P×L×T) | Kubus (Sisi×Sisi×Sisi)", resTitle: "👑 Hasil 👑", resSub: "Siapa pencetak skor tertinggi?",
+        restart: "Main Lagi", badgeVol: "👑Raja Vol!", badgeSurf: "👑Raja Luas!", cubeLabel: "Kubus", success: "Bagus!", del: "Hapus", ok: "OK",
+        chars: ["Anjing", "Kucing", "Kelinci", "Hamster"]
+    },
+    vi: {
+        title: "Vua Thể Tích & Diện Tích", desc: "Trò chơi toán học tìm thể tích và diện tích bề mặt!",
+        topDesc: "Trở thành Vua Toán Học!", topLink: "KingsMath.com", gameTitle: "📦 Vua Thể Tích & Diện Tích",
+        selectGame: "🎮 Chọn Trò Chơi", typeVol: "Tìm<br>Thể Tích", typeSurf: "Tìm<br>Diện Tích",
+        howMany: "👥 Bao nhiêu người chơi?", p1: "1", p2: "2", p3: "3", p4: "4", start: "Bắt đầu!", otherGames: "🎮 Trò chơi khác",
+        formula: "Hình hộp chữ nhật(D×R×C) | Hình lập phương(Cạnh×Cạnh×Cạnh)", resTitle: "👑 Kết quả 👑", resSub: "Ai đạt điểm cao nhất?",
+        restart: "Chơi lại", badgeVol: "👑Vua TT!", badgeSurf: "👑Vua DT!", cubeLabel: "Lập phương", success: "Đúng!", del: "Xóa", ok: "OK",
+        chars: ["Chó", "Mèo", "Thỏ", "Hamster"]
+    },
+    th: {
+        title: "ราชาปริมาตรและพื้นที่", desc: "เกมต่อสู้คณิตศาสตร์เพื่อหาปริมาตรและพื้นที่!",
+        topDesc: "มาเป็นราชาคณิตศาสตร์กันเถอะ!", topLink: "KingsMath.com", gameTitle: "📦 ราชาปริมาตรและพื้นที่",
+        selectGame: "🎮 เลือกเกม", typeVol: "หา<br>ปริมาตร", typeSurf: "หา<br>พื้นที่",
+        howMany: "👥 ผู้เล่นกี่คน?", p1: "1 คน", p2: "2 คน", p3: "3 คน", p4: "4 คน", start: "เริ่มเกม!", otherGames: "🎮 เกมอื่นๆ",
+        formula: "ทรงสี่เหลี่ยม(ก×ย×ส) | ลูกบาศก์(ด×ด×ด)", resTitle: "👑 ผลลัพธ์ 👑", resSub: "ใครได้คะแนนสูงสุด?",
+        restart: "เล่นอีกครั้ง", badgeVol: "👑ราชาปริมาตร!", badgeSurf: "👑ราชาพื้นที่!", cubeLabel: "ลูกบาศก์", success: "เยี่ยม!", del: "ลบ", ok: "ตกลง",
+        chars: ["หมา", "แมว", "กระต่าย", "แฮมสเตอร์"]
+    },
+    'pt-br': {
+        title: "Rei do Volume e Área", desc: "Jogo de matemática para calcular volume e área!",
+        topDesc: "Torne-se o Rei da Matemática!", topLink: "KingsMath.com", gameTitle: "📦 Rei do Volume e Área",
+        selectGame: "🎮 Modo", typeVol: "Achar<br>Volume", typeSurf: "Achar<br>Área",
+        howMany: "👥 Quantos jogadores?", p1: "1 J", p2: "2 J", p3: "3 J", p4: "4 J", start: "Começar!", otherGames: "🎮 Outros Jogos",
+        formula: "Paralelepípedo(C×L×A) | Cubo(Lado×Lado×Lado)", resTitle: "👑 Resultados 👑", resSub: "Quem tem a maior pontuação?",
+        restart: "Jogar Novamente", badgeVol: "👑Rei Vol!", badgeSurf: "👑Rei Área!", cubeLabel: "Cubo", success: "Muito bem!", del: "Apagar", ok: "OK",
+        chars: ["Cachorro", "Gato", "Coelho", "Hamster"]
+    },
+    hi: {
+        title: "आयतन और क्षेत्रफल का राजा", desc: "आयतन और क्षेत्रफल हल करने का गणित का खेल!",
+        topDesc: "गणित के राजा बनें!", topLink: "KingsMath.com", gameTitle: "📦 आयतन और क्षेत्रफल किंग",
+        selectGame: "🎮 गेम चुनें", typeVol: "आयतन<br>खोजें", typeSurf: "क्षेत्रफल<br>खोजें",
+        howMany: "👥 कितने खिलाड़ी?", p1: "1", p2: "2", p3: "3", p4: "4", start: "शुरू करें!", otherGames: "🎮 अन्य गेम",
+        formula: "घनाभ (लंबाई×चौड़ाई×ऊंचाई) | घन (भुजा×भुजा×भुजा)", resTitle: "👑 परिणाम 👑", resSub: "सबसे अधिक अंक किसे मिले?",
+        restart: "फिर से खेलें", badgeVol: "👑आयतन किंग!", badgeSurf: "👑क्षेत्र किंग!", cubeLabel: "घन", success: "सही!", del: "हटाएं", ok: "ओके",
+        chars: ["कुत्ता", "बिल्ली", "खरगोश", "हम्सटर"]
+    },
+    bn: {
+        title: "ভলিউম ও এরিয়া কিং", desc: "ভলিউম এবং পৃষ্ঠের ক্ষেত্রফল সমাধানের একটি গণিত খেলা!",
+        topDesc: "অঙ্কের রাজা হয়ে উঠুন!", topLink: "KingsMath.com", gameTitle: "📦 ভলিউম ও এরিয়া কিং",
+        selectGame: "🎮 গেম নির্বাচন করুন", typeVol: "ভলিউম<br>নির্ণয়", typeSurf: "ক্ষেত্রফল<br>নির্ণয়",
+        howMany: "👥 কতজন খেলোয়াড়?", p1: "১", p2: "২", p3: "৩", p4: "৪", start: "শুরু করুন!", otherGames: "🎮 অন্যান্য গেম",
+        formula: "আয়তঘন (দৈর্ঘ্য×প্রস্থ×উচ্চতা) | ঘনক (বাহু×বাহু×বাহু)", resTitle: "👑 ফলাফল 👑", resSub: "কে সর্বোচ্চ স্কোর করেছে?",
+        restart: "আবার খেলুন", badgeVol: "👑ভলিউম কিং!", badgeSurf: "👑এরিয়া কিং!", cubeLabel: "ঘনক", success: "সঠিক!", del: "মুছুন", ok: "ওকে",
+        chars: ["কুকুর", "বিড়াল", "খরগোশ", "হ্যামস্টার"]
+    },
+    tr: {
+        title: "Hacim ve Alan Kralı", desc: "Hacim ve yüzey alanını hesaplama matematik oyunu!",
+        topDesc: "Matematik Kralı Ol!", topLink: "KingsMath.com", gameTitle: "📦 Hacim ve Alan Kralı",
+        selectGame: "🎮 Oyun Seç", typeVol: "Hacim<br>Bul", typeSurf: "Alan<br>Bul",
+        howMany: "👥 Kaç oyuncu?", p1: "1 O", p2: "2 O", p3: "3 O", p4: "4 O", start: "Başla!", otherGames: "🎮 Diğer Oyunlar",
+        formula: "Dikdörtgenler Prizması(U×G×Y) | Küp(K×K×K)", resTitle: "👑 Sonuçlar 👑", resSub: "En yüksek puanı kim aldı?",
+        restart: "Tekrar Oyna", badgeVol: "👑Hacim Kralı!", badgeSurf: "👑Alan Kralı!", cubeLabel: "Küp", success: "Harika!", del: "Sil", ok: "Tamam",
+        chars: ["Köpek", "Kedi", "Tavşan", "Hamster"]
+    },
+    de: {
+        title: "Volumen & Flächen König", desc: "Ein Mathe-Spiel zur Berechnung von Volumen und Flächen!",
+        topDesc: "Werde der Mathe-König!", topLink: "KingsMath.com", gameTitle: "📦 Volumen & Flächen König",
+        selectGame: "🎮 Spiel wählen", typeVol: "Volumen<br>finden", typeSurf: "Fläche<br>finden",
+        howMany: "👥 Wie viele Spieler?", p1: "1 S", p2: "2 S", p3: "3 S", p4: "4 S", start: "Start!", otherGames: "🎮 Mehr Spiele",
+        formula: "Quader (L×B×H) | Würfel (K×K×K)", resTitle: "👑 Ergebnisse 👑", resSub: "Wer hat die höchste Punktzahl?",
+        restart: "Nochmal spielen", badgeVol: "👑Volumen König!", badgeSurf: "👑Flächen König!", cubeLabel: "Würfel", success: "Gut!", del: "Löschen", ok: "OK",
+        chars: ["Hund", "Katze", "Hase", "Hamster"]
+    },
+    it: {
+        title: "Re del Volume e dell'Area", desc: "Un gioco di matematica per calcolare volume e area!",
+        topDesc: "Diventa il Re della Matematica!", topLink: "KingsMath.com", gameTitle: "📦 Re del Volume e Area",
+        selectGame: "🎮 Modalità", typeVol: "Trova<br>Volume", typeSurf: "Trova<br>Area",
+        howMany: "👥 Quanti giocatori?", p1: "1 G", p2: "2 G", p3: "3 G", p4: "4 G", start: "Inizia!", otherGames: "🎮 Altri Giochi",
+        formula: "Parallelepipedo(L×P×A) | Cubo(L×L×L)", resTitle: "👑 Risultati 👑", resSub: "Chi ha il punteggio più alto?",
+        restart: "Rigioca", badgeVol: "👑Re Volume!", badgeSurf: "👑Re Area!", cubeLabel: "Cubo", success: "Esatto!", del: "Canc", ok: "OK",
+        chars: ["Cane", "Gatto", "Coniglio", "Criceto"]
+    }
+};
+
+let currentLang = 'en'; // 기본 언어
+
+// ==========================================
+// 언어 처리 기능 및 UI 모달 로직 (통합)
+// ==========================================
+
+const triggerContainer = document.getElementById('langTriggerContainer');
+const triggerBtn = document.getElementById('langTriggerBtn');
+const modal = document.getElementById('langModal');
+const closeBtn = document.getElementById('closeModalBtn');
+const searchInput = document.getElementById('searchInput');
+const grid = document.getElementById('languageGrid');
+const noResult = document.getElementById('noResult');
+const currentFlagImg = document.getElementById('currentFlag');
+const currentLangSpan = document.getElementById('currentLangName');
+const toast = document.getElementById('toastNotification');
+const toastLangName = document.getElementById('toastLangName');
+let toastTimeout;
+
+function detectLanguage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+    if (langParam && translations[langParam]) return langParam;
+
+    const savedLang = localStorage.getItem('kingsmath_lang');
+    if (savedLang && translations[savedLang]) return savedLang;
+
+    const browserLang = navigator.language.slice(0, 2);
+    if (translations[browserLang]) return browserLang;
+
+    return 'en';
+}
+
+function changeLanguage(langCode, isUserClick = false) {
+    if (!translations[langCode]) return;
+    currentLang = langCode;
+    localStorage.setItem('kingsmath_lang', langCode);
+    
+    // URL 업데이트 (파라미터 변경 후 상태 저장)
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('lang', langCode);
+    window.history.pushState({}, '', newUrl);
+
+    applyLanguage();
+    
+    // UI 업데이트
+    const langObj = languages.find(l => l.code === langCode);
+    if(langObj) {
+        currentFlagImg.src = `https://flagcdn.com/w40/${langObj.country}.png`;
+        currentLangSpan.textContent = langObj.name;
+        if(isUserClick) showToast(langObj.name, langObj.code);
+    }
+}
+
+function applyLanguage() {
+    const t = translations[currentLang];
+    
+    document.title = t.title;
+    document.getElementById('meta-desc').setAttribute('content', t.desc);
+    
+    document.getElementById('txt-top-desc').textContent = t.topDesc;
+    const topLinkEl = document.getElementById('txt-top-link');
+    topLinkEl.textContent = t.topLink;
+    
+    document.getElementById('txt-game-title').textContent = t.gameTitle;
+    document.getElementById('txt-select-game').textContent = t.selectGame;
+    document.getElementById('txt-type-vol').innerHTML = t.typeVol;
+    document.getElementById('txt-type-surf').innerHTML = t.typeSurf;
+    document.getElementById('txt-label-players').textContent = t.howMany;
+    document.getElementById('txt-mode-1').textContent = t.p1;
+    document.getElementById('txt-mode-2').textContent = t.p2;
+    document.getElementById('txt-mode-3').textContent = t.p3;
+    document.getElementById('txt-mode-4').textContent = t.p4;
+    document.getElementById('startBtn').textContent = t.start;
+    document.getElementById('link-other-game').textContent = t.otherGames;
+    
+    document.getElementById('txt-formula-bar').textContent = t.formula;
+    document.getElementById('txt-res-title').textContent = t.resTitle;
+    document.getElementById('txt-res-sub').textContent = t.resSub;
+    document.getElementById('restartBtn').textContent = t.restart;
+
+    // 언어 글자수 대응 폰트 사이즈 보정
+    const longLangs = ['ru', 'es', 'fr', 'de', 'pt-br', 'tr', 'it'];
+    const isLong = longLangs.includes(currentLang);
+    
+    const longElements = document.querySelectorAll('.mode-btn, .formula-bar, .rich-badge, .intro-title');
+    longElements.forEach(el => {
+        if(isLong) el.classList.add('long-text');
+        else el.classList.remove('long-text');
+    });
+}
+
+function renderLanguages(filterText = '') {
+    grid.innerHTML = '';
+    const lowerFilter = filterText.toLowerCase();
+    
+    const filteredLangs = languages.filter(lang => 
+        lang.name.toLowerCase().includes(lowerFilter) || 
+        lang.enName.toLowerCase().includes(lowerFilter) ||
+        lang.code.toLowerCase().includes(lowerFilter)
+    );
+
+    if (filteredLangs.length === 0) {
+        grid.classList.add('hidden');
+        noResult.classList.remove('hidden');
+        noResult.classList.add('flex');
+    } else {
+        grid.classList.remove('hidden');
+        noResult.classList.add('hidden');
+        noResult.classList.remove('flex');
+
+        filteredLangs.forEach(lang => {
+            const isSelected = lang.code === currentLang;
+            
+            const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+            const stateClasses = isSelected 
+                ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+
+            const flagUrl = `https://flagcdn.com/w40/${lang.country}.png`;
+            const btn = document.createElement('div');
+            btn.className = `${baseClasses} ${stateClasses}`;
+
+            btn.innerHTML = `
+                <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                    <img src="${flagUrl}" alt="${lang.country}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                </div>
+                <div class="flex-1 min-w-0 flex flex-col items-start">
+                    <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                    <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                </div>
+                ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+            `;
+
+            btn.addEventListener('click', () => {
+                changeLanguage(lang.code, true);
+                closeModal();
+                renderLanguages(searchInput.value);
+            });
+            grid.appendChild(btn);
+        });
+    }
+}
+
+function openModal() {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeModal() {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function showToast(langName, langCode) {
+    const toastMsg = toastTranslations[langCode] || toastTranslations['en'];
+    document.getElementById('ui-toast').textContent = toastMsg;
+    toastLangName.textContent = langName;
+    
+    toast.classList.add('show');
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// 모달 이벤트 리스너 등록
+triggerBtn.addEventListener('click', openModal);
+closeBtn.addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeModal();
+});
+searchInput.addEventListener('input', (e) => {
+    renderLanguages(e.target.value);
+});
+
+
+// 초기 언어 감지 및 세팅
+const initLang = detectLanguage();
+changeLanguage(initLang, false);
+renderLanguages();
+
+
+// ==========================================
+// 기존 게임 로직 (수정되지 않은 원형)
+// ==========================================
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+document.addEventListener('dblclick', function(event) {
+  event.preventDefault();
+}, { passive: false });
+
+let config = { players: 2, time: 60, type: 'volume' };
+let gameState = { active: false, timer: 60, interval: null, slots: [null, null, null, null, null], players: [] };
+
+const CHARACTERS_BASE = [
+    { emoji: "🐶", theme: "p1-theme", color: "#ffb142" },
+    { emoji: "🐱", theme: "p2-theme", color: "#48dbfb" },
+    { emoji: "🐰", theme: "p3-theme", color: "#ff9ff3" },
+    { emoji: "🐹", theme: "p4-theme", color: "#55efc4" }
+];
+
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+    
+    if (type === 'pop') { 
+        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'wrong') { 
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+        gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2); osc.start(now); osc.stop(now + 0.2);
+    } else if (type === 'score') { 
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.start(now); osc.stop(now + 0.05);
+    } else if (type === 'beep') { 
+        osc.type = 'square'; osc.frequency.setValueAtTime(880, now); gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+    } else if (type === 'end') { 
+        osc.type = 'sine'; osc.frequency.setValueAtTime(880, now); osc.frequency.linearRampToValueAtTime(440, now + 0.5);
+        gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.5); osc.start(now); osc.stop(now + 0.5);
+    } else if (type === 'spawn') { 
+        osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
+    }
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {});
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+function setGameType(type) {
+    config.type = type;
+    document.querySelectorAll('#typeSelect .mode-btn').forEach(btn => btn.classList.remove('selected'));
+    if(type === 'volume') document.getElementById('txt-type-vol').classList.add('selected');
+    else document.getElementById('txt-type-surf').classList.add('selected');
+}
+
+function setPlayers(n) {
+    config.players = n;
+    document.querySelectorAll('#playerSelect .mode-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', (i + 1) === n);
+    });
+}
+
+function gameStart() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // 게임 시작 시 모달 버튼 숨기기
+    document.getElementById('langTriggerContainer').style.display = 'none';
+
+    document.getElementById('introScreen').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'flex';
+    document.getElementById('homeBtnFixed').style.display = 'flex'; 
+    
+    const formulaBar = document.getElementById('txt-formula-bar');
+    if(config.type === 'volume') formulaBar.style.display = 'block';
+    else formulaBar.style.display = 'none'; 
+    
+    initArena(); initPlayers();
+    
+    gameState.active = true; gameState.timer = config.time; updateTimer();
+    
+    if(gameState.interval) clearInterval(gameState.interval);
+    gameState.interval = setInterval(() => {
+        gameState.timer--; updateTimer();
+        if(gameState.timer <= 5 && gameState.timer > 0) playSound('beep');
+        if(gameState.timer <= 0) { playSound('end'); endGame(); }
+    }, 1000);
+}
+
+function softReset() {
+    // 재시작 시 모달 버튼 다시 표출
+    document.getElementById('langTriggerContainer').style.display = 'block';
+
+    document.getElementById('resultModal').style.display = 'none';
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('introScreen').style.display = 'flex';
+    document.getElementById('homeBtnFixed').style.display = 'none';
+}
+
+function updateTimer() {
+    const el = document.getElementById('timer'); el.textContent = gameState.timer;
+    if(gameState.timer <= 5) el.classList.add('timer-urgent');
+    else el.classList.remove('timer-urgent');
+}
+
+function initArena() {
+    const arena = document.getElementById('arena'); arena.innerHTML = '';
+    gameState.slots = [null, null, null, null, null];
+    
+    for(let i=0; i<5; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'shape-slot empty'; slot.id = `slot-${i}`;
+        slot.onpointerdown = (e) => { 
+            e.preventDefault();
+            if(gameState.slots[i]) { slot.style.transform = "scale(0.95)"; setTimeout(()=> slot.style.transform = "scale(1)", 100); }
+        }; 
+        arena.appendChild(slot);
+        setTimeout(() => spawnShape(i), i * 150 + 300);
+    }
+}
+
+function initPlayers() {
+    gameState.players = [];
+    const zone = document.getElementById('playerZone'); zone.innerHTML = '';
+    
+    const isVol = config.type === 'volume';
+    const unitText = isVol ? '㎤' : '㎠';
+    const t = translations[currentLang];
+    const badgeText = isVol ? t.badgeVol : t.badgeSurf;
+    const isLong = ['ru', 'es', 'fr', 'de', 'pt-br', 'tr', 'it'].includes(currentLang);
+
+    for(let i=0; i<config.players; i++) {
+        const charBase = CHARACTERS_BASE[i];
+        gameState.players.push({
+            id: i, score: 0, displayScore: 0, input: '', name: charBase.emoji + " " + t.chars[i]
+        });
+
+        const ctrl = document.createElement('div');
+        ctrl.className = `player-ctrl ${charBase.theme}`;
+        
+        let keysHtml = '';
+        [1,2,3,4,5,6,7,8,9].forEach(n => { keysHtml += `<div class="key" onpointerdown="handleInput(${i}, ${n}); event.preventDefault();">${n}</div>`; });
+        keysHtml += `
+            <div class="key key-del" onpointerdown="handleInput(${i}, 'del'); event.preventDefault();">${t.del}</div>
+            <div class="key" onpointerdown="handleInput(${i}, 0); event.preventDefault();">0</div>
+            <div class="key key-ok" onpointerdown="submitAnswer(${i}); event.preventDefault();">${t.ok}</div>
+        `;
+
+        ctrl.innerHTML = `
+            <div class="rich-badge ${isLong ? 'long-text' : ''}" id="badge-${i}">${badgeText}</div>
+            <div class="info-row">
+                <span class="p-name">${gameState.players[i].name}</span>
+                <div class="p-score-box"><span id="score-${i}">0</span>${unitText}</div>
+            </div>
+            <div class="input-container">
+                <div class="input-display" id="input-${i}"></div>
+                <div class="unit-mark">${unitText}</div>
+            </div>
+            <div class="keypad">
+                ${keysHtml}
+            </div>
+        `;
+        zone.appendChild(ctrl);
+    }
+}
+
+function spawnShape(slotIndex) {
+    if(!gameState.active && gameState.timer <= 0) return;
+    const slot = document.getElementById(`slot-${slotIndex}`);
+    slot.classList.remove('empty', 'matched'); slot.style.opacity = '1'; slot.style.transform = 'scale(1)'; slot.classList.add('pop-in');
+    
+    playSound('spawn');
+    const problem = generateProblem(); gameState.slots[slotIndex] = problem;
+    slot.innerHTML = `<svg viewBox="0 0 200 200">${problem.svg}</svg>`;
+}
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+function generateProblem() {
+    let svg = ''; let volume = 0; let surfaceArea = 0;
+    const drawDim = (x, y, text) => `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="middle" class="dim-text">${text}cm</text>`;
+    const isCube = Math.random() < 0.3; let w, d, h;
+    
+    if (isCube) { w = d = h = rand(1, 9); volume = w * d * h; surfaceArea = w * w * 6; }
+    else { w = rand(1, 9); d = rand(1, 9); h = rand(1, 9); volume = w * d * h; surfaceArea = 2 * ((w * d) + (d * h) + (h * w)); }
+
+    const viewSize = 130; const angle = Math.PI / 4; const depthScale = 0.6; 
+    const rawW = w * 10; const rawH = h * 10; const rawD = d * 10 * depthScale;
+    const totalW = rawW + rawD * Math.cos(angle); const totalH = rawH + rawD * Math.sin(angle);
+    const scale = Math.min(viewSize/totalW, viewSize/totalH);
+    
+    const sw = rawW * scale; const sh = rawH * scale; const sd = rawD * scale;
+    const dx = sd * Math.cos(angle); const dy = sd * Math.sin(angle);
+    const centerX = 100; const centerY = 100;
+    const startX = centerX - (sw + dx) / 2; const startY = centerY + (sh - dy) / 2;
+    
+    const p1 = { x: startX, y: startY }; const p2 = { x: startX + sw, y: startY }; 
+    const p3 = { x: startX + sw, y: startY - sh }; const p4 = { x: startX, y: startY - sh }; 
+    const p5 = { x: p4.x + dx, y: p4.y - dy }; const p6 = { x: p3.x + dx, y: p3.y - dy }; const p7 = { x: p2.x + dx, y: p2.y - dy }; 
+
+    svg += `<polygon points="${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y} ${p4.x},${p4.y}" fill="var(--shape-fill)" stroke="var(--shape-stroke)" stroke-width="3"/>`;
+    svg += `<polygon points="${p4.x},${p4.y} ${p3.x},${p3.y} ${p6.x},${p6.y} ${p5.x},${p5.y}" fill="var(--shape-fill)" stroke="var(--shape-stroke)" stroke-width="3"/>`;
+    svg += `<polygon points="${p3.x},${p3.y} ${p2.x},${p2.y} ${p7.x},${p7.y} ${p6.x},${p6.y}" fill="var(--shape-fill)" stroke="var(--shape-stroke)" stroke-width="3"/>`;
+    
+    if (isCube) {
+        const label = translations[currentLang].cubeLabel;
+        svg += `<text x="100" y="30" text-anchor="middle" class="cube-label">${label}</text>`;
+        svg += `<line x1="${p1.x}" y1="${p1.y+15}" x2="${p2.x}" y2="${p2.y+15}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p1.x}" y1="${p1.y+10}" x2="${p1.x}" y2="${p1.y+20}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p2.x}" y1="${p2.y+10}" x2="${p2.x}" y2="${p2.y+20}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += drawDim((p1.x+p2.x)/2, p1.y+30, w);
+    } else {
+        svg += `<line x1="${p1.x}" y1="${p1.y+15}" x2="${p2.x}" y2="${p2.y+15}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p1.x}" y1="${p1.y+10}" x2="${p1.x}" y2="${p1.y+20}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p2.x}" y1="${p2.y+10}" x2="${p2.x}" y2="${p2.y+20}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += drawDim((p1.x+p2.x)/2, p1.y+30, w);
+        svg += `<line x1="${p1.x-15}" y1="${p1.y}" x2="${p4.x-15}" y2="${p4.y}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p1.x-20}" y1="${p1.y}" x2="${p1.x-10}" y2="${p1.y}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += `<line x1="${p4.x-20}" y1="${p4.y}" x2="${p4.x-10}" y2="${p4.y}" stroke="var(--dim-color)" stroke-width="2"/>`;
+        svg += drawDim(p1.x-30, (p1.y+p4.y)/2, h);
+        const midX = (p2.x + p7.x) / 2 + 15; const midY = (p2.y + p7.y) / 2 + 15;
+        svg += drawDim(midX, midY, d);
+    }
+    return { svg, volume, surfaceArea };
+}
+
+function handleInput(pid, val) {
+    if(!gameState.active) return;
+    const p = gameState.players[pid]; const display = document.getElementById(`input-${pid}`);
+    if(val === 'del') { p.input = p.input.slice(0, -1); } else { if(p.input.length < 4) p.input += val; }
+    display.textContent = p.input;
+}
+
+function submitAnswer(pid) {
+    if(!gameState.active) return;
+    const p = gameState.players[pid]; if(!p.input) return;
+    
+    const val = parseFloat(p.input); let matchedSlotIndex = -1;
+    const isVolumeMode = config.type === 'volume';
+    
+    for(let i=0; i<5; i++) {
+        const slot = gameState.slots[i]; if(!slot) continue;
+        const answer = isVolumeMode ? slot.volume : slot.surfaceArea;
+        if(answer === val) { matchedSlotIndex = i; break; }
+    }
+    
+    const inputEl = document.getElementById(`input-${pid}`);
+    
+    if(matchedSlotIndex !== -1) {
+        playSound('pop'); p.score += val; animateScore(pid, p.score); updateRichBadge();
+        inputEl.style.backgroundColor = '#b2f2bb'; inputEl.style.color = '#2d3436'; 
+        p.input = ''; 
+        setTimeout(() => { 
+            if(p.input === '') inputEl.textContent = translations[currentLang].success; 
+            inputEl.style.backgroundColor = '#1e1e1e'; inputEl.style.color = '#fff';
+        }, 200);
+        
+        const slot = document.getElementById(`slot-${matchedSlotIndex}`);
+        slot.classList.add('matched'); gameState.slots[matchedSlotIndex] = null; 
+        
+        setTimeout(() => { slot.classList.remove('matched'); slot.style.opacity = '0'; slot.innerHTML = ''; }, 300);
+        setTimeout(() => spawnShape(matchedSlotIndex), 3000);
+    } else {
+        playSound('wrong'); inputEl.classList.add('shake'); setTimeout(() => inputEl.classList.remove('shake'), 300);
+        p.input = ''; inputEl.textContent = '';
+    }
+}
+
+function animateScore(pid, targetScore) {
+    const p = gameState.players[pid]; const el = document.getElementById(`score-${pid}`);
+    const duration = 500; const startScore = p.displayScore; const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime; const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - (1 - progress) * (1 - progress);
+        const currentVal = Math.floor(startScore + (targetScore - startScore) * ease);
+        el.textContent = currentVal;
+        
+        if(currentVal > p.displayScore && currentVal % 3 === 0) playSound('score');
+        p.displayScore = currentVal;
+
+        if (progress < 1) requestAnimationFrame(update);
+        else { p.displayScore = targetScore; el.textContent = targetScore; }
+    }
+    requestAnimationFrame(update);
+}
+
+function updateRichBadge() {
+    const players = gameState.players; let maxScore = -1; let leaderId = -1;
+    players.forEach(p => { if(p.score > 0 && p.score > maxScore) { maxScore = p.score; leaderId = p.id; }});
+    document.querySelectorAll('.rich-badge').forEach(el => el.style.display = 'none');
+    if(leaderId !== -1) document.getElementById(`badge-${leaderId}`).style.display = 'block';
+}
+
+function endGame() {
+    gameState.active = false; clearInterval(gameState.interval);
+    
+    const modal = document.getElementById('resultModal'); const graphContainer = document.getElementById('resultGraph');
+    graphContainer.innerHTML = ''; const unitText = config.type === 'volume' ? '㎤' : '㎠';
+    const scores = gameState.players.map(p => p.score); const maxScore = Math.max(...scores, 100); 
+    
+    gameState.players.forEach(p => {
+        const charBase = CHARACTERS_BASE[p.id]; const heightPercent = (p.score / maxScore) * 80 + 5; 
+        const isWinner = p.score === Math.max(...scores) && p.score > 0;
+        
+        const barGroup = document.createElement('div'); barGroup.className = 'bar-group';
+        barGroup.innerHTML = `
+            <div class="bar-val">${p.score}${unitText}</div>
+            <div class="bar" style="background:${charBase.color};">
+                ${isWinner ? '<div class="winner-crown">👑</div>' : ''}
+            </div>
+            <div class="bar-icon">${charBase.emoji}</div>
+            <div class="bar-name">${p.name.split(' ')[1] || p.name}</div>
+        `;
+        graphContainer.appendChild(barGroup);
+        setTimeout(() => { barGroup.querySelector('.bar').style.height = heightPercent + '%'; }, 100);
+    });
+    modal.style.display = 'flex';
+}
+</script>
+
+</body>
+</html>

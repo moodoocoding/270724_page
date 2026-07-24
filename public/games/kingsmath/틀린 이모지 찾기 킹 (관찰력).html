@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5YW0T2C109');
+</script>
+
+<meta name="description" content="틀린 이모지 찾기! 교실 전자칠판용 두뇌 배틀 게임." id="meta-desc">
+<meta name="keywords" content="전자칠판 게임, 이모지 게임, 틀린그림찾기, 킹수학" id="meta-keywords">
+<link rel="canonical" href="https://킹수학.com">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="틀린 이모지 찾기 | KingsMath" id="og-title">
+<meta property="og:description" content="양쪽을 비교하여 서로 다른 이모지를 찾아라!" id="og-desc">
+<meta property="og:url" content="https://킹수학.com">
+<meta property="og:site_name" content="KingsMath" id="og-site-name">
+
+<meta name="theme-color" content="#121212">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title id="page-title">틀린 이모지 찾기</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+<style>
+    :root { --app-height: 100vh; }
+
+    /* 전자칠판 터치 최적화: 파란 화면(선택/드래그) 및 더블탭 줌 완벽 차단 */
+    * {
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        -webkit-user-drag: none; -khtml-user-drag: none; -moz-user-drag: none; -o-user-drag: none;
+        -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; outline: none;
+    }
+
+    html, body {
+        margin: 0; padding: 0; overflow: hidden;
+        background-color: #121212; font-family: 'Nanum Gothic', sans-serif;
+        width: 100%; height: 100vh; height: 100dvh; height: var(--app-height); 
+        touch-action: none;
+        display: flex; flex-direction: column; color: #fff; overscroll-behavior: none;
+    }
+
+    /* --- Top Information Area --- */
+    #top-area {
+        flex: 0 0 auto; min-height: 8vmin;
+        background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    #scoreboard-row {
+        display: flex; justify-content: space-between; align-items: stretch;
+        width: 100%; padding: 1vmin 3vmin; flex: 1; gap: 2vmin;
+    }
+
+    .team-panel {
+        flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        background: rgba(255,255,255,0.05); border-radius: 12px; padding: 1vmin 2vmin;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; overflow: hidden;
+    }
+    .p1-panel { border: 3px solid #ff4d4d; }
+    .p2-panel { border: 3px solid #4d88ff; }
+
+    /* 점수 대신 팀 이름을 크게 강조 */
+    .player-label { font-size: clamp(24px, 4vmin, 40px); font-weight: 900; letter-spacing: 2px; margin: 0; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+    .p1-label { color: #ff4d4d; }
+    .p2-label { color: #4d88ff; }
+
+    .win-overlay {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85); display: none; flex-direction: column;
+        justify-content: center; align-items: center; font-weight: 800; z-index: 20;
+        animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .win-overlay.win { color: #ffcc00; font-size: clamp(40px, 5vw, 70px); text-shadow: 0 0 20px rgba(255,204,0,0.8); }
+    .win-overlay.lose { color: #777; font-size: clamp(24px, 3vw, 40px); text-shadow: none; }
+    .win-overlay.draw { color: #fff; font-size: clamp(30px, 4vw, 50px); text-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+    @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    .timer-container { width: 15%; max-width: 200px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+    .timer-label { color: #ffcc00; font-size: clamp(16px, 2.5vmin, 30px); font-weight: 800; letter-spacing: 2px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+    #top-timer-bar { width: 100%; height: 1.5vmin; background: #333; flex-shrink: 0; }
+    #top-timer-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3b30, #ffcc00, #4cd964); transition: width 1s linear; }
+
+    /* --- Bottom Game Area --- */
+    #game-area-wrapper {
+        flex: 1; display: flex; justify-content: center; align-items: flex-end; 
+        padding: 1vmin 2vmin 2vmin 2vmin; background-color: #0d0d0d; position: relative; min-height: 0; 
+    }
+
+    #game-area {
+        width: 100%; max-width: 1920px; height: 100%; 
+        display: flex; gap: 2vmin; justify-content: center; min-height: 0; 
+    }
+
+    .player-section {
+        flex: 1; display: flex; flex-direction: column; justify-content: flex-end; 
+        align-items: center; gap: 1vmin; min-width: 0; height: 100%; padding-bottom: 0.5vmin;
+    }
+
+    .targets-container {
+        display: grid; gap: 1vmin; width: 100%; max-width: 600px; flex: 0 0 auto; margin-top: auto;
+    }
+
+    .target-box {
+        background: rgba(0,0,0,0.6); border: 2px solid #555; border-radius: 8px;
+        display: flex; justify-content: center; align-items: center;
+        aspect-ratio: 1/1; font-size: clamp(16px, 3.5vmin, 40px);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .target-box.filled-p1 { border-color: #ff4d4d; background: rgba(255, 77, 77, 0.2); transform: scale(1.05); box-shadow: 0 0 15px rgba(255,77,77,0.5); }
+    .target-box.filled-p2 { border-color: #4d88ff; background: rgba(77, 136, 255, 0.2); transform: scale(1.05); box-shadow: 0 0 15px rgba(77,136,255,0.5); }
+
+    .grid-container {
+        background: #1a1a1a; border-radius: 12px; border: 4px solid #333;
+        padding: 0.5vmin; display: grid; gap: 0.5vmin; 
+        box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        grid-template-rows: repeat(8, minmax(0, 1fr));
+        width: 100%; max-width: 100%; flex: 1 1 auto; 
+        min-height: 0; aspect-ratio: 12 / 8; margin: 0 auto;
+        transition: filter 0.3s, opacity 0.3s;
+    }
+
+    .p1-board { border-color: rgba(255, 77, 77, 0.4); }
+    .p2-board { border-color: rgba(77, 136, 255, 0.4); }
+
+    .emoji-btn {
+        display: flex; justify-content: center; align-items: center;
+        font-size: clamp(16px, 4vmin, 50px); 
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 8px; cursor: pointer;
+        transition: transform 0.1s, background 0.1s, filter 0.8s, opacity 0.8s;
+        width: 100%; height: 100%; position: relative;
+    }
+    .emoji-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.15); }
+
+    .hint-fade { filter: grayscale(100%); opacity: 0.05; pointer-events: none; transform: scale(0.8); }
+
+    .correct-mark { pointer-events: none; transform: scale(1.1); z-index: 5; }
+    .correct-mark::after {
+        content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 90%; height: 90%; border-radius: 50%; border: 5px solid; box-sizing: border-box;
+        box-shadow: 0 0 15px rgba(0,0,0,0.8);
+    }
+    .p1-board .correct-mark::after { border-color: #ff4d4d; }
+    .p2-board .correct-mark::after { border-color: #4d88ff; }
+
+    .disabled-mark { filter: grayscale(100%) opacity(0.2); pointer-events: none; }
+
+    .penalty-mode {
+        pointer-events: none; border-color: #ff3333 !important;
+        animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .divider { width: 4px; background: rgba(255, 215, 0, 0.4); border-radius: 2px; margin-top: auto; height: 80%; }
+
+    /* Floating Buttons (상단으로 위치 변경) */
+    .float-btn {
+        position: fixed; top: 75px; width: 40px; height: 40px;
+        background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4);
+        border-radius: 50%; cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center;
+        color: white; font-size: 20px; transition: all 0.2s; backdrop-filter: blur(4px); pointer-events: auto;
+    }
+    .float-btn:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.1); }
+    .float-btn:active { transform: scale(0.95); }
+    #fullscreen-btn { right: 20px; }
+    #home-btn { left: 20px; }
+
+    /* Overlay (초기 시작화면) */
+    #overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 100; backdrop-filter: blur(8px);
+    }
+    
+    .modal-content {
+        background: rgba(30, 30, 30, 0.95); padding: 40px 50px; border-radius: 30px; border: 2px solid rgba(197, 160, 89, 0.5);
+        display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 900px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.9); pointer-events: auto;
+    }
+
+    .modal-content h1 { 
+        font-size: clamp(30px, 4.5vw, 46px) !important; margin: 0 0 25px 0; font-weight: 800 !important;
+        color: #ffcc00; text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    
+    .instruction-box {
+        text-align: left; background: rgba(0,0,0,0.5); padding: 25px 35px; border-radius: 20px;
+        margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .instruction-box p {
+        font-size: clamp(16px, 2vw, 26px); line-height: 1.6; margin: 12px 0; font-weight: 700; color: #eee;
+        display: flex; align-items: center; gap: 10px; word-break: keep-all;
+    }
+    .instruction-box b { color: #ffcc00; }
+    .instruction-box .highlight { color: #ff4d4d; }
+
+    .action-btn {
+        padding: 15px 50px; font-size: clamp(22px, 3vw, 32px); font-weight: 800; font-family: 'Nanum Gothic', sans-serif;
+        background: linear-gradient(to bottom, #4cd964, #28a745); border: 3px solid #fff; border-radius: 60px; color: #fff; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5); transition: transform 0.1s, box-shadow 0.2s;
+    }
+    .action-btn:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(40, 167, 69, 0.7); }
+    .action-btn:active { transform: scale(0.95); }
+
+    #restart-container { position: fixed; bottom: 50px; left: 0; width: 100%; display: none; justify-content: center; align-items: center; z-index: 1000; pointer-events: none; }
+    #restart-container .action-btn { pointer-events: auto; animation: popIn 0.5s ease-out forwards; }
+
+    #countdown-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; color: white; display: none; flex-direction: column; 
+        justify-content: center; align-items: center; z-index: 9999; font-size: clamp(80px, 15vw, 200px); font-weight: 800; text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    }
+    .count-anim { animation: popCount 1s ease-in-out forwards; }
+    @keyframes popCount { 0% { transform: scale(0.5); opacity: 0; } 20% { transform: scale(1.2); opacity: 1; } 80% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+    /* =========================================
+       다국어 UI 및 모달 전용 독립 CSS (Z-index 99999)
+       ========================================= */
+    #top-links-container {
+        position: fixed; top: 20px; left: 20px; z-index: 99999;
+    }
+    #lang-ui-container {
+        position: fixed; top: 20px; right: 20px; z-index: 99999;
+    }
+
+    .styled-header-btn {
+        display: flex; items-center; gap: 8px;
+        background: rgba(55, 65, 81, 0.8); border: 1px solid rgba(75, 85, 99, 1);
+        border-radius: 9999px; padding: 8px 16px; transition: all 0.2s;
+        font-size: 14px; font-weight: 700; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        cursor: pointer; text-decoration: none; align-items: center; backdrop-filter: blur(4px);
+    }
+    .styled-header-btn:hover { background: rgba(55, 65, 81, 1); transform: scale(1.05); }
+
+    #langModalContainer {
+        font-family: 'Noto Sans KR', sans-serif;
+    }
+    #langModalContainer, #langModalContainer * {
+        box-sizing: border-box !important;
+    }
+    #langModalContainer .fa-solid, #langModalContainer .fa-regular {
+        font-family: "Font Awesome 6 Free" !important; font-weight: 900;
+    }
+
+    .modal-overlay { opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    
+    .lang-modal-content {
+        transform: scale(0.95) translateY(-10px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.active .lang-modal-content { transform: scale(1) translateY(0); opacity: 1; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+    .toast { transform: translateY(100%); opacity: 0; transition: all 0.3s ease; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+</style>
+</head>
+<body>
+
+    <div id="top-links-container">
+        <a id="site-link" href="/" target="_self" class="styled-header-btn">
+            <i class="fa-solid fa-crown text-yellow-400"></i>
+            <span id="site-link-text">킹수학.com</span>
+        </a>
+    </div>
+
+    <div id="lang-ui-container">
+        <button id="langTriggerBtn" class="styled-header-btn">
+            <i class="fa-solid fa-globe text-gray-300"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR" class="w-5 h-auto rounded-[2px] shadow-sm">
+            <span id="currentLangName" class="hidden sm:inline-block">한국어</span>
+            <i class="fa-solid fa-chevron-down text-gray-300 ml-1 text-xs"></i>
+        </button>
+    </div>
+
+    <div id="top-area">
+        <div id="scoreboard-row">
+            <div class="team-panel p1-panel">
+                <span class="player-label p1-label" id="ui-p1">🔴 레드 팀</span>
+                <div class="win-overlay" id="win-p1"></div>
+            </div>
+            <div class="timer-container"><div class="timer-label">⏱️</div></div>
+            <div class="team-panel p2-panel">
+                <span class="player-label p2-label" id="ui-p2">🔵 블루 팀</span>
+                <div class="win-overlay" id="win-p2"></div>
+            </div>
+        </div>
+        <div id="top-timer-bar"><div id="top-timer-fill"></div></div>
+    </div>
+
+    <div id="game-area-wrapper">
+        <div id="game-area">
+            <div class="player-section" id="p1-section">
+                <div class="targets-container" id="p1-targets"></div>
+                <div id="p1-grid" class="grid-container p1-board"></div>
+            </div>
+            <div class="divider"></div>
+            <div class="player-section" id="p2-section">
+                <div class="targets-container" id="p2-targets"></div>
+                <div id="p2-grid" class="grid-container p2-board"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="home-btn" class="float-btn" title="Home">🏠</div>
+    <div id="fullscreen-btn" class="float-btn" onpointerdown="toggleFullscreen()" title="Fullscreen">⛶</div>
+
+    <div id="restart-container">
+        <button class="action-btn" id="ui-restart" onpointerdown="startCountdown(event)">🔄 다시 하기</button>
+    </div>
+
+    <div id="overlay">
+        <div class="modal-content">
+            <h1 id="ui-title">👑 틀린 이모지 찾기 👑</h1>
+            <div class="instruction-box">
+                <p id="ui-inst1"><span>👀</span> <span>양쪽 화면을 비교하여 <b>서로 다른 이모지</b>를 찾아봐요!</span></p>
+                <p id="ui-inst2"><span>👆</span> <span>다른 이모지를 찾아 내 팀의 보드를 터치하면 전리품 획득!</span></p>
+                <p id="ui-inst3"><span>🚫</span> <span>잘못 누르면 <b class="highlight">3초 동안 화면이 회색으로 멈춰요.</b></span></p>
+                <p id="ui-inst4"><span>🏆</span> <span><b>먼저 6개</b>를 찾는 팀이 즉시 승리합니다.</span></p>
+                <p id="ui-inst5"><span>💡</span> <span>10초마다 힌트 소리와 함께 똑같은 이모지들이 지워져요.</span></p>
+            </div>
+            <button class="action-btn" id="ui-start" onpointerdown="startCountdown(event)">▶ 게임 시작</button><br><a href="/" target="_self" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; background-color: #4b5563; color: #ffffff; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-weight: bold; font-size: 16px; border: 1px solid #6b7280; box-shadow: 0 4px 6px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.2s, background-color 0.2s;" onmouseover="this.style.backgroundColor='#374151'; this.style.transform='scale(1.05)';" onmouseout="this.style.backgroundColor='#4b5563'; this.style.transform='scale(1)';">
+    🎮 다른 게임 고르기
+</a>
+        </div>
+
+    </div>
+
+    <div id="countdown-overlay"><span id="countdown-text"></span></div>
+
+    <div id="langModalContainer">
+        <div id="langModal" class="modal-overlay fixed inset-0 z-[99999] flex items-start sm:items-center justify-center bg-black/60 backdrop-blur-sm pt-16 sm:pt-0 px-4">
+            <div class="lang-modal-content bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
+                <div class="flex items-center justify-between p-5 border-b border-gray-800 bg-gray-900/95 sticky top-0 z-10">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-language text-yellow-500"></i>
+                            <span>Language / 언어</span>
+                        </h2>
+                    </div>
+                    <button id="closeModalBtn" class="w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+                <div class="p-5 pb-2 bg-gray-900">
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Search / 검색 ..." 
+                            class="w-full bg-gray-800 border border-gray-700 text-white text-sm rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 block pl-11 p-3.5 outline-none transition-all placeholder-gray-500">
+                    </div>
+                </div>
+                <div class="p-5 overflow-y-auto custom-scrollbar flex-1">
+                    <div id="languageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+                    <div id="noResult" class="hidden flex-col items-center justify-center py-12 text-gray-500">
+                        <i class="fa-regular fa-face-frown-open text-4xl mb-3"></i>
+                        <p>No results / 검색 결과 없음</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="toastNotification" class="toast fixed bottom-6 right-6 bg-gray-800 border border-gray-700 shadow-lg rounded-xl p-4 flex items-center gap-3 z-[99999]">
+            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+                <p id="ui-toast-msg" class="text-sm font-medium text-white">언어가 변경되었습니다.</p>
+                <p id="toastLangName" class="text-xs text-gray-400">Korean</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // 표정을 제외하고 동물, 음식, 과일, 탈것, 사물, 스포츠 등 120개의 다채로운 이모지로 교체
+    const allEmojis = [
+        "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵",
+        "🐔","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋",
+        "🐌","🐞","🐜","🦟","🦗","🕷","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞",
+        "🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🐘","🦛",
+        "🍎","🍏","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🍈","🍒","🍑","🥭","🍍","🥥",
+        "🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶","🌽","🥕","🧄","🧅","🥔","🍠","🥐",
+        "🚗","🚕","🚙","🚌","🚎","🏎","🚓","🚑","🚒","🚐","🚚","🚛","🚜","🛴","🚲",
+        "⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🎱","🪀","🏓","🏸","🏒","🏑","🥍"
+    ];
+
+    // 다국어 번역 데이터베이스 (제목 수정 반영)
+    const i18n = {
+        'ko': {
+            title: '👑 틀린 이모지 찾기 👑', pageTitle: '틀린 이모지 찾기', siteName: '킹수학.com',
+            p1: '🔴 레드 팀', p2: '🔵 블루 팀', win: '👑 승리', lose: '패배', draw: '무승부',
+            restart: '🔄 다시 하기', start: '▶ 게임 시작',
+            inst1: '<span>👀</span> <span>양쪽 화면을 비교하여 <b>서로 다른 이모지</b>를 찾아봐요!</span>',
+            inst2: '<span>👆</span> <span>다른 이모지를 찾아 내 팀의 보드를 터치하면 전리품 획득!</span>',
+            inst3: '<span>🚫</span> <span>잘못 누르면 <b class="highlight">3초 동안 화면이 회색으로 멈춰요.</b></span>',
+            inst4: '<span>🏆</span> <span><b>먼저 6개</b>를 찾는 팀이 즉시 승리합니다.</span>',
+            inst5: '<span>💡</span> <span>10초마다 힌트 소리와 함께 똑같은 이모지들이 지워져요.</span>',
+            toast: '언어가 변경되었습니다.'
+        },
+        'en': {
+            title: '👑 Spot the Odd Emoji 👑', pageTitle: 'Spot the Odd Emoji', siteName: 'KingsMath.com',
+            p1: '🔴 Red Team', p2: '🔵 Blue Team', win: '👑 WIN', lose: 'LOSE', draw: 'DRAW',
+            restart: '🔄 Play Again', start: '▶ Start Game',
+            inst1: '<span>👀</span> <span>Compare both sides and find the <b>different emoji</b>!</span>',
+            inst2: '<span>👆</span> <span>Tap the odd emoji on your board to collect loot!</span>',
+            inst3: '<span>🚫</span> <span>Wrong taps <b class="highlight">freeze your board for 3 seconds.</b></span>',
+            inst4: '<span>🏆</span> <span>The first team to collect <b>6 items</b> wins immediately.</span>',
+            inst5: '<span>💡</span> <span>Every 10 seconds, identical emojis disappear with a hint sound.</span>',
+            toast: 'Language changed.'
+        },
+        'zh': {
+            title: '👑 找出不同的表情符号 👑', pageTitle: '找出不同的表情符号', siteName: 'KingsMath.com',
+            p1: '🔴 红队', p2: '🔵 蓝队', win: '👑 胜利', lose: '失败', draw: '平局',
+            restart: '🔄 再玩一次', start: '▶ 开始游戏',
+            inst1: '<span>👀</span> <span>比较两侧并找出<b>不同的表情符号</b>！</span>',
+            inst2: '<span>👆</span> <span>点击你面板上的不同表情符号收集战利品！</span>',
+            inst3: '<span>🚫</span> <span>按错会<b class="highlight">冻结你的面板3秒钟。</b></span>',
+            inst4: '<span>🏆</span> <span>率先收集<b>6个</b>的队伍立即获胜。</span>',
+            inst5: '<span>💡</span> <span>每10秒钟相同的表情符号会伴随提示音消失。</span>',
+            toast: '语言已更改。'
+        },
+        'ja': {
+            title: '👑 違う絵文字を探せ 👑', pageTitle: '違う絵文字を探せ', siteName: 'KingsMath.com',
+            p1: '🔴 レッドチーム', p2: '🔵 ブルーチーム', win: '👑 勝利', lose: '敗北', draw: '引き分け',
+            restart: '🔄 もう一度プレイ', start: '▶ ゲームスタート',
+            inst1: '<span>👀</span> <span>両側を見比べて<b>違う絵文字</b>を見つけよう！</span>',
+            inst2: '<span>👆</span> <span>自分のボードの違う絵文字をタップしてアイテムをゲット！</span>',
+            inst3: '<span>🚫</span> <span>間違えると<b class="highlight">3秒間ボードがフリーズします。</b></span>',
+            inst4: '<span>🏆</span> <span>先に<b>6個</b>集めたチームの勝ちです。</span>',
+            inst5: '<span>💡</span> <span>10秒ごとに同じ絵文字がヒント音とともに消えます。</span>',
+            toast: '言語が変更されました。'
+        },
+        'es': {
+            title: '👑 Encuentra el Emoji Diferente 👑', pageTitle: 'Encuentra el Emoji Diferente', siteName: 'KingsMath.com',
+            p1: '🔴 Equipo Rojo', p2: '🔵 Equipo Azul', win: '👑 GANADOR', lose: 'PERDEDOR', draw: 'EMPATE',
+            restart: '🔄 Jugar de nuevo', start: '▶ Iniciar Juego',
+            inst1: '<span>👀</span> <span>¡Compara ambos lados y encuentra el <b>emoji diferente</b>!</span>',
+            inst2: '<span>👆</span> <span>¡Toca el emoji diferente en tu tablero para recolectar el botín!</span>',
+            inst3: '<span>🚫</span> <span>Los toques incorrectos <b class="highlight">congelan tu tablero por 3 segundos.</b></span>',
+            inst4: '<span>🏆</span> <span>El primer equipo en recolectar <b>6 objetos</b> gana de inmediato.</span>',
+            inst5: '<span>💡</span> <span>Cada 10 segundos, los emojis idénticos desaparecen con un sonido de pista.</span>',
+            toast: 'Idioma cambiado.'
+        },
+        'fr': {
+            title: '👑 Trouve l\'Emoji Différent 👑', pageTitle: 'Trouve l\'Emoji Différent', siteName: 'KingsMath.com',
+            p1: '🔴 Équipe Rouge', p2: '🔵 Équipe Bleue', win: '👑 GAGNANT', lose: 'PERDANT', draw: 'ÉGALITÉ',
+            restart: '🔄 Rejouer', start: '▶ Démarrer le jeu',
+            inst1: '<span>👀</span> <span>Comparez les deux côtés et trouvez <b>l\'emoji différent</b> !</span>',
+            inst2: '<span>👆</span> <span>Touchez l\'emoji différent sur votre tableau pour récupérer le butin !</span>',
+            inst3: '<span>🚫</span> <span>Les mauvaises touches <b class="highlight">gèlent votre tableau pendant 3 secondes.</b></span>',
+            inst4: '<span>🏆</span> <span>La première équipe à collecter <b>6 objets</b> gagne immédiatement.</span>',
+            inst5: '<span>💡</span> <span>Toutes les 10 secondes, des emojis identiques disparaissent avec un son indice.</span>',
+            toast: 'Langue modifiée.'
+        },
+        'ru': {
+            title: '👑 Найди лишнее эмодзи 👑', pageTitle: 'Найди лишнее эмодзи', siteName: 'KingsMath.com',
+            p1: '🔴 Красная команда', p2: '🔵 Синяя команда', win: '👑 ПОБЕДА', lose: 'ПОРАЖЕНИЕ', draw: 'НИЧЬЯ',
+            restart: '🔄 Играть снова', start: '▶ Начать игру',
+            inst1: '<span>👀</span> <span>Сравни обе стороны и найди <b>отличающийся эмодзи</b>!</span>',
+            inst2: '<span>👆</span> <span>Нажми на отличающийся эмодзи на своей доске, чтобы собрать добычу!</span>',
+            inst3: '<span>🚫</span> <span>Неправильные нажатия <b class="highlight">замораживают доску на 3 секунды.</b></span>',
+            inst4: '<span>🏆</span> <span>Команда, первой собравшая <b>6 предметов</b>, сразу побеждает.</span>',
+            inst5: '<span>💡</span> <span>Каждые 10 секунд одинаковые эмодзи исчезают со звуком подсказки.</span>',
+            toast: 'Язык изменен.'
+        },
+        'id': {
+            title: '👑 Temukan Emoji yang Berbeda 👑', pageTitle: 'Temukan Emoji yang Berbeda', siteName: 'KingsMath.com',
+            p1: '🔴 Tim Merah', p2: '🔵 Tim Biru', win: '👑 MENANG', lose: 'KALAH', draw: 'SERI',
+            restart: '🔄 Main Lagi', start: '▶ Mulai Game',
+            inst1: '<span>👀</span> <span>Bandingkan kedua sisi dan temukan <b>emoji yang berbeda</b>!</span>',
+            inst2: '<span>👆</span> <span>Ketuk emoji yang berbeda di papanmu untuk mengumpulkan poin!</span>',
+            inst3: '<span>🚫</span> <span>Ketukan yang salah akan <b class="highlight">membekukan papanmu selama 3 detik.</b></span>',
+            inst4: '<span>🏆</span> <span>Tim pertama yang mengumpulkan <b>6 item</b> langsung menang.</span>',
+            inst5: '<span>💡</span> <span>Setiap 10 detik, emoji yang identik menghilang dengan suara petunjuk.</span>',
+            toast: 'Bahasa telah diubah.'
+        },
+        'vi': {
+            title: '👑 Tìm Emoji Khác Biệt 👑', pageTitle: 'Tìm Emoji Khác Biệt', siteName: 'KingsMath.com',
+            p1: '🔴 Đội Đỏ', p2: '🔵 Đội Xanh', win: '👑 THẮNG', lose: 'THUA', draw: 'HÒA',
+            restart: '🔄 Chơi Lại', start: '▶ Bắt Đầu Game',
+            inst1: '<span>👀</span> <span>So sánh hai bên và tìm <b>emoji khác biệt</b>!</span>',
+            inst2: '<span>👆</span> <span>Chạm vào emoji khác trên bảng của bạn để thu thập vật phẩm!</span>',
+            inst3: '<span>🚫</span> <span>Chạm sai sẽ <b class="highlight">đóng băng bảng của bạn trong 3 giây.</b></span>',
+            inst4: '<span>🏆</span> <span>Đội đầu tiên thu thập được <b>6 vật phẩm</b> sẽ thắng ngay lập tức.</span>',
+            inst5: '<span>💡</span> <span>Mỗi 10 giây, các emoji giống hệt nhau sẽ biến mất cùng với âm thanh gợi ý.</span>',
+            toast: 'Ngôn ngữ đã được thay đổi.'
+        },
+        'th': {
+            title: '👑 จับผิดอีโมจิ 👑', pageTitle: 'จับผิดอีโมจิ', siteName: 'KingsMath.com',
+            p1: '🔴 ทีมสีแดง', p2: '🔵 ทีมสีน้ำเงิน', win: '👑 ชนะ', lose: 'แพ้', draw: 'เสมอ',
+            restart: '🔄 เล่นอีกครั้ง', start: '▶ เริ่มเกม',
+            inst1: '<span>👀</span> <span>เปรียบเทียบทั้งสองฝั่งและค้นหา <b>อีโมจิที่แตกต่าง</b>!</span>',
+            inst2: '<span>👆</span> <span>แตะอีโมจิที่ต่างกันบนกระดานของคุณเพื่อเก็บไอเท็ม!</span>',
+            inst3: '<span>🚫</span> <span>แตะผิดจะ <b class="highlight">แช่แข็งกระดานของคุณ 3 วินาที</b></span>',
+            inst4: '<span>🏆</span> <span>ทีมแรกที่รวบรวมได้ <b>6 ชิ้น</b> จะชนะทันที</span>',
+            inst5: '<span>💡</span> <span>ทุกๆ 10 วินาที อีโมจิที่เหมือนกันจะหายไปพร้อมเสียงใบ้</span>',
+            toast: 'เปลี่ยนภาษาเรียบร้อยแล้ว'
+        },
+        'pt-br': {
+            title: '👑 Encontre o Emoji Diferente 👑', pageTitle: 'Encontre o Emoji Diferente', siteName: 'KingsMath.com',
+            p1: '🔴 Equipe Vermelha', p2: '🔵 Equipe Azul', win: '👑 VENCEU', lose: 'PERDEU', draw: 'EMPATE',
+            restart: '🔄 Jogar Novamente', start: '▶ Iniciar Jogo',
+            inst1: '<span>👀</span> <span>Compare os dois lados e encontre o <b>emoji diferente</b>!</span>',
+            inst2: '<span>👆</span> <span>Toque no emoji diferente no seu lado para coletar o prêmio!</span>',
+            inst3: '<span>🚫</span> <span>Toques errados <b class="highlight">congelam seu lado por 3 segundos.</b></span>',
+            inst4: '<span>🏆</span> <span>A primeira equipe a coletar <b>6 itens</b> vence imediatamente.</span>',
+            inst5: '<span>💡</span> <span>A cada 10 segundos, emojis idênticos desaparecem com um som de dica.</span>',
+            toast: 'Idioma alterado.'
+        },
+        'hi': {
+            title: '👑 अलग इमोजी खोजें 👑', pageTitle: 'अलग इमोजी खोजें', siteName: 'KingsMath.com',
+            p1: '🔴 रेड टीम', p2: '🔵 ब्लू टीम', win: '👑 जीत', lose: 'हार', draw: 'ड्रा',
+            restart: '🔄 फिर से खेलें', start: '▶ गेम शुरू करें',
+            inst1: '<span>👀</span> <span>दोनों तरफ तुलना करें और <b>अलग इमोजी</b> खोजें!</span>',
+            inst2: '<span>👆</span> <span>लूट इकट्ठा करने के लिए अपने बोर्ड पर अलग इमोजी पर टैप करें!</span>',
+            inst3: '<span>🚫</span> <span>गलत टैप करने पर <b class="highlight">आपका बोर्ड 3 सेकंड के लिए फ्रीज हो जाएगा।</b></span>',
+            inst4: '<span>🏆</span> <span><b>6 आइटम</b> इकट्ठा करने वाली पहली टीम तुरंत जीत जाएगी।</span>',
+            inst5: '<span>💡</span> <span>हर 10 सेकंड में, समान इमोजी एक संकेत ध्वनि के साथ गायब हो जाते हैं।</span>',
+            toast: 'भाषा बदल दी गई है।'
+        },
+        'bn': {
+            title: '👑 আলাদা ইমোজিটি খুঁজুন 👑', pageTitle: 'আলাদা ইমোজিটি খুঁজুন', siteName: 'KingsMath.com',
+            p1: '🔴 রেড টিম', p2: '🔵 ব্লু টিম', win: '👑 জয়', lose: 'পরাজয়', draw: 'ড্র',
+            restart: '🔄 আবার খেলুন', start: '▶ গেম শুরু',
+            inst1: '<span>👀</span> <span>দুই দিক তুলনা করুন এবং <b>ভিন্ন ইমোজি</b> খুঁজুন!</span>',
+            inst2: '<span>👆</span> <span>লুট সংগ্রহ করতে আপনার বোর্ডে ভিন্ন ইমোজি ট্যাপ করুন!</span>',
+            inst3: '<span>🚫</span> <span>ভুল ট্যাপ করলে <b class="highlight">আপনার বোর্ড ৩ সেকেন্ডের জন্য ফ্রিজ হয়ে যাবে।</b></span>',
+            inst4: '<span>🏆</span> <span>প্রথম দল হিসেবে <b>৬টি আইটেম</b> সংগ্রহ করলে সাথে সাথে জয়ী হবে।</span>',
+            inst5: '<span>💡</span> <span>প্রতি ১০ সেকেন্ডে, একই ইমোজি একটি ইঙ্গিত শব্দ সহ অদৃশ্য হয়ে যায়।</span>',
+            toast: 'ভাষা পরিবর্তন করা হয়েছে।'
+        },
+        'tr': {
+            title: '👑 Farklı Emojiyi Bul 👑', pageTitle: 'Farklı Emojiyi Bul', siteName: 'KingsMath.com',
+            p1: '🔴 Kırmızı Takım', p2: '🔵 Mavi Takım', win: '👑 KAZANÇ', lose: 'KAYIP', draw: 'BERABERLİK',
+            restart: '🔄 Tekrar Oyna', start: '▶ Oyuna Başla',
+            inst1: '<span>👀</span> <span>İki tarafı karşılaştırın ve <b>farklı emojiyi</b> bulun!</span>',
+            inst2: '<span>👆</span> <span>Ganimet toplamak için panonuzdaki farklı emojiyi dokunun!</span>',
+            inst3: '<span>🚫</span> <span>Yanlış dokunuşlar <b class="highlight">panonuzu 3 saniyeliğine dondurur.</b></span>',
+            inst4: '<span>🏆</span> <span>İlk olarak <b>6 öğe</b> toplayan takım hemen kazanır.</span>',
+            inst5: '<span>💡</span> <span>Her 10 saniyede bir aynı emojiler bir ipucu sesi ile kaybolur.</span>',
+            toast: 'Dil değiştirildi.'
+        },
+        'de': {
+            title: '👑 Finde das andere Emoji 👑', pageTitle: 'Finde das andere Emoji', siteName: 'KingsMath.com',
+            p1: '🔴 Rotes Team', p2: '🔵 Blaues Team', win: '👑 GEWONNEN', lose: 'VERLOREN', draw: 'UNENTSCHIEDEN',
+            restart: '🔄 Nochmal spielen', start: '▶ Spiel starten',
+            inst1: '<span>👀</span> <span>Vergleiche beide Seiten und finde das <b>unterschiedliche Emoji</b>!</span>',
+            inst2: '<span>👆</span> <span>Tippe auf das andere Emoji auf deinem Brett, um die Beute zu sammeln!</span>',
+            inst3: '<span>🚫</span> <span>Falsche Tipps <b class="highlight">frieren dein Brett für 3 Sekunden ein.</b></span>',
+            inst4: '<span>🏆</span> <span>Das Team, das zuerst <b>6 Gegenstände</b> sammelt, gewinnt sofort.</span>',
+            inst5: '<span>💡</span> <span>Alle 10 Sekunden verschwinden identische Emojis mit einem Hinweisgeräusch.</span>',
+            toast: 'Sprache geändert.'
+        },
+        'it': {
+            title: '👑 Trova l\'Emoji Diverso 👑', pageTitle: 'Trova l\'Emoji Diverso', siteName: 'KingsMath.com',
+            p1: '🔴 Squadra Rossa', p2: '🔵 Squadra Blu', win: '👑 VITTORIA', lose: 'SCONFITTA', draw: 'PAREGGIO',
+            restart: '🔄 Gioca di nuovo', start: '▶ Inizia Gioco',
+            inst1: '<span>👀</span> <span>Confronta entrambi i lati e trova <b>l\'emoji diverso</b>!</span>',
+            inst2: '<span>👆</span> <span>Tocca l\'emoji diverso sul tuo tabellone per raccogliere il bottino!</span>',
+            inst3: '<span>🚫</span> <span>I tocchi errati <b class="highlight">congelano il tuo tabellone per 3 secondi.</b></span>',
+            inst4: '<span>🏆</span> <span>La prima squadra a raccogliere <b>6 oggetti</b> vince immediatamente.</span>',
+            inst5: '<span>💡</span> <span>Ogni 10 secondi, emoji identiche scompaiono con un suono di suggerimento.</span>',
+            toast: 'Lingua cambiata.'
+        }
+    };
+
+    const langDefs = [
+        { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+        { code: 'en', country: 'us', name: 'English', enName: 'English' },
+        { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+        { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+        { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+        { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+        { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+        { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+        { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+        { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+        { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+        { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+        { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+        { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+        { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+        { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+    ];
+
+    let currentLang = 'ko';
+
+    // 다국어 초기 감지 로직
+    function getInitialLang() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('lang') && i18n[urlParams.get('lang')]) return urlParams.get('lang');
+        const storedLang = localStorage.getItem('kingsmath_lang');
+        if (storedLang && i18n[storedLang]) return storedLang;
+        const browserLang = navigator.language.split('-')[0].toLowerCase();
+        if (browserLang === 'pt') return 'pt-br';
+        if (i18n[browserLang]) return browserLang;
+        return 'en';
+    }
+
+    function applyLanguage(code, showToastMsg = false) {
+        currentLang = code;
+        localStorage.setItem('kingsmath_lang', code);
+        const url = new URL(window.location);
+        url.searchParams.set('lang', code);
+        window.history.pushState({}, '', url);
+
+        const t = i18n[code];
+        document.getElementById('page-title').textContent = t.pageTitle;
+        document.getElementById('og-title').content = t.pageTitle + ' | KingsMath';
+        document.getElementById('og-site-name').content = t.siteName;
+        document.getElementById('site-link-text').textContent = t.siteName;
+
+        document.getElementById('ui-title').innerHTML = t.title;
+        document.getElementById('ui-p1').textContent = t.p1;
+        document.getElementById('ui-p2').textContent = t.p2;
+        document.getElementById('ui-restart').textContent = t.restart;
+        document.getElementById('ui-start').textContent = t.start;
+        document.getElementById('ui-inst1').innerHTML = t.inst1;
+        document.getElementById('ui-inst2').innerHTML = t.inst2;
+        document.getElementById('ui-inst3').innerHTML = t.inst3;
+        document.getElementById('ui-inst4').innerHTML = t.inst4;
+        document.getElementById('ui-inst5').innerHTML = t.inst5;
+
+        // 버튼 업데이트
+        const langObj = langDefs.find(l => l.code === code);
+        document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+        document.getElementById('currentLangName').textContent = langObj.name;
+
+        if (showToastMsg) {
+            document.getElementById('ui-toast-msg').textContent = t.toast;
+            document.getElementById('toastLangName').textContent = langObj.enName;
+            const toast = document.getElementById('toastNotification');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    }
+
+    // 모달 관련
+    const modal = document.getElementById('langModal');
+    function openModal() {
+        modal.classList.add('active');
+        setTimeout(() => document.getElementById('searchInput').focus(), 100);
+    }
+    function closeModal() {
+        modal.classList.remove('active');
+    }
+
+    function renderLanguages(filterText = '') {
+        const grid = document.getElementById('languageGrid');
+        const noResult = document.getElementById('noResult');
+        grid.innerHTML = '';
+        const lowerFilter = filterText.toLowerCase();
+        
+        const filteredLangs = langDefs.filter(lang => 
+            lang.name.toLowerCase().includes(lowerFilter) || 
+            lang.enName.toLowerCase().includes(lowerFilter) ||
+            lang.code.toLowerCase().includes(lowerFilter)
+        );
+
+        if (filteredLangs.length === 0) {
+            grid.classList.add('hidden');
+            noResult.classList.remove('hidden');
+            noResult.classList.add('flex');
+        } else {
+            grid.classList.remove('hidden');
+            noResult.classList.add('hidden');
+            noResult.classList.remove('flex');
+
+            filteredLangs.forEach(lang => {
+                const isSelected = lang.code === currentLang;
+                const baseClasses = "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 group relative overflow-hidden";
+                const stateClasses = isSelected 
+                    ? "bg-gray-800 border-yellow-500 ring-1 ring-yellow-500/50" 
+                    : "bg-gray-800/40 border-gray-700 hover:bg-gray-700 hover:border-gray-500";
+                
+                const btn = document.createElement('div');
+                btn.className = `${baseClasses} ${stateClasses}`;
+                btn.innerHTML = `
+                    <div class="shrink-0 w-8 h-6 rounded overflow-hidden shadow-sm border border-gray-700/50">
+                        <img src="https://flagcdn.com/w40/${lang.country}.png" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col items-start">
+                        <span class="text-sm font-medium text-white truncate w-full ${isSelected ? 'text-yellow-400' : ''}">${lang.name}</span>
+                        <span class="text-xs text-gray-400 truncate w-full">${lang.enName}</span>
+                    </div>
+                    ${isSelected ? '<i class="fa-solid fa-circle-check text-yellow-500 text-lg ml-2"></i>' : ''}
+                `;
+                btn.addEventListener('click', () => {
+                    applyLanguage(lang.code, true);
+                    closeModal();
+                    renderLanguages(document.getElementById('searchInput').value);
+                });
+                grid.appendChild(btn);
+            });
+        }
+    }
+
+    document.getElementById('langTriggerBtn').addEventListener('click', openModal);
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.getElementById('searchInput').addEventListener('input', (e) => renderLanguages(e.target.value));
+
+
+    // 게임 코어 기능
+    const AudioEngine = {
+        ctx: null,
+        init: function() {
+            if (!this.ctx) { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); }
+            else if (this.ctx.state === 'suspended') { this.ctx.resume(); }
+        },
+        playTone: function(freq, type, duration, vol=0.3, startTime=null) {
+            if (!this.ctx) this.init(); if (this.ctx.state === 'suspended') this.ctx.resume();
+            const now = startTime || this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, now); gain.gain.setValueAtTime(vol, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + duration);
+        },
+        playCorrect: function(isP1) { 
+            if (!this.ctx) return; const now = this.ctx.currentTime; const base = isP1 ? 660 : 880; 
+            this.playTone(base, 'square', 0.1, 0.15, now); this.playTone(base * 1.25, 'triangle', 0.2, 0.2, now + 0.1);
+        },
+        playWrong: function() { this.playTone(150, 'sawtooth', 0.3, 0.4); setTimeout(() => this.playTone(100, 'sawtooth', 0.4, 0.4), 150); },
+        playCountdown: function() { this.playTone(1200, 'sine', 0.1, 0.2); },
+        playHint: function() { 
+            if (!this.ctx) return; const now = this.ctx.currentTime;
+            this.playTone(800, 'sine', 0.1, 0.1, now); this.playTone(1200, 'sine', 0.15, 0.1, now + 0.1); 
+        },
+        playFanfare: function() {
+            if (!this.ctx) return; const now = this.ctx.currentTime;
+            [523, 659, 783, 1046, 783, 1046].forEach((freq, i) => { this.playTone(freq, 'square', 0.2, 0.3, now + i*0.15); });
+        }
+    };
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => {console.log(err);}); } 
+        else { if (document.exitFullscreen) document.exitFullscreen(); }
+    }
+
+    let state = { p1: { score: 0 }, p2: { score: 0 } };
+    let timeLeft = 60, maxTime = 60, timerId, hintTimerId, isPlaying = false;
+    
+    const TOTAL_CELLS = 96; 
+    const TOTAL_DIFFS = 11; // 맵에 생성되는 총 정답 개수
+    const WIN_SCORE = 6;    // 6개 찾으면 승리
+    const FILL_ORDER = [2, 3, 1, 4, 0, 5];
+
+    let currentPool = [];
+    let baseBoard = [];
+    let p1Board = [];
+    let p2Board = [];
+    let diffIndices = [];
+    let foundIndices = new Set();
+
+    function initGame() {
+        document.getElementById('win-p1').style.display = 'none';
+        document.getElementById('win-p2').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+
+        state.p1.score = 0; state.p2.score = 0;
+        foundIndices.clear();
+
+        let shuffledAll = [...allEmojis].sort(() => Math.random() - 0.5);
+        currentPool = shuffledAll.slice(0, 10);
+
+        baseBoard = [];
+        for(let i=0; i<TOTAL_CELLS; i++) { baseBoard.push(currentPool[Math.floor(Math.random() * 10)]); }
+        p1Board = [...baseBoard]; p2Board = [...baseBoard];
+
+        diffIndices = [];
+        while(diffIndices.length < TOTAL_DIFFS) {
+            let r = Math.floor(Math.random() * TOTAL_CELLS);
+            if(!diffIndices.includes(r)) diffIndices.push(r);
+        }
+
+        diffIndices.forEach(idx => {
+            let original = baseBoard[idx];
+            let available = currentPool.filter(e => e !== original);
+            p2Board[idx] = available[Math.floor(Math.random() * available.length)];
+        });
+
+        renderTargets('p1'); renderTargets('p2');
+        renderGrid('p1', p1Board); renderGrid('p2', p2Board);
+    }
+
+    function renderTargets(playerStr) {
+        const container = document.getElementById(`${playerStr}-targets`);
+        container.style.gridTemplateColumns = `repeat(${WIN_SCORE}, 1fr)`;
+        container.innerHTML = Array(WIN_SCORE).fill(`<div class="target-box">❓</div>`).join('');
+    }
+
+    function renderGrid(playerStr, boardData) {
+        const container = document.getElementById(`${playerStr}-grid`);
+        container.innerHTML = boardData.map((emoji, index) => {
+            return `<div class="emoji-btn" data-index="${index}" onpointerdown="handleTap('${playerStr}', ${index}, this, event)">${emoji}</div>`;
+        }).join('');
+    }
+
+    function handleTap(playerStr, index, element, event) {
+        if(event) { event.preventDefault(); event.stopPropagation(); }
+        if(!isPlaying) return;
+        if(foundIndices.has(index)) return;
+
+        if(diffIndices.includes(index)) {
+            foundIndices.add(index);
+            AudioEngine.playCorrect(playerStr === 'p1');
+
+            element.classList.add('correct-mark');
+            const oppStr = playerStr === 'p1' ? 'p2' : 'p1';
+            const oppBtn = document.querySelector(`#${oppStr}-grid .emoji-btn[data-index="${index}"]`);
+            if(oppBtn) oppBtn.classList.add('disabled-mark');
+
+            const targetBoxes = document.getElementById(`${playerStr}-targets`).children;
+            const targetIndex = FILL_ORDER[state[playerStr].score];
+            const currentBox = targetBoxes[targetIndex];
+            
+            if(currentBox) {
+                currentBox.textContent = playerStr === 'p1' ? p1Board[index] : p2Board[index];
+                currentBox.classList.add(playerStr === 'p1' ? 'filled-p1' : 'filled-p2');
+            }
+
+            state[playerStr].score++;
+
+            if (state[playerStr].score >= WIN_SCORE) endGame();
+        } else {
+            AudioEngine.playWrong();
+            const grid = document.getElementById(`${playerStr}-grid`);
+            grid.classList.add('penalty-mode'); grid.classList.add('disabled-mark'); 
+            setTimeout(() => {
+                grid.classList.remove('penalty-mode'); grid.classList.remove('disabled-mark'); 
+            }, 3000);
+        }
+    }
+
+    function applyHint() {
+        if(!isPlaying) return;
+        let identicalIndices = [];
+        for(let i=0; i<TOTAL_CELLS; i++) {
+            if(!diffIndices.includes(i)) identicalIndices.push(i);
+        }
+        
+        const p1Grid = document.getElementById('p1-grid');
+        const p2Grid = document.getElementById('p2-grid');
+        
+        let availableToRemove = identicalIndices.filter(idx => {
+            const btn = p1Grid.querySelector(`.emoji-btn[data-index="${idx}"]`);
+            return btn && !btn.classList.contains('hint-fade');
+        });
+
+        if(availableToRemove.length > 0) {
+            AudioEngine.playHint(); 
+            availableToRemove.sort(() => Math.random() - 0.5);
+            const toHide = availableToRemove.slice(0, 8); 
+            
+            toHide.forEach(idx => {
+                p1Grid.querySelector(`.emoji-btn[data-index="${idx}"]`).classList.add('hint-fade');
+                p2Grid.querySelector(`.emoji-btn[data-index="${idx}"]`).classList.add('hint-fade');
+            });
+        }
+    }
+
+    function startCountdown(event) {
+        if(event) { event.preventDefault(); event.stopPropagation(); }
+        AudioEngine.init();
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('restart-container').style.display = 'none';
+        document.getElementById('top-links-container').style.display = 'none'; // 헤더 링크 숨김
+        document.getElementById('lang-ui-container').style.display = 'none'; // 헤더 언어선택 숨김
+        
+        const countOverlay = document.getElementById('countdown-overlay');
+        const countText = document.getElementById('countdown-text');
+        countOverlay.style.display = 'flex';
+        
+        let count = 3; let countInt; 
+        
+        function updateCount() {
+            countText.classList.remove('count-anim');
+            void countText.offsetWidth; 
+            countText.classList.add('count-anim');
+            
+            if(count > 0) { countText.textContent = count; AudioEngine.playTone(800, 'square', 0.1, 0.3); } 
+            else if(count === 0) { countText.textContent = 'GO!'; AudioEngine.playTone(1200, 'sine', 0.5, 0.4); } 
+            else { clearInterval(countInt); countOverlay.style.display = 'none'; startGame(); return; }
+            count--;
+        }
+        updateCount(); countInt = setInterval(updateCount, 1000);
+    }
+
+    function startGame() {
+        if(isPlaying) return;
+        initGame(); timeLeft = maxTime; isPlaying = true;
+        const timerFill = document.getElementById('top-timer-fill'); timerFill.style.width = '100%';
+
+        clearInterval(timerId); clearInterval(hintTimerId);
+
+        timerId = setInterval(() => {
+            timeLeft--; let pct = (timeLeft / maxTime) * 100; timerFill.style.width = pct + '%';
+            if (timeLeft <= 10 && timeLeft > 0) AudioEngine.playCountdown();
+            if (timeLeft <= 0) endGame();
+        }, 1000);
+
+        hintTimerId = setInterval(applyHint, 10000);
+    }
+
+    function endGame() {
+        isPlaying = false; clearInterval(timerId); clearInterval(hintTimerId); AudioEngine.playFanfare();
+
+        const winP1 = document.getElementById('win-p1'); const winP2 = document.getElementById('win-p2');
+        winP1.style.display = 'flex'; winP2.style.display = 'flex';
+        winP1.className = 'win-overlay'; winP2.className = 'win-overlay';
+        const t = i18n[currentLang];
+
+        if (state.p1.score > state.p2.score) {
+            winP1.innerHTML = t.win; winP1.classList.add('win'); winP2.innerHTML = t.lose; winP2.classList.add('lose');
+        } else if (state.p2.score > state.p1.score) {
+            winP2.innerHTML = t.win; winP2.classList.add('win'); winP1.innerHTML = t.lose; winP1.classList.add('lose');
+        } else {
+            winP1.innerHTML = t.draw; winP1.classList.add('draw'); winP2.innerHTML = t.draw; winP2.classList.add('draw');
+        }
+
+        setTimeout(() => { document.getElementById('restart-container').style.display = 'flex'; }, 3000);
+    }
+
+    // 홈 버튼: 전체화면일 때 지체 없이 초기화 처리
+    document.getElementById('home-btn').addEventListener('pointerdown', () => {
+        if (document.fullscreenElement) {
+            isPlaying = false;
+            clearInterval(timerId);
+            clearInterval(hintTimerId);
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('top-links-container').style.display = 'block';
+            document.getElementById('lang-ui-container').style.display = 'block';
+            document.getElementById('restart-container').style.display = 'none';
+        } else {
+            location.reload();
+        }
+    });
+
+    const setAppHeight = () => { document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`); }
+    window.addEventListener('resize', setAppHeight); window.addEventListener('orientationchange', setAppHeight); setAppHeight();
+
+    // 초기화 실행
+    applyLanguage(getInitialLang());
+    renderLanguages();
+</script>
+
+</body>
+</html>

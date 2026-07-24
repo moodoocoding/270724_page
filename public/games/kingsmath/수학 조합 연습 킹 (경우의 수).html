@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>   
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5YW0T2C109"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5YW0T2C109');
+    </script
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="seo-title">조용킹 - 교실 소음 측정기</title>
+    <meta name="description" id="seo-desc" content="선생님이 만든 안전하고 재미있는 교실 소음 측정기. 학급을 조용하게 유지해 보세요!">
+    <meta name="keywords" id="seo-keywords" content="조용킹, 소음 측정기, 교실 소음, 수학, 교육, 선생님">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        /* -----------------------------------------
+           [원본 게임 CSS (수정 금지, 원형 유지)] 
+           ----------------------------------------- */
+        body {
+            font-family: 'Jua', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #4a90e2;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .huge-btn {
+            font-size: 4rem;
+            padding: 30px 60px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            font-family: inherit;
+        }
+
+        .huge-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        #main-screen {
+            display: none;
+            width: 95%;
+            height: 85%;
+            flex-direction: column;
+        }
+
+        .device-selectors {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        select {
+            font-size: 1.2rem;
+            padding: 8px;
+            border-radius: 8px;
+            font-family: inherit;
+            border: 2px solid #4a90e2;
+            outline: none;
+        }
+
+        .content-area {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+
+        .left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .video-container {
+            flex: 1;
+            background-color: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cam-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .right-panel {
+            flex: 1.1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .display-box {
+            background: #f8f9fa;
+            border: 3px solid #dee2e6;
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .label { font-size: 1.5rem; color: #6c757d; }
+        .db-text { font-size: 4rem; color: #4a90e2; margin: 5px 0; }
+        .max-db-text { font-size: 3.5rem; color: #ff6b6b; margin: 5px 0; }
+        .timer-text { font-size: 3.5rem; color: #20c997; margin: 5px 0; }
+
+        .graph-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .graph-controls { margin-bottom: 10px; }
+
+        #graph-container {
+            width: 100%;
+            height: 150px;
+            background-color: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #db-graph { width: 100%; height: 100%; }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 1.5rem;
+            padding: 10px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        button:active { transform: translateY(2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-primary { background-color: #4a90e2; color: white; }
+        .btn-success { background-color: #20c997; color: white; }
+        .btn-warning { background-color: #fec107; color: white; }
+        .btn-danger { background-color: #ff6b6b; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .full-width { grid-column: 1 / -1; }
+
+        /* -----------------------------------------
+           [독립적 UI & 모달 CSS (Tailwind 변환 및 충돌 방지)] 
+           ----------------------------------------- */
+        
+        /* 언어 선택 모달 내부 박스사이징 강제 보정 */
+        #langModal, #langModal * {
+            box-sizing: border-box !important;
+        }
+
+        /* 폰트 어썸 아이콘 깨짐 방지 */
+        #langModal i[class^="fa-"] {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+        }
+        
+        /* 모달 전용 텍스트 폰트 (게임 폰트와 분리) */
+        .modal-text-font {
+            font-family: 'Noto Sans KR', sans-serif !important;
+        }
+
+        #langSelectorContainer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+        }
+
+        #langTriggerBtn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: rgba(55, 65, 81, 0.9);
+            color: white;
+            border: 1px solid #4b5563;
+            border-radius: 9999px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-family: 'Noto Sans KR', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        #langTriggerBtn:hover { background-color: #374151; }
+        #currentFlag { width: 20px; height: auto; border-radius: 2px; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: #111827;
+            border: 1px solid #374151;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95) translateY(-10px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            color: #f3f4f6;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #1f2937;
+            background-color: #111827;
+        }
+        .modal-header h2 { margin: 0; font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .btn-close-modal {
+            background: #1f2937; border: none; width: 40px; height: 40px; border-radius: 50%;
+            color: #9ca3af; font-size: 1.25rem; cursor: pointer; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-close-modal:hover { background: #374151; color: white; }
+
+        .modal-search { padding: 20px 20px 10px 20px; position: relative; }
+        .modal-search input {
+            width: 100%; background: #1f2937; border: 1px solid #374151; color: white;
+            border-radius: 12px; padding: 14px 14px 14px 44px; outline: none; transition: all 0.2s;
+            font-family: inherit; font-size: 0.875rem;
+        }
+        .modal-search input:focus { border-color: #eab308; box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.2); }
+        .modal-search i { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+
+        .modal-body {
+            padding: 20px; overflow-y: auto; flex: 1;
+        }
+        .modal-body::-webkit-scrollbar { width: 8px; }
+        .modal-body::-webkit-scrollbar-track { background: rgba(31, 41, 55, 0.5); border-radius: 4px; }
+        .modal-body::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .modal-body::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        .lang-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;
+        }
+        .lang-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px;
+            border: 1px solid #374151; background: rgba(31, 41, 55, 0.4); cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .lang-item:hover { background: #374151; border-color: #6b7280; }
+        .lang-item.selected { background: #1f2937; border-color: #eab308; box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.5); }
+        .lang-item img { width: 32px; height: 24px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(55,65,81,0.5); }
+        .lang-item-info { display: flex; flex-direction: column; overflow: hidden; flex: 1; }
+        .lang-item-info .lang-name { font-size: 0.875rem; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lang-item-info .lang-en { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lang-item.selected .lang-name { color: #facc15; }
+        .lang-item i.check-icon { color: #eab308; font-size: 1.125rem; margin-left: auto; }
+        
+        .no-result { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 48px 0; color: #6b7280; }
+        .no-result.active { display: flex; }
+
+        /* 토스트 알림 */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: #1f2937; border: 1px solid #374151;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-radius: 12px; padding: 16px;
+            display: flex; align-items: center; gap: 12px; z-index: 99999;
+            transform: translateY(150%); opacity: 0; transition: all 0.3s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(34, 197, 94, 0.2); color: #4ade80; display: flex; align-items: center; justify-content: center; }
+        .toast-text p.title { margin: 0; font-size: 0.875rem; font-weight: 500; color: white; }
+        .toast-text p.sub { margin: 0; font-size: 0.75rem; color: #9ca3af; }
+
+        /* 모바일 대응 반응형 조정 */
+        @media (max-width: 600px) {
+            .huge-btn { font-size: 2.5rem; padding: 20px 40px; }
+            h1 { font-size: 2.5rem; }
+            .content-area { flex-direction: column; }
+            .right-panel { flex: none; }
+            #langTriggerBtn span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="langSelectorContainer">
+        <button id="langTriggerBtn">
+            <i class="fa-solid fa-globe" style="color:#9ca3af;"></i>
+            <img id="currentFlag" src="https://flagcdn.com/w40/kr.png" alt="KR">
+            <span id="currentLangName" class="modal-text-font">한국어</span>
+            <i class="fa-solid fa-chevron-down" style="color:#9ca3af; font-size:10px; margin-left:4px;"></i>
+        </button>
+    </div>
+
+    <div id="langModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fa-solid fa-language" style="color:#eab308;"></i>
+                    <span class="modal-text-font">Language / 언어</span>
+                </h2>
+                <button id="closeModalBtn" class="btn-close-modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" class="modal-text-font" placeholder="Search / 검색 ...">
+            </div>
+            <div class="modal-body">
+                <div id="languageGrid" class="lang-grid"></div>
+                <div id="noResult" class="no-result">
+                    <i class="fa-regular fa-face-frown-open" style="font-size:2.5rem; margin-bottom:12px;"></i>
+                    <p class="modal-text-font">No results / 검색 결과 없음</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastNotification" class="toast">
+        <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="toast-text">
+            <p id="ui-toast" class="title">언어가 변경되었습니다.</p>
+            <p id="toastLangName" class="sub">Korean</p>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <h1 id="ui-title">🤫 조용킹 🤫</h1>
+        <button id="ui-start-btn" class="huge-btn" onclick="startApp()">조용킹 시작!</button>
+        <p id="ui-desc" style="font-size: 1.5rem; color: #666; margin-top: 20px; text-align:center; padding:0 20px;">시작 버튼을 누르면 카메라와 마이크 권한을 요청합니다.</p>
+    </div>
+
+    <div id="main-screen">
+        <div class="device-selectors">
+            <div>
+                <label id="ui-cam-label" for="video-source" style="font-size:1.2rem;">📷 카메라: </label>
+                <select id="video-source"></select>
+            </div>
+            <div>
+                <label id="ui-mic-label" for="audio-source" style="font-size:1.2rem;">🎤 마이크: </label>
+                <select id="audio-source"></select>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="left-panel">
+                <div class="video-container">
+                    <video id="video-element" autoplay playsinline muted></video>
+                </div>
+                <div class="cam-controls">
+                    <button id="ui-cam-on" class="btn-success" onclick="toggleCamera(true)">카메라 켜기</button>
+                    <button id="ui-cam-off" class="btn-secondary" onclick="toggleCamera(false)">카메라 끄기</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="display-box">
+                    <div id="ui-cur-db" class="label">현재 소리 크기</div>
+                    <div class="db-text"><span id="current-db">0</span> dB</div>
+                </div>
+
+                <div class="graph-section">
+                    <div class="graph-controls">
+                        <button id="toggle-graph-btn" class="btn-secondary" onclick="toggleGraph()">그래프 켜기</button>
+                    </div>
+                    <div id="graph-container">
+                        <canvas id="db-graph"></canvas>
+                    </div>
+                </div>
+                
+                <div class="display-box">
+                    <div id="ui-max-db" class="label">가장 큰 소리</div>
+                    <div class="max-db-text"><span id="max-db">0</span> dB</div>
+                </div>
+
+                <div class="display-box">
+                    <div id="ui-time" class="label">측정 시간</div>
+                    <div class="timer-text" id="timer-display">00:00</div>
+                </div>
+
+                <div class="control-panel">
+                    <button id="btn-measure" class="btn-primary full-width" onclick="startMeasurement()">소리 크기 측정 (시작)</button>
+                    <button id="btn-pause" class="btn-warning" onclick="togglePause()" disabled>일시정지</button>
+                    <button id="btn-stop" class="btn-danger" onclick="stopMeasurement()" disabled>중지</button>
+                    <button id="btn-reset" class="btn-secondary full-width" onclick="resetMeasurement()">초기화 (0으로 만들기)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================================
+           [1] 다국어(i18n) 통합 로직 및 번역 데이터
+           ========================================================= */
+        const translations = {
+            'ko': {
+                seoTitle: "조용킹 - 교실 소음 측정기",
+                appName: "🤫 조용킹 🤫",
+                startBtn: "조용킹 시작!",
+                startDesc: "시작 버튼을 누르면 카메라와 마이크 권한을 요청합니다.",
+                camLabel: "📷 카메라: ",
+                micLabel: "🎤 마이크: ",
+                camOn: "카메라 켜기",
+                camOff: "카메라 끄기",
+                curDb: "현재 소리 크기",
+                maxDb: "가장 큰 소리",
+                timeLabel: "측정 시간",
+                graphOn: "그래프 켜기",
+                graphOff: "그래프 끄기",
+                measureStart: "소리 크기 측정 (시작)",
+                pause: "일시정지",
+                resume: "재개하기",
+                stop: "중지",
+                resetBtn: "초기화 (0으로 만들기)",
+                toastMsg: "언어가 변경되었습니다.",
+                fontFamily: "'Jua', sans-serif"
+            },
+            'en': {
+                seoTitle: "Quiet King - Classroom Noise Meter",
+                appName: "🤫 Quiet King 🤫",
+                startBtn: "Start Quiet King!",
+                startDesc: "Clicking the start button will request camera and mic permissions.",
+                camLabel: "📷 Camera: ",
+                micLabel: "🎤 Mic: ",
+                camOn: "Cam On",
+                camOff: "Cam Off",
+                curDb: "Current Noise",
+                maxDb: "Max Noise",
+                timeLabel: "Time",
+                graphOn: "Graph On",
+                graphOff: "Graph Off",
+                measureStart: "Start Measuring",
+                pause: "Pause",
+                resume: "Resume",
+                stop: "Stop",
+                resetBtn: "Reset to 0",
+                toastMsg: "Language changed.",
+                fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+            },
+            'zh': {
+                seoTitle: "安静之王 - 教室噪音测量仪",
+                appName: "🤫 安静之王 🤫",
+                startBtn: "开始!",
+                startDesc: "点击开始按钮将请求摄像头和麦克风权限。",
+                camLabel: "📷 摄像头: ",
+                micLabel: "🎤 麦克风: ",
+                camOn: "开启摄像头",
+                camOff: "关闭摄像头",
+                curDb: "当前噪音",
+                maxDb: "最大噪音",
+                timeLabel: "测量时间",
+                graphOn: "开启图表",
+                graphOff: "关闭图表",
+                measureStart: "开始测量",
+                pause: "暂停",
+                resume: "继续",
+                stop: "停止",
+                resetBtn: "重置 (归零)",
+                toastMsg: "语言已更改。",
+                fontFamily: "'Microsoft YaHei', 'PingFang SC', sans-serif"
+            },
+            'ja': {
+                seoTitle: "静かキング - 教室の騒音計",
+                appName: "🤫 静かキング 🤫",
+                startBtn: "スタート!",
+                startDesc: "スタートボタンを押すと、カメラとマイクの権限を要求します。",
+                camLabel: "📷 カメラ: ",
+                micLabel: "🎤 マイク: ",
+                camOn: "カメラON",
+                camOff: "カメラOFF",
+                curDb: "現在の音量",
+                maxDb: "最大音量",
+                timeLabel: "測定時間",
+                graphOn: "グラフON",
+                graphOff: "グラフOFF",
+                measureStart: "測定スタート",
+                pause: "一時停止",
+                resume: "再開する",
+                stop: "ストップ",
+                resetBtn: "リセット (0にする)",
+                toastMsg: "言語が変更されました。",
+                fontFamily: "'Meiryo', 'Hiragino Kaku Gothic ProN', sans-serif"
+            },
+            'es': {
+                seoTitle: "Rey del Silencio - Medidor de Ruido",
+                appName: "🤫 Rey del Silencio 🤫",
+                startBtn: "¡Comenzar!",
+                startDesc: "Al hacer clic en iniciar, se solicitarán permisos de cámara y micrófono.",
+                camLabel: "📷 Cámara: ",
+                micLabel: "🎤 Micrófono: ",
+                camOn: "Cámara encendida",
+                camOff: "Cámara apagada",
+                curDb: "Ruido actual",
+                maxDb: "Ruido máximo",
+                timeLabel: "Tiempo",
+                graphOn: "Mostrar gráfico",
+                graphOff: "Ocultar gráfico",
+                measureStart: "Iniciar medición",
+                pause: "Pausa",
+                resume: "Reanudar",
+                stop: "Detener",
+                resetBtn: "Reiniciar (Cero)",
+                toastMsg: "Idioma cambiado.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'fr': {
+                seoTitle: "Roi du Silence - Sonomètre",
+                appName: "🤫 Roi du Silence 🤫",
+                startBtn: "Commencer!",
+                startDesc: "Cliquer sur démarrer demandera l'accès à la caméra et au micro.",
+                camLabel: "📷 Caméra: ",
+                micLabel: "🎤 Micro: ",
+                camOn: "Caméra Activée",
+                camOff: "Caméra Désactivée",
+                curDb: "Bruit Actuel",
+                maxDb: "Bruit Maximum",
+                timeLabel: "Temps",
+                graphOn: "Activer le Graphique",
+                graphOff: "Désactiver le Graphique",
+                measureStart: "Démarrer la Mesure",
+                pause: "Pause",
+                resume: "Reprendre",
+                stop: "Arrêter",
+                resetBtn: "Réinitialiser",
+                toastMsg: "Langue modifiée.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'ru': {
+                seoTitle: "Король Тишины - Шумомер",
+                appName: "🤫 Король Тишины 🤫",
+                startBtn: "Старт!",
+                startDesc: "Нажатие кнопки старт запросит разрешения на камеру и микрофон.",
+                camLabel: "📷 Камера: ",
+                micLabel: "🎤 Микрофон: ",
+                camOn: "Вкл Камеру",
+                camOff: "Выкл Камеру",
+                curDb: "Текущий шум",
+                maxDb: "Макс. шум",
+                timeLabel: "Время",
+                graphOn: "Вкл График",
+                graphOff: "Выкл График",
+                measureStart: "Начать Измерение",
+                pause: "Пауза",
+                resume: "Продолжить",
+                stop: "Стоп",
+                resetBtn: "Сброс (в 0)",
+                toastMsg: "Язык изменен.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'id': {
+                seoTitle: "Raja Tenang - Pengukur Kebisingan",
+                appName: "🤫 Raja Tenang 🤫",
+                startBtn: "Mulai!",
+                startDesc: "Klik mulai akan meminta izin kamera dan mikrofon.",
+                camLabel: "📷 Kamera: ",
+                micLabel: "🎤 Mikrofon: ",
+                camOn: "Kamera Hidup",
+                camOff: "Kamera Mati",
+                curDb: "Suara Saat Ini",
+                maxDb: "Suara Maks",
+                timeLabel: "Waktu",
+                graphOn: "Grafik Hidup",
+                graphOff: "Grafik Mati",
+                measureStart: "Mulai Mengukur",
+                pause: "Jeda",
+                resume: "Lanjut",
+                stop: "Berhenti",
+                resetBtn: "Ulang (Nol)",
+                toastMsg: "Bahasa telah diubah.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'vi': {
+                seoTitle: "Vua Yên Lặng - Máy Đo Tiếng Ồn",
+                appName: "🤫 Vua Yên Lặng 🤫",
+                startBtn: "Bắt đầu!",
+                startDesc: "Nhấn nút bắt đầu sẽ yêu cầu quyền máy ảnh và micrô.",
+                camLabel: "📷 Máy ảnh: ",
+                micLabel: "🎤 Micrô: ",
+                camOn: "Bật máy ảnh",
+                camOff: "Tắt máy ảnh",
+                curDb: "Âm lượng hiện tại",
+                maxDb: "Âm lượng lớn nhất",
+                timeLabel: "Thời gian đo",
+                graphOn: "Bật biểu đồ",
+                graphOff: "Tắt biểu đồ",
+                measureStart: "Bắt đầu đo",
+                pause: "Tạm dừng",
+                resume: "Tiếp tục",
+                stop: "Dừng lại",
+                resetBtn: "Làm mới (Về 0)",
+                toastMsg: "Ngôn ngữ đã được thay đổi.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'th': {
+                seoTitle: "ราชาความเงียบ - เครื่องวัดเสียงในห้องเรียน",
+                appName: "🤫 ราชาความเงียบ 🤫",
+                startBtn: "เริ่ม!",
+                startDesc: "การคลิกปุ่มเริ่มจะขอสิทธิ์เข้าถึงกล้องและไมโครโฟน",
+                camLabel: "📷 กล้อง: ",
+                micLabel: "🎤 ไมค์: ",
+                camOn: "เปิดกล้อง",
+                camOff: "ปิดกล้อง",
+                curDb: "เสียงปัจจุบัน",
+                maxDb: "เสียงดังสุด",
+                timeLabel: "เวลา",
+                graphOn: "เปิดกราฟ",
+                graphOff: "ปิดกราฟ",
+                measureStart: "เริ่มวัดเสียง",
+                pause: "หยุดชั่วคราว",
+                resume: "ไปต่อ",
+                stop: "หยุด",
+                resetBtn: "รีเซ็ตเป็น 0",
+                toastMsg: "เปลี่ยนภาษาเรียบร้อยแล้ว",
+                fontFamily: "Arial, sans-serif"
+            },
+            'pt-br': {
+                seoTitle: "Rei do Silêncio - Medidor de Ruído",
+                appName: "🤫 Rei do Silêncio 🤫",
+                startBtn: "Começar!",
+                startDesc: "Ao clicar em começar, serão solicitadas permissões de câmera e microfone.",
+                camLabel: "📷 Câmera: ",
+                micLabel: "🎤 Microfone: ",
+                camOn: "Ligar Câmera",
+                camOff: "Desligar Câmera",
+                curDb: "Ruído Atual",
+                maxDb: "Ruído Máximo",
+                timeLabel: "Tempo",
+                graphOn: "Mostrar Gráfico",
+                graphOff: "Ocultar Gráfico",
+                measureStart: "Iniciar Medição",
+                pause: "Pausar",
+                resume: "Retomar",
+                stop: "Parar",
+                resetBtn: "Zerar",
+                toastMsg: "Idioma alterado.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'hi': {
+                seoTitle: "शांति किंग - शोर मीटर",
+                appName: "🤫 शांति किंग 🤫",
+                startBtn: "शुरू करें!",
+                startDesc: "स्टार्ट बटन पर क्लिक करने से कैमरा और माइक की अनुमति मांगी जाएगी।",
+                camLabel: "📷 कैमरा: ",
+                micLabel: "🎤 माइक: ",
+                camOn: "कैमरा चालू",
+                camOff: "कैमरा बंद",
+                curDb: "वर्तमान शोर",
+                maxDb: "अधिकतम शोर",
+                timeLabel: "समय",
+                graphOn: "ग्राफ चालू",
+                graphOff: "ग्राफ बंद",
+                measureStart: "मापना शुरू करें",
+                pause: "रोकें",
+                resume: "पुनरारंभ",
+                stop: "बंद करें",
+                resetBtn: "रीसेट (0 करें)",
+                toastMsg: "भाषा बदल दी गई है।",
+                fontFamily: "Arial, sans-serif"
+            },
+            'bn': {
+                seoTitle: "নীরব রাজা - শব্দ মাপার যন্ত্র",
+                appName: "🤫 নীরব রাজা 🤫",
+                startBtn: "শুরু করুন!",
+                startDesc: "স্টার্ট বোতামে ক্লিক করলে ক্যামেরা এবং মাইক ব্যবহারের অনুমতি চাওয়া হবে।",
+                camLabel: "📷 ক্যামেরা: ",
+                micLabel: "🎤 মাইক: ",
+                camOn: "ক্যামেরা চালু",
+                camOff: "ক্যামেরা বন্ধ",
+                curDb: "বর্তমান শব্দ",
+                maxDb: "সর্বোচ্চ শব্দ",
+                timeLabel: "সময়",
+                graphOn: "গ্রাফ চালু",
+                graphOff: "গ্রাফ বন্ধ",
+                measureStart: "মাপা শুরু",
+                pause: "বিরতি",
+                resume: "পুনরায় চালু",
+                stop: "থামান",
+                resetBtn: "রিসেট (০ করুন)",
+                toastMsg: "ভাষা পরিবর্তন করা হয়েছে।",
+                fontFamily: "Arial, sans-serif"
+            },
+            'tr': {
+                seoTitle: "Sessizlik Kralı - Gürültü Ölçer",
+                appName: "🤫 Sessizlik Kralı 🤫",
+                startBtn: "Başla!",
+                startDesc: "Başlat düğmesine tıklandığında kamera ve mikrofon izni istenir.",
+                camLabel: "📷 Kamera: ",
+                micLabel: "🎤 Mikrofon: ",
+                camOn: "Kamera Aç",
+                camOff: "Kamera Kapat",
+                curDb: "Mevcut Ses",
+                maxDb: "En Yüksek Ses",
+                timeLabel: "Süre",
+                graphOn: "Grafiği Aç",
+                graphOff: "Grafiği Kapat",
+                measureStart: "Ölçüme Başla",
+                pause: "Duraklat",
+                resume: "Devam Et",
+                stop: "Durdur",
+                resetBtn: "Sıfırla",
+                toastMsg: "Dil değiştirildi.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'de': {
+                seoTitle: "König der Stille - Lärmmesser",
+                appName: "🤫 König der Stille 🤫",
+                startBtn: "Starten!",
+                startDesc: "Klicken auf Start fordert Kamera- und Mikrofonberechtigungen an.",
+                camLabel: "📷 Kamera: ",
+                micLabel: "🎤 Mikro: ",
+                camOn: "Kamera An",
+                camOff: "Kamera Aus",
+                curDb: "Aktueller Lärm",
+                maxDb: "Max. Lärm",
+                timeLabel: "Zeit",
+                graphOn: "Grafik Ein",
+                graphOff: "Grafik Aus",
+                measureStart: "Messung Starten",
+                pause: "Pause",
+                resume: "Fortsetzen",
+                stop: "Stoppen",
+                resetBtn: "Zurücksetzen (Null)",
+                toastMsg: "Sprache geändert.",
+                fontFamily: "Arial, sans-serif"
+            },
+            'it': {
+                seoTitle: "Re del Silenzio - Fonometro",
+                appName: "🤫 Re del Silenzio 🤫",
+                startBtn: "Inizia!",
+                startDesc: "Cliccando su Inizia verranno richiesti i permessi per fotocamera e microfono.",
+                camLabel: "📷 Fotocamera: ",
+                micLabel: "🎤 Microfono: ",
+                camOn: "Fotocamera On",
+                camOff: "Fotocamera Off",
+                curDb: "Rumore Attuale",
+                maxDb: "Rumore Max",
+                timeLabel: "Tempo",
+                graphOn: "Mostra Grafico",
+                graphOff: "Nascondi Grafico",
+                measureStart: "Avvia Misurazione",
+                pause: "Pausa",
+                resume: "Riprendi",
+                stop: "Ferma",
+                resetBtn: "Azzera",
+                toastMsg: "Lingua cambiata.",
+                fontFamily: "Arial, sans-serif"
+            }
+        };
+
+        const languages = [
+            { code: 'ko', country: 'kr', name: '한국어', enName: 'Korean' },
+            { code: 'en', country: 'us', name: 'English', enName: 'English' },
+            { code: 'zh', country: 'cn', name: '中文 (简体)', enName: 'Chinese (Simplified)' },
+            { code: 'ja', country: 'jp', name: '日本語', enName: 'Japanese' },
+            { code: 'es', country: 'es', name: 'Español', enName: 'Spanish' },
+            { code: 'fr', country: 'fr', name: 'Français', enName: 'French' },
+            { code: 'de', country: 'de', name: 'Deutsch', enName: 'German' },
+            { code: 'it', country: 'it', name: 'Italiano', enName: 'Italian' },
+            { code: 'pt-br', country: 'br', name: 'Português', enName: 'Portuguese (Brazil)' },
+            { code: 'ru', country: 'ru', name: 'Русский', enName: 'Russian' },
+            { code: 'hi', country: 'in', name: 'हिन्दी', enName: 'Hindi' },
+            { code: 'bn', country: 'bd', name: 'বাংলা', enName: 'Bengali' },
+            { code: 'id', country: 'id', name: 'Bahasa Indonesia', enName: 'Indonesian' },
+            { code: 'vi', country: 'vn', name: 'Tiếng Việt', enName: 'Vietnamese' },
+            { code: 'th', country: 'th', name: 'ไทย', enName: 'Thai' },
+            { code: 'tr', country: 'tr', name: 'Türkçe', enName: 'Turkish' }
+        ];
+
+        let currentLang = 'en'; // 기본값 (추후 로직으로 재설정됨)
+
+        // 언어 초기화 프로세스 (URL -> LocalStorage -> 기기설정 -> 기본값)
+        function initLanguage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            const savedLang = localStorage.getItem('kingsmath_lang');
+            const navLang = navigator.language.slice(0, 2);
+            
+            const isValidLang = (code) => languages.some(l => l.code === code || l.code === code.toLowerCase());
+
+            if (urlLang && isValidLang(urlLang)) {
+                currentLang = urlLang.toLowerCase();
+            } else if (savedLang && isValidLang(savedLang)) {
+                currentLang = savedLang;
+            } else if (isValidLang(navLang)) {
+                currentLang = navLang;
+            } else {
+                currentLang = 'en';
+            }
+            applyLanguage(currentLang, false);
+            renderLanguages();
+        }
+
+        // 언어 적용 및 UI 렌더링
+        function applyLanguage(langCode, showToastMsg = true) {
+            currentLang = langCode;
+            localStorage.setItem('kingsmath_lang', currentLang);
+            
+            const url = new URL(window.location);
+            url.searchParams.set('lang', currentLang);
+            window.history.pushState({}, '', url);
+
+            const t = translations[currentLang];
+            const langObj = languages.find(l => l.code === currentLang);
+
+            // 문서 폰트 동적 적용 (모달 제외)
+            document.body.style.fontFamily = t.fontFamily;
+
+            // SEO 갱신
+            document.getElementById('seo-title').innerText = t.seoTitle;
+            
+            // DOM 텍스트 갱신
+            document.getElementById('ui-title').innerText = t.appName;
+            document.getElementById('ui-start-btn').innerText = t.startBtn;
+            document.getElementById('ui-desc').innerText = t.startDesc;
+            document.getElementById('ui-cam-label').innerText = t.camLabel;
+            document.getElementById('ui-mic-label').innerText = t.micLabel;
+            document.getElementById('ui-cam-on').innerText = t.camOn;
+            document.getElementById('ui-cam-off').innerText = t.camOff;
+            document.getElementById('ui-cur-db').innerText = t.curDb;
+            document.getElementById('ui-max-db').innerText = t.maxDb;
+            document.getElementById('ui-time').innerText = t.timeLabel;
+            document.getElementById('btn-measure').innerText = t.measureStart;
+            document.getElementById('btn-stop').innerText = t.stop;
+            document.getElementById('btn-reset').innerText = t.resetBtn;
+            
+            // 버튼 상태에 따른 동적 텍스트 (그래프, 일시정지)
+            const toggleBtn = document.getElementById('toggle-graph-btn');
+            toggleBtn.innerText = isGraphOn ? t.graphOff : t.graphOn;
+
+            const pauseBtn = document.getElementById('btn-pause');
+            pauseBtn.innerText = isPaused ? t.resume : t.pause;
+
+            // 상단 모달 트리거 버튼 업데이트
+            document.getElementById('currentFlag').src = `https://flagcdn.com/w40/${langObj.country}.png`;
+            document.getElementById('currentLangName').textContent = langObj.name;
+
+            // 토스트 알림
+            if(showToastMsg) {
+                document.getElementById('ui-toast').textContent = t.toastMsg;
+                document.getElementById('toastLangName').textContent = langObj.name;
+                const toast = document.getElementById('toastNotification');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+            
+            // 동적 폰트 스케일링 (버튼 텍스트가 넘치지 않도록 조절)
+            autoScaleFont('btn-measure', 22);
+            autoScaleFont('btn-reset', 22);
+        }
+
+        function autoScaleFont(elementId, baseSize) {
+            const el = document.getElementById(elementId);
+            if(!el) return;
+            const textLength = el.innerText.length;
+            if (textLength > 12) {
+                el.style.fontSize = Math.max(12, baseSize - (textLength - 12)) + 'px';
+            } else {
+                el.style.fontSize = '1.5rem'; // 기본값 복구
+            }
+        }
+
+        // 모달 및 UI 이벤트 리스너 설정
+        const modal = document.getElementById('langModal');
+        const searchInput = document.getElementById('searchInput');
+        const grid = document.getElementById('languageGrid');
+
+        document.getElementById('langTriggerBtn').addEventListener('click', () => {
+            modal.classList.add('active');
+            setTimeout(() => searchInput.focus(), 100);
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('active');
+        });
+
+        searchInput.addEventListener('input', (e) => renderLanguages(e.target.value));
+
+        function renderLanguages(filterText = '') {
+            grid.innerHTML = '';
+            const lowerFilter = filterText.toLowerCase();
+            const filteredLangs = languages.filter(lang => 
+                lang.name.toLowerCase().includes(lowerFilter) || 
+                lang.enName.toLowerCase().includes(lowerFilter) ||
+                lang.code.toLowerCase().includes(lowerFilter)
+            );
+
+            const noResult = document.getElementById('noResult');
+            if (filteredLangs.length === 0) {
+                grid.style.display = 'none';
+                noResult.classList.add('active');
+            } else {
+                grid.style.display = 'grid';
+                noResult.classList.remove('active');
+                filteredLangs.forEach(lang => {
+                    const isSelected = lang.code === currentLang;
+                    const div = document.createElement('div');
+                    div.className = `lang-item ${isSelected ? 'selected' : ''}`;
+                    div.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${lang.country}.png" alt="${lang.country}">
+                        <div class="lang-item-info">
+                            <span class="lang-name modal-text-font">${lang.name}</span>
+                            <span class="lang-en modal-text-font">${lang.enName}</span>
+                        </div>
+                        ${isSelected ? '<i class="fa-solid fa-circle-check check-icon"></i>' : ''}
+                    `;
+                    div.addEventListener('click', () => {
+                        applyLanguage(lang.code, true);
+                        modal.classList.remove('active');
+                        renderLanguages(searchInput.value);
+                    });
+                    grid.appendChild(div);
+                });
+            }
+        }
+
+        /* =========================================================
+           [2] 원본 소음 측정기(조용킹) 로직
+           ========================================================= */
+        let audioContext;
+        let analyser;
+        let microphone;
+        let stream;
+        
+        let isMeasuring = false;
+        let isPaused = false;
+        let maxDb = 0;
+        
+        let timerInterval;
+        let startTime;
+        let elapsedTime = 0;
+
+        let displayInterval; 
+
+        let isGraphOn = false;
+        let dbHistory = [];
+        const dbHistoryLimit = 200; 
+
+        const videoElement = document.getElementById('video-element');
+        const audioSelect = document.getElementById('audio-source');
+        const videoSelect = document.getElementById('video-source');
+        
+        const graphCanvas = document.getElementById('db-graph');
+        const graphCtx = graphCanvas.getContext('2d');
+        const graphContainer = document.getElementById('graph-container');
+        
+        audioSelect.onchange = getStream;
+        videoSelect.onchange = getStream;
+
+        async function startApp() {
+            // [수정 사항]: 언어 선택 UI를 숨기던 코드를 제거하여 계속 떠있게 만듦
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'flex';
+            
+            await getDevices();
+            await getStream();
+            
+            displayInterval = setInterval(updateNumericDisplay, 200);
+            updateLoop();
+        }
+
+        async function getDevices() {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                
+                audioSelect.innerHTML = '';
+                videoSelect.innerHTML = '';
+
+                devices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    if (device.kind === 'audioinput') {
+                        option.text = device.label || `마이크 ${audioSelect.length + 1}`;
+                        audioSelect.appendChild(option);
+                    } else if (device.kind === 'videoinput') {
+                        option.text = device.label || `카메라 ${videoSelect.length + 1}`;
+                        videoSelect.appendChild(option);
+                    }
+                });
+            } catch (err) {
+                alert('카메라와 마이크 권한이 필요합니다!');
+                console.error(err);
+            }
+        }
+
+        async function getStream() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            const audioSource = audioSelect.value;
+            const videoSource = videoSelect.value;
+
+            const constraints = {
+                audio: { deviceId: audioSource ? { exact: audioSource } : undefined },
+                video: { deviceId: videoSource ? { exact: videoSource } : undefined }
+            };
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (microphone) microphone.disconnect();
+                
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+
+            } catch (err) {
+                console.error('스트림을 가져오는 데 실패했습니다.', err);
+            }
+        }
+
+        function toggleCamera(turnOn) {
+            if (stream) {
+                stream.getVideoTracks().forEach(track => {
+                    track.enabled = turnOn;
+                });
+            }
+        }
+
+        let currentDbRaw = 0; 
+
+        function updateLoop() {
+            requestAnimationFrame(updateLoop);
+            
+            if (!analyser) return;
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += dataArray[i];
+            }
+            let average = sum / bufferLength;
+            
+            currentDbRaw = Math.round((average / 255) * 120); 
+
+            dbHistory.push(currentDbRaw);
+            if (dbHistory.length > dbHistoryLimit) {
+                dbHistory.shift();
+            }
+
+            if (isMeasuring && !isPaused) {
+                if (currentDbRaw > maxDb) {
+                    maxDb = currentDbRaw;
+                    document.getElementById('max-db').innerText = maxDb;
+                }
+            }
+
+            if (isGraphOn) {
+                drawGraph();
+            }
+        }
+
+        function updateNumericDisplay() {
+            document.getElementById('current-db').innerText = currentDbRaw;
+        }
+
+        function toggleGraph() {
+            isGraphOn = !isGraphOn;
+            const toggleBtn = document.getElementById('toggle-graph-btn');
+            const t = translations[currentLang];
+            
+            if (isGraphOn) {
+                graphContainer.style.display = 'block';
+                toggleBtn.innerText = t.graphOff;
+                resizeCanvas(); 
+            } else {
+                graphContainer.style.display = 'none';
+                toggleBtn.innerText = t.graphOn;
+            }
+        }
+
+        function resizeCanvas() {
+            graphCanvas.width = graphContainer.offsetWidth;
+            graphCanvas.height = graphContainer.offsetHeight;
+        }
+
+        function drawGraph() {
+            if (!graphCtx) return;
+
+            const width = graphCanvas.width;
+            const height = graphCanvas.height;
+
+            graphCtx.fillStyle = '#eee';
+            graphCtx.fillRect(0, 0, width, height);
+
+            graphCtx.strokeStyle = '#ccc';
+            graphCtx.lineWidth = 1;
+            graphCtx.beginPath();
+            const guideY = height - (60 / 120) * height; 
+            graphCtx.moveTo(0, guideY);
+            graphCtx.lineTo(width, guideY);
+            graphCtx.stroke();
+            
+            graphCtx.strokeStyle = '#4a90e2';
+            graphCtx.lineWidth = 3;
+            graphCtx.lineCap = 'round';
+            graphCtx.beginPath();
+
+            const step = width / (dbHistoryLimit - 1);
+            let x = 0;
+
+            for (let i = 0; i < dbHistory.length; i++) {
+                const db = dbHistory[i];
+                const y = height - (db / 120) * height; 
+
+                if (i === 0) {
+                    graphCtx.moveTo(x, y);
+                } else {
+                    graphCtx.lineTo(x, y);
+                }
+                x += step;
+            }
+            graphCtx.stroke();
+        }
+
+        function startMeasurement() {
+            if (!isMeasuring) {
+                const t = translations[currentLang];
+                isMeasuring = true;
+                isPaused = false;
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateTimer, 1000);
+                
+                document.getElementById('btn-measure').disabled = true;
+                document.getElementById('btn-pause').disabled = false;
+                document.getElementById('btn-stop').disabled = false;
+                document.getElementById('btn-pause').innerText = t.pause;
+            }
+        }
+
+        function togglePause() {
+            if (!isMeasuring) return;
+
+            const t = translations[currentLang];
+            isPaused = !isPaused;
+            if (isPaused) {
+                clearInterval(timerInterval);
+                document.getElementById('btn-pause').innerText = t.resume;
+            } else {
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateTimer, 1000);
+                document.getElementById('btn-pause').innerText = t.pause;
+            }
+        }
+
+        function stopMeasurement() {
+            const t = translations[currentLang];
+            isMeasuring = false;
+            isPaused = false;
+            clearInterval(timerInterval);
+            
+            document.getElementById('btn-measure').disabled = false;
+            document.getElementById('btn-pause').disabled = true;
+            document.getElementById('btn-stop').disabled = true;
+            document.getElementById('btn-pause').innerText = t.pause;
+        }
+
+        function resetMeasurement() {
+            stopMeasurement();
+            maxDb = 0;
+            elapsedTime = 0;
+            document.getElementById('max-db').innerText = '0';
+            document.getElementById('timer-display').innerText = '00:00';
+            dbHistory = [];
+        }
+
+        function updateTimer() {
+            elapsedTime = Date.now() - startTime;
+            let totalSeconds = Math.floor(elapsedTime / 1000);
+            let minutes = Math.floor(totalSeconds / 60);
+            let seconds = totalSeconds % 60;
+
+            let formattedTime = 
+                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                (seconds < 10 ? "0" + seconds : seconds);
+                
+            document.getElementById('timer-display').innerText = formattedTime;
+        }
+
+        // 페이지 로드 시 언어 초기화 실행
+        window.addEventListener('DOMContentLoaded', initLanguage);
+    </script>
+</body>
+</html>

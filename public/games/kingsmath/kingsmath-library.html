@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KingsMath Web Game Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 28, 47, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            --text-color: #f1f5f9;
+            --text-muted: #64748b;
+            --primary-gradient: linear-gradient(135deg, #3b82f6, #6366f1);
+            --accent-gradient: linear-gradient(135deg, #10b981, #059669);
+            
+            --cat-math: #ef4444;
+            --cat-board: #10b981;
+            --cat-lang: #f59e0b;
+            --cat-class: #8b5cf6;
+            --cat-other: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* Header / Hero Section */
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #60a5fa;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #f8fafc, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin: 0 auto 2.5rem;
+            font-weight: 300;
+        }
+
+        .stats-bar {
+            display: inline-flex;
+            gap: 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+
+        .stat-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+
+        .stat-item:nth-child(2) .stat-dot {
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+        .stat-item:nth-child(3) .stat-dot {
+            background-color: #8b5cf6;
+            box-shadow: 0 0 8px #8b5cf6;
+        }
+
+        /* License Banner */
+        .license-banner {
+            background: rgba(245, 158, 11, 0.03);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .license-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #f59e0b;
+            margin-bottom: 0.75rem;
+        }
+
+        .license-content {
+            font-size: 0.93rem;
+            color: #cbd5e1;
+            line-height: 1.6;
+        }
+
+        .license-content strong {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+
+        .license-content ul {
+            margin-top: 0.75rem;
+            padding-left: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .license-content li {
+            position: relative;
+        }
+
+        .license-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .license-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Sections */
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.01em;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Popular Grid Section */
+        .popular-section {
+            margin-bottom: 4rem;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-style: italic;
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.02) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .card-popular {
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            background: rgba(251, 191, 36, 0.02);
+        }
+
+        .card-popular:hover {
+            border-color: rgba(251, 191, 36, 0.5);
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(251, 191, 36, 0.08);
+        }
+
+        .card-popular .rank-badge-highlight {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Search & Filter Controls */
+        .controls {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.05rem;
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.8);
+            color: var(--text-color);
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .search-bar:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+            background-color: rgba(15, 23, 42, 0.95);
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            background-color: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            color: var(--text-color);
+            border-color: var(--border-hover);
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn.active {
+            background: var(--primary-gradient);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 255, 255, 0.18);
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.3),
+                0 0 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tag::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .tag-math { background-color: rgba(239, 68, 68, 0.1); color: #f87171; }
+        .tag-math::before { background-color: #ef4444; }
+
+        .tag-board { background-color: rgba(16, 185, 129, 0.1); color: #34d399; }
+        .tag-board::before { background-color: #10b981; }
+
+        .tag-language { background-color: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+        .tag-language::before { background-color: #f59e0b; }
+
+        .tag-class { background-color: rgba(139, 92, 246, 0.1); color: #a78bfa; }
+        .tag-class::before { background-color: #8b5cf6; }
+
+        .tag-other { background-color: rgba(100, 116, 139, 0.1); color: #cbd5e1; }
+        .tag-other::before { background-color: #64748b; }
+
+        .card-content {
+            flex-grow: 1;
+            margin-bottom: 1.75rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+            padding-right: 2.2rem;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        /* Action Buttons */
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            padding: 0.75rem 0.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .btn-play {
+            background: var(--primary-gradient);
+            color: #fff;
+            border: none;
+        }
+
+        .btn-play:hover {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-download {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-download:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-hover);
+            color: #fff;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 5rem;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #60a5fa;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 2rem 1rem;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            .stats-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+                border-radius: 1rem;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="logo">KingsMath Library</span>
+            <h1>교육용 웹 게임 라이브러리</h1>
+            <p>교실이나 기기에서 직접 구동할 수 있는 99가지 교육 게임 컬렉션입니다. 자유롭게 체험하고 단일 파일로 다운로드하여 소장하세요.</p>
+            
+            <div class="stats-bar">
+                <div class="stat-item"><span class="stat-dot"></span>총 99개 게임 탑재</div>
+                <div class="stat-item"><span class="stat-dot"></span>인터넷 없이 구동 가능</div>
+                <div class="stat-item"><span class="stat-dot"></span>단일 HTML 완전 소장</div>
+            </div>
+        </header>
+
+        <!-- License Alert Banner -->
+        <div class="license-banner">
+            <div class="license-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                저작권 및 사용 조건 안내 (필독)
+            </div>
+            <div class="license-content">
+                본 라이브러리에 수록된 모든 웹 게임 소스코드는 원저작자 <strong>킹수학(KingsMath.com)</strong>에 저작권이 있으며, 
+                공식적으로 <strong><a href="https://creativecommons.org/licenses/by-nc/4.0/deed.ko" target="_blank" class="license-link">CC BY-NC 4.0 (저작자표시-비영리)</a></strong> 라이선스를 준수합니다.
+                <ul>
+                    <li>🟢 학교 수업, 연구 및 개인 학습용 등 <strong>비영리 목적의 활용/공유/수정은 전면 허용</strong>됩니다.</li>
+                    <li>🔴 본 코드를 다운로드하여 웹사이트에 올린 후 <strong>광고(구글 애드센스 등)를 부착하거나 상업적 용도로 재판매하는 행위는 엄격히 금지</strong>됩니다.</li>
+                    <li>⚠️ 공유 및 배포 시, 하단에 위치한 원작자 출처 표기(KingsMath 명시)를 임의로 훼손하거나 숨길 수 없습니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Popular Games Section -->
+        <div class="popular-section">
+            <h2 class="section-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                교실 인기 게임 TOP 10
+            </h2>
+            <div class="grid" id="popular-grid">
+                <!-- Top 10 popular cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- All Games Section -->
+        <div>
+            <h2 class="section-title" id="library-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                전체 게임 라이브러리
+            </h2>
+            
+            <div class="controls">
+                <div class="search-wrapper">
+                    <input type="text" class="search-bar" id="search" placeholder="필요한 게임 이름이나 단어로 검색해 보세요...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="btn active" onclick="filterCategory('all')">전체보기</button>
+                    <button class="btn" onclick="filterCategory('math')">수학/연산</button>
+                    <button class="btn" onclick="filterCategory('board')">보드게임/전략</button>
+                    <button class="btn" onclick="filterCategory('language')">국어/영어</button>
+                    <button class="btn" onclick="filterCategory('class')">학급도구/기타</button>
+                </div>
+            </div>
+
+            <div class="grid" id="games-grid">
+                <!-- Game cards will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Powered by <a href="https://kingsmath.com" target="_blank">킹수학 (KingsMath.com)</a> - CC BY-NC 4.0 라이선스가 적용됩니다.</p>
+        <p style="margin-top: 0.5rem;">다운로드한 파일은 인터넷 연결이 안 되는 교실에서도 오프라인 상태로 자유롭게 사용이 가능합니다.</p>
+    </footer>
+
+    <script>
+        const games = [{"name": "10 만들기 텐팡 킹 (수학 연산)", "title": "10 만들기 텐팡 킹", "subtitle": "수학 연산", "filename": "10 만들기 텐팡 킹 (수학 연산).html", "category": "math", "rank": 1}, {"name": "10 블래스트 킹 (수학 연산 매칭)", "title": "10 블래스트 킹", "subtitle": "수학 연산 매칭", "filename": "10 블래스트 킹 (수학 연산 매칭).html", "category": "math", "rank": 999}, {"name": "2048 킹 (2048 퍼즐)", "title": "2048 킹", "subtitle": "2048 퍼즐", "filename": "2048 킹 (2048 퍼즐).html", "category": "math", "rank": 8}, {"name": "개구리 점프 탈출 킹 (경로 퍼즐)", "title": "개구리 점프 탈출 킹", "subtitle": "경로 퍼즐", "filename": "개구리 점프 탈출 킹 (경로 퍼즐).html", "category": "board", "rank": 999}, {"name": "거꾸로 빈칸 구구단 킹 (수학 연산)", "title": "거꾸로 빈칸 구구단 킹", "subtitle": "수학 연산", "filename": "거꾸로 빈칸 구구단 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "과제 제출 완료 체크킹 (학급 도구)", "title": "과제 제출 완료 체크킹", "subtitle": "학급 도구", "filename": "과제 제출 완료 체크킹 (학급 도구).html", "category": "class", "rank": 999}, {"name": "괄호 위치 찾기 킹 (혼합 계산)", "title": "괄호 위치 찾기 킹", "subtitle": "혼합 계산", "filename": "괄호 위치 찾기 킹 (혼합 계산).html", "category": "math", "rank": 999}, {"name": "그림그래프 그려킹 (수학 통계)", "title": "그림그래프 그려킹", "subtitle": "수학 통계", "filename": "그림그래프 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "꺾은선그래프 분석 킹 (수학 통계)", "title": "꺾은선그래프 분석 킹", "subtitle": "수학 통계", "filename": "꺾은선그래프 분석 킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "꺾은선그래프 직접 그려킹 (수학 통계)", "title": "꺾은선그래프 직접 그려킹", "subtitle": "수학 통계", "filename": "꺾은선그래프 직접 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "네모네모 로직 노노그램 킹 (논리 퍼즐)", "title": "네모네모 로직 노노그램 킹", "subtitle": "논리 퍼즐", "filename": "네모네모 로직 노노그램 킹 (논리 퍼즐).html", "category": "board", "rank": 999}, {"name": "논리 스도쿠 킹 (논리 퍼즐)", "title": "논리 스도쿠 킹", "subtitle": "논리 퍼즐", "filename": "논리 스도쿠 킹 (논리 퍼즐).html", "category": "board", "rank": 999}, {"name": "단위 변환 킹 (길이 무게 부피)", "title": "단위 변환 킹", "subtitle": "길이 무게 부피", "filename": "단위 변환 킹 (길이 무게 부피).html", "category": "math", "rank": 999}, {"name": "대칭이동 회전대칭 킹 (기하 도형)", "title": "대칭이동 회전대칭 킹", "subtitle": "기하 도형", "filename": "대칭이동 회전대칭 킹 (기하 도형).html", "category": "math", "rank": 999}, {"name": "덧셈 뺄셈 두더지 킹 (수학 연산)", "title": "덧셈 뺄셈 두더지 킹", "subtitle": "수학 연산", "filename": "덧셈 뺄셈 두더지 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "도형 자르기 분할 킹 (기하 분수)", "title": "도형 자르기 분할 킹", "subtitle": "기하 분수", "filename": "도형 자르기 분할 킹 (기하 분수).html", "category": "math", "rank": 999}, {"name": "도형 풍선 터트리기 킹 (도형 매칭)", "title": "도형 풍선 터트리기 킹", "subtitle": "도형 매칭", "filename": "도형 풍선 터트리기 킹 (도형 매칭).html", "category": "math", "rank": 999}, {"name": "동물 장기 킹 (전략 보드게임)", "title": "동물 장기 킹", "subtitle": "전략 보드게임", "filename": "동물 장기 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "띄어쓰기 킹 (국어 맞춤법)", "title": "띄어쓰기 킹", "subtitle": "국어 맞춤법", "filename": "띄어쓰기 킹 (국어 맞춤법).html", "category": "language", "rank": 9}, {"name": "띠그래프 직접 그려킹 (수학 통계)", "title": "띠그래프 직접 그려킹", "subtitle": "수학 통계", "filename": "띠그래프 직접 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "띠그래프 타이밍 멈춰킹 (수학 통계)", "title": "띠그래프 타이밍 멈춰킹", "subtitle": "수학 통계", "filename": "띠그래프 타이밍 멈춰킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "막대그래프 직접 그려킹 (수학 통계)", "title": "막대그래프 직접 그려킹", "subtitle": "수학 통계", "filename": "막대그래프 직접 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "막대그래프 타이밍 멈춰킹 (수학 통계)", "title": "막대그래프 타이밍 멈춰킹", "subtitle": "수학 통계", "filename": "막대그래프 타이밍 멈춰킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "먹이그물 킹 (과학 생태계)", "title": "먹이그물 킹", "subtitle": "과학 생태계", "filename": "먹이그물 킹 (과학 생태계).html", "category": "class", "rank": 999}, {"name": "모둠 점수판 킹 (학급 도구)", "title": "모둠 점수판 킹", "subtitle": "학급 도구", "filename": "모둠 점수판 킹 (학급 도구).html", "category": "class", "rank": 10}, {"name": "모바일 세균전 Ataxx 킹 (전략 보드게임)", "title": "모바일 세균전 Ataxx 킹", "subtitle": "전략 보드게임", "filename": "모바일 세균전 Ataxx 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "모바일 순발력 연타 탭탭 킹 (순발력)", "title": "모바일 순발력 연타 탭탭 킹", "subtitle": "순발력", "filename": "모바일 순발력 연타 탭탭 킹 (순발력).html", "category": "class", "rank": 999}, {"name": "모바일 오델로 킹 (전략 보드게임)", "title": "모바일 오델로 킹", "subtitle": "전략 보드게임", "filename": "모바일 오델로 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "모바일 오목 킹 (전략 보드게임)", "title": "모바일 오목 킹", "subtitle": "전략 보드게임", "filename": "모바일 오목 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "모바일 클래식 장기 킹 (전략 보드게임)", "title": "모바일 클래식 장기 킹", "subtitle": "전략 보드게임", "filename": "모바일 클래식 장기 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "모바일 틱택토 킹 (전략 보드게임)", "title": "모바일 틱택토 킹", "subtitle": "전략 보드게임", "filename": "모바일 틱택토 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "모양 패턴 규칙 찾기 킹 (수학 규칙)", "title": "모양 패턴 규칙 찾기 킹", "subtitle": "수학 규칙", "filename": "모양 패턴 규칙 찾기 킹 (수학 규칙).html", "category": "other", "rank": 999}, {"name": "무한 크기 비교 킹 (수학 수 비교)", "title": "무한 크기 비교 킹", "subtitle": "수학 수 비교", "filename": "무한 크기 비교 킹 (수학 수 비교).html", "category": "math", "rank": 999}, {"name": "분류 킹 우주 대청소 (분류 개념)", "title": "분류 킹 우주 대청소", "subtitle": "분류 개념", "filename": "분류 킹 우주 대청소 (분류 개념).html", "category": "other", "rank": 999}, {"name": "분수 약분 풍선 터트리기 킹 (수학 분수)", "title": "분수 약분 풍선 터트리기 킹", "subtitle": "수학 분수", "filename": "분수 약분 풍선 터트리기 킹 (수학 분수).html", "category": "math", "rank": 999}, {"name": "분수 크기 색칠 킹 (수학 분수)", "title": "분수 크기 색칠 킹", "subtitle": "수학 분수", "filename": "분수 크기 색칠 킹 (수학 분수).html", "category": "math", "rank": 999}, {"name": "분수 통분 킹 (수학 분수)", "title": "분수 통분 킹", "subtitle": "수학 분수", "filename": "분수 통분 킹 (수학 분수).html", "category": "math", "rank": 999}, {"name": "블록 퍼즐 킹 (도형 채우기)", "title": "블록 퍼즐 킹", "subtitle": "도형 채우기", "filename": "블록 퍼즐 킹 (도형 채우기).html", "category": "board", "rank": 999}, {"name": "비와 비율 우주 탈출 킹 (수학 비율)", "title": "비와 비율 우주 탈출 킹", "subtitle": "수학 비율", "filename": "비와 비율 우주 탈출 킹 (수학 비율).html", "category": "math", "rank": 999}, {"name": "사각형 탐정 킹 (사각형 종류 구분)", "title": "사각형 탐정 킹", "subtitle": "사각형 종류 구분", "filename": "사각형 탐정 킹 (사각형 종류 구분).html", "category": "board", "rank": 999}, {"name": "사목킹 동물 배틀 (Connect 4)", "title": "사목킹 동물 배틀", "subtitle": "Connect 4", "filename": "사목킹 동물 배틀 (Connect 4).html", "category": "board", "rank": 3}, {"name": "사칙연산 계산킹 (타임어택)", "title": "사칙연산 계산킹", "subtitle": "타임어택", "filename": "사칙연산 계산킹 (타임어택).html", "category": "math", "rank": 5}, {"name": "선대칭 점대칭 도형 킹 (기하 대칭)", "title": "선대칭 점대칭 도형 킹", "subtitle": "기하 대칭", "filename": "선대칭 점대칭 도형 킹 (기하 대칭).html", "category": "math", "rank": 999}, {"name": "세계 국기 골든벨 (사회 지리)", "title": "세계 국기 골든벨", "subtitle": "사회 지리", "filename": "세계 국기 골든벨 (사회 지리).html", "category": "class", "rank": 7}, {"name": "세균전 Ataxx 동물 배틀 킹 (전략 보드게임)", "title": "세균전 Ataxx 동물 배틀 킹", "subtitle": "전략 보드게임", "filename": "세균전 Ataxx 동물 배틀 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "소수 크기 비교 배틀 킹 (수학 소수)", "title": "소수 크기 비교 배틀 킹", "subtitle": "수학 소수", "filename": "소수 크기 비교 배틀 킹 (수학 소수).html", "category": "math", "rank": 999}, {"name": "수직킹 평행킹 (기하 기초)", "title": "수직킹 평행킹", "subtitle": "기하 기초", "filename": "수직킹 평행킹 (기하 기초).html", "category": "math", "rank": 999}, {"name": "수학 규칙 수열 찾기 킹 (수학 규칙)", "title": "수학 규칙 수열 찾기 킹", "subtitle": "수학 규칙", "filename": "수학 규칙 수열 찾기 킹 (수학 규칙).html", "category": "math", "rank": 999}, {"name": "수학 이어달리기 레이싱 킹 (수학 연산)", "title": "수학 이어달리기 레이싱 킹", "subtitle": "수학 연산", "filename": "수학 이어달리기 레이싱 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "수학 조합 연습 킹 (경우의 수)", "title": "수학 조합 연습 킹", "subtitle": "경우의 수", "filename": "수학 조합 연습 킹 (경우의 수).html", "category": "math", "rank": 999}, {"name": "숨은 이모지 찾기 (영어 단어)", "title": "숨은 이모지 찾기", "subtitle": "영어 단어", "filename": "숨은 이모지 찾기 (영어 단어).html", "category": "language", "rank": 999}, {"name": "숨은 이모지 찾기 (한글 단어)", "title": "숨은 이모지 찾기", "subtitle": "한글 단어", "filename": "숨은 이모지 찾기 (한글 단어).html", "category": "language", "rank": 999}, {"name": "숫자 매치 킹 (수학 연산)", "title": "숫자 매치 킹", "subtitle": "수학 연산", "filename": "숫자 매치 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "숫자 야구 킹 (논리 추론)", "title": "숫자 야구 킹", "subtitle": "논리 추론", "filename": "숫자 야구 킹 (논리 추론).html", "category": "other", "rank": 999}, {"name": "시계 읽기 킹 (시간 계산)", "title": "시계 읽기 킹", "subtitle": "시간 계산", "filename": "시계 읽기 킹 (시간 계산).html", "category": "math", "rank": 999}, {"name": "알파벳 대소문자 매칭 킹 (영어 기초)", "title": "알파벳 대소문자 매칭 킹", "subtitle": "영어 기초", "filename": "알파벳 대소문자 매칭 킹 (영어 기초).html", "category": "language", "rank": 999}, {"name": "약수 배수 두더지 킹 (수학 연산)", "title": "약수 배수 두더지 킹", "subtitle": "수학 연산", "filename": "약수 배수 두더지 킹 (수학 연산).html", "category": "math", "rank": 4}, {"name": "약수 배수 풍선 터트리기 킹 (수학 연산)", "title": "약수 배수 풍선 터트리기 킹", "subtitle": "수학 연산", "filename": "약수 배수 풍선 터트리기 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "약수와 배수 땅따먹기 대결 킹 (수학 연산)", "title": "약수와 배수 땅따먹기 대결 킹", "subtitle": "수학 연산", "filename": "약수와 배수 땅따먹기 대결 킹 (수학 연산).html", "category": "math", "rank": 999}, {"name": "어림 잡기 계산 킹 (수학 어림)", "title": "어림 잡기 계산 킹", "subtitle": "수학 어림", "filename": "어림 잡기 계산 킹 (수학 어림).html", "category": "math", "rank": 999}, {"name": "업다운 숫자 맞추기 킹 (수학 수 비교)", "title": "업다운 숫자 맞추기 킹", "subtitle": "수학 수 비교", "filename": "업다운 숫자 맞추기 킹 (수학 수 비교).html", "category": "math", "rank": 999}, {"name": "영어 10초 완성 킹 (영어 단어)", "title": "영어 10초 완성 킹", "subtitle": "영어 단어", "filename": "영어 10초 완성 킹 (영어 단어).html", "category": "language", "rank": 999}, {"name": "영어 이모지 매칭 킹 (영어 단어)", "title": "영어 이모지 매칭 킹", "subtitle": "영어 단어", "filename": "영어 이모지 매칭 킹 (영어 단어).html", "category": "language", "rank": 999}, {"name": "예쁜 말 킹 (인성 교육)", "title": "예쁜 말 킹", "subtitle": "인성 교육", "filename": "예쁜 말 킹 (인성 교육).html", "category": "language", "rank": 999}, {"name": "오델로 동물 배틀 킹 (전략 보드게임)", "title": "오델로 동물 배틀 킹", "subtitle": "전략 보드게임", "filename": "오델로 동물 배틀 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "오목 동물 배틀 킹 (전략 보드게임)", "title": "오목 동물 배틀 킹", "subtitle": "전략 보드게임", "filename": "오목 동물 배틀 킹 (전략 보드게임).html", "category": "board", "rank": 2}, {"name": "움직임 킹 (교실 레크리에이션)", "title": "움직임 킹", "subtitle": "교실 레크리에이션", "filename": "움직임 킹 (교실 레크리에이션).html", "category": "class", "rank": 999}, {"name": "원 지름 반지름 원주 킹 (기하 원)", "title": "원 지름 반지름 원주 킹", "subtitle": "기하 원", "filename": "원 지름 반지름 원주 킹 (기하 원).html", "category": "other", "rank": 999}, {"name": "원그래프 직접 그려킹 (수학 통계)", "title": "원그래프 직접 그려킹", "subtitle": "수학 통계", "filename": "원그래프 직접 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "원그래프 타이밍 멈춰킹 (수학 통계)", "title": "원그래프 타이밍 멈춰킹", "subtitle": "수학 통계", "filename": "원그래프 타이밍 멈춰킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "윗접시 저울 무게 비교 킹 (수학 저울)", "title": "윗접시 저울 무게 비교 킹", "subtitle": "수학 저울", "filename": "윗접시 저울 무게 비교 킹 (수학 저울).html", "category": "math", "rank": 999}, {"name": "음표 박자 공부 킹 (음악 기초)", "title": "음표 박자 공부 킹", "subtitle": "음악 기초", "filename": "음표 박자 공부 킹 (음악 기초).html", "category": "other", "rank": 999}, {"name": "이모지 영어 스펠링 킹 (영어 철자)", "title": "이모지 영어 스펠링 킹", "subtitle": "영어 철자", "filename": "이모지 영어 스펠링 킹 (영어 철자).html", "category": "language", "rank": 999}, {"name": "이모지 팡 킹 (순발력)", "title": "이모지 팡 킹", "subtitle": "순발력", "filename": "이모지 팡 킹 (순발력).html", "category": "other", "rank": 999}, {"name": "이모지 한글 매칭 킹 (한글 단어)", "title": "이모지 한글 매칭 킹", "subtitle": "한글 단어", "filename": "이모지 한글 매칭 킹 (한글 단어).html", "category": "language", "rank": 999}, {"name": "이상 이하 범위 두더지킹 (수학 수 비교)", "title": "이상 이하 범위 두더지킹", "subtitle": "수학 수 비교", "filename": "이상 이하 범위 두더지킹 (수학 수 비교).html", "category": "math", "rank": 999}, {"name": "입체도형 부피 겉넓이 킹 (기하 부피)", "title": "입체도형 부피 겉넓이 킹", "subtitle": "기하 부피", "filename": "입체도형 부피 겉넓이 킹 (기하 부피).html", "category": "math", "rank": 999}, {"name": "자석 디펜스 킹 (과학 자석)", "title": "자석 디펜스 킹", "subtitle": "과학 자석", "filename": "자석 디펜스 킹 (과학 자석).html", "category": "class", "rank": 999}, {"name": "전자칠판 학급 투표 킹 (학급 도구)", "title": "전자칠판 학급 투표 킹", "subtitle": "학급 도구", "filename": "전자칠판 학급 투표 킹 (학급 도구).html", "category": "class", "rank": 999}, {"name": "정확한 멈춤 타이밍 킹 (순발력)", "title": "정확한 멈춤 타이밍 킹", "subtitle": "순발력", "filename": "정확한 멈춤 타이밍 킹 (순발력).html", "category": "other", "rank": 999}, {"name": "조합 킹 (경우의 수)", "title": "조합 킹", "subtitle": "경우의 수", "filename": "조합 킹 (경우의 수).html", "category": "other", "rank": 999}, {"name": "지뢰찾기 킹 (논리 퍼즐)", "title": "지뢰찾기 킹", "subtitle": "논리 퍼즐", "filename": "지뢰찾기 킹 (논리 퍼즐).html", "category": "board", "rank": 999}, {"name": "카드 암기 킹 (기억력)", "title": "카드 암기 킹", "subtitle": "기억력", "filename": "카드 암기 킹 (기억력).html", "category": "board", "rank": 999}, {"name": "클래식 뱀꼬리 먹기 킹 (스네이크)", "title": "클래식 뱀꼬리 먹기 킹", "subtitle": "스네이크", "filename": "클래식 뱀꼬리 먹기 킹 (스네이크).html", "category": "board", "rank": 999}, {"name": "킹방울 도형 선 잇기 (평면 도형)", "title": "킹방울 도형 선 잇기", "subtitle": "평면 도형", "filename": "킹방울 도형 선 잇기 (평면 도형).html", "category": "math", "rank": 999}, {"name": "킹방울 입체도형 잇기 (공간 감각)", "title": "킹방울 입체도형 잇기", "subtitle": "공간 감각", "filename": "킹방울 입체도형 잇기 (공간 감각).html", "category": "math", "rank": 999}, {"name": "킹방울 터트리기 (기초 도형)", "title": "킹방울 터트리기", "subtitle": "기초 도형", "filename": "킹방울 터트리기 (기초 도형).html", "category": "math", "rank": 999}, {"name": "킹한자 十 만들기 (한자 기초)", "title": "킹한자 十 만들기", "subtitle": "한자 기초", "filename": "킹한자 十 만들기 (한자 기초).html", "category": "language", "rank": 999}, {"name": "테트리스 킹트리스 (클래식 퍼즐)", "title": "테트리스 킹트리스", "subtitle": "클래식 퍼즐", "filename": "테트리스 킹트리스 (클래식 퍼즐).html", "category": "board", "rank": 999}, {"name": "토너먼트 대진표 추첨 킹 (학급 도구)", "title": "토너먼트 대진표 추첨 킹", "subtitle": "학급 도구", "filename": "토너먼트 대진표 추첨 킹 (학급 도구).html", "category": "class", "rank": 999}, {"name": "통계 그래프 그려킹 (수학 통계)", "title": "통계 그래프 그려킹", "subtitle": "수학 통계", "filename": "통계 그래프 그려킹 (수학 통계).html", "category": "math", "rank": 999}, {"name": "틀린 이모지 찾기 킹 (관찰력)", "title": "틀린 이모지 찾기 킹", "subtitle": "관찰력", "filename": "틀린 이모지 찾기 킹 (관찰력).html", "category": "other", "rank": 999}, {"name": "틱택토 동물 배틀 킹 (전략 보드게임)", "title": "틱택토 동물 배틀 킹", "subtitle": "전략 보드게임", "filename": "틱택토 동물 배틀 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "학급 퀴즈 골든벨 킹 (학급 도구)", "title": "학급 퀴즈 골든벨 킹", "subtitle": "학급 도구", "filename": "학급 퀴즈 골든벨 킹 (학급 도구).html", "category": "class", "rank": 999}, {"name": "학생 성격 유형 검사 킹 (MBTI)", "title": "학생 성격 유형 검사 킹", "subtitle": "MBTI", "filename": "학생 성격 유형 검사 킹 (MBTI).html", "category": "class", "rank": 6}, {"name": "헥스 동물 배틀 킹 (전략 보드게임)", "title": "헥스 동물 배틀 킹", "subtitle": "전략 보드게임", "filename": "헥스 동물 배틀 킹 (전략 보드게임).html", "category": "board", "rank": 999}, {"name": "혼합 계산 킹 (사칙 연산)", "title": "혼합 계산 킹", "subtitle": "사칙 연산", "filename": "혼합 계산 킹 (사칙 연산).html", "category": "math", "rank": 999}, {"name": "화면 연타 탭탭 킹 (순발력)", "title": "화면 연타 탭탭 킹", "subtitle": "순발력", "filename": "화면 연타 탭탭 킹 (순발력).html", "category": "class", "rank": 999}, {"name": "확률 타이밍 배틀 킹 (수학 확률)", "title": "확률 타이밍 배틀 킹", "subtitle": "수학 확률", "filename": "확률 타이밍 배틀 킹 (수학 확률).html", "category": "other", "rank": 999}];
+
+        const categoryNames = {
+            'math': '수학/연산',
+            'board': '보드/전략',
+            'language': '국어/영어',
+            'class': '학급/교과'
+        };
+
+        let currentCategory = 'all';
+        let searchQuery = '';
+
+        function renderPopular() {
+            const grid = document.getElementById('popular-grid');
+            grid.innerHTML = '';
+            
+            const popularGames = games.filter(g => g.rank <= 10).sort((a, b) => a.rank - b.rank);
+            
+            popularGames.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'card card-popular';
+                
+                const catLabel = categoryNames[game.category] || '기타';
+                const fileLink = encodeURIComponent(game.filename);
+                const rankText = "#" + game.rank;
+                const isHighlight = game.rank <= 3 ? 'rank-badge-highlight' : '';
+
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-header">
+                            <span class="tag tag-${game.category}">${catLabel}</span>
+                            <span class="rank-badge ${isHighlight}">${rankText}</span>
+                        </div>
+                        <div class="card-title">${game.title}</div>
+                        <div class="card-desc">${game.subtitle}</div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="${fileLink}" class="action-btn btn-play" target="_blank">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            체험하기
+                        </a>
+                        <a href="${fileLink}" class="action-btn btn-download" download="${game.filename}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            다운로드
+                        </a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderGames() {
+            const grid = document.getElementById('games-grid');
+            grid.innerHTML = '';
+
+            const filtered = games.filter(game => {
+                const matchesCategory = currentCategory === 'all' || game.category === currentCategory;
+                const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            filtered.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                const catLabel = categoryNames[game.category] || '기타';
+                const fileLink = encodeURIComponent(game.filename);
+
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-header">
+                            <span class="tag tag-${game.category}">${catLabel}</span>
+                        </div>
+                        <div class="card-title">${game.title}</div>
+                        <div class="card-desc">${game.subtitle}</div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="${fileLink}" class="action-btn btn-play" target="_blank">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            체험하기
+                        </a>
+                        <a href="${fileLink}" class="action-btn btn-download" download="${game.filename}">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            다운로드
+                        </a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.filter-buttons .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            renderGames();
+        }
+
+        document.getElementById('search').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderGames();
+            
+            if (searchQuery) {
+                document.getElementById('library-title').scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // Initial Render
+        renderPopular();
+        renderGames();
+    </script>
+</body>
+</html>
