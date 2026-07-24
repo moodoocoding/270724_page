@@ -89,6 +89,8 @@ input:focus,textarea:focus { border-color:var(--green); box-shadow:0 0 0 3px rgb
 .roster-head h1 { margin:0; font-size:22px; }
 .roster-head p { margin:7px 0 0; color:var(--muted); font-size:13px; }
 .person-row { width:100%; display:grid; grid-template-columns:1.3fr repeat(4,.7fr) .7fr; align-items:center; gap:10px; padding:18px 28px; border:0; border-bottom:1px solid #edf0eb; background:#fff; text-align:left; }
+.person-row>strong { display:flex; flex-direction:column; gap:4px; }
+.person-row>strong small { color:var(--muted); font-weight:500; }
 .person-row:hover { background:#fafbf7; }
 .person-row span { width:max-content; color:#9aa39e; background:#f1f3ef; border-radius:99px; padding:6px 9px; font-size:11px; }
 .person-row span.done { color:#fff; background:var(--green); }

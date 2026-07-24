@@ -12,6 +12,7 @@ type Submission = {
 type Session = {
   participantId: number;
   participantName: string;
+  school: string;
   className: string;
   classCode: string;
 };
@@ -67,6 +68,7 @@ export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
   const [session, setSession] = useState<Session | null>(null);
   const [classCode, setClassCode] = useState("AI-ONEDAY");
+  const [school, setSchool] = useState("");
   const [name, setName] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<Step>(1);
@@ -106,13 +108,13 @@ export default function Home() {
 
   async function enterClass(event: React.FormEvent) {
     event.preventDefault();
-    if (!name.trim() || !classCode.trim()) return;
+    if (!name.trim() || !school.trim()) return;
     setBusy(true);
     setMessage("");
     const res = await fetch("/api/session", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ classCode, name }),
+      body: JSON.stringify({ school, name }),
     });
     const body = await res.json();
     setBusy(false);
@@ -189,8 +191,8 @@ export default function Home() {
           <h1>생각을 수업으로<br />옮기는 작은 워크북</h1>
           <p className="lead">문제를 먼저 발견하고, AI와 방법을 찾고, 실제 수업 콘텐츠로 완성하세요.</p>
           <form onSubmit={enterClass} className="entry-form">
-            <label>클래스 코드<input value={classCode} onChange={(e) => setClassCode(e.target.value.toUpperCase())} /></label>
-            <label>이름<input value={name} onChange={(e) => setName(e.target.value)} placeholder="연수에서 사용할 이름" /></label>
+            <label>학교명<input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="예: 한빛초등학교" /></label>
+            <label>이름<input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 김태호" /></label>
             {message && <p className="form-message">{message}</p>}
             <button className="primary" disabled={busy}>{busy ? "입장 중…" : "워크북 시작하기"}</button>
           </form>
@@ -205,7 +207,7 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <Brand />
-        <div className="user-chip"><span>{session.className}</span><strong>{session.participantName}</strong></div>
+        <div className="user-chip"><span>{session.school}</span><strong>{session.participantName}</strong></div>
       </header>
       <div className="workspace">
         <aside className="sidebar">
@@ -292,7 +294,7 @@ function TeacherDashboard({ data, onBack }: { data: any; onBack: () => void }) {
         <div className="roster-head"><h1>제출 현황</h1><p>이름을 누르면 작성 내용을 확인할 수 있습니다.</p></div>
         {data.participants.map((person: any) => (
           <button className="person-row" key={person.id} onClick={() => setSelected(person)}>
-            <strong>{person.name}</strong>
+            <strong>{person.school}<small>{person.name}</small></strong>
             {([1, 2, 3, 4] as Step[]).map((step) => <span key={step} className={person.submissions[step]?.status === "submitted" ? "done" : ""}>{step}차시</span>)}
             <i>보기 →</i>
           </button>

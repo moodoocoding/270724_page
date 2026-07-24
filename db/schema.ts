@@ -12,9 +12,10 @@ export const classes = sqliteTable("classes", {
 export const participants = sqliteTable("participants", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   classId: integer("class_id").notNull().references(() => classes.id),
+  school: text("school").notNull(),
   name: text("name").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-}, (table) => [uniqueIndex("participants_class_name_idx").on(table.classId, table.name)]);
+}, (table) => [uniqueIndex("participants_class_school_name_idx").on(table.classId, table.school, table.name)]);
 
 export const submissions = sqliteTable("submissions", {
   id: integer("id").primaryKey({ autoIncrement: true }),

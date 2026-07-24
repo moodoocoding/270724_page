@@ -29,11 +29,12 @@ export async function ensureDb() {
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS participants (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       class_id INTEGER NOT NULL,
+      school TEXT NOT NULL DEFAULT '',
       name TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (class_id) REFERENCES classes(id)
     )`),
-    env.DB.prepare("CREATE UNIQUE INDEX IF NOT EXISTS participants_class_name_idx ON participants(class_id, name)"),
+    env.DB.prepare("CREATE UNIQUE INDEX IF NOT EXISTS participants_class_school_name_idx ON participants(class_id, school, name)"),
     env.DB.prepare(`CREATE TABLE IF NOT EXISTS submissions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       participant_id INTEGER NOT NULL,
