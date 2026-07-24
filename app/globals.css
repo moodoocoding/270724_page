@@ -91,31 +91,39 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 }
 .user-chip { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; }
 .user-chip strong { padding: 7px 11px; border-radius: 8px; color: var(--ink); background: var(--paper); }
-.workspace { min-height: calc(100vh - 60px); display: block; }
+.workspace { min-height: calc(100vh - 60px); display: grid; grid-template-columns: 220px minmax(0, 1fr); }
 
 .sidebar {
-  position: sticky; top: 0; z-index: 8; height: 62px; display: flex; align-items: center;
-  padding: 0 max(24px, calc((100vw - 1040px) / 2)); border-bottom: 1px solid var(--line);
-  color: var(--ink); background: rgba(255, 255, 255, .96); backdrop-filter: blur(12px);
+  position: sticky; top: 60px; z-index: 8; height: calc(100vh - 60px); display: flex; flex-direction: column;
+  padding: 25px 16px 18px; border-right: 1px solid #234437;
+  color: #fff; background: var(--green-dark);
 }
-.progress-copy, .progress-track { display: none; }
-.sidebar nav { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.progress-copy { display: flex; align-items: center; justify-content: space-between; color: #b9c9c1; font-size: 11px; }
+.progress-copy strong { color: var(--lime); font-size: 11px; }
+.progress-track { height: 3px; display: block; margin: 13px 0 22px; overflow: hidden; border-radius: 99px; background: #315145; }
+.progress-track i { height: 100%; display: block; border-radius: inherit; background: var(--lime); transition: width .2s ease; }
+.sidebar nav { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .sidebar nav button {
-  min-width: 0; height: 44px; display: flex; align-items: center; gap: 9px; padding: 0 12px;
-  border: 0; border-radius: 8px; color: #738079; background: transparent; text-align: left;
+  min-width: 0; min-height: 58px; display: flex; align-items: center; gap: 11px; padding: 9px 11px;
+  border: 0; border-radius: 9px; color: #c0cec7; background: transparent; text-align: left;
 }
-.sidebar nav button > span { color: #8a958f; font-size: 11px; font-variant-numeric: tabular-nums; }
-.sidebar nav button div { min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+.sidebar nav button > span {
+  width: 27px; height: 27px; display: grid; flex: 0 0 auto; place-items: center;
+  border: 1px solid #476258; border-radius: 7px; color: #b9c8c1; font-size: 10px; font-variant-numeric: tabular-nums;
+}
+.sidebar nav button div { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
 .sidebar nav button strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-.sidebar nav button small { color: #9aa39e; font-size: 10px; white-space: nowrap; }
-.sidebar nav button.active { color: var(--green-dark); background: rgba(223, 240, 111, .42); }
-.sidebar nav button.active > span, .sidebar nav button.active small { color: var(--green); }
+.sidebar nav button small { color: #799187; font-size: 10px; white-space: nowrap; }
+.sidebar nav button:hover { background: rgba(255, 255, 255, .05); }
+.sidebar nav button.active { color: var(--green-dark); background: var(--lime); }
+.sidebar nav button.active > span { border-color: rgba(18, 52, 38, .24); color: var(--green-dark); }
+.sidebar nav button.active small { color: #4f674f; }
 .logout {
-  flex: 0 0 auto; margin-left: 12px; padding: 8px; border: 0; color: var(--muted);
-  background: transparent; font-size: 11px;
+  flex: 0 0 auto; width: 100%; margin: 0; padding: 9px; border: 0; color: #91a59b;
+  background: transparent; font-size: 11px; text-align: left;
 }
 
-.work-area { width: min(100%, 960px); margin: 0 auto; padding: 34px 28px 92px; }
+.work-area { width: min(100%, 920px); margin: 0 auto; padding: 34px 28px 92px; }
 .step-heading p {
   margin: 0 0 6px; color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .5px;
 }
@@ -186,7 +194,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 .actionbar {
-  position: fixed; right: 0; bottom: 0; left: 0; z-index: 9; height: 64px;
+  position: fixed; right: 0; bottom: 0; left: 220px; z-index: 9; height: 64px;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 max(28px, calc((100vw - 904px) / 2));
   border-top: 1px solid var(--line); background: rgba(255, 255, 255, .96); backdrop-filter: blur(12px);
@@ -236,11 +244,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   .entry-form { grid-template-columns: 1fr; }
   .topbar { height: 56px; padding: 0 16px; }
   .user-chip span { display: none; }
-  .workspace { min-height: calc(100vh - 56px); }
-  .sidebar { height: 54px; padding: 0 10px; overflow-x: auto; }
-  .sidebar nav { min-width: 420px; }
+  .workspace { min-height: calc(100vh - 56px); display: block; }
+  .sidebar {
+    position: sticky; top: 0; height: 54px; display: flex; flex-direction: row; align-items: center;
+    padding: 0 10px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line);
+    color: var(--ink); background: rgba(255, 255, 255, .96);
+  }
+  .progress-copy, .progress-track { display: none; }
+  .sidebar nav { min-width: 420px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
   .sidebar nav button { height: 38px; justify-content: center; padding: 0 8px; }
+  .sidebar nav button > span { width: auto; height: auto; border: 0; color: #8a958f; }
   .sidebar nav button div { display: none; }
+  .sidebar nav button.active { color: var(--green-dark); background: rgba(223, 240, 111, .42); }
   .logout { margin-left: 2px; }
   .work-area { padding: 26px 18px 92px; }
   .step-heading h1 { font-size: 25px; }
@@ -250,7 +265,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   .classification-row > div { width: 100%; }
   .preview.prompt { padding-right: 18px; padding-bottom: 50px; }
   .preview.prompt button { top: auto; right: 12px; bottom: 12px; }
-  .actionbar { height: 72px; padding: 10px 14px; }
+  .actionbar { left: 0; height: 72px; padding: 10px 14px; }
   .actionbar p { display: none; }
   .actionbar div { width: 100%; }
   .actionbar button { flex: 1; }
