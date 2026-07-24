@@ -422,10 +422,18 @@ function GemsLab({ data, fromStep1, onChange }: { data: Record<string, string>; 
         <div className="guide-head">
           <h2>Gem 만들기</h2>
           <div className="guide-actions">
-            <button className="secondary small-button" onClick={openMetaModal}>메타 프롬프트 크게 보기</button>
+            <button className="secondary small-button" onClick={copyMetaPrompt}>메타 프롬프트 복사</button>
             <a className="primary small-button" href="https://gemini.google.com/gems" target="_blank" rel="noreferrer">Gemini 열기 ↗</a>
           </div>
         </div>
+
+        <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
+          <div>
+            <strong>Gem 요청 사항에 아래 메타 프롬프트 전체를 붙여 넣으세요.</strong>
+            <button className="text-button" onClick={openMetaModal}>크게 보기</button>
+          </div>
+          <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
+        </section>
 
         <ol className="guide-steps">
           <li>
