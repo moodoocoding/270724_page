@@ -186,6 +186,9 @@ input:focus, textarea:focus { border-color: var(--green); }
 .meta-modal h2 { margin: 0; font-size: 20px; }
 .meta-modal pre { margin: 0; padding: 16px; white-space: pre-wrap; border: 1px solid var(--line); border-radius: 6px; background: #f8faf8; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
 
+.game-lab { display: grid; gap: 20px; }
+.subtab-bar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+.subtab-bar button { min-height: 48px; font-size: 14px; font-weight: 750; }
 .game-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
 .game-cards button { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; text-align: left; }
 .game-cards button.selected { border-color: var(--ink); background: var(--lime); }
@@ -291,6 +294,7 @@ input:focus, textarea:focus { border-color: var(--green); }
   .guide-image, .guide-steps img { width: 130px; height: 82px; }
   .game-cards { display: flex; overflow-x: auto; }
   .game-cards button { min-width: 190px; }
+  .subtab-bar { grid-template-columns: 1fr; }
   .lesson-one-form { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .form-grid label.wide { grid-column: auto; }

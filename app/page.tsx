@@ -32,8 +32,8 @@ type Session = {
 
 const stepMeta = {
   1: { short: "문제 정의", title: "사실에서 수업 문제까지", hint: "분류하고, 확인하고, 한 문장으로 정리합니다." },
-  2: { short: "Gem 실습", title: "나의 수업 설계 Gem 만들기", hint: "Gem을 만든 뒤 직접 실습하고 결과를 남깁니다." },
-  3: { short: "게임 경험", title: "교육용 웹게임 플레이 랩", hint: "직접 해 보고, 내 수업에 맞게 바꿀 점을 찾습니다." },
+  2: { short: "수업 설계", title: "수업을 어떻게 설계할 것인가?", hint: "Gem을 만든 뒤 직접 실습하고 결과를 남깁니다." },
+  3: { short: "콘텐츠 제작", title: "수업 웹게임 / 콘텐츠 개발 및 탑재", hint: "추천 웹게임을 연구하고, 직접 만든 수업 콘텐츠를 탑재해 테스트합니다." },
   4: { short: "검토·수정", title: "동료 검토와 최종 수정", hint: "직접 사용한 장면을 근거로 가장 중요한 한 가지를 고칩니다." },
 } as const;
 
@@ -55,7 +55,10 @@ const fields: Record<Step, { key: string; label: string; placeholder: string; lo
     { key: "studentAction", label: "내가 해 본 결과", placeholder: "예: 3단계까지 진행했고 740점을 얻었다.", long: true },
     { key: "feedbackMechanism", label: "어떤 피드백을 바로 받나요?", placeholder: "예: 정답 여부, 점수, 다시 시도할 기회를 받는다.", long: true },
     { key: "changePlan", label: "내 수업에 맞게 무엇을 바꿀까요?", placeholder: "학년, 내용, 난이도, 규칙 중 바꿀 것만 적으세요.", long: true },
+    { key: "contentTitle", label: "내가 만든 콘텐츠 제목", placeholder: "예: 5학년 사회 핵심어휘 퀴즈" },
+    { key: "contentTool", label: "만든 도구", placeholder: "예: Gemini Canvas, Canva, 코딩 도구" },
     { key: "resultUrl", label: "내가 만든 결과 링크", placeholder: "Gemini Canvas 등에서 만든 결과의 공유 URL" },
+    { key: "contentPlan", label: "수업에서 어떻게 활용할까요?", placeholder: "언제, 누구와, 어떻게 사용할지 짧게 적어 주세요.", long: true },
   ],
   4: [
     { key: "strength", label: "동료가 말한 살릴 점", placeholder: "구체적으로 도움이 된 부분을 적어 주세요.", long: true },
@@ -526,6 +529,7 @@ const gameCatalog = [
 ] as const;
 
 function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  const [subTab, setSubTab] = useState<"step1" | "step2">("step1");
   const [selected, setSelected] = useState(data.gameId || "spacing");
 
   const chooseGame = (id: string, title: string) => {
@@ -535,10 +539,23 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
   };
 
   const activeGame = gameCatalog.find((game) => game.id === selected) || gameCatalog[0];
-  const step1Fields = fields[3].filter((f) => ["gameTitle", "studentAction", "feedbackMechanism", "changePlan", "resultUrl"].includes(f.key));
+  const step1Fields = fields[3].filter((field) => ["gameTitle", "studentAction", "feedbackMechanism", "changePlan"].includes(field.key));
+  const step2Fields = fields[3].filter((field) => ["contentTitle", "contentTool", "resultUrl", "contentPlan"].includes(field.key));
+  const contentUrl = data.resultUrl?.trim() || "";
+  const canPreviewContent = /^https?:\/\/\S+$/i.test(contentUrl);
 
   return (
-    <div className="game-layout">
+    <div className="game-lab">
+      <nav className="subtab-bar" aria-label="3차시 단계 선택">
+        <button className={subTab === "step1" ? "primary" : "secondary"} aria-pressed={subTab === "step1"} onClick={() => setSubTab("step1")}>
+          1단계 · 추천 웹게임 체험
+        </button>
+        <button className={subTab === "step2" ? "primary" : "secondary"} aria-pressed={subTab === "step2"} onClick={() => setSubTab("step2")}>
+          2단계 · 내 콘텐츠 탑재
+        </button>
+      </nav>
+
+      {subTab === "step1" && <div className="game-layout">
           <section className="game-browser">
             <div className="guide-head">
               <div>
@@ -586,10 +603,10 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
 
           <section className="reflection-panel">
             <header className="panel-title">
-              <b>기록</b>
+              <b>1단계</b>
               <div>
-                <h2>해 보고 적기</h2>
-                <p>결과와 바꿀 점만 짧게 남기세요.</p>
+                <h2>체험 기록 & 아이디어</h2>
+                <p>해 보고 느낀 점과 바꿀 점을 남기세요.</p>
               </div>
             </header>
             <div className="compact-form">
@@ -614,6 +631,47 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
               ))}
             </div>
           </section>
+      </div>}
+
+      {subTab === "step2" && <div className="game-layout">
+        <section className="reflection-panel">
+          <header className="panel-title">
+            <b>2단계</b>
+            <div>
+              <h2>내 콘텐츠 탑재하기</h2>
+              <p>직접 만든 결과물의 공유 링크와 활용 계획을 남기세요.</p>
+            </div>
+          </header>
+          <div className="compact-form">
+            {step2Fields.map((field) => (
+              <label key={field.key}>
+                <span>{field.label}</span>
+                {field.long ? (
+                  <textarea value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} />
+                ) : (
+                  <input value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} />
+                )}
+              </label>
+            ))}
+          </div>
+        </section>
+
+        <section className="game-browser">
+          <div className="guide-head">
+            <div>
+              <h2>콘텐츠 미리 보기</h2>
+              <p>공유 링크를 넣으면 이곳에서 안전하게 확인할 수 있어요.</p>
+            </div>
+            {canPreviewContent && <a className="primary small-button" href={contentUrl} target="_blank" rel="noreferrer">새 창에서 열기</a>}
+          </div>
+          {canPreviewContent ? (
+            <iframe className="game-frame" src={contentUrl} title="내가 만든 콘텐츠 미리 보기" sandbox="allow-scripts" loading="lazy" />
+          ) : (
+            <div className="demo-stage"><h3>결과물 링크를 넣어 주세요</h3><p>Gemini Canvas, Canva, 웹게임 등 공개된 공유 링크를 넣으면 여기에서 확인합니다.</p></div>
+          )}
+          <button className="secondary small-button" onClick={() => setSubTab("step1")}>← 1단계 게임 다시 보기</button>
+        </section>
+      </div>}
     </div>
   );
 }
