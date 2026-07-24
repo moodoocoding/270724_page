@@ -272,6 +272,7 @@ input:focus, textarea:focus { border-color: var(--green); }
   display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: 0 18px;
   border-radius: 6px; color: #fff; background: var(--green); font-size: 14px; font-weight: 800; cursor: pointer;
 }
+.file-upload-button.disabled { opacity: .55; cursor: wait; }
 .file-upload-button input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .file-upload-box > p { margin: 10px 0 3px; color: var(--muted); font-size: 13px; }
 .file-upload-box > small { color: var(--muted); font-size: 12px; }

@@ -65,8 +65,7 @@ const fields: Record<Step, { key: string; label: string; placeholder: string; lo
     { key: "feedbackMechanism", label: "어떤 피드백을 바로 받나요?", placeholder: "예: 정답 여부, 점수, 다시 시도할 기회를 받는다.", long: true },
     { key: "changePlan", label: "내 수업에 맞게 무엇을 바꿀까요?", placeholder: "학년, 내용, 난이도, 규칙 중 바꿀 것만 적으세요.", long: true },
     { key: "contentTitle", label: "내가 만든 콘텐츠 제목", placeholder: "예: 5학년 사회 핵심어휘 퀴즈" },
-    { key: "contentTool", label: "만든 도구", placeholder: "예: Gemini Canvas, Canva, 코딩 도구" },
-    { key: "resultUrl", label: "내가 만든 결과 링크", placeholder: "Gemini Canvas 등에서 만든 결과의 공유 URL" },
+    { key: "resultUrl", label: "탑재한 결과물", placeholder: "파일을 탑재하면 자동으로 기록됩니다." },
     { key: "contentPlan", label: "수업에서 어떻게 활용할까요?", placeholder: "언제, 누구와, 어떻게 사용할지 짧게 적어 주세요.", long: true },
   ],
   4: [
@@ -609,6 +608,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
   const [selected, setSelected] = useState(() => gameCatalog.some((game) => game.id === data.gameId) ? data.gameId : "spacing");
   const [uploadPreview, setUploadPreview] = useState<{ kind: "html" | "image" | "file"; content: string } | null>(null);
   const [uploadError, setUploadError] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   const chooseGame = (id: string, title: string) => {
     setSelected(id);
@@ -618,23 +618,20 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
 
   const activeGame = gameCatalog.find((game) => game.id === selected) || gameCatalog[0];
   const step1Fields = fields[3].filter((field) => ["gameTitle", "studentAction", "feedbackMechanism", "changePlan"].includes(field.key));
-  const step2Fields = fields[3].filter((field) => ["contentTitle", "contentTool", "resultUrl", "contentPlan"].includes(field.key));
+  const step2Fields = fields[3].filter((field) => ["contentTitle", "contentPlan"].includes(field.key));
   const contentUrl = data.resultUrl?.trim() || "";
   const canPreviewContent = /^https?:\/\/\S+$/i.test(contentUrl);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploadError("");
 
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError("10MB 이하 파일을 선택해 주세요.");
+    if (file.size > 4 * 1024 * 1024) {
+      setUploadError("4MB 이하 파일을 선택해 주세요.");
       event.target.value = "";
       return;
     }
-
-    onChange("uploadedFileName", file.name);
-    onChange("uploadedFileSize", `${(file.size / 1024).toFixed(1)} KB`);
 
     const lowerName = file.name.toLowerCase();
     if (lowerName.endsWith(".html") || lowerName.endsWith(".htm") || file.type === "text/html") {
@@ -651,7 +648,22 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
       setUploadPreview({ kind: "file", content: "" });
     }
 
-    event.target.value = "";
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const response = await fetch("/api/final-upload", { method: "POST", body: formData });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "파일을 탑재하지 못했습니다.");
+      onChange("uploadedFileName", body.fileName);
+      onChange("uploadedFileSize", body.fileSize);
+      onChange("resultUrl", body.url);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "파일을 탑재하지 못했습니다.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
   };
 
   return (
@@ -754,15 +766,15 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
             <b>2단계</b>
             <div>
               <h2>개발한 파일 직접 탑재하기</h2>
-              <p>HTML, ZIP, 이미지 파일을 올리거나 결과 링크를 남기세요.</p>
+              <p>완성한 HTML, ZIP 또는 이미지 파일을 바로 탑재하세요.</p>
             </div>
           </header>
           <div className="file-upload-box">
-            <label className="file-upload-button">
-              📁 개발한 파일 직접 탑재하기
-              <input type="file" accept=".html,.htm,.zip,image/*" onChange={handleFileUpload} />
+            <label className={`file-upload-button ${uploading ? "disabled" : ""}`}>
+              {uploading ? "파일 탑재 중…" : "📁 개발한 파일 직접 탑재하기"}
+              <input type="file" accept=".html,.htm,.zip,image/*" onChange={handleFileUpload} disabled={uploading} />
             </label>
-            <p>.html, .zip, PNG, JPG 등 · 최대 10MB</p>
+            <p>.html, .zip, PNG, JPG 등 · 최대 4MB</p>
             <small>HTML과 이미지는 우측 라이브 플레이어에서 바로 확인할 수 있습니다.</small>
             {uploadError && <div className="upload-error" role="alert">{uploadError}</div>}
             {data.uploadedFileName && (
@@ -773,6 +785,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                   onClick={() => {
                     onChange("uploadedFileName", "");
                     onChange("uploadedFileSize", "");
+                    onChange("resultUrl", "");
                     setUploadPreview(null);
                     setUploadError("");
                   }}
@@ -800,7 +813,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
           <div className="guide-head">
             <div>
               <h2>🚀 라이브 플레이어</h2>
-              <p>탑재한 HTML 또는 결과 링크를 여기에서 바로 테스트합니다.</p>
+              <p>탑재한 콘텐츠를 이곳에서 바로 테스트합니다.</p>
             </div>
             {canPreviewContent && <a className="primary small-button" href={contentUrl} target="_blank" rel="noreferrer">새 창에서 열기</a>}
           </div>
@@ -810,15 +823,15 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
             <div className="image-preview">
               <Image src={uploadPreview.content} alt="업로드한 콘텐츠 미리 보기" width={1200} height={800} unoptimized />
             </div>
-          ) : canPreviewContent ? (
-            <iframe className="game-frame" src={contentUrl} title="내가 만든 콘텐츠 미리 보기" sandbox="allow-scripts" loading="lazy" />
           ) : uploadPreview?.kind === "file" ? (
             <div className="demo-stage">
               <h3>파일 탑재 완료</h3>
-              <p>ZIP 파일은 제출 정보에 기록됩니다. 실시간 실행을 확인하려면 압축을 푼 HTML 파일을 올려 주세요.</p>
+              <p>ZIP 파일이 저장되었습니다. 실시간 실행을 확인하려면 압축을 푼 HTML 파일을 탑재해 주세요.</p>
             </div>
+          ) : canPreviewContent ? (
+            <iframe className="game-frame" src={contentUrl} title="내가 만든 콘텐츠 미리 보기" sandbox="allow-scripts" loading="lazy" />
           ) : (
-            <div className="demo-stage"><h3>콘텐츠를 탑재해 주세요</h3><p>왼쪽에서 HTML·이미지 파일을 선택하거나 공개 결과 링크를 입력하세요.</p></div>
+            <div className="demo-stage"><h3>콘텐츠를 탑재해 주세요</h3><p>왼쪽에서 HTML, ZIP 또는 이미지 파일을 선택하세요.</p></div>
           )}
           <div className="player-footer">
             <span>{data.uploadedFileName || data.contentTitle || "아직 탑재한 콘텐츠가 없습니다."}</span>
@@ -957,7 +970,7 @@ function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => v
         ))}
         {!data.participants.length && <div className="empty">아직 입장한 참여자가 없습니다.</div>}
       </section>
-      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => !["scene", "strength", "improvement", "finalNote", "generatedPrompt", "aiResult", "gemCreatedAt", "selectedMethodIndex"].includes(key)); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
+      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => !["scene", "strength", "improvement", "finalNote", "generatedPrompt", "aiResult", "gemCreatedAt", "selectedMethodIndex", "contentTool"].includes(key)); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
     </main>
   );
 }
