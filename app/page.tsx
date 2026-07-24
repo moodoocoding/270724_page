@@ -79,7 +79,7 @@ const emptySubmissions = (): Record<Step, Submission> => ({
 const requiredKeys: Record<Step, string[]> = {
   1: ["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"],
   2: ["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"],
-  3: ["gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "resultUrl"],
+  3: ["gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan"],
   4: ["strength", "improvement", "revision", "finalUrl", "finalNote"],
 };
 
@@ -170,6 +170,9 @@ export default function Home() {
     if (!session) return;
     if (status === "submitted") {
       const missing = requiredKeys[step].filter((key) => !current.data[key]?.trim());
+      if (step === 3 && !current.data.resultUrl?.trim() && !current.data.uploadedFileName?.trim()) {
+        missing.push("contentSource");
+      }
       if (missing.length) {
         setMessage(`아직 ${missing.length}개 항목이 비어 있어요. 활동을 마친 뒤 제출해 주세요.`);
         return;
@@ -519,15 +522,17 @@ function GemsLab({ data, fromStep1, onChange }: { data: Record<string, string>; 
 }
 
 const gameCatalog = [
-  { id: "tenpang", rank: 1, title: "10 만들기 텐팡 킹", tag: "수학 · 연산", task: "10을 만드는 빠른 수 조합", src: "/games/kingsmath/10 만들기 텐팡 킹 (수학 연산).html" },
-  { id: "omok", rank: 2, title: "오목 동물 배틀 킹", tag: "전략 · 보드", task: "규칙을 세워 완성하는 오목", src: "/games/kingsmath/오목 동물 배틀 킹 (전략 보드게임).html" },
-  { id: "connect-four", rank: 3, title: "사목 동물 배틀 킹", tag: "전략 · 보드", task: "네 칸을 먼저 잇는 전략 게임", src: "/games/kingsmath/사목킹 동물 배틀 (Connect 4).html" },
-  { id: "divisor-mole", rank: 4, title: "약수·배수 두더지 킹", tag: "수학 · 연산", task: "약수와 배수를 빠르게 구분하기", src: "/games/kingsmath/약수 배수 두더지 킹 (수학 연산).html" },
+  { id: "spacing", rank: 1, title: "띄어쓰기 킹", tag: "국어 · 맞춤법", task: "문장을 보고 띄어쓰기 고치기", src: "/games/kingsmath/띄어쓰기 킹 (국어 맞춤법).html" },
+  { id: "arithmetic", rank: 2, title: "사칙연산 계산킹", tag: "수학 · 연산", task: "제한 시간 안에 계산 문제 풀기", src: "/games/kingsmath/사칙연산 계산킹 (타임어택).html" },
+  { id: "kind-words", rank: 3, title: "예쁜 말 킹", tag: "인성 · 언어", task: "상황에 맞는 따뜻한 말 고르기", src: "/games/kingsmath/예쁜 말 킹 (인성 교육).html" },
+  { id: "magnet-defense", rank: 4, title: "자석 디펜스 킹", tag: "과학 · 자석", task: "자석의 성질로 목표 지키기", src: "/games/kingsmath/자석 디펜스 킹 (과학 자석).html" },
 ] as const;
 
 function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
   const [subTab, setSubTab] = useState<"step1" | "step2">("step1");
-  const [selected, setSelected] = useState(() => gameCatalog.some((game) => game.id === data.gameId) ? data.gameId : "tenpang");
+  const [selected, setSelected] = useState(() => gameCatalog.some((game) => game.id === data.gameId) ? data.gameId : "spacing");
+  const [uploadPreview, setUploadPreview] = useState<{ kind: "html" | "image" | "file"; content: string } | null>(null);
+  const [uploadError, setUploadError] = useState("");
 
   const chooseGame = (id: string, title: string) => {
     setSelected(id);
@@ -541,14 +546,46 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
   const contentUrl = data.resultUrl?.trim() || "";
   const canPreviewContent = /^https?:\/\/\S+$/i.test(contentUrl);
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploadError("");
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("10MB 이하 파일을 선택해 주세요.");
+      event.target.value = "";
+      return;
+    }
+
+    onChange("uploadedFileName", file.name);
+    onChange("uploadedFileSize", `${(file.size / 1024).toFixed(1)} KB`);
+
+    const lowerName = file.name.toLowerCase();
+    if (lowerName.endsWith(".html") || lowerName.endsWith(".htm") || file.type === "text/html") {
+      const reader = new FileReader();
+      reader.onload = () => setUploadPreview({ kind: "html", content: String(reader.result || "") });
+      reader.onerror = () => setUploadError("HTML 파일을 읽지 못했습니다.");
+      reader.readAsText(file);
+    } else if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = () => setUploadPreview({ kind: "image", content: String(reader.result || "") });
+      reader.onerror = () => setUploadError("이미지 파일을 읽지 못했습니다.");
+      reader.readAsDataURL(file);
+    } else {
+      setUploadPreview({ kind: "file", content: "" });
+    }
+
+    event.target.value = "";
+  };
+
   return (
     <div className="game-lab">
       <nav className="subtab-bar" aria-label="3차시 단계 선택">
         <button className={subTab === "step1" ? "primary" : "secondary"} aria-pressed={subTab === "step1"} onClick={() => setSubTab("step1")}>
-          1단계 · 추천 웹게임 체험
+          🎮 1단계: 추천 웹게임 체험 및 연구
         </button>
         <button className={subTab === "step2" ? "primary" : "secondary"} aria-pressed={subTab === "step2"} onClick={() => setSubTab("step2")}>
-          2단계 · 내 콘텐츠 탑재
+          🚀 2단계: 직접 개발한 콘텐츠 탑재 & 라이브 테스트
         </button>
       </nav>
 
@@ -556,10 +593,12 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
           <section className="game-browser">
             <div className="guide-head">
               <div>
-                <h2>교실 인기 TOP 10 중 추천 4개</h2>
-                <p>상위 4개 중 하나를 골라 3분만 해 보세요.</p>
+                <h2>추천 웹게임 4종</h2>
+                <p>하나를 골라 플레이하고 수업 아이디어를 찾아보세요.</p>
               </div>
-              <a className="secondary small-button" href="/games/kingsmath/kingsmath-library.html" target="_blank" rel="noreferrer">킹수학 전체 게임 보기</a>
+              <a className="secondary small-button portal-link" href="/games/kingsmath/kingsmath-library.html" target="_blank" rel="noreferrer">
+                🚀 킹수학 웹게임 원본 포털 ↗
+              </a>
             </div>
             <div className="game-cards">
               {gameCatalog.map((game) => (
@@ -636,6 +675,9 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
                 </label>
               ))}
             </div>
+            <button className="primary next-step-button" onClick={() => setSubTab("step2")}>
+              다음: 2단계 내가 개발한 콘텐츠 탑재하기 →
+            </button>
           </section>
       </div>}
 
@@ -644,10 +686,35 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
           <header className="panel-title">
             <b>2단계</b>
             <div>
-              <h2>내 콘텐츠 탑재하기</h2>
-              <p>직접 만든 결과물의 공유 링크와 활용 계획을 남기세요.</p>
+              <h2>개발한 파일 직접 탑재하기</h2>
+              <p>HTML, ZIP, 이미지 파일을 올리거나 결과 링크를 남기세요.</p>
             </div>
           </header>
+          <div className="file-upload-box">
+            <label className="file-upload-button">
+              📁 개발한 파일 직접 탑재하기
+              <input type="file" accept=".html,.htm,.zip,image/*" onChange={handleFileUpload} />
+            </label>
+            <p>.html, .zip, PNG, JPG 등 · 최대 10MB</p>
+            <small>HTML과 이미지는 우측 라이브 플레이어에서 바로 확인할 수 있습니다.</small>
+            {uploadError && <div className="upload-error" role="alert">{uploadError}</div>}
+            {data.uploadedFileName && (
+              <div className="uploaded-file">
+                <span>📄 {data.uploadedFileName} <small>{data.uploadedFileSize}</small></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange("uploadedFileName", "");
+                    onChange("uploadedFileSize", "");
+                    setUploadPreview(null);
+                    setUploadError("");
+                  }}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
           <div className="compact-form">
             {step2Fields.map((field) => (
               <label key={field.key}>
@@ -665,17 +732,31 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
         <section className="game-browser">
           <div className="guide-head">
             <div>
-              <h2>콘텐츠 미리 보기</h2>
-              <p>공유 링크를 넣으면 이곳에서 안전하게 확인할 수 있어요.</p>
+              <h2>🚀 라이브 플레이어</h2>
+              <p>탑재한 HTML 또는 결과 링크를 여기에서 바로 테스트합니다.</p>
             </div>
             {canPreviewContent && <a className="primary small-button" href={contentUrl} target="_blank" rel="noreferrer">새 창에서 열기</a>}
           </div>
-          {canPreviewContent ? (
+          {uploadPreview?.kind === "html" ? (
+            <iframe className="game-frame" srcDoc={uploadPreview.content} title="업로드한 HTML 콘텐츠 라이브 테스트" sandbox="allow-scripts" />
+          ) : uploadPreview?.kind === "image" ? (
+            <div className="image-preview">
+              <Image src={uploadPreview.content} alt="업로드한 콘텐츠 미리 보기" width={1200} height={800} unoptimized />
+            </div>
+          ) : canPreviewContent ? (
             <iframe className="game-frame" src={contentUrl} title="내가 만든 콘텐츠 미리 보기" sandbox="allow-scripts" loading="lazy" />
+          ) : uploadPreview?.kind === "file" ? (
+            <div className="demo-stage">
+              <h3>파일 탑재 완료</h3>
+              <p>ZIP 파일은 제출 정보에 기록됩니다. 실시간 실행을 확인하려면 압축을 푼 HTML 파일을 올려 주세요.</p>
+            </div>
           ) : (
-            <div className="demo-stage"><h3>결과물 링크를 넣어 주세요</h3><p>Gemini Canvas, Canva, 웹게임 등 공개된 공유 링크를 넣으면 여기에서 확인합니다.</p></div>
+            <div className="demo-stage"><h3>콘텐츠를 탑재해 주세요</h3><p>왼쪽에서 HTML·이미지 파일을 선택하거나 공개 결과 링크를 입력하세요.</p></div>
           )}
-          <button className="secondary small-button" onClick={() => setSubTab("step1")}>← 1단계 게임 다시 보기</button>
+          <div className="player-footer">
+            <span>{data.uploadedFileName || data.contentTitle || "아직 탑재한 콘텐츠가 없습니다."}</span>
+            <button className="secondary small-button" onClick={() => setSubTab("step1")}>← 1단계 게임 다시 보기</button>
+          </div>
         </section>
       </div>}
     </div>

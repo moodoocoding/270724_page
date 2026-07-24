@@ -4,7 +4,7 @@ import { getParticipantId } from "../../../lib/participant-session";
 const allowedKeys: Record<number, Set<string>> = {
   1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"]),
   2: new Set(["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"]),
-  3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "contentTool", "resultUrl", "contentPlan"]),
+  3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "contentTool", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize"]),
   4: new Set(["strength", "improvement", "revision", "finalUrl", "finalNote"]),
 };
 
