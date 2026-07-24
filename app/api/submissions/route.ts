@@ -3,7 +3,7 @@ import { getParticipantId } from "../../../lib/participant-session";
 
 const allowedKeys: Record<number, Set<string>> = {
   1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"]),
-  2: new Set(["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"]),
+  2: new Set(["gemCreatedAt", "grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethodIndex", "selectedMethod", "criteriaLearning", "criteriaFeasible", "criteriaFits", "selectionReason"]),
   3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "contentTool", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize"]),
   4: new Set(["revision", "finalUrl", "finalFileName", "finalFileSize"]),
 };
@@ -65,6 +65,14 @@ export async function POST(request: Request) {
       return Response.json({ error: "저장할 내용의 형식이나 길이를 확인해 주세요." }, { status: 400 });
     }
     const sanitizedData = Object.fromEntries(entries.filter(([key]) => permitted.has(key)));
+    if (
+      step === 2 &&
+      status === "submitted" &&
+      ["grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethod", "selectionReason"]
+        .some((key) => !sanitizedData[key]?.trim())
+    ) {
+      return Response.json({ error: "AI 요청 내용과 방법 5개, 최종 선택을 모두 확인해 주세요." }, { status: 400 });
+    }
     if (
       step === 4 &&
       status === "submitted" &&
