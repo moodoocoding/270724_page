@@ -527,7 +527,7 @@ const gameCatalog = [
 
 function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
   const [subTab, setSubTab] = useState<"step1" | "step2">("step1");
-  const [selected, setSelected] = useState(data.gameId || "spacing");
+  const [selected, setSelected] = useState(() => gameCatalog.some((game) => game.id === data.gameId) ? data.gameId : "tenpang");
 
   const chooseGame = (id: string, title: string) => {
     setSelected(id);
