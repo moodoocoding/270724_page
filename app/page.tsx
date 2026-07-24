@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Step = 1 | 2 | 3 | 4;
+type LessonOneStep = 1 | 2 | 3;
 type Submission = {
   step: Step;
   status: "draft" | "submitted";
@@ -92,6 +93,7 @@ export default function Home() {
   const [name, setName] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<Step>(1);
+  const [lessonOneStep, setLessonOneStep] = useState<LessonOneStep>(1);
   const [submissions, setSubmissions] = useState(emptySubmissions);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -240,16 +242,19 @@ export default function Home() {
 
         <section className="work-area">
           <div className="step-heading">
-            <p>{step}차시 결과물</p>
-            <h1>{stepMeta[step].title}</h1>
-            <span>{stepMeta[step].hint}</span>
+            <p>{step}차시 {step === 1 ? `· ${lessonOneStep}/3단계` : "결과물"}</p>
+            <h1>{step === 1 && lessonOneStep === 1 ? "사실과 해석 구분하기" : step === 1 && lessonOneStep === 2 ? "해석을 확인할 정보 찾기" : stepMeta[step].title}</h1>
+            <span>{step === 1 && lessonOneStep === 1 ? "눈이나 귀로 확인한 사실과 그 이유에 대한 해석을 구분해 봅니다." : step === 1 && lessonOneStep === 2 ? "내 해석이 맞는지 확인하려면 무엇을 더 알아야 할지 생각해 봅니다." : stepMeta[step].hint}</span>
           </div>
 
-          {step === 1 && <SentencePreview data={current.data} />}
+          {step === 1 && <LessonOneProgress current={lessonOneStep} onSelect={setLessonOneStep} />}
+          {step === 1 && lessonOneStep === 1 && <FactOrInterpretation data={current.data} onChange={updateField} />}
+          {step === 1 && lessonOneStep === 2 && <MoreInformation data={current.data} onChange={updateField} />}
+          {step === 1 && lessonOneStep === 3 && <SentencePreview data={current.data} />}
           {step === 2 && <PromptPreview data={current.data} fromStep1={submissions[1].data} />}
           {step === 3 && <PlanPreview data={current.data} fromStep2={submissions[2].data} />}
 
-          <div className="form-grid">
+          {(step !== 1 || lessonOneStep === 3) && <div className="form-grid">
             {fields[step].map((field, index) => (
               <label key={field.key} className={field.long ? "wide" : ""}>
                 <span><i>{index + 1}</i>{field.label}</span>
@@ -260,13 +265,16 @@ export default function Home() {
                 )}
               </label>
             ))}
-          </div>
+          </div>}
 
           <footer className="actionbar">
             <p role="status" aria-live="polite">{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
             <div>
+              {step === 1 && lessonOneStep > 1 && <button className="secondary" onClick={() => setLessonOneStep((lessonOneStep - 1) as LessonOneStep)}>이전</button>}
               <button className="secondary" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
-              <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
+              {step === 1 && lessonOneStep < 3
+                ? <button className="primary compact" onClick={() => { setLessonOneStep((lessonOneStep + 1) as LessonOneStep); setMessage(""); }}>다음 단계</button>
+                : <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>}
             </div>
           </footer>
         </section>
@@ -277,6 +285,59 @@ export default function Home() {
 
 function Brand() {
   return <div className="brand"><span>AI</span><div><strong>원데이 클래스</strong><small>수업 설계 워크북</small></div></div>;
+}
+
+const factQuestions = [
+  "학생이 토의 시간 동안 한 번도 말하지 않았다.",
+  "이 학생은 토의에 참여할 의지도 없고 생각도 없다.",
+  "학생이 활동 중 교과서의 앞뒤 쪽을 계속 넘겼다.",
+  "쓸데없는 짓을 하며 집중하지 않는다.",
+] as const;
+
+const lessonOneExtraLabels: Record<string, string> = {
+  factChoice1: "문장 1 분류",
+  factChoice2: "문장 2 분류",
+  factChoice3: "문장 3 분류",
+  factChoice4: "문장 4 분류",
+  infoToKnow: "추가로 알고 싶은 학생의 행동이나 말",
+  infoToObserve: "다음 수업에서 확인해 볼 정보",
+};
+
+function LessonOneProgress({ current, onSelect }: { current: LessonOneStep; onSelect: (step: LessonOneStep) => void }) {
+  const labels = ["사실과 해석", "추가 정보", "문제 정의"];
+  return <nav className="inner-steps" aria-label="1차시 활동 단계">{labels.map((label, index) => {
+    const item = (index + 1) as LessonOneStep;
+    return <button key={label} className={current === item ? "active" : ""} aria-current={current === item ? "step" : undefined} onClick={() => onSelect(item)}><i>{item}</i><span>{label}</span></button>;
+  })}</nav>;
+}
+
+function FactOrInterpretation({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  return <div className="lesson-activity">
+    <div className="concept-pair">
+      <section><strong>사실</strong><p>눈이나 귀로 확인할 수 있는 행동이나 말</p></section>
+      <section><strong>해석</strong><p>행동의 이유에 대해 교사가 붙인 설명</p></section>
+    </div>
+    <div className="activity-heading"><span>활동</span><h2>각 문장은 사실일까요, 해석일까요?</h2></div>
+    <div className="classification-list">
+      {factQuestions.map((question, index) => {
+        const key = `factChoice${index + 1}`;
+        return <div className="classification-row" key={key}><p id={`${key}-label`}><i>{index + 1}</i>{question}</p><div role="radiogroup" aria-labelledby={`${key}-label`}>
+          {(["사실", "해석"] as const).map((choice) => <label key={choice} className={data[key] === choice ? "selected" : ""}><input type="radio" name={key} value={choice} checked={data[key] === choice} onChange={() => onChange(key, choice)} /><span>{choice}</span></label>)}
+        </div></div>;
+      })}
+    </div>
+    <p className="remember-note">학생의 행동은 사실이지만, 그 이유에 대한 판단은 해석일 수 있습니다.</p>
+  </div>;
+}
+
+function MoreInformation({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  return <div className="lesson-activity">
+    <div className="form-grid information-grid">
+      <label className="wide"><span><i>1</i>추가로 알고 싶은 학생의 행동이나 말</span><textarea value={data.infoToKnow || ""} onChange={(e) => onChange("infoToKnow", e.target.value)} placeholder="예: 어떤 질문에서 멈췄는지, 친구의 설명에는 어떻게 반응했는지" /></label>
+      <label className="wide"><span><i>2</i>다음 수업에서 확인해 볼 정보</span><textarea value={data.infoToObserve || ""} onChange={(e) => onChange("infoToObserve", e.target.value)} placeholder="예: 핵심 어휘를 설명한 뒤 학생이 과제를 시작하는지 관찰한다." /></label>
+    </div>
+    <p className="remember-note">추측을 더하는 대신, 판단을 확인할 수 있는 행동과 말을 찾아보세요.</p>
+  </div>;
 }
 
 function SentencePreview({ data }: { data: Record<string, string> }) {
@@ -314,7 +375,7 @@ function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => v
         ))}
         {!data.participants.length && <div className="empty">아직 입장한 참여자가 없습니다.</div>}
       </section>
-      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => key !== "scene"); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
+      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => key !== "scene"); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
     </main>
   );
 }
