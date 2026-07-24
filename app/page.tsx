@@ -7,7 +7,19 @@ type Submission = {
   step: Step;
   status: "draft" | "submitted";
   data: Record<string, string>;
+  dataJson?: string;
   updatedAt?: string;
+};
+type TeacherParticipant = {
+  id: number;
+  school: string;
+  name: string;
+  submissions: Partial<Record<Step, Submission>>;
+};
+type TeacherData = {
+  className: string;
+  participants: TeacherParticipant[];
+  summary: Record<Step, number>;
 };
 type Session = {
   participantId: number;
@@ -18,7 +30,7 @@ type Session = {
 };
 
 const stepMeta = {
-  1: { short: "문제 정의", title: "수업 문제 정의서", hint: "학생을 판단하는 말에서 수업에서 바꿀 수 있는 조건으로 이동합니다." },
+  1: { short: "문제 정의", title: "판단을 수업 조건으로 바꾸기", hint: "학생에 대한 판단을 다시 보고, 다음 수업에서 바꿀 조건을 정합니다." },
   2: { short: "방법 탐색", title: "수업 방법 탐색", hint: "AI에 전달할 요청을 만들고 우리 수업에 맞는 방법을 고릅니다." },
   3: { short: "콘텐츠 제작", title: "수업 콘텐츠 제작", hint: "제작 조건을 정리하고 완성한 결과물 링크를 남깁니다." },
   4: { short: "검토·수정", title: "동료 검토와 최종 제출", hint: "받은 의견을 바탕으로 실제 수업에서 쓸 수 있게 다듬습니다." },
@@ -26,11 +38,10 @@ const stepMeta = {
 
 const fields: Record<Step, { key: string; label: string; placeholder: string; long?: boolean }[]> = {
   1: [
-    { key: "scene", label: "배움이 멈춘 수업 장면", placeholder: "예: 활동지를 받은 뒤 5분 동안 아무것도 쓰지 않았다.", long: true },
-    { key: "firstJudgment", label: "처음 내린 판단", placeholder: "예: 학습 의욕이 낮다고 생각했다." },
-    { key: "additionalInfo", label: "판단을 바꿀 수 있는 추가 정보", placeholder: "학생의 행동, 말, 질문, 조건이 달라졌을 때의 변화를 적어 주세요.", long: true },
-    { key: "blockPoint", label: "배움이 막힌 지점", placeholder: "예: 핵심 어휘와 답을 쓰는 방법을 이해하지 못했다." },
-    { key: "change", label: "수업에서 해 볼 일", placeholder: "예: 핵심 어휘를 쉬운 말과 사례로 설명한다." },
+    { key: "firstJudgment", label: "처음 한 판단", placeholder: "예: 학습 의욕이 낮다고 생각했다." },
+    { key: "additionalInfo", label: "새롭게 확인한 정보", placeholder: "학생의 행동, 말, 질문, 조건이 달라졌을 때의 변화를 적어 주세요.", long: true },
+    { key: "blockPoint", label: "배움을 막았을 가능성이 있는 요인", placeholder: "예: 핵심 어휘와 답을 쓰는 방법을 이해하지 못했다." },
+    { key: "change", label: "바꿔 볼 수업 조건", placeholder: "예: 핵심 어휘를 쉬운 말과 사례로 설명한다." },
   ],
   2: [
     { key: "gradeSubject", label: "학년과 교과", placeholder: "예: 초등학교 5학년 사회" },
@@ -66,7 +77,16 @@ const emptySubmissions = (): Record<Step, Submission> => ({
 
 export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session | null>(() => {
+    if (typeof window === "undefined") return null;
+    const raw = window.localStorage.getItem("oneday-session");
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as Session;
+    } catch {
+      return null;
+    }
+  });
   const [classCode, setClassCode] = useState("AI-ONEDAY");
   const [school, setSchool] = useState("");
   const [name, setName] = useState("");
@@ -75,7 +95,7 @@ export default function Home() {
   const [submissions, setSubmissions] = useState(emptySubmissions);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const [teacherData, setTeacherData] = useState<any>(null);
+  const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
 
   const current = submissions[step];
   const progress = useMemo(
@@ -84,14 +104,8 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const raw = window.localStorage.getItem("oneday-session");
-    if (!raw) return;
-    try {
-      const saved = JSON.parse(raw) as Session;
-      setSession(saved);
-      loadSubmissions(saved.participantId);
-    } catch {}
-  }, []);
+    if (session) void loadSubmissions(session.participantId);
+  }, [session]);
 
   async function loadSubmissions(participantId: number) {
     const res = await fetch(`/api/submissions?participantId=${participantId}`);
@@ -100,7 +114,7 @@ export default function Home() {
     setSubmissions((prev) => {
       const next = { ...prev };
       for (const item of body.submissions as Submission[]) {
-        next[item.step] = { ...item, data: JSON.parse((item as any).dataJson || "{}") };
+        next[item.step] = { ...item, data: JSON.parse(item.dataJson || "{}") };
       }
       return next;
     });
@@ -215,13 +229,12 @@ export default function Home() {
           <div className="progress-track"><i style={{ width: `${progress * 25}%` }} /></div>
           <nav aria-label="차시 선택">
             {([1, 2, 3, 4] as Step[]).map((item) => (
-              <button key={item} className={step === item ? "active" : ""} onClick={() => { setStep(item); setMessage(""); }}>
+              <button key={item} aria-current={step === item ? "step" : undefined} className={step === item ? "active" : ""} onClick={() => { setStep(item); setMessage(""); }}>
                 <span>{String(item).padStart(2, "0")}</span>
                 <div><strong>{stepMeta[item].short}</strong><small>{submissions[item].status === "submitted" ? "제출 완료" : "작성 중"}</small></div>
               </button>
             ))}
           </nav>
-          <blockquote>AI는 제안하고,<br />교사는 판단합니다.</blockquote>
           <button className="logout" onClick={() => { window.localStorage.removeItem("oneday-session"); setSession(null); }}>나가기</button>
         </aside>
 
@@ -250,7 +263,7 @@ export default function Home() {
           </div>
 
           <footer className="actionbar">
-            <p>{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
+            <p role="status" aria-live="polite">{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
             <div>
               <button className="secondary" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
               <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
@@ -279,8 +292,8 @@ function PlanPreview({ data, fromStep2 }: { data: Record<string, string>; fromSt
   return <div className="preview"><span>콘텐츠 개발 계획</span><p>나는 수업에서 학생이 <b>{fromStep2.desiredActivity || "______"}</b>하도록 <b>{data.contentType || fromStep2.selectedMethod || "______"}</b>을 만들겠다.</p></div>;
 }
 
-function TeacherDashboard({ data, onBack }: { data: any; onBack: () => void }) {
-  const [selected, setSelected] = useState<any>(null);
+function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => void }) {
+  const [selected, setSelected] = useState<TeacherParticipant | null>(null);
   return (
     <main className="teacher-shell">
       <header className="teacher-head">
@@ -292,7 +305,7 @@ function TeacherDashboard({ data, onBack }: { data: any; onBack: () => void }) {
       </section>
       <section className="roster">
         <div className="roster-head"><h1>제출 현황</h1><p>이름을 누르면 작성 내용을 확인할 수 있습니다.</p></div>
-        {data.participants.map((person: any) => (
+        {data.participants.map((person) => (
           <button className="person-row" key={person.id} onClick={() => setSelected(person)}>
             <strong>{person.school}<small>{person.name}</small></strong>
             {([1, 2, 3, 4] as Step[]).map((step) => <span key={step} className={person.submissions[step]?.status === "submitted" ? "done" : ""}>{step}차시</span>)}
@@ -301,7 +314,7 @@ function TeacherDashboard({ data, onBack }: { data: any; onBack: () => void }) {
         ))}
         {!data.participants.length && <div className="empty">아직 입장한 참여자가 없습니다.</div>}
       </section>
-      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" onClick={(e) => e.stopPropagation()}><button className="modal-close" onClick={() => setSelected(null)}>닫기</button><h2>{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? Object.entries(parsed).map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
+      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => key !== "scene"); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
     </main>
   );
 }
