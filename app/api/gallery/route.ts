@@ -36,7 +36,7 @@ export async function GET() {
       .from("submissions")
       .select("participant_id,step,data_json,updated_at")
       .in("participant_id", ids)
-      .in("step", [1, 2, 3])
+      .in("step", [2, 3])
       .eq("status", "submitted");
     if (submissionError) throw submissionError;
 
@@ -45,14 +45,12 @@ export async function GET() {
       const byStep = new Map(rows.filter((row) => row.participant_id === person.id).map((row) => [row.step, row]));
       const third = byStep.get(3);
       if (!third) return [];
-      const first = byStep.get(1)?.data_json ?? {};
       const second = byStep.get(2)?.data_json ?? {};
       const thirdData = third.data_json ?? {};
       return [{
         id: person.id,
         school: person.school,
         name: person.name,
-        problem: first.change || first.firstJudgment || "",
         method: second.selectedMethod || second.aiResult || "",
         contentTitle: thirdData.contentTitle || thirdData.gameTitle || "",
         resultUrl: /^https?:\/\/\S+$/i.test(thirdData.resultUrl || "") ? thirdData.resultUrl : "",

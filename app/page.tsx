@@ -34,7 +34,7 @@ const stepMeta = {
   1: { short: "문제 정의", title: "사실에서 수업 문제까지", hint: "분류하고, 확인하고, 한 문장으로 정리합니다." },
   2: { short: "수업 설계", title: "수업을 어떻게 설계할 것인가?", hint: "Gem을 만든 뒤 직접 실습하고 결과를 남깁니다." },
   3: { short: "콘텐츠 제작", title: "수업 웹게임 / 콘텐츠 개발 및 탑재", hint: "추천 웹게임을 연구하고, 직접 만든 수업 콘텐츠를 탑재해 테스트합니다." },
-  4: { short: "검토·수정", title: "동료 검토와 최종 수정", hint: "직접 사용한 장면을 근거로 가장 중요한 한 가지를 고칩니다." },
+  4: { short: "갤러리워크", title: "갤러리워크와 최종 제출", hint: "동료 작품을 둘러보고, 의견을 반영한 최종 결과물을 제출합니다." },
 } as const;
 
 const fields: Record<Step, { key: string; label: string; placeholder: string; long?: boolean }[]> = {
@@ -61,11 +61,8 @@ const fields: Record<Step, { key: string; label: string; placeholder: string; lo
     { key: "contentPlan", label: "수업에서 어떻게 활용할까요?", placeholder: "언제, 누구와, 어떻게 사용할지 짧게 적어 주세요.", long: true },
   ],
   4: [
-    { key: "strength", label: "동료가 말한 살릴 점", placeholder: "구체적으로 도움이 된 부분을 적어 주세요.", long: true },
-    { key: "improvement", label: "동료가 말한 바꿀 점", placeholder: "사용 중 확인한 장면과 바꾸면 좋을 부분을 적어 주세요.", long: true },
-    { key: "revision", label: "반영한 의견과 수정 내용", placeholder: "무엇을 왜 수정했는지 적어 주세요.", long: true },
-    { key: "finalUrl", label: "최종 결과물 링크", placeholder: "최종 파일 또는 콘텐츠의 공유 URL을 붙여 넣어 주세요." },
-    { key: "finalNote", label: "최종 수업 적용 문장", placeholder: "나는 수업의 ___에서 학생이 ___하도록 ___을 활용하겠다.", long: true },
+    { key: "revision", label: "반영한 의견과 수정 내용", placeholder: "어떤 의견을 반영해 무엇을 수정했는지 적어 주세요.", long: true },
+    { key: "finalUrl", label: "최종 결과물 업로드", placeholder: "업로드한 최종 결과물의 주소" },
   ],
 };
 
@@ -80,7 +77,7 @@ const requiredKeys: Record<Step, string[]> = {
   1: ["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"],
   2: ["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"],
   3: ["gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan"],
-  4: ["strength", "improvement", "revision", "finalUrl", "finalNote"],
+  4: ["revision", "finalUrl"],
 };
 
 export default function Home() {
@@ -328,6 +325,8 @@ const lessonOneExtraLabels: Record<string, string> = {
   feedbackMechanism: "즉시 받는 피드백",
   changePlan: "수업 적용 변경 계획",
   playedAt: "게임 체험 완료",
+  finalFileName: "최종 결과물 파일",
+  finalFileSize: "파일 크기",
 };
 
 function LessonOneActivity({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
@@ -758,7 +757,6 @@ type GalleryItem = {
   id: number;
   school: string;
   name: string;
-  problem: string;
   method: string;
   contentTitle: string;
   resultUrl: string;
@@ -769,6 +767,8 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -783,43 +783,76 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
     return () => { active = false; };
   }, []);
 
-  const applyFeedback = (item: GalleryItem) => {
-    onChange("strength", `${item.name} 선생님의 수업에서 살리고 싶은 점: ${item.method || item.contentTitle}`);
-    onChange("improvement", `${item.name} 선생님의 결과물을 보고 더 궁금한 점 또는 제안: `);
+  const uploadFinalResult = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const response = await fetch("/api/final-upload", { method: "POST", body: formData });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "업로드하지 못했습니다.");
+      onChange("finalUrl", body.url);
+      onChange("finalFileName", body.fileName);
+      onChange("finalFileSize", body.fileSize);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "업로드하지 못했습니다.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
   };
 
   return <div className="gallery-work">
-    <section className="gallery-intro">
-      <b>갤러리 워크</b>
-      <h2>동료의 수업 설계와 콘텐츠를 둘러보세요.</h2>
-      <p>3차시를 제출한 동료의 결과물이 자동으로 모입니다. 한 작품을 보고, 살리고 싶은 점과 더 궁금한 점을 내 기록에 남겨 보세요.</p>
-    </section>
-
-    <section aria-live="polite">
+    <section className="gallery-showcase" aria-live="polite">
+      <header className="gallery-intro">
+        <div><b>갤러리워크</b><h2>동료 작품 둘러보기</h2></div>
+        <p>작품을 열어 보고, 내 결과물에 반영할 의견을 정해 보세요.</p>
+      </header>
       {loading && <div className="gallery-empty">동료 결과물을 불러오는 중입니다.</div>}
       {loadError && <div className="gallery-empty">{loadError}</div>}
-      {!loading && !loadError && !items.length && <div className="gallery-empty">아직 3차시를 제출한 동료가 없습니다. 첫 번째 작품이 올라오면 이곳에 나타납니다.</div>}
-      {!loading && !loadError && items.length > 0 && <div className="gallery-grid">
+      {!loading && !loadError && !items.length && <div className="gallery-empty">아직 3차시를 제출한 동료가 없습니다. 첫 작품이 올라오면 이곳에 나타납니다.</div>}
+      {!loading && !loadError && items.length > 0 && <div className="gallery-grid" aria-label={`동료 작품 ${items.length}개`}>
         {items.map((item) => <article key={item.id} className="gallery-card">
           <header className="gallery-meta"><span>{item.school}</span><strong>{item.name} 선생님</strong></header>
-          <div className="gallery-piece"><small>수업 문제</small><p>{item.problem || "수업 문제를 정리 중입니다."}</p></div>
-          <div className="gallery-piece"><small>수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
-          <div className="gallery-piece content"><small>3차시 콘텐츠</small><strong>{item.contentTitle || "콘텐츠 제목을 정리 중입니다."}</strong></div>
+          <div className="gallery-piece content"><small>3차시 콘텐츠</small><strong>{item.contentTitle || "제목을 정리 중입니다."}</strong></div>
+          <div className="gallery-piece"><small>선택한 수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
           <div className="gallery-actions">
-            {item.resultUrl && <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer">결과물 보기</a>}
-            <button className="secondary small-button" onClick={() => applyFeedback(item)}>의견 기록에 가져오기</button>
+            {item.resultUrl ? (
+              <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer" aria-label={`${item.name} 선생님의 결과물 새 창에서 보기`}>결과물 보기 ↗</a>
+            ) : (
+              <span>공유된 결과물 링크가 없습니다.</span>
+            )}
           </div>
         </article>)}
       </div>}
     </section>
 
-    <section className="reflection-panel gallery-reflection">
-      <header className="panel-title"><b>기록</b><div><h2>동료 피드백과 최종 적용</h2><p>한 작품을 보고 내 수업에 반영할 점을 정리하세요.</p></div></header>
-      <div className="form-grid">
-        {fields[4].map((field, index) => <label key={field.key} className={field.long ? "wide" : ""}>
-          <span><i>{index + 1}</i>{field.label}</span>
-          {field.long ? <textarea value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} /> : <input value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} />}
-        </label>)}
+    <section className="reflection-panel gallery-final">
+      <header className="panel-title"><b>최종</b><div><h2>의견을 반영해 최종본을 제출하세요.</h2><p>아래 두 항목만 작성하면 4차시가 끝납니다.</p></div></header>
+      <div className="gallery-final-grid">
+        <label className="revision-card">
+          <span><i>1</i>반영한 의견과 수정 내용</span>
+          <textarea value={data.revision || ""} onChange={(event) => onChange("revision", event.target.value)} placeholder="어떤 의견을 반영해 무엇을 수정했는지 적어 주세요." />
+        </label>
+        <div className="final-upload-card">
+          <div className="field-title"><i>2</i><div><strong>최종 결과물 업로드</strong><small>HTML, ZIP, 이미지, PDF, PPTX · 최대 4MB</small></div></div>
+          <label className={`final-upload-button ${uploading ? "disabled" : ""}`}>
+            {uploading ? "업로드 중…" : data.finalUrl ? "파일 교체하기" : "파일 선택하기"}
+            <input type="file" accept=".html,.htm,.zip,.png,.jpg,.jpeg,.gif,.webp,.pdf,.pptx" onChange={uploadFinalResult} disabled={uploading} />
+          </label>
+          <div className="upload-status" role="status">
+            {data.finalUrl ? (
+              <><span>{data.finalFileName || "최종 결과물"} <small>{data.finalFileSize}</small></span><a href={data.finalUrl} target="_blank" rel="noreferrer">열어보기 ↗</a></>
+            ) : (
+              <span>아직 업로드한 최종 결과물이 없습니다.</span>
+            )}
+          </div>
+          {uploadError && <p className="upload-error" role="alert">{uploadError}</p>}
+        </div>
       </div>
     </section>
   </div>;
@@ -847,7 +880,7 @@ function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => v
         ))}
         {!data.participants.length && <div className="empty">아직 입장한 참여자가 없습니다.</div>}
       </section>
-      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => key !== "scene"); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
+      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => !["scene", "strength", "improvement", "finalNote"].includes(key)); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
     </main>
   );
 }

@@ -5,7 +5,7 @@ const allowedKeys: Record<number, Set<string>> = {
   1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"]),
   2: new Set(["gemPracticeRequest", "generatedPrompt", "aiResult", "selectedMethod"]),
   3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "contentTool", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize"]),
-  4: new Set(["strength", "improvement", "revision", "finalUrl", "finalNote"]),
+  4: new Set(["revision", "finalUrl", "finalFileName", "finalFileSize"]),
 };
 
 export async function GET() {
@@ -65,6 +65,16 @@ export async function POST(request: Request) {
       return Response.json({ error: "저장할 내용의 형식이나 길이를 확인해 주세요." }, { status: 400 });
     }
     const sanitizedData = Object.fromEntries(entries.filter(([key]) => permitted.has(key)));
+    if (
+      step === 4 &&
+      status === "submitted" &&
+      (
+        !sanitizedData.revision?.trim() ||
+        !/^https:\/\/\S+$/i.test(sanitizedData.finalUrl || "")
+      )
+    ) {
+      return Response.json({ error: "수정 내용과 업로드한 최종 결과물을 확인해 주세요." }, { status: 400 });
+    }
 
     const updatedAt = new Date().toISOString();
     const { error } = await getSupabase()
