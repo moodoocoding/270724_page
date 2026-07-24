@@ -283,18 +283,7 @@ export default function Home() {
           {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
           {step === 3 && <GameLab data={current.data} onChange={updateField} />}
 
-          {step === 4 && <div className="form-grid">
-            {fields[step].map((field, index) => (
-              <label key={field.key} className={field.long ? "wide" : ""}>
-                <span><i>{index + 1}</i>{field.label}</span>
-                {field.long ? (
-                  <textarea value={current.data[field.key] || ""} onChange={(e) => updateField(field.key, e.target.value)} placeholder={field.placeholder} />
-                ) : (
-                  <input value={current.data[field.key] || ""} onChange={(e) => updateField(field.key, e.target.value)} placeholder={field.placeholder} />
-                )}
-              </label>
-            ))}
-          </div>}
+          {step === 4 && <GalleryWalk data={current.data} onChange={updateField} />}
 
           <footer className="actionbar">
             <p role="status" aria-live="polite">{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
@@ -674,6 +663,77 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
       </div>}
     </div>
   );
+}
+
+type GalleryItem = {
+  id: number;
+  school: string;
+  name: string;
+  problem: string;
+  method: string;
+  contentTitle: string;
+  resultUrl: string;
+  updatedAt: string;
+};
+
+function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/gallery", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("갤러리를 불러오지 못했습니다.");
+        return response.json() as Promise<{ items: GalleryItem[] }>;
+      })
+      .then((body) => { if (active) setItems(body.items); })
+      .catch(() => { if (active) setLoadError("동료 결과물을 불러오지 못했습니다. 잠시 후 다시 열어 보세요."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const applyFeedback = (item: GalleryItem) => {
+    onChange("strength", `${item.name} 선생님의 수업에서 살리고 싶은 점: ${item.method || item.contentTitle}`);
+    onChange("improvement", `${item.name} 선생님의 결과물을 보고 더 궁금한 점 또는 제안: `);
+  };
+
+  return <div className="gallery-work">
+    <section className="gallery-intro">
+      <b>갤러리 워크</b>
+      <h2>동료의 수업 설계와 콘텐츠를 둘러보세요.</h2>
+      <p>3차시를 제출한 동료의 결과물이 자동으로 모입니다. 한 작품을 보고, 살리고 싶은 점과 더 궁금한 점을 내 기록에 남겨 보세요.</p>
+    </section>
+
+    <section aria-live="polite">
+      {loading && <div className="gallery-empty">동료 결과물을 불러오는 중입니다.</div>}
+      {loadError && <div className="gallery-empty">{loadError}</div>}
+      {!loading && !loadError && !items.length && <div className="gallery-empty">아직 3차시를 제출한 동료가 없습니다. 첫 번째 작품이 올라오면 이곳에 나타납니다.</div>}
+      {!loading && !loadError && items.length > 0 && <div className="gallery-grid">
+        {items.map((item) => <article key={item.id} className="gallery-card">
+          <header className="gallery-meta"><span>{item.school}</span><strong>{item.name} 선생님</strong></header>
+          <div className="gallery-piece"><small>수업 문제</small><p>{item.problem || "수업 문제를 정리 중입니다."}</p></div>
+          <div className="gallery-piece"><small>수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
+          <div className="gallery-piece content"><small>3차시 콘텐츠</small><strong>{item.contentTitle || "콘텐츠 제목을 정리 중입니다."}</strong></div>
+          <div className="gallery-actions">
+            {item.resultUrl && <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer">결과물 보기</a>}
+            <button className="secondary small-button" onClick={() => applyFeedback(item)}>의견 기록에 가져오기</button>
+          </div>
+        </article>)}
+      </div>}
+    </section>
+
+    <section className="reflection-panel gallery-reflection">
+      <header className="panel-title"><b>기록</b><div><h2>동료 피드백과 최종 적용</h2><p>한 작품을 보고 내 수업에 반영할 점을 정리하세요.</p></div></header>
+      <div className="form-grid">
+        {fields[4].map((field, index) => <label key={field.key} className={field.long ? "wide" : ""}>
+          <span><i>{index + 1}</i>{field.label}</span>
+          {field.long ? <textarea value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} /> : <input value={data[field.key] || ""} onChange={(event) => onChange(field.key, event.target.value)} placeholder={field.placeholder} />}
+        </label>)}
+      </div>
+    </section>
+  </div>;
 }
 
 function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => void }) {
