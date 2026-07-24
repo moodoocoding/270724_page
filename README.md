@@ -210,6 +210,28 @@ SUPABASE_SERVICE_ROLE_KEY
 
 `SUPABASE_SERVICE_ROLE_KEY`는 브라우저 코드나 공개 저장소에 넣지 않습니다.
 
+## 실행
+
+```bash
+npm install
+npm run dev
+```
+
+브라우저에서 `http://localhost:3000`으로 접속합니다.
+
+## Vercel 배포
+
+이 프로젝트는 표준 Next.js App Router 구조이며 GitHub 저장소를 Vercel에 연결해 배포할 수 있습니다.
+
+Vercel 프로젝트의 Environment Variables에 다음 값을 등록합니다.
+
+```text
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+두 값은 Production, Preview, Development 환경에 필요한 범위만 선택해 등록합니다. `SUPABASE_SERVICE_ROLE_KEY`는 Sensitive 값으로 취급합니다.
+
 ## 자료 구조
 
 ```text
