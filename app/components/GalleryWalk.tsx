@@ -291,7 +291,13 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                     3차시 파일 다시 탑재하기
                   </button>
                 ) : (
-                  <span>3차시 제출 완료 · 체험 파일 준비 중</span>
+                  <button
+                    type="button"
+                    className="secondary small-button gallery-unavailable-button"
+                    disabled
+                  >
+                    작품 체험 준비 중
+                  </button>
                 )}
                 {!item.isExample && (
                   <button
