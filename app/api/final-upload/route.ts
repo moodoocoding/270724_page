@@ -132,14 +132,6 @@ async function ensureStorageBucket(supabase: ReturnType<typeof getSupabase>) {
   }
 }
 
-function safeFileName(name: string) {
-  return name
-    .normalize("NFKC")
-    .replace(/[^\p{L}\p{N}._-]+/gu, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(-120) || "result-file";
-}
-
 function storagePathFromUrl(url: unknown) {
   if (typeof url !== "string" || !url) return "";
   try {
@@ -186,8 +178,7 @@ export async function POST(request: Request) {
     const supabase = getSupabase();
     await ensureStorageBucket(supabase);
 
-    const fileName = safeFileName(file.name);
-    const path = `${participantId}/${Date.now()}-${randomUUID()}-${fileName}`;
+    const path = `${participantId}/${Date.now()}-${randomUUID()}.${extension}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
       contentType: file.type || "application/octet-stream",
