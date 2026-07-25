@@ -9,6 +9,9 @@ const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const allowedExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
 const PUBLIC_PATH_MARKER = `/storage/v1/object/public/${BUCKET}/`;
 
+// Global caching flag to prevent redundant Supabase Storage bucket checks on every upload
+let isBucketVerified = false;
+
 type ErrorDetails = {
   message: string;
   status?: number;
@@ -104,6 +107,8 @@ function uploadErrorResponse(error: unknown, requestId: string, operation: "uplo
 }
 
 async function ensureStorageBucket(supabase: ReturnType<typeof getSupabase>) {
+  if (isBucketVerified) return;
+
   const { data: bucket, error: getError } = await supabase.storage.getBucket(BUCKET);
   if (getError && !isMissingBucket(getError)) {
     throw new UploadStageError("bucket-read", getError);
@@ -117,19 +122,20 @@ async function ensureStorageBucket(supabase: ReturnType<typeof getSupabase>) {
     if (createError && !isConflict(createError)) {
       throw new UploadStageError("bucket-create", createError);
     }
-    return;
-  }
-
-  const fileSizeLimit = bucket.file_size_limit ?? 0;
-  if (!bucket.public || fileSizeLimit < MAX_FILE_SIZE) {
-    const { error: updateError } = await supabase.storage.updateBucket(BUCKET, {
-      public: true,
-      fileSizeLimit: Math.max(fileSizeLimit, MAX_FILE_SIZE),
-    });
-    if (updateError) {
-      throw new UploadStageError("bucket-update", updateError);
+  } else {
+    const fileSizeLimit = bucket.file_size_limit ?? 0;
+    if (!bucket.public || fileSizeLimit < MAX_FILE_SIZE) {
+      const { error: updateError } = await supabase.storage.updateBucket(BUCKET, {
+        public: true,
+        fileSizeLimit: Math.max(fileSizeLimit, MAX_FILE_SIZE),
+      });
+      if (updateError) {
+        throw new UploadStageError("bucket-update", updateError);
+      }
     }
   }
+
+  isBucketVerified = true;
 }
 
 function storagePathFromUrl(url: unknown) {
@@ -188,21 +194,27 @@ export async function POST(request: Request) {
     if (uploadError) throw new UploadStageError("object-upload", uploadError);
 
     const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-    if (purpose === "lesson3") {
-      const { data: existing, error: existingError } = await supabase
-        .from("submissions")
-        .select("data_json")
-        .eq("participant_id", participantId)
-        .eq("step", 3)
-        .maybeSingle();
-      if (existingError) {
-        await supabase.storage.from(BUCKET).remove([path]);
-        throw new UploadStageError("lesson3-read", existingError);
-      }
+    const targetStep = purpose === "lesson3" ? 3 : 4;
 
-      const existingData = (existing?.data_json ?? {}) as Record<string, string>;
-      const previousPath = existingData.uploadedFilePath || storagePathFromUrl(existingData.resultUrl);
-      const updatedData: Record<string, string> = {
+    const { data: existing, error: existingError } = await supabase
+      .from("submissions")
+      .select("data_json")
+      .eq("participant_id", participantId)
+      .eq("step", targetStep)
+      .maybeSingle();
+
+    if (existingError) {
+      await supabase.storage.from(BUCKET).remove([path]);
+      throw new UploadStageError(`lesson${targetStep}-read`, existingError);
+    }
+
+    const existingData = (existing?.data_json ?? {}) as Record<string, string>;
+    let previousPath = "";
+    let updatedData: Record<string, string> = {};
+
+    if (targetStep === 3) {
+      previousPath = existingData.uploadedFilePath || storagePathFromUrl(existingData.resultUrl);
+      updatedData = {
         ...existingData,
         uploadedFileName: file.name,
         uploadedFileSize: `${(file.size / 1024).toFixed(1)} KB`,
@@ -210,23 +222,36 @@ export async function POST(request: Request) {
         resultUrl: publicData.publicUrl,
       };
       delete updatedData.uploadCanceledAt;
-      const updatedAt = new Date().toISOString();
-      const { error: saveError } = await supabase
-        .from("submissions")
-        .upsert({
-          participant_id: participantId,
-          step: 3,
-          status: "draft",
-          data_json: updatedData,
-          updated_at: updatedAt,
-        }, { onConflict: "participant_id,step" });
-      if (saveError) {
-        await supabase.storage.from(BUCKET).remove([path]);
-        throw new UploadStageError("lesson3-save", saveError);
-      }
-      if (previousPath && previousPath !== path && isOwnedPath(previousPath, participantId)) {
-        await supabase.storage.from(BUCKET).remove([previousPath]);
-      }
+    } else {
+      // Step 4 final upload - cleanup previous step 4 upload to prevent orphans
+      previousPath = existingData.finalFilePath || storagePathFromUrl(existingData.finalUrl);
+      updatedData = {
+        ...existingData,
+        finalFileName: file.name,
+        finalFileSize: `${(file.size / 1024).toFixed(1)} KB`,
+        finalFilePath: path,
+        finalUrl: publicData.publicUrl,
+      };
+    }
+
+    const updatedAt = new Date().toISOString();
+    const { error: saveError } = await supabase
+      .from("submissions")
+      .upsert({
+        participant_id: participantId,
+        step: targetStep,
+        status: "draft",
+        data_json: updatedData,
+        updated_at: updatedAt,
+      }, { onConflict: "participant_id,step" });
+
+    if (saveError) {
+      await supabase.storage.from(BUCKET).remove([path]);
+      throw new UploadStageError(`lesson${targetStep}-save`, saveError);
+    }
+
+    if (previousPath && previousPath !== path && isOwnedPath(previousPath, participantId)) {
+      await supabase.storage.from(BUCKET).remove([previousPath]);
     }
 
     console.log(JSON.stringify({

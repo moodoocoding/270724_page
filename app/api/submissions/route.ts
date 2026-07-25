@@ -2,10 +2,10 @@ import { getSupabase } from "../../../lib/supabase-server";
 import { getParticipantId } from "../../../lib/participant-session";
 
 const allowedKeys: Record<number, Set<string>> = {
-  1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"]),
-  2: new Set(["gemCreatedAt", "grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethodIndex", "selectedMethod", "criteriaLearning", "criteriaFeasible", "criteriaFits", "selectionReason"]),
-  3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize", "uploadedFilePath", "uploadCanceledAt"]),
-  4: new Set(["revision", "finalUrl", "finalFileName", "finalFileSize"]),
+  1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change", "teacherFeedback"]),
+  2: new Set(["gemCreatedAt", "grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethodIndex", "selectedMethod", "criteriaLearning", "criteriaFeasible", "criteriaFits", "selectionReason", "teacherFeedback"]),
+  3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize", "uploadedFilePath", "uploadCanceledAt", "teacherFeedback"]),
+  4: new Set(["revision", "finalUrl", "finalFileName", "finalFileSize", "finalFilePath", "teacherFeedback"]),
 };
 
 export async function GET() {

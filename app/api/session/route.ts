@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         participantId: participant.id,
         participantName: participant.name,
         school: participant.school,
-        className: workshop.name,
+        className: selectedWorkshop.className,
         classCode: workshop.code,
       },
     });

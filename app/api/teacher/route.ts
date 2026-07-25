@@ -1,4 +1,5 @@
 import { getSupabase } from "../../../lib/supabase-server";
+import { findWorkshopSession } from "../../../lib/workshops";
 
 export async function GET(request: Request) {
   try {
@@ -60,7 +61,10 @@ export async function GET(request: Request) {
       };
     });
 
-    return Response.json({ className: workshop.name, participants, summary });
+    const localSession = findWorkshopSession(classCode);
+    const displayClassName = localSession ? localSession.className : workshop.name;
+
+    return Response.json({ className: displayClassName, participants, summary });
   } catch (error) {
     console.error(error);
     return Response.json({ error: "제출 현황을 불러오지 못했습니다." }, { status: 500 });

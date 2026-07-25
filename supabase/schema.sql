@@ -25,13 +25,26 @@ create table if not exists public.submissions (
   unique (participant_id, step)
 );
 
+create table if not exists public.comments (
+  id uuid primary key default gen_random_uuid(),
+  target_participant_id bigint not null references public.participants(id) on delete cascade,
+  author_participant_id bigint not null references public.participants(id) on delete cascade,
+  body text not null check (char_length(body) <= 300),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists comments_target_participant_idx on public.comments(target_participant_id);
+
 alter table public.classes enable row level security;
 alter table public.participants enable row level security;
 alter table public.submissions enable row level security;
+alter table public.comments enable row level security;
 
 revoke all on public.classes from anon, authenticated;
 revoke all on public.participants from anon, authenticated;
 revoke all on public.submissions from anon, authenticated;
+revoke all on public.comments from anon, authenticated;
 
 insert into public.classes (name, code, admin_code)
 values ('AI 원데이 클래스', 'AI-ONEDAY', '260725')
