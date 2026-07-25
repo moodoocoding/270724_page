@@ -610,6 +610,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
   const [uploadPreview, setUploadPreview] = useState<{ kind: "html" | "image" | "file"; content: string } | null>(null);
   const [uploadError, setUploadError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [cancelingUpload, setCancelingUpload] = useState(false);
 
   const chooseGame = (id: string, title: string) => {
     setSelected(id);
@@ -652,18 +653,49 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("purpose", "lesson3");
     try {
       const response = await fetch("/api/final-upload", { method: "POST", body: formData });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "파일을 탑재하지 못했습니다.");
       onChange("uploadedFileName", body.fileName);
       onChange("uploadedFileSize", body.fileSize);
+      onChange("uploadedFilePath", body.storagePath);
       onChange("resultUrl", body.url);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "파일을 탑재하지 못했습니다.");
+      setUploadPreview(null);
     } finally {
       setUploading(false);
       event.target.value = "";
+    }
+  };
+
+  const cancelUploadedFile = async () => {
+    if (!data.resultUrl && !data.uploadedFilePath) return;
+    setCancelingUpload(true);
+    setUploadError("");
+    try {
+      const response = await fetch("/api/final-upload", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          storagePath: data.uploadedFilePath,
+          url: data.resultUrl,
+          purpose: "lesson3",
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "탑재를 취소하지 못했습니다.");
+      onChange("uploadedFileName", "");
+      onChange("uploadedFileSize", "");
+      onChange("uploadedFilePath", "");
+      onChange("resultUrl", "");
+      setUploadPreview(null);
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : "탑재를 취소하지 못했습니다.");
+    } finally {
+      setCancelingUpload(false);
     }
   };
 
@@ -772,27 +804,22 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
           </header>
           <div className="file-upload-box">
             <label className={`file-upload-button ${uploading ? "disabled" : ""}`}>
-              {uploading ? "파일 탑재 중…" : "📁 개발한 파일 직접 탑재하기"}
+              {uploading ? "파일 탑재 중…" : data.uploadedFileName ? "📁 다른 파일로 교체하기" : "📁 개발한 파일 직접 탑재하기"}
               <input type="file" accept=".html,.htm,.zip,image/*" onChange={handleFileUpload} disabled={uploading} />
             </label>
             <p>.html, .zip, PNG, JPG 등 · 최대 4MB</p>
             <small>HTML과 이미지는 우측 라이브 플레이어에서 바로 확인할 수 있습니다.</small>
+            {uploading && <div className="upload-progress" role="status"><i /><span>Supabase에 파일을 탑재하고 있습니다. 잠시만 기다려 주세요.</span></div>}
             {uploadError && <div className="upload-error" role="alert">{uploadError}</div>}
             {data.uploadedFileName && (
-              <div className="uploaded-file">
-                <span>📄 {data.uploadedFileName} <small>{data.uploadedFileSize}</small></span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange("uploadedFileName", "");
-                    onChange("uploadedFileSize", "");
-                    onChange("resultUrl", "");
-                    setUploadPreview(null);
-                    setUploadError("");
-                  }}
-                >
-                  삭제
-                </button>
+              <div className="uploaded-file" role="status">
+                <div><strong>✓ 탑재 완료</strong><span>📄 {data.uploadedFileName} <small>{data.uploadedFileSize}</small></span></div>
+                <div className="uploaded-file-actions">
+                  {data.resultUrl && <a href={data.resultUrl} target="_blank" rel="noreferrer">파일 열기 ↗</a>}
+                  <button type="button" onClick={cancelUploadedFile} disabled={cancelingUpload}>
+                    {cancelingUpload ? "취소 중…" : "탑재 취소"}
+                  </button>
+                </div>
               </div>
             )}
           </div>

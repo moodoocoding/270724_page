@@ -281,10 +281,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); }
 .file-upload-box > p { margin: 10px 0 3px; color: var(--muted); font-size: 13px; }
 .file-upload-box > small { color: var(--muted); font-size: 12px; }
 .upload-error { margin-top: 10px; color: #b42318; font-size: 13px; font-weight: 700; }
-.uploaded-file { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 10px 12px; border: 1px solid #b8d8c5; border-radius: 6px; background: #fff; text-align: left; }
-.uploaded-file span { min-width: 0; overflow: hidden; color: var(--green); font-size: 13px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.upload-progress { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 14px; color: var(--green); font-size: 12px; font-weight: 700; }
+.upload-progress i { width: 14px; height: 14px; border: 2px solid #b8d8c5; border-top-color: var(--green); border-radius: 50%; animation: upload-spin .8s linear infinite; }
+@keyframes upload-spin { to { transform: rotate(360deg); } }
+.uploaded-file { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 12px; border: 1px solid #78ad91; border-radius: 6px; background: #ecfdf5; text-align: left; }
+.uploaded-file > div:first-child { min-width: 0; display: flex; flex-direction: column; }
+.uploaded-file strong { color: var(--green); font-size: 12px; }
+.uploaded-file span { min-width: 0; overflow: hidden; color: var(--ink); font-size: 13px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .uploaded-file span small { color: var(--muted); font-weight: 500; }
-.uploaded-file button { padding: 5px 8px; border: 1px solid #e5b6b1; border-radius: 4px; color: #b42318; background: #fff; font-size: 12px; }
+.uploaded-file-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
+.uploaded-file-actions a, .uploaded-file-actions button { padding: 5px 8px; border: 1px solid #9db8a7; border-radius: 4px; color: var(--green); background: #fff; font-size: 12px; text-decoration: none; }
+.uploaded-file-actions button { border-color: #e5b6b1; color: #b42318; }
 .image-preview { height: 520px; max-height: 68vh; display: grid; place-items: center; overflow: auto; border: 1px solid #203127; border-radius: 8px; background: #102019; }
 .image-preview img { width: auto; max-width: 100%; height: auto; max-height: 100%; object-fit: contain; }
 .player-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
