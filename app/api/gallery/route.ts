@@ -28,6 +28,26 @@ type CommentRow = {
   updated_at: string;
 };
 
+const PUBLIC_PATH_MARKER = "/storage/v1/object/public/workshop-final-results/";
+
+function storagePathFromUrl(url: unknown) {
+  if (typeof url !== "string" || !url) return "";
+  try {
+    const pathname = new URL(url).pathname;
+    const markerIndex = pathname.indexOf(PUBLIC_PATH_MARKER);
+    if (markerIndex < 0) return "";
+    return decodeURIComponent(pathname.slice(markerIndex + PUBLIC_PATH_MARKER.length));
+  } catch {
+    return "";
+  }
+}
+
+function previewUrl(path: string) {
+  return /\.html?$/i.test(path)
+    ? `/api/content-preview?path=${encodeURIComponent(path)}`
+    : "";
+}
+
 function parseComments(value: unknown): GalleryComment[] {
   try {
     const parsed = typeof value === "string" ? JSON.parse(value) : value;
@@ -128,6 +148,8 @@ export async function GET() {
       const recoveredResultUrl = !savedResultUrl && !thirdData.uploadCanceledAt
         ? await findStoredResultUrl(person.id)
         : "";
+      const resultUrl = savedResultUrl || recoveredResultUrl;
+      const storagePath = thirdData.uploadedFilePath || storagePathFromUrl(resultUrl);
 
       // Map comments for this participant
       const targetComments = useLegacyComments
@@ -157,7 +179,8 @@ export async function GET() {
         name: person.name,
         method: second.selectedMethod || second.aiResult || "",
         contentTitle: thirdData.contentTitle || thirdData.gameTitle || "",
-        resultUrl: savedResultUrl || recoveredResultUrl,
+        resultUrl,
+        previewUrl: previewUrl(storagePath),
         updatedAt: third.updated_at,
         isMine: person.id === participantId,
         comments: targetComments,

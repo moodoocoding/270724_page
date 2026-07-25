@@ -7,6 +7,18 @@ export const runtime = "nodejs";
 const BUCKET = "workshop-final-results";
 const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const allowedExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
+const contentTypes: Record<string, string> = {
+  gif: "image/gif",
+  htm: "text/html; charset=utf-8",
+  html: "text/html; charset=utf-8",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  pdf: "application/pdf",
+  png: "image/png",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  webp: "image/webp",
+  zip: "application/zip",
+};
 const PUBLIC_PATH_MARKER = `/storage/v1/object/public/${BUCKET}/`;
 
 // Global caching flag to prevent redundant Supabase Storage bucket checks on every upload
@@ -187,7 +199,7 @@ export async function POST(request: Request) {
     const path = `${participantId}/${Date.now()}-${randomUUID()}.${extension}`;
     const bytes = new Uint8Array(await file.arrayBuffer());
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, bytes, {
-      contentType: file.type || "application/octet-stream",
+      contentType: contentTypes[extension] || file.type || "application/octet-stream",
       cacheControl: "3600",
       upsert: false,
     });

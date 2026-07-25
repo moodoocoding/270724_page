@@ -32,6 +32,7 @@ export type GalleryItem = {
   method: string;
   contentTitle: string;
   resultUrl: string;
+  previewUrl?: string;
   updatedAt: string;
   isExample?: boolean;
   isMine?: boolean;
@@ -244,7 +245,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                 {item.resultUrl ? (
                   <a
                     className="primary small-button"
-                    href={item.resultUrl}
+                    href={item.previewUrl || item.resultUrl}
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`${item.name} 선생님의 작품 새 창에서 체험하기`}
