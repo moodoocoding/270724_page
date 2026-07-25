@@ -82,6 +82,20 @@ const emptySubmissions = (): Record<Step, Submission> => ({
   4: { step: 4, status: "draft", data: {} },
 });
 
+const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
+const allowedUploadExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
+
+function uploadFileError(file: File) {
+  if (!file.size || file.size > MAX_UPLOAD_SIZE) {
+    return "파일은 4MB 이하만 업로드할 수 있습니다.";
+  }
+  const extension = file.name.split(".").pop()?.toLowerCase() || "";
+  if (!allowedUploadExtensions.has(extension)) {
+    return "HTML, ZIP, 이미지, PDF, PPTX 파일만 업로드할 수 있습니다.";
+  }
+  return "";
+}
+
 export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
   const [session, setSession] = useState<Session | null>(() => {
@@ -634,8 +648,9 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
     if (!file) return;
     setUploadError("");
 
-    if (file.size > 4 * 1024 * 1024) {
-      setUploadError("4MB 이하 파일을 선택해 주세요.");
+    const validationError = uploadFileError(file);
+    if (validationError) {
+      setUploadError(validationError);
       event.target.value = "";
       return;
     }
@@ -662,7 +677,10 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
     try {
       const response = await fetch("/api/final-upload", { method: "POST", body: formData });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "파일을 탑재하지 못했습니다.");
+      if (!response.ok) {
+        const errorMessage = body.error || "파일을 탑재하지 못했습니다.";
+        throw new Error(body.errorId ? `${errorMessage} (오류 ID: ${body.errorId})` : errorMessage);
+      }
       onChange("uploadedFileName", body.fileName);
       onChange("uploadedFileSize", body.fileSize);
       onChange("uploadedFilePath", body.storagePath);
@@ -951,15 +969,25 @@ function GalleryWalk({
   const uploadFinalResult = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setUploading(true);
     setUploadError("");
 
+    const validationError = uploadFileError(file);
+    if (validationError) {
+      setUploadError(validationError);
+      event.target.value = "";
+      return;
+    }
+
+    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
     try {
       const response = await fetch("/api/final-upload", { method: "POST", body: formData });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "업로드하지 못했습니다.");
+      if (!response.ok) {
+        const errorMessage = body.error || "업로드하지 못했습니다.";
+        throw new Error(body.errorId ? `${errorMessage} (오류 ID: ${body.errorId})` : errorMessage);
+      }
       onChange("finalUrl", body.url);
       onChange("finalFileName", body.fileName);
       onChange("finalFileSize", body.fileSize);

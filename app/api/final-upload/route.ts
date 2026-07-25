@@ -9,6 +9,129 @@ const MAX_FILE_SIZE = 4 * 1024 * 1024;
 const allowedExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
 const PUBLIC_PATH_MARKER = `/storage/v1/object/public/${BUCKET}/`;
 
+type ErrorDetails = {
+  message: string;
+  status?: number;
+  statusCode?: string;
+};
+
+class UploadStageError extends Error {
+  stage: string;
+  originalError: unknown;
+
+  constructor(stage: string, error: unknown) {
+    super(errorDetails(error).message);
+    this.name = "UploadStageError";
+    this.stage = stage;
+    this.originalError = error;
+  }
+}
+
+function errorDetails(error: unknown): ErrorDetails {
+  if (!error || typeof error !== "object") {
+    return { message: String(error || "Unknown upload error") };
+  }
+
+  const value = error as {
+    message?: unknown;
+    status?: unknown;
+    statusCode?: unknown;
+  };
+  const status = typeof value.status === "number"
+    ? value.status
+    : Number.isFinite(Number(value.status))
+      ? Number(value.status)
+      : undefined;
+
+  return {
+    message: typeof value.message === "string" ? value.message : "Unknown upload error",
+    status,
+    statusCode: typeof value.statusCode === "string" ? value.statusCode : undefined,
+  };
+}
+
+function isMissingBucket(error: unknown) {
+  const details = errorDetails(error);
+  return details.status === 404 || /bucket.*not found|not found.*bucket/i.test(details.message);
+}
+
+function isConflict(error: unknown) {
+  const details = errorDetails(error);
+  return details.status === 409 || /already exists|duplicate/i.test(details.message);
+}
+
+function uploadErrorResponse(error: unknown, requestId: string, operation: "upload" | "delete") {
+  const stageError = error instanceof UploadStageError ? error : null;
+  const details = errorDetails(stageError?.originalError ?? error);
+  const message = details.message.toLowerCase();
+
+  console.error(JSON.stringify({
+    level: "error",
+    message: `final result ${operation} failed`,
+    route: "/api/final-upload",
+    requestId,
+    stage: stageError?.stage || "unknown",
+    error: details.message,
+    status: details.status,
+    statusCode: details.statusCode,
+  }));
+
+  if (message.includes("환경변수")) {
+    return Response.json({
+      error: "파일 저장소 설정이 완료되지 않았습니다. 관리자에게 문의해 주세요.",
+      errorId: requestId,
+    }, { status: 503 });
+  }
+  if (details.status === 401 || details.status === 403 || /jwt|unauthorized|permission|policy/.test(message)) {
+    return Response.json({
+      error: "Supabase Storage 권한을 확인해 주세요. 관리자에게 오류 ID를 전달해 주세요.",
+      errorId: requestId,
+    }, { status: 503 });
+  }
+  if (details.status === 413 || /too large|payload|file size/.test(message)) {
+    return Response.json({
+      error: "파일은 4MB 이하만 업로드할 수 있습니다.",
+      errorId: requestId,
+    }, { status: 413 });
+  }
+
+  return Response.json({
+    error: operation === "upload"
+      ? "파일 저장소에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요."
+      : "탑재한 파일을 취소하지 못했습니다.",
+    errorId: requestId,
+  }, { status: 502 });
+}
+
+async function ensureStorageBucket(supabase: ReturnType<typeof getSupabase>) {
+  const { data: bucket, error: getError } = await supabase.storage.getBucket(BUCKET);
+  if (getError && !isMissingBucket(getError)) {
+    throw new UploadStageError("bucket-read", getError);
+  }
+
+  if (!bucket) {
+    const { error: createError } = await supabase.storage.createBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_FILE_SIZE,
+    });
+    if (createError && !isConflict(createError)) {
+      throw new UploadStageError("bucket-create", createError);
+    }
+    return;
+  }
+
+  const fileSizeLimit = bucket.file_size_limit ?? 0;
+  if (!bucket.public || fileSizeLimit < MAX_FILE_SIZE) {
+    const { error: updateError } = await supabase.storage.updateBucket(BUCKET, {
+      public: true,
+      fileSizeLimit: Math.max(fileSizeLimit, MAX_FILE_SIZE),
+    });
+    if (updateError) {
+      throw new UploadStageError("bucket-update", updateError);
+    }
+  }
+}
+
 function safeFileName(name: string) {
   return name
     .normalize("NFKC")
@@ -34,6 +157,8 @@ function isOwnedPath(path: string, participantId: number) {
 }
 
 export async function POST(request: Request) {
+  const requestId = request.headers.get("x-vercel-id") || randomUUID();
+  const startedAt = Date.now();
   try {
     const participantId = await getParticipantId();
     if (!participantId) return Response.json({ error: "다시 입장해 주세요." }, { status: 401 });
@@ -59,14 +184,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = getSupabase();
-    const { data: bucket } = await supabase.storage.getBucket(BUCKET);
-    if (!bucket) {
-      const { error: createError } = await supabase.storage.createBucket(BUCKET, {
-        public: true,
-        fileSizeLimit: MAX_FILE_SIZE,
-      });
-      if (createError && !/already exists/i.test(createError.message)) throw createError;
-    }
+    await ensureStorageBucket(supabase);
 
     const fileName = safeFileName(file.name);
     const path = `${participantId}/${Date.now()}-${randomUUID()}-${fileName}`;
@@ -76,7 +194,7 @@ export async function POST(request: Request) {
       cacheControl: "3600",
       upsert: false,
     });
-    if (uploadError) throw uploadError;
+    if (uploadError) throw new UploadStageError("object-upload", uploadError);
 
     const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
     if (purpose === "lesson3") {
@@ -88,7 +206,7 @@ export async function POST(request: Request) {
         .maybeSingle();
       if (existingError) {
         await supabase.storage.from(BUCKET).remove([path]);
-        throw existingError;
+        throw new UploadStageError("lesson3-read", existingError);
       }
 
       const existingData = (existing?.data_json ?? {}) as Record<string, string>;
@@ -113,12 +231,23 @@ export async function POST(request: Request) {
         }, { onConflict: "participant_id,step" });
       if (saveError) {
         await supabase.storage.from(BUCKET).remove([path]);
-        throw saveError;
+        throw new UploadStageError("lesson3-save", saveError);
       }
       if (previousPath && previousPath !== path && isOwnedPath(previousPath, participantId)) {
         await supabase.storage.from(BUCKET).remove([previousPath]);
       }
     }
+
+    console.log(JSON.stringify({
+      level: "info",
+      message: "final result upload completed",
+      route: "/api/final-upload",
+      requestId,
+      participantId,
+      purpose: typeof purpose === "string" ? purpose : "final",
+      bytes: file.size,
+      durationMs: Date.now() - startedAt,
+    }));
 
     return Response.json({
       ok: true,
@@ -128,12 +257,12 @@ export async function POST(request: Request) {
       fileSize: `${(file.size / 1024).toFixed(1)} KB`,
     });
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "최종 결과물을 업로드하지 못했습니다." }, { status: 500 });
+    return uploadErrorResponse(error, requestId, "upload");
   }
 }
 
 export async function DELETE(request: Request) {
+  const requestId = request.headers.get("x-vercel-id") || randomUUID();
   try {
     const participantId = await getParticipantId();
     if (!participantId) return Response.json({ error: "다시 입장해 주세요." }, { status: 401 });
@@ -151,7 +280,7 @@ export async function DELETE(request: Request) {
 
     const supabase = getSupabase();
     const { error: removeError } = await supabase.storage.from(BUCKET).remove([path]);
-    if (removeError) throw removeError;
+    if (removeError) throw new UploadStageError("object-delete", removeError);
 
     const { data: existing, error: existingError } = await supabase
       .from("submissions")
@@ -159,7 +288,7 @@ export async function DELETE(request: Request) {
       .eq("participant_id", participantId)
       .eq("step", 3)
       .maybeSingle();
-    if (existingError) throw existingError;
+    if (existingError) throw new UploadStageError("lesson3-read", existingError);
     if (existing) {
       const existingData = (existing.data_json ?? {}) as Record<string, string>;
       const remainingData = { ...existingData };
@@ -172,12 +301,11 @@ export async function DELETE(request: Request) {
         .from("submissions")
         .update({ status: "draft", data_json: remainingData, updated_at: new Date().toISOString() })
         .eq("id", existing.id);
-      if (updateError) throw updateError;
+      if (updateError) throw new UploadStageError("lesson3-save", updateError);
     }
 
     return Response.json({ ok: true });
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "탑재한 파일을 취소하지 못했습니다." }, { status: 500 });
+    return uploadErrorResponse(error, requestId, "delete");
   }
 }
