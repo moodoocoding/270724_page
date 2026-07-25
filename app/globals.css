@@ -12,7 +12,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body { overflow-x: hidden; }
+html, body { overflow-x: clip; }
 html { background: var(--paper); }
 body {
   margin: 0; color: var(--ink); background: var(--paper);
