@@ -351,11 +351,17 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); }
 .gallery-comment-list { max-height: 122px; overflow-y: auto; margin-bottom: 8px; padding-right: 4px; }
 .gallery-comment-list article { padding: 7px 0; border-top: 1px solid #edf0ed; }
 .gallery-comment-list article:first-child { border-top: 0; }
+.gallery-comment-list article > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .gallery-comment-list strong { color: var(--green); font-size: 11px; }
+.gallery-comment-list strong small { margin-left: 4px; color: #7a847e; font-size: 10px; font-weight: 500; }
+.gallery-comment-list article > header > button { min-height: 0; padding: 2px 4px; border: 0; color: #59645e; background: transparent; font-size: 11px; text-decoration: underline; }
 .gallery-comment-list p { margin: 2px 0 0; color: #36403a; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
 .gallery-comments form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
 .gallery-comments input { height: 38px; margin: 0; font-size: 12px; }
 .gallery-comments button { min-height: 38px; }
+.gallery-comments .gallery-comment-edit { display: block; margin-top: 5px; }
+.gallery-comment-edit > div { display: flex; justify-content: flex-end; gap: 5px; margin-top: 5px; }
+.gallery-comment-edit > div button { min-height: 30px; padding: 4px 9px; }
 .gallery-comment-error { margin: 6px 0 0; color: #b42318; font-size: 11px; }
 .gallery-empty { min-height: 150px; display: grid; place-items: center; padding: 28px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; }
 .gallery-note { margin: 3px 2px 0; color: var(--muted); font-size: 12px; }

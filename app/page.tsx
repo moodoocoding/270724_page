@@ -885,6 +885,8 @@ type GalleryComment = {
   authorName: string;
   body: string;
   createdAt: string;
+  editedAt?: string;
+  isMine?: boolean;
 };
 
 type GalleryItem = {
@@ -929,6 +931,9 @@ function GalleryWalk({
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
   const [commentBusy, setCommentBusy] = useState<number | null>(null);
   const [commentErrors, setCommentErrors] = useState<Record<number, string>>({});
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentBody, setEditingCommentBody] = useState("");
+  const [editingCommentBusy, setEditingCommentBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -996,6 +1001,51 @@ function GalleryWalk({
     }
   };
 
+  const startEditingComment = (comment: GalleryComment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentBody(comment.body);
+  };
+
+  const cancelEditingComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentBody("");
+  };
+
+  const updateComment = async (event: React.FormEvent, targetParticipantId: number, commentId: string) => {
+    event.preventDefault();
+    const body = editingCommentBody.trim();
+    if (!body) return;
+    setEditingCommentBusy(true);
+    setCommentErrors((previous) => ({ ...previous, [targetParticipantId]: "" }));
+    try {
+      const response = await fetch("/api/gallery", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ targetParticipantId, commentId, body }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "댓글을 수정하지 못했습니다.");
+      setItems((previous) => previous.map((item) => (
+        item.id === targetParticipantId
+          ? {
+              ...item,
+              comments: item.comments.map((comment) => (
+                comment.id === commentId ? result.comment : comment
+              )),
+            }
+          : item
+      )));
+      cancelEditingComment();
+    } catch (error) {
+      setCommentErrors((previous) => ({
+        ...previous,
+        [targetParticipantId]: error instanceof Error ? error.message : "댓글을 수정하지 못했습니다.",
+      }));
+    } finally {
+      setEditingCommentBusy(false);
+    }
+  };
+
   return <div className="gallery-work">
     <section className="gallery-showcase" aria-live="polite">
       <header className="gallery-intro">
@@ -1020,8 +1070,31 @@ function GalleryWalk({
             <div className="gallery-comments-head"><strong>댓글로 의견 남기기</strong><span>{item.comments?.length || 0}</span></div>
             {!!item.comments?.length && <div className="gallery-comment-list">
               {item.comments.map((comment) => <article key={comment.id}>
-                <strong>{comment.authorName} 선생님</strong>
-                <p>{comment.body}</p>
+                <header>
+                  <strong>{comment.authorName} 선생님 {comment.editedAt && <small>수정됨</small>}</strong>
+                  {comment.isMine && editingCommentId !== comment.id && (
+                    <button type="button" onClick={() => startEditingComment(comment)}>수정</button>
+                  )}
+                </header>
+                {editingCommentId === comment.id ? (
+                  <form className="gallery-comment-edit" onSubmit={(event) => updateComment(event, item.id, comment.id)}>
+                    <input
+                      aria-label="댓글 수정"
+                      value={editingCommentBody}
+                      onChange={(event) => setEditingCommentBody(event.target.value)}
+                      maxLength={300}
+                      autoFocus
+                    />
+                    <div>
+                      <button type="button" onClick={cancelEditingComment} disabled={editingCommentBusy}>취소</button>
+                      <button type="submit" className="secondary" disabled={editingCommentBusy || !editingCommentBody.trim()}>
+                        {editingCommentBusy ? "저장 중…" : "저장"}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p>{comment.body}</p>
+                )}
               </article>)}
             </div>}
             <form onSubmit={(event) => submitComment(event, item.id)}>
