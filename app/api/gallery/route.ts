@@ -73,6 +73,45 @@ function isMissingCommentsTable(error: unknown) {
     candidate.message?.includes("public.comments") === true;
 }
 
+async function saveLegacyComment(
+  supabase: ReturnType<typeof getSupabase>,
+  targetId: number,
+  author: { id: number; school: string; name: string },
+  commentBody: string,
+) {
+  const { data: submission, error: submissionError } = await supabase
+    .from("submissions")
+    .select("id,data_json,status")
+    .eq("participant_id", targetId)
+    .eq("step", 3)
+    .single();
+  if (submissionError || !submission || submission.status !== "submitted") {
+    return Response.json({ error: "제출된 3차시 작품을 찾지 못했습니다." }, { status: 404 });
+  }
+
+  const dataJson = (submission.data_json ?? {}) as Record<string, string>;
+  const comments = parseComments(dataJson.galleryComments);
+  if (comments.length >= 50) {
+    return Response.json({ error: "이 작품에는 댓글을 더 등록할 수 없습니다." }, { status: 409 });
+  }
+
+  const comment: GalleryComment = {
+    id: randomUUID(),
+    authorId: author.id,
+    authorSchool: author.school,
+    authorName: author.name,
+    body: commentBody,
+    createdAt: new Date().toISOString(),
+  };
+  const { error: updateError } = await supabase
+    .from("submissions")
+    .update({ data_json: { ...dataJson, galleryComments: JSON.stringify([...comments, comment]) } })
+    .eq("id", submission.id);
+  if (updateError) throw updateError;
+
+  return Response.json({ comment: { ...comment, isMine: true } });
+}
+
 async function findStoredResultUrl(participantId: number) {
   const supabase = getSupabase();
   const { data: files, error } = await supabase.storage
@@ -238,37 +277,7 @@ export async function POST(request: Request) {
       .select("*", { count: "exact", head: true })
       .eq("target_participant_id", targetId);
     if (countError && isMissingCommentsTable(countError)) {
-      const { data: submission, error: submissionError } = await supabase
-        .from("submissions")
-        .select("id,data_json,status")
-        .eq("participant_id", targetId)
-        .eq("step", 3)
-        .single();
-      if (submissionError || !submission || submission.status !== "submitted") {
-        return Response.json({ error: "제출된 3차시 작품을 찾지 못했습니다." }, { status: 404 });
-      }
-
-      const dataJson = (submission.data_json ?? {}) as Record<string, string>;
-      const comments = parseComments(dataJson.galleryComments);
-      if (comments.length >= 50) {
-        return Response.json({ error: "이 작품에는 댓글을 더 등록할 수 없습니다." }, { status: 409 });
-      }
-
-      const comment: GalleryComment = {
-        id: randomUUID(),
-        authorId: author.id,
-        authorSchool: author.school,
-        authorName: author.name,
-        body: commentBody,
-        createdAt: new Date().toISOString(),
-      };
-      const { error: updateError } = await supabase
-        .from("submissions")
-        .update({ data_json: { ...dataJson, galleryComments: JSON.stringify([...comments, comment]) } })
-        .eq("id", submission.id);
-      if (updateError) throw updateError;
-
-      return Response.json({ comment: { ...comment, isMine: true } });
+      return saveLegacyComment(supabase, targetId, author, commentBody);
     }
     if (countError) throw countError;
     if (count !== null && count >= 50) {
@@ -285,6 +294,9 @@ export async function POST(request: Request) {
       })
       .select("id, target_participant_id, author_participant_id, body, created_at, updated_at")
       .single();
+    if (insertError && isMissingCommentsTable(insertError)) {
+      return saveLegacyComment(supabase, targetId, author, commentBody);
+    }
     if (insertError || !newComment) throw insertError ?? new Error("댓글을 저장하지 못했습니다.");
 
     return Response.json({
