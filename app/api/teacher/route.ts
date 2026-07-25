@@ -70,3 +70,77 @@ export async function GET(request: Request) {
     return Response.json({ error: "제출 현황을 불러오지 못했습니다." }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { classCode, adminCode, participantId } = await request.json() as {
+      classCode?: string;
+      adminCode?: string;
+      participantId?: number;
+    };
+    const targetClassCode = classCode?.trim().toUpperCase();
+    const targetAdminCode = adminCode?.trim();
+    const targetParticipantId = Number(participantId);
+
+    if (
+      !targetClassCode ||
+      !targetAdminCode ||
+      !Number.isSafeInteger(targetParticipantId) ||
+      targetParticipantId < 1
+    ) {
+      return Response.json({ error: "올바르지 않은 삭제 요청입니다." }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+    const { data: workshop, error: classError } = await supabase
+      .from("classes")
+      .select("id,admin_code")
+      .eq("code", targetClassCode)
+      .single();
+    if (classError || !workshop || workshop.admin_code !== targetAdminCode) {
+      return Response.json({ error: "강사 권한을 인증할 수 없습니다." }, { status: 403 });
+    }
+
+    const { data: participant, error: participantError } = await supabase
+      .from("participants")
+      .select("id,class_id,school,name")
+      .eq("id", targetParticipantId)
+      .single();
+    if (participantError || !participant || participant.class_id !== workshop.id) {
+      return Response.json({ error: "삭제할 참여자를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    const bucket = supabase.storage.from("workshop-final-results");
+    const { data: storedFiles, error: listError } = await bucket.list(String(targetParticipantId), {
+      limit: 100,
+    });
+    if (listError) throw listError;
+
+    const storedPaths = (storedFiles ?? [])
+      .filter((file) => file.id)
+      .map((file) => `${targetParticipantId}/${file.name}`);
+    if (storedPaths.length) {
+      const { error: removeError } = await bucket.remove(storedPaths);
+      if (removeError) throw removeError;
+    }
+
+    const { error: deleteError } = await supabase
+      .from("participants")
+      .delete()
+      .eq("id", targetParticipantId)
+      .eq("class_id", workshop.id);
+    if (deleteError) throw deleteError;
+
+    return Response.json({
+      ok: true,
+      participant: {
+        id: participant.id,
+        school: participant.school,
+        name: participant.name,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "참여자 내역을 삭제하지 못했습니다." }, { status: 500 });
+  }
+}
