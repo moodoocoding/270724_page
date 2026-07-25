@@ -317,6 +317,7 @@ input:focus, textarea:focus { border-color: var(--green); }
   overflow-x: auto; padding: 2px 2px 12px; scroll-snap-type: x proximity; scrollbar-color: #a9b8ae transparent;
 }
 .gallery-card { min-height: 250px; display: flex; min-width: 0; flex-direction: column; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; scroll-snap-align: start; }
+.gallery-card.example { border-color: #8ebaa2; background: #f7fbf8; }
 .gallery-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .gallery-meta span { color: var(--green); font-size: 12px; font-weight: 750; }
 .gallery-meta strong { font-size: 14px; }
@@ -329,6 +330,8 @@ input:focus, textarea:focus { border-color: var(--green); }
 .gallery-actions .small-button { width: 100%; justify-content: center; }
 .gallery-actions > span { color: var(--muted); font-size: 12px; text-align: center; }
 .gallery-empty { min-height: 150px; display: grid; place-items: center; padding: 28px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; }
+.gallery-note { margin: 3px 2px 0; color: var(--muted); font-size: 12px; }
+.gallery-note.error { color: #b42318; }
 .gallery-final { margin-top: 0; }
 .gallery-final-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 16px; }
 .revision-card, .final-upload-card { min-width: 0; min-height: 180px; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: #f8faf8; }

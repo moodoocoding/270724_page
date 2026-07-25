@@ -834,6 +834,18 @@ type GalleryItem = {
   contentTitle: string;
   resultUrl: string;
   updatedAt: string;
+  isExample?: boolean;
+};
+
+const galleryExample: GalleryItem = {
+  id: -1,
+  school: "예시 작품",
+  name: "워크숍 예시",
+  method: "학생이 문장의 띄어쓰기를 선택하면 정답 여부와 점수를 바로 확인합니다.",
+  contentTitle: "띄어쓰기 킹 수업 활용 예시",
+  resultUrl: "/games/kingsmath/띄어쓰기 킹 (국어 맞춤법).html",
+  updatedAt: "",
+  isExample: true,
 };
 
 function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
@@ -885,12 +897,9 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
         <div><b>갤러리워크</b><h2>동료 작품 둘러보기</h2></div>
         <p>작품을 열어 보고, 내 결과물에 반영할 의견을 정해 보세요.</p>
       </header>
-      {loading && <div className="gallery-empty">동료 결과물을 불러오는 중입니다.</div>}
-      {loadError && <div className="gallery-empty">{loadError}</div>}
-      {!loading && !loadError && !items.length && <div className="gallery-empty">아직 3차시를 제출한 동료가 없습니다. 첫 작품이 올라오면 이곳에 나타납니다.</div>}
-      {!loading && !loadError && items.length > 0 && <div className="gallery-grid" aria-label={`동료 작품 ${items.length}개`}>
-        {items.map((item) => <article key={item.id} className="gallery-card">
-          <header className="gallery-meta"><span>{item.school}</span><strong>{item.name} 선생님</strong></header>
+      <div className="gallery-grid" aria-label={`예시 작품 1개와 동료 작품 ${items.length}개`}>
+        {[galleryExample, ...items].map((item) => <article key={item.id} className={item.isExample ? "gallery-card example" : "gallery-card"}>
+          <header className="gallery-meta"><span>{item.school}</span><strong>{item.isExample ? item.name : `${item.name} 선생님`}</strong></header>
           <div className="gallery-piece content"><small>3차시 콘텐츠</small><strong>{item.contentTitle || "제목을 정리 중입니다."}</strong></div>
           <div className="gallery-piece"><small>선택한 수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
           <div className="gallery-actions">
@@ -901,7 +910,10 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
             )}
           </div>
         </article>)}
-      </div>}
+      </div>
+      {loading && <p className="gallery-note">동료 결과물을 불러오는 중입니다.</p>}
+      {loadError && <p className="gallery-note error">{loadError}</p>}
+      {!loading && !loadError && !items.length && <p className="gallery-note">아직 제출된 동료 작품이 없습니다. 제출되면 예시 작품 옆에 나타납니다.</p>}
     </section>
 
     <section className="reflection-panel gallery-final">
