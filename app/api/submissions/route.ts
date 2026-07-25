@@ -57,14 +57,29 @@ export async function POST(request: Request) {
     }
     const entries = Object.entries(data);
     const permitted = allowedKeys[step];
+    const permittedEntries = permitted ? entries.filter(([key]) => permitted.has(key)) : [];
     if (
       !permitted ||
-      entries.some(([, value]) => typeof value !== "string" || value.length > 4000) ||
+      permittedEntries.some(([, value]) => typeof value !== "string" || value.length > 4000) ||
       JSON.stringify(data ?? {}).length > 64_000
     ) {
       return Response.json({ error: "저장할 내용의 형식이나 길이를 확인해 주세요." }, { status: 400 });
     }
-    const sanitizedData = Object.fromEntries(entries.filter(([key]) => permitted.has(key)));
+    let sanitizedData = Object.fromEntries(permittedEntries);
+
+    if (step === 3) {
+      const { data: existing, error: existingError } = await getSupabase()
+        .from("submissions")
+        .select("data_json")
+        .eq("participant_id", participantId)
+        .eq("step", 3)
+        .maybeSingle();
+      if (existingError) throw existingError;
+      const existingComments = (existing?.data_json as Record<string, unknown> | null)?.galleryComments;
+      if (typeof existingComments === "string") {
+        sanitizedData = { ...sanitizedData, galleryComments: existingComments };
+      }
+    }
 
     const updatedAt = new Date().toISOString();
     const { error } = await getSupabase()

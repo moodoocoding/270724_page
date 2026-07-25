@@ -844,6 +844,15 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
   );
 }
 
+type GalleryComment = {
+  id: string;
+  authorId: number;
+  authorSchool: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+};
+
 type GalleryItem = {
   id: number;
   school: string;
@@ -853,6 +862,8 @@ type GalleryItem = {
   resultUrl: string;
   updatedAt: string;
   isExample?: boolean;
+  isMine?: boolean;
+  comments: GalleryComment[];
 };
 
 const galleryExample: GalleryItem = {
@@ -864,6 +875,7 @@ const galleryExample: GalleryItem = {
   resultUrl: "/games/kingsmath/띄어쓰기 킹 (국어 맞춤법).html",
   updatedAt: "",
   isExample: true,
+  comments: [],
 };
 
 function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
@@ -872,6 +884,9 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
   const [loadError, setLoadError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
+  const [commentBusy, setCommentBusy] = useState<number | null>(null);
+  const [commentErrors, setCommentErrors] = useState<Record<number, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -909,6 +924,36 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
     }
   };
 
+  const submitComment = async (event: React.FormEvent, targetParticipantId: number) => {
+    event.preventDefault();
+    const body = (commentDrafts[targetParticipantId] || "").trim();
+    if (!body) return;
+    setCommentBusy(targetParticipantId);
+    setCommentErrors((previous) => ({ ...previous, [targetParticipantId]: "" }));
+    try {
+      const response = await fetch("/api/gallery", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ targetParticipantId, body }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "댓글을 저장하지 못했습니다.");
+      setItems((previous) => previous.map((item) => (
+        item.id === targetParticipantId
+          ? { ...item, comments: [...(item.comments || []), result.comment] }
+          : item
+      )));
+      setCommentDrafts((previous) => ({ ...previous, [targetParticipantId]: "" }));
+    } catch (error) {
+      setCommentErrors((previous) => ({
+        ...previous,
+        [targetParticipantId]: error instanceof Error ? error.message : "댓글을 저장하지 못했습니다.",
+      }));
+    } finally {
+      setCommentBusy(null);
+    }
+  };
+
   return <div className="gallery-work">
     <section className="gallery-showcase" aria-live="polite">
       <header className="gallery-intro">
@@ -917,7 +962,7 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
       </header>
       <div className="gallery-grid" aria-label={`예시 작품 1개와 동료 작품 ${items.length}개`}>
         {[galleryExample, ...items].map((item) => <article key={item.id} className={item.isExample ? "gallery-card example" : "gallery-card"}>
-          <header className="gallery-meta"><span>{item.school}</span><strong>{item.isExample ? item.name : `${item.name} 선생님`}</strong></header>
+          <header className="gallery-meta"><span>{item.isMine ? "내 작품" : item.school}</span><strong>{item.isExample ? item.name : `${item.name} 선생님`}</strong></header>
           <div className="gallery-piece content"><small>3차시 콘텐츠</small><strong>{item.contentTitle || "제목을 정리 중입니다."}</strong></div>
           <div className="gallery-piece"><small>선택한 수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
           <div className="gallery-actions">
@@ -927,6 +972,28 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
               <span>공유된 결과물 링크가 없습니다.</span>
             )}
           </div>
+          {!item.isExample && <section className="gallery-comments">
+            <div className="gallery-comments-head"><strong>댓글</strong><span>{item.comments?.length || 0}</span></div>
+            {!!item.comments?.length && <div className="gallery-comment-list">
+              {item.comments.map((comment) => <article key={comment.id}>
+                <strong>{comment.authorName} 선생님</strong>
+                <p>{comment.body}</p>
+              </article>)}
+            </div>}
+            <form onSubmit={(event) => submitComment(event, item.id)}>
+              <input
+                aria-label={`${item.name} 선생님 작품에 남길 댓글`}
+                value={commentDrafts[item.id] || ""}
+                onChange={(event) => setCommentDrafts((previous) => ({ ...previous, [item.id]: event.target.value }))}
+                placeholder="좋았던 점이나 제안을 남겨 주세요."
+                maxLength={300}
+              />
+              <button className="secondary small-button" disabled={commentBusy === item.id || !(commentDrafts[item.id] || "").trim()}>
+                {commentBusy === item.id ? "저장 중…" : "등록"}
+              </button>
+            </form>
+            {commentErrors[item.id] && <p className="gallery-comment-error" role="alert">{commentErrors[item.id]}</p>}
+          </section>}
         </article>)}
       </div>
       {loading && <p className="gallery-note">동료 결과물을 불러오는 중입니다.</p>}
@@ -983,7 +1050,7 @@ function TeacherDashboard({ data, onBack }: { data: TeacherData; onBack: () => v
         ))}
         {!data.participants.length && <div className="empty">아직 입장한 참여자가 없습니다.</div>}
       </section>
-      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => !["scene", "strength", "improvement", "finalNote", "generatedPrompt", "aiResult", "gemCreatedAt", "selectedMethodIndex", "contentTool"].includes(key)); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
+      {selected && <div className="modal-backdrop" onClick={() => setSelected(null)}><article className="modal" role="dialog" aria-modal="true" aria-labelledby="workbook-dialog-title" onClick={(e) => e.stopPropagation()}><button className="modal-close" autoFocus onClick={() => setSelected(null)}>닫기</button><h2 id="workbook-dialog-title">{selected.name}님의 워크북</h2>{([1,2,3,4] as Step[]).map((step) => { const sub = selected.submissions[step]; const parsed = sub ? JSON.parse(sub.dataJson || "{}") : {}; const visibleEntries = Object.entries(parsed).filter(([key]) => !["scene", "strength", "improvement", "finalNote", "generatedPrompt", "aiResult", "gemCreatedAt", "selectedMethodIndex", "contentTool", "galleryComments"].includes(key)); return <section key={step}><h3>{step}차시 · {stepMeta[step].title}</h3>{sub ? visibleEntries.map(([k,v]) => <p key={k}><span>{fields[step].find(f => f.key === k)?.label || lessonOneExtraLabels[k] || k}</span>{String(v) || "—"}</p>) : <p className="muted">작성 내용이 없습니다.</p>}</section>; })}</article></div>}
     </main>
   );
 }
