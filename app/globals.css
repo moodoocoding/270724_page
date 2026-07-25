@@ -19,9 +19,9 @@ body {
   font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
   font-size: 16px; line-height: 1.55; letter-spacing: -.15px;
 }
-button, input, textarea { font: inherit; }
+button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
-button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible {
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible {
   outline: 3px solid rgba(23, 99, 74, .28); outline-offset: 2px;
 }
 
@@ -43,14 +43,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visib
 .small-button { min-height: 38px; padding: 0 13px; font-size: 14px; }
 .compact { min-height: 42px; }
 
-input, textarea {
+input, textarea, select {
   width: 100%; margin-top: 7px; border: 1px solid #cbd2cc; border-radius: 6px;
   color: var(--ink); background: #fff; outline: none;
 }
-input { height: 46px; padding: 0 13px; }
+input, select { height: 46px; padding: 0 13px; }
 textarea { min-height: 86px; padding: 11px 13px; resize: vertical; line-height: 1.55; }
 input::placeholder, textarea::placeholder { color: #8b948e; font-size: 14px; }
-input:focus, textarea:focus { border-color: var(--green); }
+input:focus, textarea:focus, select:focus { border-color: var(--green); }
 
 .entry-shell {
   min-height: 100vh; display: grid; grid-template-columns: minmax(360px, 620px) 210px;

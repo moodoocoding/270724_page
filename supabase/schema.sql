@@ -37,3 +37,30 @@ insert into public.classes (name, code, admin_code)
 values ('AI 원데이 클래스', 'AI-ONEDAY', '260725')
 on conflict (code) do update
 set name = excluded.name;
+
+insert into public.classes (name, code, admin_code)
+select session.name, session.code, legacy.admin_code
+from public.classes legacy
+cross join (
+  values
+    ('청주 · 8.4.(화)', 'CJ-2026-08-04'),
+    ('청주 · 9.10.(목)', 'CJ-2026-09-10'),
+    ('청주 · 10.17.(토)', 'CJ-2026-10-17'),
+    ('청주 · 11.14.(토)', 'CJ-2026-11-14'),
+    ('청주 · 12.12.(토)', 'CJ-2026-12-12'),
+    ('진천 · 9.12.(토)', 'JC-2026-09-12'),
+    ('진천 · 10.6.(화)', 'JC-2026-10-06'),
+    ('진천 · 11.17.(화)', 'JC-2026-11-17'),
+    ('남부(보은·옥천·영동) · 8.13.(목)', 'SB-2026-08-13'),
+    ('남부(보은·옥천·영동) · 8.26.(수)', 'SB-2026-08-26'),
+    ('남부(보은·옥천·영동) · 10.20.(화)', 'SB-2026-10-20'),
+    ('중부(괴산·증평·음성) · 9.3.(목)', 'CB-2026-09-03'),
+    ('중부(괴산·증평·음성) · 10.7.(수)', 'CB-2026-10-07'),
+    ('중부(괴산·증평·음성) · 10.29.(목)', 'CB-2026-10-29'),
+    ('북부(충주·제천·단양) · 8.25.(화)', 'NB-2026-08-25'),
+    ('북부(충주·제천·단양) · 10.1.(목)', 'NB-2026-10-01'),
+    ('북부(충주·제천·단양) · 10.2.(금)', 'NB-2026-10-02')
+) as session(name, code)
+where legacy.code = 'AI-ONEDAY'
+on conflict (code) do update
+set name = excluded.name;

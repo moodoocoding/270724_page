@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { workshopRegions, workshopSessions } from "../lib/workshops";
 
 type Step = 1 | 2 | 3 | 4;
 type Submission = {
@@ -93,7 +94,9 @@ export default function Home() {
       return null;
     }
   });
-  const [classCode, setClassCode] = useState("AI-ONEDAY");
+  const [classCode, setClassCode] = useState<string>(workshopSessions[0].code);
+  const [regionId, setRegionId] = useState<string>(workshopRegions[0].id);
+  const [workshopCode, setWorkshopCode] = useState<string>(workshopRegions[0].sessions[0].code);
   const [school, setSchool] = useState("");
   const [name, setName] = useState("");
   const [adminCode, setAdminCode] = useState("");
@@ -104,6 +107,7 @@ export default function Home() {
   const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
 
   const current = submissions[step];
+  const availableDates = workshopRegions.find((region) => region.id === regionId)?.sessions ?? workshopRegions[0].sessions;
   const progress = useMemo(
     () => Object.values(submissions).filter((item) => item.status === "submitted").length,
     [submissions],
@@ -116,7 +120,7 @@ export default function Home() {
         const renewed = await fetch("/api/session", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ school: activeSession.school, name: activeSession.participantName }),
+          body: JSON.stringify({ school: activeSession.school, name: activeSession.participantName, workshopCode: activeSession.classCode }),
         });
         if (!renewed.ok) {
           window.localStorage.removeItem("oneday-session");
@@ -148,7 +152,7 @@ export default function Home() {
     const res = await fetch("/api/session", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ school, name }),
+      body: JSON.stringify({ school, name, workshopCode }),
     });
     const body = await res.json();
     setBusy(false);
@@ -210,7 +214,11 @@ export default function Home() {
           <h1>제출 현황을 한눈에 확인하세요.</h1>
           <p className="lead">클래스 코드와 강사 코드를 입력하면 참여자별 진행 상황과 작성 결과를 볼 수 있습니다.</p>
           <form onSubmit={openTeacher} className="entry-form">
-            <label>클래스 코드<input value={classCode} onChange={(e) => setClassCode(e.target.value.toUpperCase())} /></label>
+            <label>연수 회차<select value={classCode} onChange={(e) => setClassCode(e.target.value)}>
+              {workshopRegions.map((region) => <optgroup key={region.id} label={region.label}>
+                {region.sessions.map((session) => <option key={session.code} value={session.code}>{session.dateLabel}</option>)}
+              </optgroup>)}
+            </select></label>
             <label>강사 코드<input type="password" value={adminCode} onChange={(e) => setAdminCode(e.target.value)} placeholder="강사 코드 입력" /></label>
             {message && <p className="form-message">{message}</p>}
             <button className="primary" disabled={busy}>{busy ? "확인 중…" : "강사 화면 열기"}</button>
@@ -230,6 +238,16 @@ export default function Home() {
           <h1>생각을 수업으로<br />옮기는 작은 워크북</h1>
           <p className="lead">문제를 먼저 발견하고, AI와 방법을 찾고, 실제 수업 콘텐츠로 완성하세요.</p>
           <form onSubmit={enterClass} className="entry-form">
+            <label>지역<select value={regionId} onChange={(event) => {
+              const nextRegion = workshopRegions.find((region) => region.id === event.target.value) ?? workshopRegions[0];
+              setRegionId(nextRegion.id);
+              setWorkshopCode(nextRegion.sessions[0].code);
+            }}>
+              {workshopRegions.map((region) => <option key={region.id} value={region.id}>{region.label}</option>)}
+            </select></label>
+            <label>날짜<select value={workshopCode} onChange={(event) => setWorkshopCode(event.target.value)}>
+              {availableDates.map((session) => <option key={session.code} value={session.code}>{session.dateLabel}</option>)}
+            </select></label>
             <label>학교명<input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="예: 한빛초등학교" /></label>
             <label>이름<input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 김태호" /></label>
             {message && <p className="form-message">{message}</p>}
@@ -246,7 +264,7 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <Brand />
-        <div className="user-chip"><span>{session.school}</span><strong>{session.participantName}</strong></div>
+        <div className="user-chip"><span>{session.className} · {session.school}</span><strong>{session.participantName}</strong></div>
       </header>
       <div className="workspace">
         <aside className="sidebar">
