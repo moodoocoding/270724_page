@@ -194,6 +194,11 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .gem-create-workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); align-items: stretch; gap: 18px; }
 .gem-create-workspace .meta-prompt-preview { min-height: 310px; display: flex; flex-direction: column; margin: 0; }
 .gem-create-workspace .meta-prompt-preview pre { min-height: 0; max-height: 380px; flex: 1; }
+.gem-build-guide { min-width: 0; padding-left: 18px; border-left: 1px solid var(--line); }
+.gem-build-guide > header { margin-bottom: 12px; }
+.gem-build-guide > header span { color: var(--green); font-size: 11px; font-weight: 800; }
+.gem-build-guide > header h3 { margin: 3px 0 4px; font-size: 18px; }
+.gem-build-guide > header p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .gem-create-workspace .guide-steps { grid-template-columns: 1fr; gap: 10px; }
 .gem-create-workspace .guide-steps li { grid-template-columns: 132px minmax(0, 1fr); align-items: center; padding: 0 0 10px; }
 .gem-create-workspace .guide-steps li:last-child { padding-bottom: 0; border-bottom: 0; }
@@ -502,6 +507,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 @media (max-width: 900px) {
   .gem-create-workspace { grid-template-columns: 1fr; }
+  .gem-build-guide { padding: 18px 0 0; border-top: 1px solid var(--line); border-left: 0; }
 }
 
 @media (max-width: 767px) {
