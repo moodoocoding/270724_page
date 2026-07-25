@@ -3,6 +3,7 @@ export const workshopRegions = [
     id: "cheongju",
     label: "청주",
     sessions: [
+      { code: "CJ-2026-07-25", dateLabel: "7.25.(토)" },
       { code: "CJ-2026-08-04", dateLabel: "8.4.(화)" },
       { code: "CJ-2026-09-10", dateLabel: "9.10.(목)" },
       { code: "CJ-2026-10-17", dateLabel: "10.17.(토)" },

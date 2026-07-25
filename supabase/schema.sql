@@ -43,6 +43,7 @@ select session.name, session.code, legacy.admin_code
 from public.classes legacy
 cross join (
   values
+    ('청주 · 7.25.(토)', 'CJ-2026-07-25'),
     ('청주 · 8.4.(화)', 'CJ-2026-08-04'),
     ('청주 · 9.10.(목)', 'CJ-2026-09-10'),
     ('청주 · 10.17.(토)', 'CJ-2026-10-17'),
