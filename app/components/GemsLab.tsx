@@ -110,7 +110,15 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
             className={subStep === value ? "primary" : "secondary"}
             aria-current={subStep === value ? "step" : undefined}
             aria-pressed={subStep === value}
-            onClick={() => setSubStep(value as 1 | 2 | 3)}
+            onClick={() => {
+              if (value === 2) {
+                onChange("gemCreatedAt", data.gemCreatedAt || new Date().toISOString());
+              }
+              if (value === 3) {
+                onChange("gemPracticeRequest", requestText);
+              }
+              setSubStep(value as 1 | 2 | 3);
+            }}
           >
             {label}
           </button>
@@ -126,9 +134,6 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
               <p>메타 프롬프트를 복사해 나의 수업 설계 Gem을 만드세요.</p>
             </div>
             <div className="guide-actions">
-              <button className="secondary small-button" onClick={copyMetaPrompt}>
-                메타 프롬프트 복사
-              </button>
               <a
                 className="primary small-button"
                 href="https://gemini.google.com/gems/create"
@@ -145,9 +150,14 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
             <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
               <div>
                 <strong>Gem 요청 사항에 아래 메타 프롬프트 전체를 붙여 넣으세요.</strong>
-                <button className="text-button" onClick={openMetaModal}>
-                  크게 보기
-                </button>
+                <div className="meta-prompt-actions">
+                  <button className="secondary small-button" onClick={copyMetaPrompt}>
+                    메타 프롬프트 복사
+                  </button>
+                  <button className="text-button" onClick={openMetaModal}>
+                    크게 보기
+                  </button>
+                </div>
               </div>
               <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
             </section>
@@ -219,18 +229,6 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
                 </li>
               </ol>
             </aside>
-          </div>
-          <div className="flow-actions">
-            <span />
-            <button
-              className="primary"
-              onClick={() => {
-                onChange("gemCreatedAt", data.gemCreatedAt || new Date().toISOString());
-                setSubStep(2);
-              }}
-            >
-              다음: AI에게 요청하기 →
-            </button>
           </div>
         </section>
       )}
@@ -311,20 +309,6 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
                 </a>
               </div>
             </aside>
-          </div>
-          <div className="flow-actions">
-            <button className="secondary" onClick={() => setSubStep(1)}>
-              ← Gem 만들기
-            </button>
-            <button
-              className="primary"
-              onClick={() => {
-                onChange("gemPracticeRequest", requestText);
-                setSubStep(3);
-              }}
-            >
-              다음: 방법 비교·선택하기 →
-            </button>
           </div>
         </section>
       )}
@@ -418,12 +402,6 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
                 />
               </label>
             </aside>
-          </div>
-          <div className="flow-actions">
-            <button className="secondary" onClick={() => setSubStep(2)}>
-              ← AI 요청문 수정
-            </button>
-            <span />
           </div>
         </section>
       )}

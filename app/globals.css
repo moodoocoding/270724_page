@@ -215,8 +215,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .request-preview-card pre { flex: 1; min-height: 190px; margin: 9px 0 14px; padding: 15px; overflow: auto; white-space: pre-wrap; border: 1px solid #cdd8cf; border-radius: 6px; background: #fff; font: 13px/1.75 Pretendard, "Noto Sans KR", system-ui, sans-serif; }
 .request-preview-card > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .request-preview-card a { display: inline-flex; align-items: center; justify-content: center; }
-.flow-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 18px; }
-.flow-actions button { min-height: 42px; padding: 0 16px; }
 .method-choice-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(320px, .7fr); gap: 18px; align-items: start; }
 .method-list { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; }
 .method-list-head, .method-row { display: grid; grid-template-columns: 58px minmax(0, 1fr) 80px; align-items: center; }
@@ -254,6 +252,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .meta-prompt-preview { margin: 4px 0 12px; border: 1px solid var(--line); border-radius: 6px; background: #f8faf8; }
 .meta-prompt-preview > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 11px; border-bottom: 1px solid var(--line); }
 .meta-prompt-preview strong { color: var(--green); font-size: 13px; }
+.meta-prompt-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.meta-prompt-actions .small-button { min-height: 32px; padding: 5px 10px; }
 .meta-prompt-preview .text-button { margin: 0; color: var(--green); white-space: nowrap; }
 .meta-prompt-preview pre { max-height: 140px; margin: 0; overflow: auto; padding: 11px 12px; white-space: pre-wrap; color: #2a332d; font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
 
@@ -540,10 +540,9 @@ input:checked + .slider:before { transform: translateX(20px); }
   .gem-create-workspace { grid-template-columns: 1fr; }
   .gem-create-workspace .meta-prompt-preview { min-height: 260px; }
   .gem-create-workspace .meta-prompt-preview pre { max-height: 300px; }
+  .meta-prompt-preview > div { align-items: flex-start; flex-direction: column; }
+  .meta-prompt-actions { width: 100%; justify-content: space-between; }
   .method-list-head, .method-row { grid-template-columns: 42px minmax(0, 1fr) 70px; }
-  .flow-actions { align-items: stretch; flex-direction: column-reverse; }
-  .flow-actions > span { display: none; }
-  .flow-actions button { width: 100%; }
   .lesson-one-grid, .gems-layout, .game-layout { display: block; }
   .activity-panel, .gems-guide, .practice-panel, .game-browser, .reflection-panel { padding: 17px; }
   .game-layout > .game-browser, .game-layout > .reflection-panel { padding: 17px; }
