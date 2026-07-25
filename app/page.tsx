@@ -75,6 +75,7 @@ export default function Home() {
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<Step>(1);
   const [submissions, setSubmissions] = useState(emptySubmissions);
+  const submissionsRef = useRef(submissions);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
@@ -89,6 +90,10 @@ export default function Home() {
     () => Object.values(submissions).filter((item) => item.status === "submitted").length,
     [submissions],
   );
+
+  useEffect(() => {
+    submissionsRef.current = submissions;
+  }, [submissions]);
 
   useEffect(() => {
     async function loadSubmissions(activeSession: Session) {
@@ -173,11 +178,14 @@ export default function Home() {
   }
 
   function updateField(key: string, value: string) {
-    const updatedData = { ...submissions[step].data, [key]: value };
-    setSubmissions((prev) => ({
-      ...prev,
-      [step]: { ...prev[step], data: updatedData, status: "draft" },
-    }));
+    const latestSubmissions = submissionsRef.current;
+    const updatedData = { ...latestSubmissions[step].data, [key]: value };
+    const nextSubmissions = {
+      ...latestSubmissions,
+      [step]: { ...latestSubmissions[step], data: updatedData, status: "draft" as const },
+    };
+    submissionsRef.current = nextSubmissions;
+    setSubmissions(nextSubmissions);
     setSaveState("saving");
 
     if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
