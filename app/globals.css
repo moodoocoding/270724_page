@@ -115,7 +115,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .sidebar nav button.active strong { text-decoration: underline; text-underline-offset: 4px; }
 .logout { padding: 8px 5px; border: 0; color: var(--muted); background: transparent; font-size: 13px; text-align: left; }
 
-.work-area { width: 100%; max-width: 1600px; margin: 0 auto; padding: 30px clamp(24px, 3vw, 48px) 76px; }
+.work-area { width: 100%; min-width: 0; max-width: 1600px; margin: 0 auto; padding: 30px clamp(24px, 3vw, 48px); }
 .step-heading { display: grid; grid-template-columns: 76px 1fr; column-gap: 18px; margin-bottom: 24px; }
 .step-heading p { grid-row: 1 / span 2; margin: 6px 0 0; color: var(--green); font-size: 13px; font-weight: 700; }
 .step-heading h1 { margin: 0 0 5px; font-size: clamp(30px, 3vw, 38px); line-height: 1.15; letter-spacing: -1.2px; }
@@ -421,9 +421,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .upload-status span small { color: var(--muted); }
 .upload-status a { flex: 0 0 auto; color: var(--green); font-weight: 750; }
 .actionbar {
-  position: fixed; right: 0; bottom: 0; left: 208px; z-index: 15; height: 64px;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(24px, 3vw, 48px);
-  border-top: 1px solid var(--line); background: rgba(255,255,255,.97);
+  width: 100%; min-height: 64px; display: flex; align-items: center; justify-content: space-between;
+  margin-top: 24px; padding: 14px 0 0; border-top: 1px solid var(--line); background: #fff;
 }
 .actionbar p { margin: 0; color: var(--muted); font-size: 13px; }
 .actionbar div { display: flex; gap: 8px; }
@@ -495,7 +494,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 @media (max-width: 1100px) {
   .workspace { grid-template-columns: 184px minmax(0, 1fr); }
-  .actionbar { left: 184px; }
   .lesson-one-grid, .gems-layout, .game-layout { grid-template-columns: 1fr; }
   .request-layout, .method-choice-layout { grid-template-columns: 1fr; }
   .guide-steps { grid-template-columns: repeat(3, 1fr); }
@@ -529,7 +527,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   .sidebar nav button > span { width: 24px; height: 24px; }
   .sidebar nav button small { display: none; }
   .logout { display: none; }
-  .work-area { padding: 24px 16px 108px; }
+  .work-area { padding: 24px 16px; }
   .step-heading { display: block; margin-bottom: 20px; }
   .step-heading p { margin: 0 0 5px; }
   .step-heading h1 { font-size: 29px; }
@@ -574,7 +572,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   .gallery-comment-modal-body { padding: 6px 16px; }
   .gallery-comment-compose { padding: 14px 16px max(14px, env(safe-area-inset-bottom)); }
   .form-grid label.wide { grid-column: auto; }
-  .actionbar { left: 0; height: 98px; flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 14px max(8px, env(safe-area-inset-bottom)); }
+  .actionbar { min-height: 0; flex-direction: column; align-items: stretch; gap: 8px; padding: 14px 0 max(8px, env(safe-area-inset-bottom)); }
   .actionbar p { overflow: hidden; font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
   .actionbar div { width: 100%; }
   .actionbar button { flex: 1; }
