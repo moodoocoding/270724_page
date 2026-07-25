@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
 const allowedUploadExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
@@ -69,26 +69,36 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
   const [editingCommentBody, setEditingCommentBody] = useState("");
   const [editingCommentBusy, setEditingCommentBusy] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/gallery", { cache: "no-store" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("갤러리를 불러오지 못했습니다.");
-        return response.json() as Promise<{ items: GalleryItem[] }>;
-      })
-      .then((body) => {
-        if (active) setItems(body.items);
-      })
-      .catch(() => {
-        if (active) setLoadError("동료 결과물을 불러오지 못했습니다. 잠시 후 다시 열어 보세요.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+  const loadGallery = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const response = await fetch("/api/gallery", { cache: "no-store", signal });
+      const body = await response.json() as { items?: GalleryItem[]; error?: string };
+      if (!response.ok || !Array.isArray(body.items)) {
+        throw new Error(body.error || "갤러리를 불러오지 못했습니다.");
+      }
+      setItems(body.items.map((item) => ({
+        ...item,
+        comments: Array.isArray(item.comments) ? item.comments : [],
+      })));
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : "동료 결과물을 불러오지 못했습니다. 잠시 후 다시 열어 보세요.",
+      );
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadGallery(controller.signal);
+    return () => controller.abort();
+  }, [loadGallery]);
 
   const uploadFinalResult = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -342,7 +352,14 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
           ))}
         </div>
         {loading && <p className="gallery-note">동료 결과물을 불러오는 중입니다.</p>}
-        {loadError && <p className="gallery-note error">{loadError}</p>}
+        {loadError && (
+          <div className="gallery-load-error" role="alert">
+            <p className="gallery-note error">{loadError}</p>
+            <button type="button" className="secondary small-button" onClick={() => void loadGallery()}>
+              다시 불러오기
+            </button>
+          </div>
+        )}
         {!loading && !loadError && !items.length && (
           <p className="gallery-note">
             아직 제출된 동료 작품이 없습니다. 제출되면 예시 작품 옆에 나타납니다.

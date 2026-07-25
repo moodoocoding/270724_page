@@ -1,5 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { getParticipantId } from "../../../lib/participant-session";
 import { getSupabase } from "../../../lib/supabase-server";
+
+type GalleryComment = {
+  id: string;
+  authorId: number;
+  authorSchool: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  editedAt?: string;
+};
 
 type SubmissionRow = {
   participant_id: number;
@@ -16,6 +27,31 @@ type CommentRow = {
   created_at: string;
   updated_at: string;
 };
+
+function parseComments(value: unknown): GalleryComment[] {
+  try {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((comment): comment is GalleryComment => (
+      typeof comment?.id === "string" &&
+      typeof comment?.authorId === "number" &&
+      typeof comment?.authorSchool === "string" &&
+      typeof comment?.authorName === "string" &&
+      typeof comment?.body === "string" &&
+      typeof comment?.createdAt === "string"
+    )).slice(-50);
+  } catch {
+    return [];
+  }
+}
+
+function isMissingCommentsTable(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string };
+  return candidate.code === "PGRST205" ||
+    candidate.code === "42P01" ||
+    candidate.message?.includes("public.comments") === true;
+}
 
 async function findStoredResultUrl(participantId: number) {
   const supabase = getSupabase();
@@ -75,9 +111,10 @@ export async function GET() {
       .select("id, target_participant_id, author_participant_id, body, created_at, updated_at")
       .in("target_participant_id", ids)
       .order("created_at", { ascending: true });
-    if (commentsError) throw commentsError;
+    if (commentsError && !isMissingCommentsTable(commentsError)) throw commentsError;
 
     const commentsList = (dbComments ?? []) as CommentRow[];
+    const useLegacyComments = isMissingCommentsTable(commentsError);
     const peopleMap = new Map((people ?? []).map((p) => [p.id, p]));
     const rows = (submissions ?? []) as SubmissionRow[];
 
@@ -93,21 +130,26 @@ export async function GET() {
         : "";
 
       // Map comments for this participant
-      const targetComments = commentsList
-        .filter((c) => c.target_participant_id === person.id)
-        .map((comment) => {
-          const author = peopleMap.get(comment.author_participant_id);
-          return {
-            id: comment.id,
-            authorId: comment.author_participant_id,
-            authorSchool: author?.school ?? "알 수 없음",
-            authorName: author?.name ?? "알 수 없음",
-            body: comment.body,
-            createdAt: comment.created_at,
-            editedAt: comment.created_at !== comment.updated_at ? comment.updated_at : undefined,
-            isMine: comment.author_participant_id === participantId,
-          };
-        });
+      const targetComments = useLegacyComments
+        ? parseComments(thirdData.galleryComments).map((comment) => ({
+            ...comment,
+            isMine: comment.authorId === participantId,
+          }))
+        : commentsList
+            .filter((c) => c.target_participant_id === person.id)
+            .map((comment) => {
+              const author = peopleMap.get(comment.author_participant_id);
+              return {
+                id: comment.id,
+                authorId: comment.author_participant_id,
+                authorSchool: author?.school ?? "알 수 없음",
+                authorName: author?.name ?? "알 수 없음",
+                body: comment.body,
+                createdAt: comment.created_at,
+                editedAt: comment.created_at !== comment.updated_at ? comment.updated_at : undefined,
+                isMine: comment.author_participant_id === participantId,
+              };
+            });
 
       return {
         id: person.id,
@@ -172,6 +214,39 @@ export async function POST(request: Request) {
       .from("comments")
       .select("*", { count: "exact", head: true })
       .eq("target_participant_id", targetId);
+    if (countError && isMissingCommentsTable(countError)) {
+      const { data: submission, error: submissionError } = await supabase
+        .from("submissions")
+        .select("id,data_json,status")
+        .eq("participant_id", targetId)
+        .eq("step", 3)
+        .single();
+      if (submissionError || !submission || submission.status !== "submitted") {
+        return Response.json({ error: "제출된 3차시 작품을 찾지 못했습니다." }, { status: 404 });
+      }
+
+      const dataJson = (submission.data_json ?? {}) as Record<string, string>;
+      const comments = parseComments(dataJson.galleryComments);
+      if (comments.length >= 50) {
+        return Response.json({ error: "이 작품에는 댓글을 더 등록할 수 없습니다." }, { status: 409 });
+      }
+
+      const comment: GalleryComment = {
+        id: randomUUID(),
+        authorId: author.id,
+        authorSchool: author.school,
+        authorName: author.name,
+        body: commentBody,
+        createdAt: new Date().toISOString(),
+      };
+      const { error: updateError } = await supabase
+        .from("submissions")
+        .update({ data_json: { ...dataJson, galleryComments: JSON.stringify([...comments, comment]) } })
+        .eq("id", submission.id);
+      if (updateError) throw updateError;
+
+      return Response.json({ comment: { ...comment, isMine: true } });
+    }
     if (countError) throw countError;
     if (count !== null && count >= 50) {
       return Response.json({ error: "이 작품에는 댓글을 더 등록할 수 없습니다." }, { status: 409 });
@@ -253,6 +328,51 @@ export async function PATCH(request: Request) {
       .eq("author_participant_id", author.id)
       .select("id, target_participant_id, author_participant_id, body, created_at, updated_at")
       .single();
+
+    if (updateError && isMissingCommentsTable(updateError)) {
+      const { data: target, error: targetError } = await supabase
+        .from("participants")
+        .select("id,class_id")
+        .eq("id", targetId)
+        .single();
+      if (targetError || !target || target.class_id !== author.class_id) {
+        return Response.json({ error: "같은 연수 회차의 작품에 있는 댓글만 수정할 수 있습니다." }, { status: 403 });
+      }
+
+      const { data: submission, error: submissionError } = await supabase
+        .from("submissions")
+        .select("id,data_json,status")
+        .eq("participant_id", targetId)
+        .eq("step", 3)
+        .single();
+      if (submissionError || !submission || submission.status !== "submitted") {
+        return Response.json({ error: "제출된 3차시 작품을 찾지 못했습니다." }, { status: 404 });
+      }
+
+      const dataJson = (submission.data_json ?? {}) as Record<string, string>;
+      const comments = parseComments(dataJson.galleryComments);
+      const commentIndex = comments.findIndex((comment) => comment.id === normalizedCommentId);
+      if (commentIndex < 0) {
+        return Response.json({ error: "수정할 댓글을 찾지 못했습니다." }, { status: 404 });
+      }
+      if (comments[commentIndex].authorId !== author.id) {
+        return Response.json({ error: "내가 작성한 댓글만 수정할 수 있습니다." }, { status: 403 });
+      }
+
+      const legacyComment: GalleryComment = {
+        ...comments[commentIndex],
+        body: commentBody,
+        editedAt: new Date().toISOString(),
+      };
+      comments[commentIndex] = legacyComment;
+      const { error: legacyUpdateError } = await supabase
+        .from("submissions")
+        .update({ data_json: { ...dataJson, galleryComments: JSON.stringify(comments) } })
+        .eq("id", submission.id);
+      if (legacyUpdateError) throw legacyUpdateError;
+
+      return Response.json({ comment: { ...legacyComment, isMine: true } });
+    }
 
     if (updateError || !updatedComment) {
       console.error(updateError);

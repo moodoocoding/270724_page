@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import { workshopRegions, workshopSessions } from "../lib/workshops";
+import { findWorkshopSession, workshopRegions, workshopSessions } from "../lib/workshops";
 import { Brand } from "./components/Brand";
 import { LessonOneActivity } from "./components/LessonOneActivity";
 import { GemsLab } from "./components/GemsLab";
@@ -92,6 +92,17 @@ export default function Home() {
 
   useEffect(() => {
     async function loadSubmissions(activeSession: Session) {
+      const sessionResponse = await fetch("/api/session", { cache: "no-store" });
+      if (sessionResponse.ok) {
+        const sessionBody = await sessionResponse.json() as { session: Session };
+        const refreshedSession = sessionBody.session;
+        window.localStorage.setItem("oneday-session", JSON.stringify(refreshedSession));
+        if (JSON.stringify(refreshedSession) !== JSON.stringify(activeSession)) {
+          setSession(refreshedSession);
+          activeSession = refreshedSession;
+        }
+      }
+
       let res = await fetch("/api/submissions", { cache: "no-store" });
       if (res.status === 401) {
         const renewed = await fetch("/api/session", {
@@ -106,6 +117,7 @@ export default function Home() {
         }
         const renewedBody = await renewed.json();
         window.localStorage.setItem("oneday-session", JSON.stringify(renewedBody.session));
+        setSession(renewedBody.session);
         res = await fetch("/api/submissions", { cache: "no-store" });
       }
       if (!res.ok) return;
@@ -285,7 +297,10 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <Brand />
-        <div className="user-chip"><span>{session.className} · {session.school}</span><strong>{session.participantName}</strong></div>
+        <div className="user-chip">
+          <span>{findWorkshopSession(session.classCode)?.className ?? session.className} · {session.school}</span>
+          <strong>{session.participantName}</strong>
+        </div>
       </header>
       <div className="workspace">
         <aside className="sidebar">

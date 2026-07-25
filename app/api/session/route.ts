@@ -1,6 +1,46 @@
 import { getSupabase } from "../../../lib/supabase-server";
-import { clearParticipantSession, setParticipantSession } from "../../../lib/participant-session";
+import { clearParticipantSession, getParticipantId, setParticipantSession } from "../../../lib/participant-session";
 import { findWorkshopSession } from "../../../lib/workshops";
+
+export async function GET() {
+  try {
+    const participantId = await getParticipantId();
+    if (!participantId) {
+      return Response.json({ error: "다시 입장해 주세요." }, { status: 401 });
+    }
+
+    const supabase = getSupabase();
+    const { data: participant, error: participantError } = await supabase
+      .from("participants")
+      .select("id,class_id,school,name")
+      .eq("id", participantId)
+      .single();
+    if (participantError || !participant) {
+      return Response.json({ error: "참여자 정보를 찾지 못했습니다." }, { status: 401 });
+    }
+
+    const { data: workshop, error: workshopError } = await supabase
+      .from("classes")
+      .select("name,code")
+      .eq("id", participant.class_id)
+      .single();
+    if (workshopError || !workshop) throw workshopError ?? new Error("연수 회차를 찾지 못했습니다.");
+
+    const selectedWorkshop = findWorkshopSession(workshop.code);
+    return Response.json({
+      session: {
+        participantId: participant.id,
+        participantName: participant.name,
+        school: participant.school,
+        className: selectedWorkshop?.className ?? workshop.name,
+        classCode: workshop.code,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "입장 정보를 불러오지 못했습니다." }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
