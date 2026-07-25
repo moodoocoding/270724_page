@@ -69,6 +69,9 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentBody, setEditingCommentBody] = useState("");
   const [editingCommentBusy, setEditingCommentBusy] = useState(false);
+  const [commentItemId, setCommentItemId] = useState<number | null>(null);
+  const commentCount = items.reduce((total, item) => total + item.comments.length, 0);
+  const commentItem = items.find((item) => item.id === commentItemId) ?? null;
 
   const loadGallery = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -100,6 +103,18 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
     void loadGallery(controller.signal);
     return () => controller.abort();
   }, [loadGallery]);
+
+  useEffect(() => {
+    if (commentItemId === null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setEditingCommentId(null);
+      setEditingCommentBody("");
+      setCommentItemId(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [commentItemId]);
 
   const uploadFinalResult = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -176,6 +191,11 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
     setEditingCommentBody("");
   };
 
+  const closeCommentModal = () => {
+    cancelEditingComment();
+    setCommentItemId(null);
+  };
+
   const updateComment = async (event: React.FormEvent, targetParticipantId: number, commentId: string) => {
     event.preventDefault();
     const body = editingCommentBody.trim();
@@ -220,8 +240,18 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
           <div>
             <b>갤러리워크</b>
             <h2>동료 작품 둘러보기</h2>
+            <p>작품을 체험하고 댓글로 남긴 의견을 최종본에 반영해 보세요.</p>
           </div>
-          <p>작품을 열어 보고, 내 결과물에 반영할 의견을 정해 보세요.</p>
+          <dl className="gallery-overview" aria-label="갤러리 현황">
+            <div>
+              <dt>동료 작품</dt>
+              <dd>{items.length}</dd>
+            </div>
+            <div>
+              <dt>공유된 의견</dt>
+              <dd>{commentCount}</dd>
+            </div>
+          </dl>
         </header>
         <div className="gallery-grid" aria-label={`예시 작품 1개와 동료 작품 ${items.length}개`}>
           {[galleryExample, ...items].map((item) => (
@@ -241,7 +271,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                 <small>선택한 수업 설계</small>
                 <p>{item.method || "수업 설계를 정리 중입니다."}</p>
               </div>
-              <div className="gallery-actions">
+              <div className={item.isExample ? "gallery-actions" : "gallery-actions has-comments"}>
                 {item.resultUrl ? (
                   <a
                     className="primary small-button"
@@ -263,92 +293,16 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                 ) : (
                   <span>3차시 제출 완료 · 체험 파일 준비 중</span>
                 )}
+                {!item.isExample && (
+                  <button
+                    type="button"
+                    className="secondary small-button gallery-comment-button"
+                    onClick={() => setCommentItemId(item.id)}
+                  >
+                    댓글 보기 {item.comments.length}
+                  </button>
+                )}
               </div>
-              {!item.isExample && (
-                <section className="gallery-comments">
-                  <div className="gallery-comments-head">
-                    <strong>댓글로 의견 남기기</strong>
-                    <span>{item.comments?.length || 0}</span>
-                  </div>
-                  {!!item.comments?.length && (
-                    <div className="gallery-comment-list">
-                      {item.comments.map((comment) => (
-                        <article key={comment.id}>
-                          <header>
-                            <strong>
-                              {comment.authorName} 선생님{" "}
-                              {comment.editedAt && <small>수정됨</small>}
-                            </strong>
-                            {comment.isMine && editingCommentId !== comment.id && (
-                              <button type="button" onClick={() => startEditingComment(comment)}>
-                                수정
-                              </button>
-                            )}
-                          </header>
-                          {editingCommentId === comment.id ? (
-                            <form
-                              className="gallery-comment-edit"
-                              onSubmit={(event) => updateComment(event, item.id, comment.id)}
-                            >
-                              <input
-                                aria-label="댓글 수정"
-                                value={editingCommentBody}
-                                onChange={(event) => setEditingCommentBody(event.target.value)}
-                                maxLength={300}
-                                autoFocus
-                              />
-                              <div>
-                                <button
-                                  type="button"
-                                  onClick={cancelEditingComment}
-                                  disabled={editingCommentBusy}
-                                >
-                                  취소
-                                </button>
-                                <button
-                                  type="submit"
-                                  className="secondary"
-                                  disabled={editingCommentBusy || !editingCommentBody.trim()}
-                                >
-                                  {editingCommentBusy ? "저장 중…" : "저장"}
-                                </button>
-                              </div>
-                            </form>
-                          ) : (
-                            <p>{comment.body}</p>
-                          )}
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                  <form onSubmit={(event) => submitComment(event, item.id)}>
-                    <input
-                      aria-label={`${item.name} 선생님 작품에 남길 댓글`}
-                      value={commentDrafts[item.id] || ""}
-                      onChange={(event) =>
-                        setCommentDrafts((previous) => ({
-                          ...previous,
-                          [item.id]: event.target.value,
-                        }))
-                      }
-                      placeholder="좋았던 점이나 제안을 남겨 주세요."
-                      maxLength={300}
-                    />
-                    <button
-                      type="submit"
-                      className="secondary small-button"
-                      disabled={commentBusy === item.id || !(commentDrafts[item.id] || "").trim()}
-                    >
-                      {commentBusy === item.id ? "저장 중…" : "등록"}
-                    </button>
-                  </form>
-                  {commentErrors[item.id] && (
-                    <p className="gallery-comment-error" role="alert">
-                      {commentErrors[item.id]}
-                    </p>
-                  )}
-                </section>
-              )}
             </article>
           ))}
         </div>
@@ -372,8 +326,8 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
         <header className="panel-title">
           <b>최종</b>
           <div>
-            <h2>의견을 반영해 최종본을 제출하세요.</h2>
-            <p>아래 두 항목만 작성하면 4차시가 끝납니다.</p>
+            <h2>최종 결과 정리</h2>
+            <p>반영한 의견을 기록하고 완성한 파일을 제출하세요.</p>
           </div>
         </header>
         <div className="gallery-final-grid">
@@ -426,6 +380,111 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
           </div>
         </div>
       </section>
+
+      {commentItem && (
+        <div className="gallery-comment-modal-backdrop" role="presentation" onMouseDown={closeCommentModal}>
+          <section
+            className="gallery-comment-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gallery-comment-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <span>{commentItem.isMine ? "내 작품" : `${commentItem.name} 선생님 작품`}</span>
+                <h2 id="gallery-comment-modal-title">{commentItem.contentTitle || "동료 작품 의견"}</h2>
+              </div>
+              <button type="button" className="gallery-comment-modal-close" onClick={closeCommentModal} aria-label="댓글 창 닫기">
+                ×
+              </button>
+            </header>
+
+            <div className="gallery-comment-modal-body">
+              {commentItem.comments.length ? (
+                <div className="gallery-comment-list">
+                  {commentItem.comments.map((comment) => (
+                    <article key={comment.id}>
+                      <header>
+                        <strong>
+                          {comment.authorName} 선생님{" "}
+                          {comment.editedAt && <small>수정됨</small>}
+                        </strong>
+                        {comment.isMine && editingCommentId !== comment.id && (
+                          <button type="button" onClick={() => startEditingComment(comment)}>
+                            수정
+                          </button>
+                        )}
+                      </header>
+                      {editingCommentId === comment.id ? (
+                        <form
+                          className="gallery-comment-edit"
+                          onSubmit={(event) => updateComment(event, commentItem.id, comment.id)}
+                        >
+                          <input
+                            aria-label="댓글 수정"
+                            value={editingCommentBody}
+                            onChange={(event) => setEditingCommentBody(event.target.value)}
+                            maxLength={300}
+                            autoFocus
+                          />
+                          <div>
+                            <button type="button" onClick={cancelEditingComment} disabled={editingCommentBusy}>
+                              취소
+                            </button>
+                            <button
+                              type="submit"
+                              className="secondary"
+                              disabled={editingCommentBusy || !editingCommentBody.trim()}
+                            >
+                              {editingCommentBusy ? "저장 중…" : "저장"}
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <p>{comment.body}</p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="gallery-comment-empty">아직 등록된 댓글이 없습니다.</p>
+              )}
+            </div>
+
+            <form className="gallery-comment-compose" onSubmit={(event) => submitComment(event, commentItem.id)}>
+              <label htmlFor={`gallery-comment-${commentItem.id}`}>댓글로 의견 남기기</label>
+              <div>
+                <input
+                  id={`gallery-comment-${commentItem.id}`}
+                  value={commentDrafts[commentItem.id] || ""}
+                  onChange={(event) =>
+                    setCommentDrafts((previous) => ({
+                      ...previous,
+                      [commentItem.id]: event.target.value,
+                    }))
+                  }
+                  placeholder="좋았던 점이나 제안을 남겨 주세요."
+                  maxLength={300}
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  className="primary small-button"
+                  disabled={commentBusy === commentItem.id || !(commentDrafts[commentItem.id] || "").trim()}
+                >
+                  {commentBusy === commentItem.id ? "저장 중…" : "등록"}
+                </button>
+              </div>
+              {commentErrors[commentItem.id] && (
+                <p className="gallery-comment-error" role="alert">
+                  {commentErrors[commentItem.id]}
+                </p>
+              )}
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
