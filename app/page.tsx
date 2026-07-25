@@ -292,7 +292,10 @@ export default function Home() {
           {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
           {step === 3 && <GameLab data={current.data} onChange={updateField} />}
 
-          {step === 4 && <GalleryWalk data={current.data} onChange={updateField} />}
+          {step === 4 && <GalleryWalk data={current.data} onChange={updateField} onReturnToUpload={() => {
+            setStep(3);
+            setMessage("3차시에서 결과물 파일을 다시 탑재해 주세요. 탑재가 끝나면 갤러리에 자동으로 연결됩니다.");
+          }} />}
 
           <footer className="actionbar">
             <p role="status" aria-live="polite">{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다.")}</p>
@@ -605,7 +608,9 @@ const gameCatalog = [
 ] as const;
 
 function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
-  const [subTab, setSubTab] = useState<"step1" | "step2">("step1");
+  const [subTab, setSubTab] = useState<"step1" | "step2">(
+    () => data.contentTitle && !data.resultUrl ? "step2" : "step1",
+  );
   const [selected, setSelected] = useState(() => gameCatalog.some((game) => game.id === data.gameId) ? data.gameId : "spacing");
   const [uploadPreview, setUploadPreview] = useState<{ kind: "html" | "image" | "file"; content: string } | null>(null);
   const [uploadError, setUploadError] = useState("");
@@ -907,7 +912,15 @@ const galleryExample: GalleryItem = {
   comments: [],
 };
 
-function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChange: (key: string, value: string) => void }) {
+function GalleryWalk({
+  data,
+  onChange,
+  onReturnToUpload,
+}: {
+  data: Record<string, string>;
+  onChange: (key: string, value: string) => void;
+  onReturnToUpload: () => void;
+}) {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -997,8 +1010,10 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
           <div className="gallery-actions">
             {item.resultUrl ? (
               <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer" aria-label={`${item.name} 선생님의 작품 새 창에서 체험하기`}>작품 체험하기 ↗</a>
+            ) : item.isMine ? (
+              <button type="button" className="secondary small-button" onClick={onReturnToUpload}>3차시 파일 다시 탑재하기</button>
             ) : (
-              <span>공유된 결과물 링크가 없습니다.</span>
+              <span>3차시 제출 완료 · 체험 파일 준비 중</span>
             )}
           </div>
           {!item.isExample && <section className="gallery-comments">

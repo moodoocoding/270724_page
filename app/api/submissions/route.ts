@@ -75,9 +75,22 @@ export async function POST(request: Request) {
         .eq("step", 3)
         .maybeSingle();
       if (existingError) throw existingError;
-      const existingComments = (existing?.data_json as Record<string, unknown> | null)?.galleryComments;
+      const existingData = (existing?.data_json ?? {}) as Record<string, unknown>;
+      const existingComments = existingData.galleryComments;
       if (typeof existingComments === "string") {
         sanitizedData = { ...sanitizedData, galleryComments: existingComments };
+      }
+
+      const uploadKeys = ["uploadedFileName", "uploadedFileSize", "uploadedFilePath", "resultUrl"] as const;
+      if (typeof existingData.uploadCanceledAt === "string" && existingData.uploadCanceledAt) {
+        for (const key of uploadKeys) delete sanitizedData[key];
+        sanitizedData.uploadCanceledAt = existingData.uploadCanceledAt;
+      } else {
+        for (const key of uploadKeys) {
+          if (!sanitizedData[key] && typeof existingData[key] === "string" && existingData[key]) {
+            sanitizedData[key] = existingData[key];
+          }
+        }
       }
     }
 
