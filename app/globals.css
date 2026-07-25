@@ -191,9 +191,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-two-panel .guide-head h2 { margin: 3px 0 4px; font-size: 23px; }
 .lesson-two-panel .guide-head p { margin: 0; color: var(--muted); font-size: 13px; }
 .section-kicker { color: var(--green); font-size: 12px; font-weight: 800; }
-.gem-create-panel .guide-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.gem-create-panel .guide-steps li { grid-template-columns: 1fr; align-content: start; padding: 0; border: 0; }
-.gem-create-panel .guide-image, .gem-create-panel .guide-steps img { width: 100%; height: 118px; }
+.gem-create-workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); align-items: stretch; gap: 18px; }
+.gem-create-workspace .meta-prompt-preview { min-height: 310px; display: flex; flex-direction: column; margin: 0; }
+.gem-create-workspace .meta-prompt-preview pre { min-height: 0; max-height: 380px; flex: 1; }
+.gem-create-workspace .guide-steps { grid-template-columns: 1fr; gap: 10px; }
+.gem-create-workspace .guide-steps li { grid-template-columns: 132px minmax(0, 1fr); align-items: center; padding: 0 0 10px; }
+.gem-create-workspace .guide-steps li:last-child { padding-bottom: 0; border-bottom: 0; }
+.gem-create-workspace .guide-image, .gem-create-workspace .guide-steps img { width: 132px; height: 82px; }
 .request-layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); gap: 18px; align-items: stretch; }
 .request-form-card, .request-preview-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: #f8faf8; }
 .compact-starter { padding-right: 12px; }
@@ -496,6 +500,10 @@ input:checked + .slider:before { transform: translateX(20px); }
   .gallery-final-grid { grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); }
 }
 
+@media (max-width: 900px) {
+  .gem-create-workspace { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 767px) {
   .entry-shell { grid-template-columns: 1fr; padding: 16px; }
   .entry-note { display: none; }
@@ -523,9 +531,9 @@ input:checked + .slider:before { transform: translateX(20px); }
   .request-fields { grid-template-columns: 1fr; }
   .request-fields label.wide { grid-column: auto; }
   .request-preview-card > div { grid-template-columns: 1fr; }
-  .gem-create-panel .guide-steps { grid-template-columns: 1fr; }
-  .gem-create-panel .guide-steps li { grid-template-columns: 130px 1fr; }
-  .gem-create-panel .guide-image, .gem-create-panel .guide-steps img { width: 130px; height: 82px; }
+  .gem-create-workspace { grid-template-columns: 1fr; }
+  .gem-create-workspace .meta-prompt-preview { min-height: 260px; }
+  .gem-create-workspace .meta-prompt-preview pre { max-height: 300px; }
   .method-list-head, .method-row { grid-template-columns: 42px minmax(0, 1fr) 70px; }
   .flow-actions { align-items: stretch; flex-direction: column-reverse; }
   .flow-actions > span { display: none; }

@@ -131,86 +131,88 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
               </button>
               <a
                 className="primary small-button"
-                href="https://gemini.google.com/gems"
+                href="https://gemini.google.com/gems/create"
                 target="_blank"
                 rel="noreferrer"
                 onClick={() => onChange("gemCreatedAt", new Date().toISOString())}
               >
-                Gemini 열기 ↗
+                새 Gem 만들기 ↗
               </a>
             </div>
           </div>
 
-          <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
-            <div>
-              <strong>Gem 요청 사항에 아래 메타 프롬프트 전체를 붙여 넣으세요.</strong>
-              <button className="text-button" onClick={openMetaModal}>
-                크게 보기
-              </button>
-            </div>
-            <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
-          </section>
+          <div className="gem-create-workspace">
+            <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
+              <div>
+                <strong>Gem 요청 사항에 아래 메타 프롬프트 전체를 붙여 넣으세요.</strong>
+                <button className="text-button" onClick={openMetaModal}>
+                  크게 보기
+                </button>
+              </div>
+              <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
+            </section>
 
-          <ol className="guide-steps">
-            <li>
-              <a
-                className="guide-image"
-                href="/gems/step-1.png"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Gem 관리자에서 새 Gem 열기 안내 이미지"
-              >
-                <Image src="/gems/step-1.png" width={640} height={390} alt="Gem 관리자에서 새 Gem 버튼 위치" />
-              </a>
-              <div>
-                <b>01</b>
-                <strong>새 Gem을 여세요</strong>
-                <p>Gem 관리자에서 ‘새 Gem’을 누릅니다.</p>
-              </div>
-            </li>
-            <li>
-              <a
-                className="guide-image"
-                href="/gems/step-2.png"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="메타 프롬프트 입력 안내 이미지"
-              >
-                <Image
-                  src="/gems/step-2.png"
-                  width={640}
-                  height={390}
-                  alt="Gem 요청 사항에 메타 프롬프트를 붙여 넣는 위치"
-                />
-              </a>
-              <div>
-                <b>02</b>
-                <strong>메타 프롬프트를 넣으세요</strong>
-                <p>요청 사항에 붙여 넣고 저장합니다.</p>
-              </div>
-            </li>
-            <li>
-              <a
-                className="guide-image"
-                href="/gems/step-3.png"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Gem 채팅 시작 안내 이미지"
-              >
-                <Image
-                  src="/gems/step-3.png"
-                  width={640}
-                  height={390}
-                  alt="저장된 Gem에서 채팅 시작 버튼 위치"
-                />
-              </a>
-              <div>
-                <b>03</b>
-                <strong>채팅을 시작하세요</strong>
-                <p>완성한 Gem에서 새 대화를 시작합니다.</p>
-              </div>
-            </li>
-          </ol>
+            <ol className="guide-steps">
+              <li>
+                <a
+                  className="guide-image"
+                  href="/gems/step-1.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Gem 관리자에서 새 Gem 열기 안내 이미지"
+                >
+                  <Image src="/gems/step-1.png" width={640} height={390} alt="Gem 관리자에서 새 Gem 버튼 위치" />
+                </a>
+                <div>
+                  <b>01</b>
+                  <strong>새 Gem을 여세요</strong>
+                  <p>Gem 관리자에서 ‘새 Gem’을 누릅니다.</p>
+                </div>
+              </li>
+              <li>
+                <a
+                  className="guide-image"
+                  href="/gems/step-2.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="메타 프롬프트 입력 안내 이미지"
+                >
+                  <Image
+                    src="/gems/step-2.png"
+                    width={640}
+                    height={390}
+                    alt="Gem 요청 사항에 메타 프롬프트를 붙여 넣는 위치"
+                  />
+                </a>
+                <div>
+                  <b>02</b>
+                  <strong>메타 프롬프트를 넣으세요</strong>
+                  <p>요청 사항에 붙여 넣고 저장합니다.</p>
+                </div>
+              </li>
+              <li>
+                <a
+                  className="guide-image"
+                  href="/gems/step-3.png"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Gem 채팅 시작 안내 이미지"
+                >
+                  <Image
+                    src="/gems/step-3.png"
+                    width={640}
+                    height={390}
+                    alt="저장된 Gem에서 채팅 시작 버튼 위치"
+                  />
+                </a>
+                <div>
+                  <b>03</b>
+                  <strong>채팅을 시작하세요</strong>
+                  <p>완성한 Gem에서 새 대화를 시작합니다.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
           <div className="flow-actions">
             <span />
             <button
