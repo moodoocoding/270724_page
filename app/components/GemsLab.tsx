@@ -98,19 +98,20 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </div>
       )}
 
-      <nav className="lesson-two-tabs" aria-label="2차시 활동 단계">
+      <nav className="subtab-bar lesson-two-stage-nav" aria-label="2차시 단계 선택">
         {[
-          [1, "Gem 만들기"],
-          [2, "AI에게 요청하기"],
-          [3, "방법 비교·선택하기"],
+          [1, "🧩 1단계: Gem 만들기"],
+          [2, "✍️ 2단계: AI에게 요청하기"],
+          [3, "✅ 3단계: 방법 비교·선택하기"],
         ].map(([value, label]) => (
           <button
             key={value}
-            className={subStep === value ? "active" : ""}
+            type="button"
+            className={subStep === value ? "primary" : "secondary"}
             aria-current={subStep === value ? "step" : undefined}
+            aria-pressed={subStep === value}
             onClick={() => setSubStep(value as 1 | 2 | 3)}
           >
-            <span>{value}</span>
             {label}
           </button>
         ))}
