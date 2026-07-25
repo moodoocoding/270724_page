@@ -81,13 +81,6 @@ const emptySubmissions = (): Record<Step, Submission> => ({
   4: { step: 4, status: "draft", data: {} },
 });
 
-const requiredKeys: Record<Step, string[]> = {
-  1: ["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change"],
-  2: ["grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethod", "selectionReason"],
-  3: ["gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan"],
-  4: ["revision", "finalUrl"],
-};
-
 export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
   const [session, setSession] = useState<Session | null>(() => {
@@ -173,16 +166,6 @@ export default function Home() {
 
   async function save(status: "draft" | "submitted") {
     if (!session) return;
-    if (status === "submitted") {
-      const missing = requiredKeys[step].filter((key) => !current.data[key]?.trim());
-      if (step === 3 && !current.data.resultUrl?.trim() && !current.data.uploadedFileName?.trim()) {
-        missing.push("contentSource");
-      }
-      if (missing.length) {
-        setMessage(`아직 ${missing.length}개 항목이 비어 있어요. 활동을 마친 뒤 제출해 주세요.`);
-        return;
-      }
-    }
     setBusy(true);
     setMessage("");
     const res = await fetch("/api/submissions", {

@@ -65,24 +65,6 @@ export async function POST(request: Request) {
       return Response.json({ error: "저장할 내용의 형식이나 길이를 확인해 주세요." }, { status: 400 });
     }
     const sanitizedData = Object.fromEntries(entries.filter(([key]) => permitted.has(key)));
-    if (
-      step === 2 &&
-      status === "submitted" &&
-      ["grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethod", "selectionReason"]
-        .some((key) => !sanitizedData[key]?.trim())
-    ) {
-      return Response.json({ error: "AI 요청 내용과 방법 5개, 최종 선택을 모두 확인해 주세요." }, { status: 400 });
-    }
-    if (
-      step === 4 &&
-      status === "submitted" &&
-      (
-        !sanitizedData.revision?.trim() ||
-        !/^https:\/\/\S+$/i.test(sanitizedData.finalUrl || "")
-      )
-    ) {
-      return Response.json({ error: "수정 내용과 업로드한 최종 결과물을 확인해 주세요." }, { status: 400 });
-    }
 
     const updatedAt = new Date().toISOString();
     const { error } = await getSupabase()
