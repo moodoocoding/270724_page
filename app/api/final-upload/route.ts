@@ -93,6 +93,14 @@ export async function POST(request: Request) {
 
       const existingData = (existing?.data_json ?? {}) as Record<string, string>;
       const previousPath = existingData.uploadedFilePath || storagePathFromUrl(existingData.resultUrl);
+      const updatedData: Record<string, string> = {
+        ...existingData,
+        uploadedFileName: file.name,
+        uploadedFileSize: `${(file.size / 1024).toFixed(1)} KB`,
+        uploadedFilePath: path,
+        resultUrl: publicData.publicUrl,
+      };
+      delete updatedData.uploadCanceledAt;
       const updatedAt = new Date().toISOString();
       const { error: saveError } = await supabase
         .from("submissions")
@@ -100,13 +108,7 @@ export async function POST(request: Request) {
           participant_id: participantId,
           step: 3,
           status: "draft",
-          data_json: {
-            ...existingData,
-            uploadedFileName: file.name,
-            uploadedFileSize: `${(file.size / 1024).toFixed(1)} KB`,
-            uploadedFilePath: path,
-            resultUrl: publicData.publicUrl,
-          },
+          data_json: updatedData,
           updated_at: updatedAt,
         }, { onConflict: "participant_id,step" });
       if (saveError) {
@@ -165,6 +167,7 @@ export async function DELETE(request: Request) {
       delete remainingData.uploadedFileSize;
       delete remainingData.uploadedFilePath;
       delete remainingData.resultUrl;
+      remainingData.uploadCanceledAt = new Date().toISOString();
       const { error: updateError } = await supabase
         .from("submissions")
         .update({ status: "draft", data_json: remainingData, updated_at: new Date().toISOString() })

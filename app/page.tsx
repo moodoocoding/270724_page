@@ -662,6 +662,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
       onChange("uploadedFileSize", body.fileSize);
       onChange("uploadedFilePath", body.storagePath);
       onChange("resultUrl", body.url);
+      onChange("uploadCanceledAt", "");
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "파일을 탑재하지 못했습니다.");
       setUploadPreview(null);
@@ -691,6 +692,7 @@ function GameLab({ data, onChange }: { data: Record<string, string>; onChange: (
       onChange("uploadedFileSize", "");
       onChange("uploadedFilePath", "");
       onChange("resultUrl", "");
+      onChange("uploadCanceledAt", new Date().toISOString());
       setUploadPreview(null);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "탑재를 취소하지 못했습니다.");
@@ -994,13 +996,13 @@ function GalleryWalk({ data, onChange }: { data: Record<string, string>; onChang
           <div className="gallery-piece"><small>선택한 수업 설계</small><p>{item.method || "수업 설계를 정리 중입니다."}</p></div>
           <div className="gallery-actions">
             {item.resultUrl ? (
-              <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer" aria-label={`${item.name} 선생님의 결과물 새 창에서 보기`}>결과물 보기 ↗</a>
+              <a className="primary small-button" href={item.resultUrl} target="_blank" rel="noreferrer" aria-label={`${item.name} 선생님의 작품 새 창에서 체험하기`}>작품 체험하기 ↗</a>
             ) : (
               <span>공유된 결과물 링크가 없습니다.</span>
             )}
           </div>
           {!item.isExample && <section className="gallery-comments">
-            <div className="gallery-comments-head"><strong>댓글</strong><span>{item.comments?.length || 0}</span></div>
+            <div className="gallery-comments-head"><strong>댓글로 의견 남기기</strong><span>{item.comments?.length || 0}</span></div>
             {!!item.comments?.length && <div className="gallery-comment-list">
               {item.comments.map((comment) => <article key={comment.id}>
                 <strong>{comment.authorName} 선생님</strong>

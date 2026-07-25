@@ -328,6 +328,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); }
 .gallery-intro p { max-width: 560px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; text-align: right; }
 .gallery-grid {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  align-content: start; align-items: start;
   flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; padding: 2px 8px 12px 2px;
   overscroll-behavior: contain; scroll-snap-type: y proximity; scrollbar-color: #a9b8ae transparent;
 }
@@ -341,10 +342,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); }
 .gallery-piece p, .gallery-piece strong { display: -webkit-box; margin: 3px 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 13px; line-height: 1.5; }
 .gallery-piece.content { margin: 0 0 4px; padding: 12px; border: 1px solid #b8d8c5; border-radius: 6px; background: #ecfdf5; }
 .gallery-piece.content small { color: var(--green); }
-.gallery-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: auto; padding-top: 12px; }
+.gallery-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 0; padding-top: 12px; }
 .gallery-actions .small-button { width: 100%; justify-content: center; }
 .gallery-actions > span { color: var(--muted); font-size: 12px; text-align: center; }
-.gallery-comments { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.gallery-comments { margin-top: 12px; padding: 12px; border: 1px solid #b8d8c5; border-radius: 6px; background: #f7fbf8; }
 .gallery-comments-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: 12px; }
 .gallery-comments-head span { min-width: 22px; padding: 2px 6px; border-radius: 10px; color: var(--green); background: var(--soft); text-align: center; }
 .gallery-comment-list { max-height: 122px; overflow-y: auto; margin-bottom: 8px; padding-right: 4px; }

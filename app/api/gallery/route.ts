@@ -35,6 +35,26 @@ function parseComments(value: unknown): GalleryComment[] {
   }
 }
 
+async function findStoredResultUrl(participantId: number) {
+  const supabase = getSupabase();
+  const { data: files, error } = await supabase.storage
+    .from("workshop-final-results")
+    .list(String(participantId), {
+      limit: 100,
+      sortBy: { column: "created_at", order: "desc" },
+    });
+  if (error) {
+    console.error(error);
+    return "";
+  }
+  const latestFile = (files ?? []).find((file) => file.id);
+  if (!latestFile) return "";
+  return supabase.storage
+    .from("workshop-final-results")
+    .getPublicUrl(`${participantId}/${latestFile.name}`)
+    .data.publicUrl;
+}
+
 export async function GET() {
   try {
     const participantId = await getParticipantId();
@@ -67,24 +87,31 @@ export async function GET() {
     if (submissionError) throw submissionError;
 
     const rows = (submissions ?? []) as SubmissionRow[];
-    const items = (people ?? []).flatMap((person) => {
+    const itemResults = await Promise.all((people ?? []).map(async (person) => {
       const byStep = new Map(rows.filter((row) => row.participant_id === person.id).map((row) => [row.step, row]));
       const third = byStep.get(3);
-      if (!third) return [];
+      if (!third) return null;
       const second = byStep.get(2)?.data_json ?? {};
       const thirdData = third.data_json ?? {};
-      return [{
+      const savedResultUrl = /^https?:\/\/\S+$/i.test(thirdData.resultUrl || "") ? thirdData.resultUrl : "";
+      const recoveredResultUrl = !savedResultUrl && !thirdData.uploadCanceledAt
+        ? await findStoredResultUrl(person.id)
+        : "";
+      return {
         id: person.id,
         school: person.school,
         name: person.name,
         method: second.selectedMethod || second.aiResult || "",
         contentTitle: thirdData.contentTitle || thirdData.gameTitle || "",
-        resultUrl: /^https?:\/\/\S+$/i.test(thirdData.resultUrl || "") ? thirdData.resultUrl : "",
+        resultUrl: savedResultUrl || recoveredResultUrl,
         updatedAt: third.updated_at,
         isMine: person.id === participantId,
         comments: parseComments(thirdData.galleryComments),
-      }];
-    }).sort((a, b) => Number(b.isMine) - Number(a.isMine) || b.updatedAt.localeCompare(a.updatedAt));
+      };
+    }));
+    const items = itemResults
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => Number(b.isMine) - Number(a.isMine) || b.updatedAt.localeCompare(a.updatedAt));
 
     return Response.json({ items });
   } catch (error) {
