@@ -120,28 +120,32 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 }
 .sidebar-nav-item:hover { color: var(--text-main); background: var(--bg-subtle); }
 .sidebar-nav-item.active {
-  color: var(--emerald-primary); background: var(--emerald-subtle); font-weight: 700;
+  color: #047857; background: #ecfdf5; border-left: 3px solid #059669; border-radius: 0 var(--radius-md) var(--radius-md) 0; font-weight: 700;
 }
 .sidebar-nav-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .sidebar-nav-badge {
   width: 24px; height: 24px; display: grid; flex: 0 0 auto; place-items: center;
-  border-radius: 50%; border: 1px solid #d1d5db; font-size: 11px; font-weight: 700; color: var(--text-caption);
+  border-radius: 50%; border: 1px solid #d1d5db; font-size: 11px; font-weight: 700; color: #4b5563; background: #f3f4f6;
 }
-.sidebar-nav-item.active .sidebar-nav-badge { border-color: var(--emerald-primary); background: var(--emerald-primary); color: #fff; }
-.sidebar-nav-item.completed .sidebar-nav-badge { border-color: var(--emerald-primary); background: var(--emerald-primary); color: #fff; }
+.sidebar-nav-item.active .sidebar-nav-badge { border-color: #059669; background: #059669; color: #fff; }
+.sidebar-nav-item.completed .sidebar-nav-badge { border-color: #059669; background: #059669; color: #fff; }
 .sidebar-nav-info { display: flex; flex-direction: column; min-width: 0; }
-.sidebar-nav-info strong { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sidebar-nav-info small { font-size: 11px; color: var(--text-caption); margin-top: 1px; }
+.sidebar-nav-info strong { font-size: 13.5px; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-nav-info small { font-size: 11px; color: #6b7280; margin-top: 1px; }
 
 /* Sub-Chapter Bookmarks in Sidebar */
-.subchapter-bookmarks { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px 18px; padding-left: 10px; border-left: 1.5px solid var(--border-light); }
+.subchapter-bookmarks { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px 14px; padding-left: 10px; border-left: 2px solid #059669; }
 .subchapter-bm-btn {
-  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
-  color: var(--text-caption); background: transparent; font-size: 12.5px; font-weight: 500; text-align: left; transition: all 0.15s ease;
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid transparent; border-radius: var(--radius-sm);
+  color: #4b5563; background: transparent; font-size: 12.5px; font-weight: 600; text-align: left; transition: all 0.15s ease;
 }
-.subchapter-bm-btn:hover { color: var(--text-main); background: var(--bg-subtle); }
-.subchapter-bm-btn.active { color: var(--emerald-primary); background: var(--emerald-subtle); font-weight: 700; }
-.subchapter-bm-btn b { font-size: 10px; opacity: 0.8; }
+.subchapter-bm-btn:hover { color: #111827; background: #f3f4f6; }
+.subchapter-bm-btn.active { color: #ffffff !important; background: #059669 !important; font-weight: 700; box-shadow: 0 2px 6px rgba(5, 150, 105, 0.2); }
+.subchapter-bm-btn b {
+  width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%;
+  background: #e5e7eb; color: #4b5563; font-size: 10px; font-weight: 700;
+}
+.subchapter-bm-btn.active b { background: #ffffff !important; color: #059669 !important; font-weight: 800; }
 
 /* Canvas Area */
 .main-canvas { width: 100%; min-width: 0; padding: 28px 36px 100px; }
@@ -154,25 +158,27 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .canvas-header-badge { padding: 4px 12px; border-radius: 999px; color: var(--emerald-primary); background: var(--emerald-subtle); font-size: 12.5px; font-weight: 700; border: 1px solid var(--emerald-border); }
 .mobile-chapter-nav { display: none; }
 
-/* Canvas Sub-Chapter Bar (Linear-style segmented pills) */
+/* Canvas Sub-Chapter Bar (High-Contrast Solid Segmented Pills) */
 .canvas-subchapter-bar {
-  display: flex; align-items: center; gap: 6px; margin-bottom: 24px; padding: 4px;
-  border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fff;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 24px; padding: 6px;
+  border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
 }
 .canvas-subchapter-pill {
-  flex: 1; min-height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 6px 12px; border: 1px solid transparent; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent;
-  font-size: 13px; font-weight: 600; transition: all 0.15s ease; cursor: pointer;
+  flex: 1; min-height: 42px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px 16px; border: 1px solid #e5e7eb; border-radius: 8px; color: #4b5563; background: #f9fafb;
+  font-size: 13.5px; font-weight: 600; transition: all 0.15s ease; cursor: pointer;
 }
-.canvas-subchapter-pill:hover { color: var(--text-main); background: var(--bg-app); }
+.canvas-subchapter-pill:hover { color: #111827; background: #f3f4f6; border-color: #d1d5db; }
 .canvas-subchapter-pill.active {
-  color: var(--emerald-primary); border-color: var(--emerald-border); background: var(--emerald-subtle); font-weight: 700;
+  color: #ffffff !important; border-color: #059669 !important; background: #059669 !important; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
 }
 .canvas-subchapter-pill b {
-  width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%;
-  background: var(--border-light); color: var(--text-caption); font-size: 10.5px; font-weight: 700;
+  width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+  background: #e5e7eb; color: #4b5563; font-size: 11px; font-weight: 700;
 }
-.canvas-subchapter-pill.active b { background: var(--emerald-primary); color: #fff; }
+.canvas-subchapter-pill.active b { background: #ffffff !important; color: #059669 !important; font-weight: 800; }
 
 /* Uniform Cards across ALL 4 Lessons */
 .lesson-one-grid, .gems-layout, .game-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
