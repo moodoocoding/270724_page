@@ -1,21 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 interface GemsLabProps {
   data: Record<string, string>;
   fromStep1: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  stage: DesignStage;
 }
 
-type DesignStage = 1 | 2 | 3;
+export type DesignStage = 0 | 1 | 2 | 3;
 type ParsedMethod = { index: number; name: string; lessonStage: string; activity: string; evidence: string; burden: string };
 type ClassificationState = { kind: "idle" | "success" | "partial" | "error"; message: string };
-
-const stages: { id: DesignStage; label: string }[] = [
-  { id: 1, label: "AI에게 요청하기" },
-  { id: 2, label: "방법 비교하기" },
-  { id: 3, label: "선택·설계하기" },
-];
 
 const defaultResponseFormat = [
   "각 방법은 반드시 아래 네 제목을 그대로 사용해 정리해 주세요.",
@@ -113,13 +108,13 @@ function parseAiMethods(raw: string): ParsedMethod[] {
   }).sort((a, b) => a.index - b.index);
 }
 
-export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
-  const [stage, setStage] = useState<DesignStage>(1);
+export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [showMetaModal, setShowMetaModal] = useState(false);
   const [metaText, setMetaText] = useState("");
   const [metaCopied, setMetaCopied] = useState(false);
   const [gemOpened, setGemOpened] = useState(false);
+  const metaReturnFocusRef = useRef<HTMLElement | null>(null);
   const [classificationState, setClassificationState] = useState<ClassificationState>({
     kind: "idle",
     message: "답변을 붙여 넣으면 세 방법의 적용 단계·학생 활동·학생 반응·시간과 부담을 자동으로 나눕니다.",
@@ -135,7 +130,10 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   useEffect(() => {
     if (!showMetaModal) return;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowMetaModal(false);
+      if (event.key === "Escape") {
+        setShowMetaModal(false);
+        window.requestAnimationFrame(() => metaReturnFocusRef.current?.focus());
+      }
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
@@ -177,6 +175,15 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   ].join("\n");
   const conditionPrompt = buildConditionPrompt();
 
+  useEffect(() => {
+    if (stage >= 2 && data.gemPracticeRequest !== requestText) {
+      onChange("gemPracticeRequest", requestText);
+    }
+    if (stage >= 3 && data.conditionPrompt !== conditionPrompt) {
+      onChange("conditionPrompt", conditionPrompt);
+    }
+  }, [conditionPrompt, data.conditionPrompt, data.gemPracticeRequest, onChange, requestText, stage]);
+
   const showToast = (message: string) => {
     setCopyToast(message);
     window.setTimeout(() => setCopyToast(null), 3200);
@@ -203,7 +210,13 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         setMetaText(await (await fetch("/meta-prompt.md")).text());
       } catch {}
     }
+    metaReturnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setShowMetaModal(true);
+  };
+
+  const closeMetaModal = () => {
+    setShowMetaModal(false);
+    window.requestAnimationFrame(() => metaReturnFocusRef.current?.focus());
   };
 
   const saveRequestAndCopy = () => {
@@ -218,21 +231,12 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
 
   const selectMethod = (index: string) => {
     const selectedName = index ? (data[`method${index}Name`] || data[`method${index}`] || "") : "";
-    const selectedLessonStage = index ? (data[`method${index}LessonStage`] || "") : "";
-    const selectedActivity = index ? (data[`method${index}Activity`] || "") : "";
-    const selectedEvidence = index ? (data[`method${index}Evidence`] || studentEvidence) : studentEvidence;
     onChange("selectedMethodIndex", index);
     onChange("selectedMethod", selectedName);
-    onChange("finalMethodReason", [selectedName, data.selectionReason && `선택 이유: ${data.selectionReason}`].filter(Boolean).join("\n"));
-    onChange("finalLessonStage", selectedLessonStage);
-    onChange("finalStudentActivity", selectedActivity);
-    onChange("finalStudentEvidence", selectedEvidence);
   };
 
   const updateSelectionReason = (value: string) => {
     onChange("selectionReason", value);
-    const selectedName = data.selectedMethod || "";
-    onChange("finalMethodReason", [selectedName, value && `선택 이유: ${value}`].filter(Boolean).join("\n"));
   };
 
   const classifyAiResponse = (text: string) => {
@@ -267,50 +271,24 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     }
   };
 
-  const changeStage = (next: DesignStage) => {
-    if (next >= 2) onChange("gemPracticeRequest", requestText);
-    if (next >= 3) onChange("conditionPrompt", conditionPrompt);
-    setStage(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <div className="lesson-two-flow">
       {copyToast && <div className="copy-toast" role="status" aria-live="polite">{copyToast}</div>}
 
-      <details className="bonus-mission">
-        <summary>
-          <span>추가 미션</span>
-          <strong>나만의 수업 설계 Gem 만들기</strong>
-          <small>필요한 분만 열어서 진행하세요.</small>
-        </summary>
-        <BonusGemMission
-          data={data}
-          metaText={metaText}
-          metaCopied={metaCopied}
-          gemOpened={gemOpened}
-          onCopy={copyMetaPrompt}
-          onOpenMeta={openMetaModal}
-          onOpenGem={() => setGemOpened(true)}
-          onComplete={(completed) => onChange("gemCreatedAt", completed ? new Date().toISOString() : "")}
-        />
-      </details>
-
-      <nav className="stage-tabs subtab-bar lesson-two-stage-nav" aria-label="2차시 수업 설계 단계">
-        {stages.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={stage === item.id ? "primary" : "secondary"}
-            aria-current={stage === item.id ? "step" : undefined}
-            aria-pressed={stage === item.id}
-            onClick={() => changeStage(item.id)}
-          >
-            <b>{String(item.id).padStart(2, "0")}</b>
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
+      {stage === 0 && (
+        <section className="bonus-mission bonus-mission-page" aria-label="추가 미션 · 나만의 수업 설계 Gem 만들기">
+          <BonusGemMission
+            data={data}
+            metaText={metaText}
+            metaCopied={metaCopied}
+            gemOpened={gemOpened}
+            onCopy={copyMetaPrompt}
+            onOpenMeta={openMetaModal}
+            onOpenGem={() => setGemOpened(true)}
+            onComplete={(completed) => onChange("gemCreatedAt", completed ? new Date().toISOString() : "")}
+          />
+        </section>
+      )}
 
       {stage === 1 && (
         <details className="linked-source-detail">
@@ -409,7 +387,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
       {stage === 3 && (
         <DesignPanel number="03" title="한 가지 선택해 설계 완성하기" description="교사가 방법을 고르고, 선택 이유와 수정할 내용, 만들 콘텐츠만 적으면 끝납니다." workload="핵심 입력 4개">
           <div className="final-design-autofill">
-            <p><b>자동 연결</b> 선택한 방법의 학생 활동과 1차시 확인 기준은 최종 설계안에 바로 반영됩니다.</p>
+            <p><b>교사 기록</b> AI 답변 전체가 아니라 교사가 선택하고 수정한 내용만 남깁니다.</p>
           </div>
           <div className="teacher-choice-grid">
             <label className="design-field">
@@ -423,34 +401,37 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
             <FormTextArea label="교사가 수정한 내용" value={data.teacherRevision || ""} onChange={(value) => onChange("teacherRevision", value)} placeholder="자료, 판단 기준, 활동량, 기록 방법 등을 어떻게 수정했는지 적으세요." />
             <FormTextArea label="3차시에서 만들 콘텐츠" value={data.contentToBuild || ""} onChange={(value) => onChange("contentToBuild", value)} placeholder="예: 두 방안을 비교하고 선택 이유를 기록하는 웹 활동" />
           </div>
-          <details className="inline-option final-design-option">
-            <summary>선택 · 자동 연결된 최종 설계안 확인·수정하기</summary>
-            <div className="condition-option-body">
-              <div className="final-design-grid">
-                <FormTextArea label="적용할 수업 단계" value={data.finalLessonStage || ""} onChange={(value) => onChange("finalLessonStage", value)} placeholder="예: 자료를 읽은 뒤 방안을 결정하는 단계" />
-                <FormTextArea label="학생이 하게 될 활동" value={data.finalStudentActivity || ""} onChange={(value) => onChange("finalStudentActivity", value)} placeholder="선택한 방법에서 자동 연결됩니다." />
-                <FormTextArea label="교사가 확인할 학생 반응" value={data.finalStudentEvidence || ""} onChange={(value) => onChange("finalStudentEvidence", value)} placeholder="1차시 확인 기준에서 자동 연결됩니다." />
-              </div>
-              <fieldset className="final-design-checks">
-                <legend>선택 · 최종 확인</legend>
-                <CheckField label="1차시에서 찾은 수업 문제를 직접 다룬다." checked={data.finalCheckProblem === "yes"} onChange={(checked) => onChange("finalCheckProblem", checked ? "yes" : "")} />
-                <CheckField label="학생이 하게 될 활동이 구체적으로 보인다." checked={data.finalCheckConcrete === "yes"} onChange={(checked) => onChange("finalCheckConcrete", checked ? "yes" : "")} />
-                <CheckField label="학생이 배웠다는 것을 확인할 말과 행동이 정해져 있다." checked={data.finalCheckEvidence === "yes"} onChange={(checked) => onChange("finalCheckEvidence", checked ? "yes" : "")} />
-                <CheckField label="AI 제안에 교사의 선택과 수정이 들어갔다." checked={data.finalCheckTeacherRevision === "yes"} onChange={(checked) => onChange("finalCheckTeacherRevision", checked ? "yes" : "")} />
-              </fieldset>
-            </div>
-          </details>
         </DesignPanel>
       )}
 
       {showMetaModal && (
-        <div className="meta-backdrop" onClick={() => setShowMetaModal(false)}>
-          <div className="meta-modal" role="dialog" aria-modal="true" aria-labelledby="meta-prompt-title" onClick={(event) => event.stopPropagation()}>
+        <div className="meta-backdrop" onClick={closeMetaModal}>
+          <div
+            className="meta-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="meta-prompt-title"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key !== "Tab") return;
+              const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])"));
+              if (!focusable.length) return;
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
+          >
             <div className="meta-modal-head">
               <h2 id="meta-prompt-title">메타 프롬프트</h2>
               <div className="guide-actions">
                 <button className="primary small-button" onClick={copyMetaPrompt}>전체 복사</button>
-                <button className="secondary small-button" onClick={() => setShowMetaModal(false)}>닫기</button>
+                <button className="secondary small-button" onClick={closeMetaModal} autoFocus>닫기</button>
               </div>
             </div>
             <pre>{metaText}</pre>
@@ -476,10 +457,6 @@ function CarryField({ label, value, wide = false }: { label: string; value?: str
 
 function FormTextArea({ label, value, onChange, onPaste, placeholder }: { label: string; value: string; onChange: (value: string) => void; onPaste?: (text: string) => void; placeholder: string }) {
   return <label className="design-field"><span>{label}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} onPaste={(event) => { const text = event.clipboardData.getData("text"); if (text && onPaste) onPaste(text); }} placeholder={placeholder} /></label>;
-}
-
-function CheckField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
-  return <label className={checked ? "checked" : ""}><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>{label}</span></label>;
 }
 
 function BonusGemMission({ data, metaText, metaCopied, gemOpened, onCopy, onOpenMeta, onOpenGem, onComplete }: { data: Record<string, string>; metaText: string; metaCopied: boolean; gemOpened: boolean; onCopy: () => void; onOpenMeta: () => void; onOpenGem: () => void; onComplete: (completed: boolean) => void }) {

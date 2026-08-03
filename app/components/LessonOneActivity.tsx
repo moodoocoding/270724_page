@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 const factQuestions = [
   "학생이 토의 시간 동안 한 번도 말하지 않았다.",
@@ -8,18 +8,12 @@ const factQuestions = [
 ] as const;
 const factAnswers = ["사실", "해석", "사실", "해석"] as const;
 
-type LessonStage = "A" | "B" | "C" | "D";
-
-const stages: { id: LessonStage; label: string; short: string }[] = [
-  { id: "A", label: "남길 배움", short: "A" },
-  { id: "B", label: "현재 장면", short: "B" },
-  { id: "C", label: "확인 기준", short: "C" },
-  { id: "D", label: "AI 활용 결정", short: "D" },
-];
+export type LessonOneStage = "A" | "B" | "C" | "D";
 
 interface LessonOneActivityProps {
   data: Record<string, string>;
   onChange: (key: string, value: string) => void;
+  stage: LessonOneStage;
 }
 
 function cleanSentence(value: string) {
@@ -59,14 +53,7 @@ function asEvidenceQuestion(value: string) {
   return `‘${cleaned}’라는 반응이 나타나는지`;
 }
 
-export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
-  const [stage, setStage] = useState<LessonStage>("A");
-
-  const goToStage = (nextStage: LessonStage) => {
-    setStage(nextStage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+export function LessonOneActivity({ data, onChange, stage }: LessonOneActivityProps) {
   const buildProblemStatement = () => {
     const observed = asObservedSentence(data.observedMissing || data.observedResult || data.observedAction || data.additionalInfo || "");
     const learning = asAbilityQuestion(data.learningGoal || "");
@@ -83,21 +70,6 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
 
   return (
     <div className="lesson-one-flow">
-      <nav className="stage-tabs lesson-one-tabs" aria-label="1차시 활동 단계">
-        {stages.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={stage === item.id ? "active" : ""}
-            aria-current={stage === item.id ? "step" : undefined}
-            onClick={() => goToStage(item.id)}
-          >
-            <span>{item.short}</span>
-            <strong>{item.label}</strong>
-          </button>
-        ))}
-      </nav>
-
       {stage === "A" && (
         <section className="lesson-one-stage">
           <StageHeader number="A" title="남길 배움" description="활동명 대신, 학생이 이해하고 할 수 있어야 할 일을 한 문장으로 적습니다." />
@@ -150,24 +122,15 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
           </details>
           <div className="lesson-one-section essential-scene">
             <h3>현재 확인한 핵심 장면</h3>
-            <p>평가하지 말고, 카메라에 담길 수 있는 장면 한 가지만 적습니다.</p>
+            <p>평가하지 말고, 관찰한 사실을 적습니다.</p>
             <TextArea label="직접 보거나 들은 학생의 말·행동" value={data.observedMissing || ""} onValue={(value) => onChange("observedMissing", value)} placeholder="예: 학생은 두 방안을 비교하지 않고 한 가지 방안을 바로 선택했다." />
           </div>
           <details className="optional-detail">
             <summary>선택 기록 · 장면을 더 자세히 분석하기</summary>
-            <div className="optional-detail-body lesson-scene-layout">
-              <div className="lesson-one-section lesson-scene-facts">
-                <h3>말·행동·결과물</h3>
-                <div className="lesson-field-grid">
-                  <TextArea label="학생이 한 말" value={data.observedSpeech || ""} onValue={(value) => onChange("observedSpeech", value)} placeholder="예: ‘전등을 끄는 게 가장 쉬워요.’라고 말했다." />
-                  <TextArea label="학생이 한 행동" value={data.observedAction || data.additionalInfo || ""} onValue={(value) => onChange("observedAction", value)} placeholder="예: 모든 모둠이 한 가지 방안을 선택해 제출했다." />
-                  <TextArea label="학생이 만든 결과물" value={data.observedResult || ""} onValue={(value) => onChange("observedResult", value)} placeholder="예: 여섯 제안서 중 다섯 개가 같은 방안을 선택했다." />
-                </div>
-              </div>
+            <div className="optional-detail-body">
               <div className="lesson-one-section">
-                <h3>가능한 해석과 추가 확인</h3>
+                <h3>가능한 해석과 다음 확인</h3>
                 <TextArea label="가능한 해석" value={data.possibleInterpretation1 || data.firstJudgment || ""} onValue={(value) => onChange("possibleInterpretation1", value)} placeholder="자료의 수치를 방안과 연결하는 방법이 익숙하지 않았을 수 있다." />
-                <TextArea label="아직 모르는 것" value={data.unknownInfo || ""} onValue={(value) => onChange("unknownInfo", value)} placeholder="학생들이 다른 방안을 검토했는지 아직 모른다." />
                 <TextArea label="다음에 확인할 방법" value={data.nextCheck || ""} onValue={(value) => onChange("nextCheck", value)} placeholder="비교 기록을 살피고 선택 이유를 질문한다." />
               </div>
             </div>

@@ -79,9 +79,6 @@ const fields: Record<Step, { key: string; label: string }[]> = {
     { key: "selectedMethod", label: "교사가 선택한 방법" },
     { key: "selectionReason", label: "선택한 이유" },
     { key: "teacherRevision", label: "교사가 수정한 내용" },
-    { key: "finalLessonStage", label: "적용할 수업 단계" },
-    { key: "finalStudentActivity", label: "학생이 하게 될 활동" },
-    { key: "finalStudentEvidence", label: "교사가 확인할 학생 반응" },
     { key: "contentToBuild", label: "3차시에서 만들 콘텐츠" },
   ],
   3: [
@@ -228,7 +225,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
     const headers = [
       "학교명", "이름",
       "1차시 학교급·학년", "1차시 교과·단원", "1차시 돌아볼 수업 장면", "1차시 남길 배움", "1차시 현재 장면", "1차시 가능한 해석", "1차시 배움 확인 기준", "1차시 수업 문제", "1차시 AI 활용 방향", "1차시 AI가 도울 부분",
-      "2차시 실제 수업 조건", "2차시 첫 AI 요청", "2차시 방법 1", "2차시 방법 2", "2차시 방법 3", "2차시 새로 확인한 조건", "2차시 자료 확인 결과", "2차시 선택한 방법", "2차시 선택한 이유", "2차시 교사가 수정한 내용", "2차시 최종 방법", "2차시 적용 단계", "2차시 학생 활동", "2차시 확인할 학생 반응", "2차시 3차시 제작 콘텐츠",
+      "2차시 실제 수업 조건", "2차시 첫 AI 요청", "2차시 방법 1", "2차시 방법 2", "2차시 방법 3", "2차시 새로 확인한 조건", "2차시 자료 확인 결과", "2차시 선택한 방법", "2차시 선택한 이유", "2차시 교사가 수정한 내용", "2차시 3차시 제작 콘텐츠",
       "3차시 체험한 게임", "3차시 내가 해 본 결과", "3차시 즉시 받은 피드백", "3차시 내 수업 적용 변경 계획", "3차시 내가 만든 콘텐츠 제목", "3차시 탑재 결과물 URL", "3차시 수업 활용 계획",
       "4차시 반영한 의견/수정 내용", "4차시 최종 결과물 URL"
     ];
@@ -250,8 +247,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
         p1.problemStatement ?? "", p1.aiDirection ?? "", p1.aiSupport ?? p1.change ?? "",
         p2.actualConditions ?? "", p2.gemPracticeRequest ?? "",
         p2.method1Name ?? p2.method1 ?? "", p2.method2Name ?? p2.method2 ?? "", p2.method3Name ?? p2.method3 ?? "",
-        p2.newConditions ?? "", p2.evidenceCheck ?? "", p2.selectedMethod ?? "", p2.selectionReason ?? "", p2.teacherRevision ?? "",
-        p2.finalMethodReason ?? "", p2.finalLessonStage ?? "", p2.finalStudentActivity ?? "", p2.finalStudentEvidence ?? "", p2.contentToBuild ?? "",
+        p2.newConditions ?? "", p2.evidenceCheck ?? "", p2.selectedMethod ?? "", p2.selectionReason ?? "", p2.teacherRevision ?? "", p2.contentToBuild ?? "",
         p3.gameTitle ?? "", p3.studentAction ?? "", p3.feedbackMechanism ?? "", p3.changePlan ?? "", p3.contentTitle ?? "", p3.resultUrl ?? "", p3.contentPlan ?? "",
         p4.revision ?? "", p4.finalUrl ?? ""
       ];
@@ -476,6 +472,14 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     "aiResult",
                     "gemCreatedAt",
                     "selectedMethodIndex",
+                    "finalMethodReason",
+                    "finalLessonStage",
+                    "finalStudentActivity",
+                    "finalStudentEvidence",
+                    "finalCheckProblem",
+                    "finalCheckConcrete",
+                    "finalCheckEvidence",
+                    "finalCheckTeacherRevision",
                     "contentTool",
                     "galleryComments",
                     "teacherFeedback", // Hide feedback saved by older versions

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { findWorkshopSession, workshopRegions, workshopSessions } from "../lib/workshops";
 import { Brand } from "./components/Brand";
-import { LessonOneActivity } from "./components/LessonOneActivity";
-import { GemsLab } from "./components/GemsLab";
-import { GameLab } from "./components/GameLab";
+import { LessonOneActivity, type LessonOneStage } from "./components/LessonOneActivity";
+import { GemsLab, type DesignStage } from "./components/GemsLab";
+import { GameLab, type LessonThreeStage } from "./components/GameLab";
 import { GalleryWalk } from "./components/GalleryWalk";
 import { TeacherDashboard } from "./components/TeacherDashboard";
 
@@ -47,6 +47,26 @@ const stepMeta = {
   4: { short: "갤러리워크", title: "갤러리워크와 최종 제출", hint: "동료 작품을 둘러보고, 의견을 반영한 최종 결과물을 제출합니다." },
 } as const;
 
+const chapterMeta = {
+  1: [
+    { id: "A", mark: "A", label: "남길 배움" },
+    { id: "B", mark: "B", label: "현재 장면" },
+    { id: "C", mark: "C", label: "확인 기준" },
+    { id: "D", mark: "D", label: "AI 활용 결정" },
+  ],
+  2: [
+    { id: "1", mark: "01", label: "AI에게 요청하기" },
+    { id: "2", mark: "02", label: "방법 비교하기" },
+    { id: "3", mark: "03", label: "선택·설계하기" },
+    { id: "0", mark: "+", label: "Gem 만들기", optional: true },
+  ],
+  3: [
+    { id: "step1", mark: "01", label: "콘텐츠 체험" },
+    { id: "prompt", mark: "02", label: "프롬프트 연습" },
+    { id: "step2", mark: "03", label: "결과물 탑재" },
+  ],
+} as const;
+
 const emptySubmissions = (): Record<Step, Submission> => ({
   1: { step: 1, status: "draft", data: {} },
   2: { step: 2, status: "draft", data: {} },
@@ -56,16 +76,8 @@ const emptySubmissions = (): Record<Step, Submission> => ({
 
 export default function Home() {
   const [mode, setMode] = useState<"learner" | "teacher">("learner");
-  const [session, setSession] = useState<Session | null>(() => {
-    if (typeof window === "undefined") return null;
-    const raw = window.localStorage.getItem("oneday-session");
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as Session;
-    } catch {
-      return null;
-    }
-  });
+  const [session, setSession] = useState<Session | null>(null);
+  const [clientReady, setClientReady] = useState(false);
 
   const [classCode, setClassCode] = useState<string>(workshopSessions[0].code);
   const [regionId, setRegionId] = useState<string>(workshopRegions[0].id);
@@ -74,12 +86,15 @@ export default function Home() {
   const [name, setName] = useState("");
   const [adminCode, setAdminCode] = useState("");
   const [step, setStep] = useState<Step>(1);
+  const [lessonOneStage, setLessonOneStage] = useState<LessonOneStage>("A");
+  const [lessonTwoStage, setLessonTwoStage] = useState<DesignStage>(1);
+  const [lessonThreeStage, setLessonThreeStage] = useState<LessonThreeStage>("step1");
   const [submissions, setSubmissions] = useState(emptySubmissions);
   const submissionsRef = useRef(submissions);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
-  const [loadingWorkbook, setLoadingWorkbook] = useState(Boolean(session));
+  const [loadingWorkbook, setLoadingWorkbook] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   // 자동 저장 상태 관리 ("idle" | "saving" | "saved" | "error")
@@ -92,6 +107,34 @@ export default function Home() {
     () => Object.values(submissions).filter((item) => item.status === "submitted").length,
     [submissions],
   );
+  const activeChapterId = step === 1
+    ? lessonOneStage
+    : step === 2
+    ? String(lessonTwoStage)
+    : step === 3
+    ? lessonThreeStage
+    : "";
+  const activeChapters = step <= 3 ? chapterMeta[step as 1 | 2 | 3] : [];
+
+  function selectChapter(id: string) {
+    if (step === 1) setLessonOneStage(id as LessonOneStage);
+    if (step === 2) setLessonTwoStage(Number(id) as DesignStage);
+    if (step === 3) setLessonThreeStage(id as LessonThreeStage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem("oneday-session");
+    if (raw) {
+      try {
+        setLoadingWorkbook(true);
+        setSession(JSON.parse(raw) as Session);
+      } catch {
+        window.localStorage.removeItem("oneday-session");
+      }
+    }
+    setClientReady(true);
+  }, []);
 
   useEffect(() => {
     submissionsRef.current = submissions;
@@ -255,6 +298,18 @@ export default function Home() {
     setTeacherData(body);
   }
 
+  if (!clientReady) {
+    return (
+      <main className="entry-shell entry-loading-shell">
+        <section className="workbook-loading" role="status" aria-live="polite">
+          <i />
+          <strong>워크북을 준비하고 있습니다.</strong>
+          <span>잠시만 기다려 주세요.</span>
+        </section>
+      </main>
+    );
+  }
+
   if (mode === "teacher" && teacherData) {
     return (
       <TeacherDashboard
@@ -348,10 +403,28 @@ export default function Home() {
           <div className="progress-track"><i style={{ width: `${progress * 25}%` }} /></div>
           <nav aria-label="차시 선택">
             {([1, 2, 3, 4] as Step[]).map((item) => (
-              <button key={item} aria-current={step === item ? "step" : undefined} className={step === item ? "active" : ""} onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}>
-                <span>{String(item).padStart(2, "0")}</span>
-                <div><strong>{stepMeta[item].short}</strong><small>{submissions[item].status === "submitted" ? "제출 완료" : "작성 중"}</small></div>
-              </button>
+              <div className={`lesson-nav-group ${step === item ? "active" : ""}`} key={item}>
+                <button aria-current={step === item ? "step" : undefined} className={`lesson-nav-button ${step === item ? "active" : ""}`} onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}>
+                  <span>{String(item).padStart(2, "0")}</span>
+                  <div><strong>{stepMeta[item].short}</strong><small>{submissions[item].status === "submitted" ? "제출 완료" : "작성 중"}</small></div>
+                </button>
+                {step === item && item <= 3 && (
+                  <div className="chapter-bookmarks" role="group" aria-label={`${item}차시 챕터`}>
+                    {activeChapters.map((chapter) => (
+                      <button
+                        type="button"
+                        key={chapter.id}
+                        className={`${activeChapterId === chapter.id ? "active" : ""} ${"optional" in chapter && chapter.optional ? "optional" : ""}`}
+                        aria-current={activeChapterId === chapter.id ? "step" : undefined}
+                        onClick={() => selectChapter(chapter.id)}
+                      >
+                        <span>{chapter.mark}</span>
+                        <strong>{chapter.label}</strong>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
           <button className="logout" onClick={leaveClass}>나가기</button>
@@ -364,6 +437,23 @@ export default function Home() {
             <span>{stepMeta[step].hint}</span>
           </div>
 
+          {step <= 3 && (
+            <nav className="mobile-chapter-nav" aria-label={`${step}차시 챕터`}>
+              {activeChapters.map((chapter) => (
+                <button
+                  type="button"
+                  key={chapter.id}
+                  className={`${activeChapterId === chapter.id ? "active" : ""} ${"optional" in chapter && chapter.optional ? "optional" : ""}`}
+                  aria-current={activeChapterId === chapter.id ? "step" : undefined}
+                  onClick={() => selectChapter(chapter.id)}
+                >
+                  <span>{chapter.mark}</span>
+                  <strong>{chapter.label}</strong>
+                </button>
+              ))}
+            </nav>
+          )}
+
           {loadingWorkbook ? (
             <section className="workbook-loading" role="status" aria-live="polite">
               <i />
@@ -372,9 +462,9 @@ export default function Home() {
             </section>
           ) : (
             <>
-              {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} />}
-              {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
-              {step === 3 && <GameLab data={current.data} onChange={updateField} />}
+              {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} stage={lessonOneStage} />}
+              {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} stage={lessonTwoStage} />}
+              {step === 3 && <GameLab data={current.data} onChange={updateField} stage={lessonThreeStage} />}
 
               {step === 4 && <GalleryWalk data={current.data} onChange={updateField} onReturnToUpload={() => {
                 setStep(3);

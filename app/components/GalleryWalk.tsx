@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
 const allowedUploadExtensions = new Set(["html", "htm", "zip", "png", "jpg", "jpeg", "gif", "webp", "pdf", "pptx"]);
@@ -70,6 +70,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
   const [editingCommentBody, setEditingCommentBody] = useState("");
   const [editingCommentBusy, setEditingCommentBusy] = useState(false);
   const [commentItemId, setCommentItemId] = useState<number | null>(null);
+  const commentReturnFocusRef = useRef<HTMLButtonElement | null>(null);
   const commentCount = items.reduce((total, item) => total + item.comments.length, 0);
   const commentItem = items.find((item) => item.id === commentItemId) ?? null;
 
@@ -111,6 +112,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
       setEditingCommentId(null);
       setEditingCommentBody("");
       setCommentItemId(null);
+      window.requestAnimationFrame(() => commentReturnFocusRef.current?.focus());
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
@@ -194,6 +196,12 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
   const closeCommentModal = () => {
     cancelEditingComment();
     setCommentItemId(null);
+    window.requestAnimationFrame(() => commentReturnFocusRef.current?.focus());
+  };
+
+  const openCommentModal = (itemId: number, trigger: HTMLButtonElement) => {
+    commentReturnFocusRef.current = trigger;
+    setCommentItemId(itemId);
   };
 
   const updateComment = async (event: React.FormEvent, targetParticipantId: number, commentId: string) => {
@@ -303,7 +311,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                   <button
                     type="button"
                     className="secondary small-button gallery-comment-button"
-                    onClick={() => setCommentItemId(item.id)}
+                    onClick={(event) => openCommentModal(item.id, event.currentTarget)}
                   >
                     의견 남기기 · {item.comments.length}
                   </button>
@@ -395,6 +403,20 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
             aria-modal="true"
             aria-labelledby="gallery-comment-modal-title"
             onMouseDown={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key !== "Tab") return;
+              const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button:not(:disabled), [href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex='-1'])"));
+              if (!focusable.length) return;
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
           >
             <header>
               <div>
