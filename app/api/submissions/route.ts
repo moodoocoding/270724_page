@@ -16,9 +16,9 @@ const allowedKeys: Record<number, Set<string>> = {
   2: new Set([
     "gemCreatedAt", "grade", "subject", "difficultyCause", "difficultTask", "desiredAction",
     "actualConditions", "responseFormat", "gemPracticeRequest", "aiResponseRaw",
-    "method1", "method1Name", "method1Activity", "method1Evidence", "method1Burden", "method1Review",
-    "method2", "method2Name", "method2Activity", "method2Evidence", "method2Burden", "method2Review",
-    "method3", "method3Name", "method3Activity", "method3Evidence", "method3Burden", "method3Review",
+    "method1", "method1Name", "method1LessonStage", "method1Activity", "method1Evidence", "method1Burden", "method1Review",
+    "method2", "method2Name", "method2LessonStage", "method2Activity", "method2Evidence", "method2Burden", "method2Review",
+    "method3", "method3Name", "method3LessonStage", "method3Activity", "method3Evidence", "method3Burden", "method3Review",
     "method4", "method5", "teacherReviewMemo", "newConditions", "conditionPrompt", "revisedAiResponse",
     "revisedMethod1", "revisedMethod2", "revisedMethod3", "conditionChangeMemo", "evidenceCheck",
     "selectedMethodIndex", "selectedMethod", "criteriaLearning", "criteriaFeasible", "criteriaFits", "selectionReason", "teacherRevision", "contentToBuild",
