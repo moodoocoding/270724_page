@@ -108,8 +108,8 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
               })}
             </div>
           </details>
-          <div className="lesson-one-columns">
-            <div className="lesson-one-section">
+          <div className="lesson-scene-layout">
+            <div className="lesson-one-section lesson-scene-facts">
               <h3>B-1. 실제로 확인한 사실</h3>
               <p>평가하지 말고, 카메라에 담길 수 있는 장면처럼 적습니다.</p>
               <div className="lesson-field-grid">
@@ -124,7 +124,10 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
               <p>가능성일 뿐, 아직 확인된 사실은 아닙니다.</p>
               <TextArea label="가능한 해석 1" value={data.possibleInterpretation1 || data.firstJudgment || ""} onValue={(value) => onChange("possibleInterpretation1", value)} placeholder="자료의 수치를 방안과 연결하는 방법이 익숙하지 않았을 수 있다." />
               <TextArea label="가능한 해석 2" value={data.possibleInterpretation2 || data.blockPoint || ""} onValue={(value) => onChange("possibleInterpretation2", value)} placeholder="비교 기준이 분명하지 않았을 수 있다." />
-              <h3 className="subsection-title">B-3. 아직 모르는 것과 다음 확인</h3>
+            </div>
+            <div className="lesson-one-section">
+              <h3>B-3. 아직 모르는 것과 다음 확인</h3>
+              <p>해석을 사실처럼 단정하지 않도록, 더 확인할 내용을 정합니다.</p>
               <TextArea label="아직 모르는 것" value={data.unknownInfo || ""} onValue={(value) => onChange("unknownInfo", value)} placeholder="학생들이 다른 방안을 검토했는지 아직 모른다." />
               <TextArea label="다음에 확인할 방법" value={data.nextCheck || ""} onValue={(value) => onChange("nextCheck", value)} placeholder="비교 기록을 살피고 선택 이유를 질문한다." />
             </div>

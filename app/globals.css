@@ -226,6 +226,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .fact-check-practice[open] summary { border-bottom: 1px solid var(--line); }
 .fact-check-practice .concept-pair, .fact-check-practice .classification-list { margin-right: 14px; margin-left: 14px; }
 .lesson-one-columns, .ai-decision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.lesson-scene-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.lesson-scene-layout > .lesson-one-section { height: 100%; }
+.lesson-scene-facts { grid-column: 1 / -1; }
+.lesson-scene-facts .lesson-field-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .lesson-one-section { min-width: 0; padding: 17px; border: 1px solid var(--line); border-radius: 7px; background: #fff; }
 .lesson-one-section h3 { margin: 0; font-size: 16px; }
 .lesson-one-section > p { margin: 3px 0 13px; color: var(--muted); font-size: 12px; }
