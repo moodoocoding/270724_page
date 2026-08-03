@@ -23,6 +23,43 @@ interface LessonOneActivityProps {
   onChange: (key: string, value: string) => void;
 }
 
+function cleanSentence(value: string) {
+  return value.trim().replace(/[.!?。！？]+$/u, "").replace(/\s+/g, " ");
+}
+
+function asObservedSentence(value: string) {
+  const cleaned = cleanSentence(value)
+    .replace(/^(학생은|학생이)\s*현재\s*/u, "$1 ")
+    .replace(/^현재\s*/u, "");
+  return cleaned || "학생의 현재 모습이 구체적으로 확인되지 않았다";
+}
+
+function asAbilityQuestion(value: string) {
+  const cleaned = cleanSentence(value);
+  if (!cleaned) return "목표한 배움이 실제로 나타났는지";
+  if (/(는지|은지|인지|했는지|있는지|없는지)$/u.test(cleaned)) return cleaned;
+  if (cleaned.endsWith("할 수 있다")) return `${cleaned.slice(0, -6)}할 수 있는지`;
+  if (cleaned.endsWith("한다")) return `${cleaned.slice(0, -2)}할 수 있는지`;
+  if (cleaned.endsWith("된다")) return `${cleaned.slice(0, -2)}될 수 있는지`;
+  if (cleaned.endsWith("이다")) return `${cleaned.slice(0, -2)}인지`;
+  if (cleaned.endsWith("있다")) return `${cleaned.slice(0, -2)}있는지`;
+  if (cleaned.endsWith("없다")) return `${cleaned.slice(0, -2)}없는지`;
+  return `‘${cleaned}’라는 배움이 실제로 나타났는지`;
+}
+
+function asEvidenceQuestion(value: string) {
+  const cleaned = cleanSentence(value);
+  if (!cleaned) return "학생의 말과 행동에서 배움이 나타나는지";
+  if (/(는지|은지|인지|했는지|있는지|없는지)$/u.test(cleaned)) return cleaned;
+  if (cleaned.endsWith("할 수 있다")) return `${cleaned.slice(0, -6)}할 수 있는지`;
+  if (cleaned.endsWith("한다")) return `${cleaned.slice(0, -2)}하는지`;
+  if (cleaned.endsWith("된다")) return `${cleaned.slice(0, -2)}되는지`;
+  if (cleaned.endsWith("이다")) return `${cleaned.slice(0, -2)}인지`;
+  if (cleaned.endsWith("있다")) return `${cleaned.slice(0, -2)}있는지`;
+  if (cleaned.endsWith("없다")) return `${cleaned.slice(0, -2)}없는지`;
+  return `‘${cleaned}’라는 반응이 나타나는지`;
+}
+
 export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
   const [stage, setStage] = useState<LessonStage>(1);
 
@@ -32,12 +69,15 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
   };
 
   const buildProblemStatement = () => {
-    const observed = data.observedMissing || data.observedResult || data.observedAction || data.additionalInfo || "현재 확인한 학생의 모습";
-    const learning = data.learningGoal || "목표한 배움";
-    const evidence = data.learningEvidence1 || data.learningEvidence2 || "학생의 말과 행동";
+    const observed = asObservedSentence(data.observedMissing || data.observedResult || data.observedAction || data.additionalInfo || "");
+    const learning = asAbilityQuestion(data.learningGoal || "");
+    const evidence = [data.learningEvidence1, data.learningEvidence2]
+      .filter(Boolean)
+      .map(asEvidenceQuestion)
+      .join(", 또 ") || asEvidenceQuestion("");
     onChange(
       "problemStatement",
-      `학생은 현재 ${observed}을 보였지만, ${learning}을 할 수 있는지는 아직 확인하지 못했다. 다음 수업에서 ${evidence}을 통해 확인할 필요가 있다.`,
+      `현재 수업에서는 ${observed}. 그러나 ${learning} 아직 확인하지 못했다. 다음 수업에서는 ${evidence} 확인할 필요가 있다.`,
     );
   };
 
@@ -153,12 +193,12 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
           <div className="problem-source-grid">
             <div><span>A · 남길 배움</span><p>{data.learningGoal || "—"}</p></div>
             <div><span>B · 현재 장면</span><p>{data.observedMissing || data.observedResult || data.observedAction || "—"}</p></div>
-            <div><span>C · 확인 기준</span><p>{data.learningEvidence1 || data.learningEvidence2 || "—"}</p></div>
+            <div><span>C · 확인 기준</span><p>{[data.learningEvidence1, data.learningEvidence2].filter(Boolean).join(" / ") || "—"}</p></div>
           </div>
           <div className={`problem-editor ${data.problemStatement?.trim() ? "is-filled" : ""}`}>
             <div>
               <span className="writing-field-head"><strong>내 수업의 문제</strong><em>{data.problemStatement?.trim() ? "작성됨" : "핵심 작성"}</em></span>
-              <button type="button" className="secondary small-button" onClick={buildProblemStatement}>A·B·C로 초안 만들기</button>
+              <button type="button" className="secondary small-button" onClick={buildProblemStatement}>A·B·C 자연스럽게 연결</button>
             </div>
             <textarea value={data.problemStatement || ""} onChange={(event) => onChange("problemStatement", event.target.value)} placeholder="학생은 현재 [B]를 보였지만, [A]를 할 수 있는지는 아직 확인하지 못했다. 다음 수업에서 [C]를 통해 확인할 필요가 있다." />
             <p>해결책을 미리 정하지 않아야 다음 단계에서 여러 수업 방법을 비교할 수 있습니다.</p>
