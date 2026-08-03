@@ -10,9 +10,9 @@ interface GemsLabProps {
 type DesignStage = 1 | 2 | 3;
 
 const stages: { id: DesignStage; label: string }[] = [
-  { id: 1, label: "AI 요청 만들기" },
-  { id: 2, label: "응답 검토·조건 반영" },
-  { id: 3, label: "선택·최종 설계" },
+  { id: 1, label: "AI에게 요청하기" },
+  { id: 2, label: "방법 비교하기" },
+  { id: 3, label: "선택·설계하기" },
 ];
 
 const defaultResponseFormat = "각 방법의 적용할 수업 단계, 학생 활동, 확인할 학생 반응, 예상 시간·부담, 교사가 검토할 점을 정리해 주세요.";
@@ -120,21 +120,20 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     onChange("gemPracticeRequest", buildRequest(nextConditions, nextFormat));
   };
 
-  const fillFinalDesign = () => {
-    const selectedIndex = data.selectedMethodIndex || "";
-    const selectedName = data.selectedMethod
-      || data[`method${selectedIndex}Name`]
-      || data[`method${selectedIndex}`]
-      || "";
-    const selectedActivity = data[`revisedMethod${selectedIndex}`]
-      || data[`method${selectedIndex}Activity`]
-      || "";
-    const selectedEvidence = data[`method${selectedIndex}Evidence`] || studentEvidence;
-    if (!data.finalMethodReason && (selectedName || data.selectionReason)) {
-      onChange("finalMethodReason", [selectedName, data.selectionReason && `선택 이유: ${data.selectionReason}`].filter(Boolean).join("\n"));
-    }
-    if (!data.finalStudentActivity && selectedActivity) onChange("finalStudentActivity", selectedActivity);
-    if (!data.finalStudentEvidence && selectedEvidence) onChange("finalStudentEvidence", selectedEvidence);
+  const selectMethod = (index: string) => {
+    const selectedName = index ? (data[`method${index}Name`] || data[`method${index}`] || "") : "";
+    const selectedActivity = index ? (data[`method${index}Activity`] || "") : "";
+    onChange("selectedMethodIndex", index);
+    onChange("selectedMethod", selectedName);
+    onChange("finalMethodReason", [selectedName, data.selectionReason && `선택 이유: ${data.selectionReason}`].filter(Boolean).join("\n"));
+    onChange("finalStudentActivity", selectedActivity);
+    onChange("finalStudentEvidence", studentEvidence);
+  };
+
+  const updateSelectionReason = (value: string) => {
+    onChange("selectionReason", value);
+    const selectedName = data.selectedMethod || "";
+    onChange("finalMethodReason", [selectedName, value && `선택 이유: ${value}`].filter(Boolean).join("\n"));
   };
 
   const changeStage = (next: DesignStage) => {
@@ -203,7 +202,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
       )}
 
       {stage === 1 && (
-        <DesignPanel number="02" title="첫 AI 요청" description="자동으로 연결된 1차시 내용에 실제 수업 조건만 더해 첫 요청을 완성하세요.">
+        <DesignPanel number="01" title="AI에게 요청하기" description="1차시 내용은 이미 연결했습니다. 실제 수업 조건 한 가지만 더해 요청을 완성하세요." workload="핵심 입력 1개">
           <div className="request-layout lesson-design-request">
             <div className="request-form-card">
               <FormTextArea
@@ -235,82 +234,80 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
       )}
 
       {stage === 2 && (
-        <DesignPanel number="03" title="실제 AI 응답 검토" description="답변 전체를 옮기지 말고, 세 방법의 차이와 교사가 확인할 점만 정리하세요.">
+        <DesignPanel number="02" title="세 방법 비교하기" description="AI 답변은 한 번만 붙여 넣고, 방법별 이름과 핵심 학생 활동만 추려 적으세요." workload="원본 1회 · 방법 3개 · 검토 1회">
+          <div className="method-review-source">
+            <FormTextArea label="AI 답변 전체 붙여넣기" value={data.aiResponseRaw || ""} onChange={(value) => onChange("aiResponseRaw", value)} placeholder="Gemini가 제안한 답변 전체를 여기에 한 번만 붙여 넣으세요." />
+          </div>
           <div className="ai-method-review-list">
             {[1, 2, 3].map((index) => (
               <article className="ai-method-review" key={index}>
                 <header><b>{index}</b><input value={data[`method${index}Name`] || data[`method${index}`] || ""} onChange={(event) => { onChange(`method${index}Name`, event.target.value); onChange(`method${index}`, event.target.value); }} placeholder={`방법 ${index}의 이름`} /></header>
                 <div>
-                  <FormTextArea label="학생 활동" value={data[`method${index}Activity`] || ""} onChange={(value) => onChange(`method${index}Activity`, value)} placeholder="학생이 실제로 하게 될 활동을 적으세요." />
-                  <FormTextArea label="확인할 학생 반응" value={data[`method${index}Evidence`] || ""} onChange={(value) => onChange(`method${index}Evidence`, value)} placeholder="교사가 확인할 말·행동·결과물을 적으세요." />
-                  <FormTextArea label="예상 시간·부담" value={data[`method${index}Burden`] || ""} onChange={(value) => onChange(`method${index}Burden`, value)} placeholder="예상 시간과 준비 부담을 적으세요." />
-                  <FormTextArea label="교사 검토" value={data[`method${index}Review`] || ""} onChange={(value) => onChange(`method${index}Review`, value)} placeholder="자료의 정확성, 실행 가능성, AI가 놓친 점을 적으세요." />
+                  <FormTextArea label="핵심 학생 활동" value={data[`method${index}Activity`] || ""} onChange={(value) => onChange(`method${index}Activity`, value)} placeholder="학생이 실제로 하게 될 핵심 활동만 한두 문장으로 적으세요." />
                 </div>
               </article>
             ))}
           </div>
-        </DesignPanel>
-      )}
+          <div className="common-review-card">
+            <FormTextArea label="세 방법을 검토한 교사 메모" value={data.teacherReviewMemo || ""} onChange={(value) => onChange("teacherReviewMemo", value)} placeholder="자료의 정확성, 실행 가능성, AI가 놓친 점을 한곳에 적으세요." />
+          </div>
 
-      {stage === 2 && (
-        <DesignPanel number="04" title="실제 조건 반영" description="수업 시간과 자료 조건을 다시 확인한 뒤 AI에게 세 방법의 수정을 요청하세요.">
-          <div className="request-layout lesson-design-request">
-            <div className="request-form-card">
-              <FormTextArea label="새로 확인한 수업 운영 조건" value={data.newConditions || ""} onChange={(value) => { onChange("newConditions", value); onChange("conditionPrompt", buildConditionPrompt(value)); }} placeholder="예: 수업 방법 활동에 사용할 수 있는 시간은 12분이다." />
-              <FormTextArea label="조건 변경 메모" value={data.conditionChangeMemo || ""} onChange={(value) => onChange("conditionChangeMemo", value)} placeholder="무엇을 줄이거나 바꾸었고, 어떤 사고 과정은 유지했는지 적으세요." />
-            </div>
-            <aside className="request-preview-card">
-              <span>AI에 추가로 입력할 프롬프트</span>
-              <pre>{conditionPrompt}</pre>
-              <div>
-                <button type="button" className="secondary" onClick={() => { onChange("conditionPrompt", conditionPrompt); void copyText(conditionPrompt, "추가 요청을 복사했습니다."); }}>추가 요청 복사</button>
-                <a className="primary" href="https://gemini.google.com/app" target="_blank" rel="noreferrer" onClick={() => onChange("conditionPrompt", conditionPrompt)}>Gemini에서 실행 ↗</a>
+          <details className="inline-option condition-option">
+            <summary>선택 · 새로 확인한 수업 조건 반영하기</summary>
+            <div className="condition-option-body">
+              <div className="request-layout lesson-design-request">
+                <div className="request-form-card">
+                  <FormTextArea label="새로 확인한 수업 운영 조건" value={data.newConditions || ""} onChange={(value) => { onChange("newConditions", value); onChange("conditionPrompt", buildConditionPrompt(value)); }} placeholder="예: 활동에 사용할 수 있는 시간은 12분이다." />
+                </div>
+                <aside className="request-preview-card">
+                  <span>AI에 추가로 입력할 프롬프트</span>
+                  <pre>{conditionPrompt}</pre>
+                  <div>
+                    <button type="button" className="secondary" onClick={() => { onChange("conditionPrompt", conditionPrompt); void copyText(conditionPrompt, "추가 요청을 복사했습니다."); }}>추가 요청 복사</button>
+                    <a className="primary" href="https://gemini.google.com/app" target="_blank" rel="noreferrer" onClick={() => onChange("conditionPrompt", conditionPrompt)}>Gemini에서 실행 ↗</a>
+                  </div>
+                </aside>
               </div>
-            </aside>
-          </div>
-          <div className="revised-methods">
-            {[1, 2, 3].map((index) => <FormTextArea key={index} label={`수정된 방법 ${index}`} value={data[`revisedMethod${index}`] || ""} onChange={(value) => onChange(`revisedMethod${index}`, value)} placeholder="수정된 학생 활동과 유지한 사고 과정을 짧게 정리하세요." />)}
-          </div>
+              <FormTextArea label="조건을 반영한 AI 답변" value={data.revisedAiResponse || ""} onChange={(value) => onChange("revisedAiResponse", value)} placeholder="수정된 답변 전체를 한 번만 붙여 넣으세요." />
+            </div>
+          </details>
         </DesignPanel>
       )}
 
       {stage === 3 && (
-        <DesignPanel number="05" title="교사 선택과 수정" description="AI의 추천이 아니라, 확인한 자료와 수업 조건을 근거로 한 가지 방법을 결정하세요.">
+        <DesignPanel number="03" title="한 가지 선택해 설계 완성하기" description="교사가 방법을 고르고, 선택 이유와 수정할 내용, 만들 콘텐츠만 적으면 끝납니다." workload="핵심 입력 4개">
+          <div className="final-design-autofill">
+            <p><b>자동 연결</b> 선택한 방법의 학생 활동과 1차시 확인 기준은 최종 설계안에 바로 반영됩니다.</p>
+          </div>
           <div className="teacher-choice-grid">
-            <FormTextArea label="자료 확인 결과" value={data.evidenceCheck || ""} onChange={(value) => onChange("evidenceCheck", value)} placeholder="자료 출처, 계산 근거, 실행 조건 등 교사가 확인한 내용을 적으세요." />
             <label className="design-field">
               <span>선택한 방법</span>
-              <select value={data.selectedMethodIndex || ""} onChange={(event) => { const index = event.target.value; onChange("selectedMethodIndex", index); onChange("selectedMethod", index ? (data[`method${index}Name`] || data[`method${index}`] || data[`revisedMethod${index}`] || "") : ""); }}>
+              <select value={data.selectedMethodIndex || ""} onChange={(event) => selectMethod(event.target.value)}>
                 <option value="">방법을 선택하세요</option>
                 {[1, 2, 3].map((index) => <option key={index} value={String(index)}>방법 {index} · {data[`method${index}Name`] || data[`method${index}`] || "이름 미입력"}</option>)}
               </select>
             </label>
-            <FormTextArea label="선택 이유" value={data.selectionReason || ""} onChange={(value) => onChange("selectionReason", value)} placeholder="수업 문제를 어떻게 다루며 실제 조건에서 왜 실행 가능한지 적으세요." />
+            <FormTextArea label="선택 이유" value={data.selectionReason || ""} onChange={updateSelectionReason} placeholder="수업 문제에 도움이 되고 실제 수업에서 실행 가능한 이유를 적으세요." />
             <FormTextArea label="교사가 수정한 내용" value={data.teacherRevision || ""} onChange={(value) => onChange("teacherRevision", value)} placeholder="자료, 판단 기준, 활동량, 기록 방법 등을 어떻게 수정했는지 적으세요." />
+            <FormTextArea label="3차시에서 만들 콘텐츠" value={data.contentToBuild || ""} onChange={(value) => onChange("contentToBuild", value)} placeholder="예: 두 방안을 비교하고 선택 이유를 기록하는 웹 활동" />
           </div>
-        </DesignPanel>
-      )}
-
-      {stage === 3 && (
-        <DesignPanel number="06" title="최종 수업 방법 설계안" description="3차시 콘텐츠 제작으로 바로 이어질 수 있도록 최종 방법을 한 장으로 정리하세요.">
-          <div className="final-design-autofill">
-            <p>앞에서 선택한 방법·이유·학생 반응을 다시 쓰지 않아도 됩니다.</p>
-            <button type="button" className="secondary small-button" onClick={fillFinalDesign}>선택 내용 자동 채우기</button>
-          </div>
-          <div className="final-design-grid">
-            <FormTextArea label="1. 사용할 수업 방법과 선택 이유" value={data.finalMethodReason || ""} onChange={(value) => onChange("finalMethodReason", value)} placeholder="사용할 방법과 선택 이유를 함께 적으세요." />
-            <FormTextArea label="2. 적용할 수업 단계" value={data.finalLessonStage || ""} onChange={(value) => onChange("finalLessonStage", value)} placeholder="예: 자료를 읽은 뒤 방안을 결정하는 단계" />
-            <FormTextArea label="3. 학생이 하게 될 활동" value={data.finalStudentActivity || ""} onChange={(value) => onChange("finalStudentActivity", value)} placeholder="학생이 무엇을 보고, 비교하고, 만들거나 설명하는지 적으세요." />
-            <FormTextArea label="4. 교사가 확인할 학생 반응" value={data.finalStudentEvidence || ""} onChange={(value) => onChange("finalStudentEvidence", value)} placeholder="배움을 확인할 학생의 말·행동·결과물을 적으세요." />
-            <FormTextArea label="5. 3차시에서 만들 콘텐츠" value={data.contentToBuild || ""} onChange={(value) => onChange("contentToBuild", value)} placeholder="예: 비교 자료 카드와 선택 이유를 기록하는 웹 활동" />
-          </div>
-          <fieldset className="final-design-checks">
-            <legend>최종 확인</legend>
-            <CheckField label="1차시에서 찾은 수업 문제를 직접 다룬다." checked={data.finalCheckProblem === "yes"} onChange={(checked) => onChange("finalCheckProblem", checked ? "yes" : "")} />
-            <CheckField label="학생이 하게 될 활동이 구체적으로 보인다." checked={data.finalCheckConcrete === "yes"} onChange={(checked) => onChange("finalCheckConcrete", checked ? "yes" : "")} />
-            <CheckField label="학생이 배웠다는 것을 확인할 말과 행동이 정해져 있다." checked={data.finalCheckEvidence === "yes"} onChange={(checked) => onChange("finalCheckEvidence", checked ? "yes" : "")} />
-            <CheckField label="AI 제안에 교사의 자료 확인·선택·수정이 들어갔다." checked={data.finalCheckTeacherRevision === "yes"} onChange={(checked) => onChange("finalCheckTeacherRevision", checked ? "yes" : "")} />
-          </fieldset>
+          <details className="inline-option final-design-option">
+            <summary>선택 · 자동 연결된 최종 설계안 확인·수정하기</summary>
+            <div className="condition-option-body">
+              <div className="final-design-grid">
+                <FormTextArea label="적용할 수업 단계" value={data.finalLessonStage || ""} onChange={(value) => onChange("finalLessonStage", value)} placeholder="예: 자료를 읽은 뒤 방안을 결정하는 단계" />
+                <FormTextArea label="학생이 하게 될 활동" value={data.finalStudentActivity || ""} onChange={(value) => onChange("finalStudentActivity", value)} placeholder="선택한 방법에서 자동 연결됩니다." />
+                <FormTextArea label="교사가 확인할 학생 반응" value={data.finalStudentEvidence || ""} onChange={(value) => onChange("finalStudentEvidence", value)} placeholder="1차시 확인 기준에서 자동 연결됩니다." />
+              </div>
+              <fieldset className="final-design-checks">
+                <legend>선택 · 최종 확인</legend>
+                <CheckField label="1차시에서 찾은 수업 문제를 직접 다룬다." checked={data.finalCheckProblem === "yes"} onChange={(checked) => onChange("finalCheckProblem", checked ? "yes" : "")} />
+                <CheckField label="학생이 하게 될 활동이 구체적으로 보인다." checked={data.finalCheckConcrete === "yes"} onChange={(checked) => onChange("finalCheckConcrete", checked ? "yes" : "")} />
+                <CheckField label="학생이 배웠다는 것을 확인할 말과 행동이 정해져 있다." checked={data.finalCheckEvidence === "yes"} onChange={(checked) => onChange("finalCheckEvidence", checked ? "yes" : "")} />
+                <CheckField label="AI 제안에 교사의 선택과 수정이 들어갔다." checked={data.finalCheckTeacherRevision === "yes"} onChange={(checked) => onChange("finalCheckTeacherRevision", checked ? "yes" : "")} />
+              </fieldset>
+            </div>
+          </details>
         </DesignPanel>
       )}
 
@@ -332,10 +329,10 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   );
 }
 
-function DesignPanel({ number, title, description, children }: { number: string; title: string; description: string; children: React.ReactNode }) {
+function DesignPanel({ number, title, description, workload, children }: { number: string; title: string; description: string; workload: string; children: React.ReactNode }) {
   return (
     <section className="lesson-two-panel lesson-design-panel">
-      <header className="panel-title"><b>{number}</b><div><h2>{title}</h2><p>{description}</p></div></header>
+      <header className="panel-title"><b>{number}</b><div><h2>{title}</h2><p>{description}</p></div><span className="panel-workload">{workload}</span></header>
       {children}
     </section>
   );
