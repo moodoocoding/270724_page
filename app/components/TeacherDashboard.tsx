@@ -127,10 +127,6 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
   const [countdown, setCountdown] = useState(10);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // Teacher feedback inputs states: key format is `${participantId}-${step}`
-  const [feedbackText, setFeedbackText] = useState<Record<string, string>>({});
-  const [savingFeedback, setSavingFeedback] = useState<Record<string, boolean>>({});
-
   // Compute selected participant dynamically to avoid synchronization side-effects
   const selected = selectedId !== null 
     ? rosterData.participants.find((p) => p.id === selectedId) || null 
@@ -169,69 +165,6 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
 
     return () => clearInterval(timer);
   }, [autoRefresh, fetchUpdates]);
-
-  const handleSelectParticipant = (p: TeacherParticipant) => {
-    setSelectedId(p.id);
-    const initialFeedback: Record<string, string> = {};
-    ([1, 2, 3, 4] as Step[]).forEach((step) => {
-      const sub = p.submissions[step];
-      const subData = sub ? JSON.parse(sub.dataJson || "{}") : {};
-      initialFeedback[`${p.id}-${step}`] = subData.teacherFeedback ?? "";
-    });
-    setFeedbackText((prev) => ({ ...prev, ...initialFeedback }));
-  };
-
-  const handleFeedbackChange = (step: Step, participantId: number, text: string) => {
-    setFeedbackText((prev) => ({ ...prev, [`${participantId}-${step}`]: text }));
-  };
-
-  const saveFeedback = async (step: Step, participantId: number) => {
-    const text = (feedbackText[`${participantId}-${step}`] ?? "").trim();
-    const key = `${participantId}-${step}`;
-    
-    setSavingFeedback((prev) => ({ ...prev, [key]: true }));
-    try {
-      const res = await fetch("/api/teacher/feedback", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          classCode,
-          adminCode,
-          participantId,
-          step,
-          feedback: text,
-        }),
-      });
-      if (!res.ok) throw new Error();
-
-      // Update in-memory roster data immediately
-      setRosterData((prev) => ({
-        ...prev,
-        participants: prev.participants.map((p) => {
-          if (p.id !== participantId) return p;
-          const sub = p.submissions[step];
-          const subData = sub ? JSON.parse(sub.dataJson || "{}") : {};
-          const updatedSub = sub
-            ? { ...sub, dataJson: JSON.stringify({ ...subData, teacherFeedback: text }) }
-            : { step, status: "draft" as const, dataJson: JSON.stringify({ teacherFeedback: text }) };
-          
-          return {
-            ...p,
-            submissions: {
-              ...p.submissions,
-              [step]: updatedSub,
-            },
-          };
-        }),
-      }));
-
-      alert("피드백이 전송되었습니다.");
-    } catch {
-      alert("피드백 전송에 실패했습니다. 연결을 확인해 주세요.");
-    } finally {
-      setSavingFeedback((prev) => ({ ...prev, [key]: false }));
-    }
-  };
 
   // CSV Spreadsheet Export ( 한글 깨짐 방지 UTF-8 BOM 탑재 )
   const exportToCsv = () => {
@@ -354,7 +287,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
       <section className="roster">
         <div className="roster-head">
           <h1>제출 현황판</h1>
-          <p>이름을 누르면 작성 내용 확인 및 피드백 전송이 가능합니다.</p>
+          <p>이름을 누르면 차시별 작성 내용을 확인할 수 있습니다.</p>
         </div>
         
         {rosterData.participants.length > 0 ? (
@@ -368,12 +301,12 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                   <th>2차시</th>
                   <th>3차시</th>
                   <th>4차시</th>
-                  <th style={{ textAlign: "right" }}>피드백</th>
+                  <th style={{ textAlign: "right" }}>상세</th>
                 </tr>
               </thead>
               <tbody>
                 {rosterData.participants.map((person) => (
-                  <tr key={person.id} className="roster-row" onClick={() => handleSelectParticipant(person)}>
+                  <tr key={person.id} className="roster-row" onClick={() => setSelectedId(person.id)}>
                     <td>{person.school}</td>
                     <td><strong>{person.name}</strong></td>
                     <td>{getStatusBadge(1, person)}</td>
@@ -381,7 +314,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     <td>{getStatusBadge(3, person)}</td>
                     <td>{getStatusBadge(4, person)}</td>
                     <td style={{ textAlign: "right" }}>
-                      <span className="view-detail-link">보기 & 피드백 ↗</span>
+                      <span className="view-detail-link">보기 ↗</span>
                     </td>
                   </tr>
                 ))}
@@ -393,7 +326,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
         )}
       </section>
 
-      {/* Participant Workbook Detail & Feedback Modal */}
+      {/* Participant Workbook Detail Modal */}
       {selected && (
         <div className="modal-backdrop" onClick={() => setSelectedId(null)}>
           <article
@@ -435,13 +368,9 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     "selectedMethodIndex",
                     "contentTool",
                     "galleryComments",
-                    "teacherFeedback", // Exclude feedback from normal details loop
+                    "teacherFeedback", // Hide feedback saved by older versions
                   ].includes(key)
               );
-
-              const feedbackKey = `${selected.id}-${step}`;
-              const currentFeedback = feedbackText[feedbackKey] ?? "";
-              const isSaving = savingFeedback[feedbackKey] ?? false;
 
               return (
                 <section key={step} className="modal-step-section" style={{ borderTop: "2px solid #edf2ed", padding: "20px 0" }}>
@@ -485,32 +414,6 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                       아직 진행하지 않았거나 임시저장 상태입니다.
                     </p>
                   )}
-
-                  {/* Teacher Feedback input region */}
-                  <div className="teacher-feedback-block" style={{ padding: "14px", background: "#fcfcfa", border: "1.5px dashed var(--line)", borderRadius: "6px" }}>
-                    <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#36403a", marginBottom: "6px" }}>
-                      ✍️ {step}차시 피드백 전송
-                    </label>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      <input
-                        type="text"
-                        value={currentFeedback}
-                        onChange={(e) => handleFeedbackChange(step, selected.id, e.target.value)}
-                        placeholder="이 차시에 대한 조언이나 의견을 작성하세요."
-                        style={{ flex: "1", height: "38px", margin: "0", fontSize: "13px" }}
-                        disabled={isSaving}
-                      />
-                      <button
-                        type="button"
-                        className="primary compact small-button"
-                        style={{ minHeight: "38px", minWidth: "80px" }}
-                        onClick={() => saveFeedback(step, selected.id)}
-                        disabled={isSaving}
-                      >
-                        {isSaving ? "전송 중…" : "보내기"}
-                      </button>
-                    </div>
-                  </div>
                 </section>
               );
             })}

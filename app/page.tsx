@@ -332,13 +332,6 @@ export default function Home() {
             <span>{stepMeta[step].hint}</span>
           </div>
 
-          {current?.data?.teacherFeedback && (
-            <div className="student-feedback-banner">
-              <strong>💡 강사의 실시간 피드백</strong>
-              <p>{current.data.teacherFeedback}</p>
-            </div>
-          )}
-
           {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} />}
           {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
           {step === 3 && <GameLab data={current.data} onChange={updateField} />}
