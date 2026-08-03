@@ -144,20 +144,20 @@ export function GameLab({ data, onChange }: GameLabProps) {
 
   return (
     <div className="game-lab">
-      <nav className="subtab-bar" aria-label="3차시 단계 선택">
+      <nav className="stage-tabs subtab-bar" aria-label="3차시 단계 선택">
         <button
           className={subTab === "step1" ? "primary" : "secondary"}
           aria-pressed={subTab === "step1"}
           onClick={() => setSubTab("step1")}
         >
-          🎮 1단계: 추천 웹게임 체험 및 연구
+          01 추천 웹게임 체험
         </button>
         <button
           className={subTab === "step2" ? "primary" : "secondary"}
           aria-pressed={subTab === "step2"}
           onClick={() => setSubTab("step2")}
         >
-          🚀 2단계: 직접 개발한 콘텐츠 탑재 & 라이브 테스트
+          02 콘텐츠 탑재·라이브 테스트
         </button>
       </nav>
 
@@ -249,13 +249,6 @@ export function GameLab({ data, onChange }: GameLabProps) {
                 </label>
               ))}
             </div>
-            <button
-              type="button"
-              className="primary next-step-button"
-              onClick={() => setSubTab("step2")}
-            >
-              다음: 2단계 내가 개발한 콘텐츠 탑재하기 →
-            </button>
           </section>
         </div>
       )}

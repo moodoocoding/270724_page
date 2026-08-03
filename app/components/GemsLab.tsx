@@ -12,6 +12,8 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [showMetaModal, setShowMetaModal] = useState(false);
   const [metaText, setMetaText] = useState("");
+  const [metaCopied, setMetaCopied] = useState(false);
+  const [gemOpened, setGemOpened] = useState(false);
 
   useEffect(() => {
     fetch("/meta-prompt.md")
@@ -33,6 +35,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     try {
       const textToCopy = metaText || (await (await fetch("/meta-prompt.md")).text());
       await navigator.clipboard.writeText(textToCopy);
+      setMetaCopied(true);
       setCopyToast("메타 프롬프트 전체를 복사했습니다.");
       setTimeout(() => setCopyToast(null), 3500);
     } catch {
@@ -100,11 +103,11 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </div>
       )}
 
-      <nav className="subtab-bar lesson-two-stage-nav" aria-label="2차시 단계 선택">
+      <nav className="stage-tabs subtab-bar lesson-two-stage-nav" aria-label="2차시 단계 선택">
         {[
-          [1, "🧩 1단계: Gem 만들기"],
-          [2, "✍️ 2단계: AI에게 요청하기"],
-          [3, "✅ 3단계: 방법 비교·선택하기"],
+          [1, "01 Gem 만들기"],
+          [2, "02 AI에게 요청하기"],
+          [3, "03 방법 비교·선택"],
         ].map(([value, label]) => (
           <button
             key={value}
@@ -113,9 +116,6 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
             aria-current={subStep === value ? "step" : undefined}
             aria-pressed={subStep === value}
             onClick={() => {
-              if (value === 2) {
-                onChange("gemCreatedAt", data.gemCreatedAt || new Date().toISOString());
-              }
               if (value === 3) {
                 onChange("gemPracticeRequest", requestText);
               }
@@ -141,11 +141,24 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
                 href="https://gemini.google.com/gems/create"
                 target="_blank"
                 rel="noreferrer"
-                onClick={() => onChange("gemCreatedAt", new Date().toISOString())}
+                onClick={() => setGemOpened(true)}
               >
                 새 Gem 만들기 ↗
               </a>
             </div>
+          </div>
+
+          <div className="gem-progress" aria-label="Gem 만들기 진행 상태">
+            <span className={metaCopied ? "done" : ""}><i>01</i>메타 프롬프트 복사</span>
+            <span className={gemOpened ? "done" : ""}><i>02</i>Gemini에서 Gem 열기</span>
+            <label className={data.gemCreatedAt ? "done" : ""}>
+              <input
+                type="checkbox"
+                checked={Boolean(data.gemCreatedAt)}
+                onChange={(event) => onChange("gemCreatedAt", event.target.checked ? new Date().toISOString() : "")}
+              />
+              <i>03</i>Gem 생성 완료
+            </label>
           </div>
 
           <div className="gem-create-workspace">

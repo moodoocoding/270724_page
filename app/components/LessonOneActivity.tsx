@@ -11,11 +11,11 @@ const factAnswers = ["사실", "해석", "사실", "해석"] as const;
 type LessonStage = 1 | 2 | 3 | 4 | 5;
 
 const stages: { id: LessonStage; label: string; short: string }[] = [
-  { id: 1, label: "남길 배움", short: "A" },
-  { id: 2, label: "현재 장면", short: "B" },
-  { id: 3, label: "확인 기준", short: "C" },
-  { id: 4, label: "문제 문장", short: "문제" },
-  { id: 5, label: "AI 활용 결정", short: "D" },
+  { id: 1, label: "남길 배움", short: "01" },
+  { id: 2, label: "현재 장면", short: "02" },
+  { id: 3, label: "확인 기준", short: "03" },
+  { id: 4, label: "문제 문장", short: "04" },
+  { id: 5, label: "AI 활용", short: "05" },
 ];
 
 interface LessonOneActivityProps {
@@ -43,7 +43,7 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
 
   return (
     <div className="lesson-one-flow">
-      <nav className="lesson-one-tabs" aria-label="1차시 활동 단계">
+      <nav className="stage-tabs lesson-one-tabs" aria-label="1차시 활동 단계">
         {stages.map((item) => (
           <button
             key={item.id}
@@ -211,20 +211,18 @@ function StageHeader({ number, title, description }: { number: string; title: st
 }
 
 function SingleLineField({ label, value, onValue, placeholder }: { label: string; value: string; onValue: (value: string) => void; placeholder: string }) {
-  const isFilled = Boolean(value.trim());
   return (
-    <label className={`lesson-context-field ${isFilled ? "is-filled" : ""}`}>
-      <span className="writing-field-head"><strong>{label}</strong><em>{isFilled ? "작성됨" : "작성"}</em></span>
+    <label className="lesson-context-field">
+      <span>{label}</span>
       <input value={value} onChange={(event) => onValue(event.target.value)} placeholder={placeholder} />
     </label>
   );
 }
 
 function TextArea({ label, value, onValue, placeholder }: { label: string; value: string; onValue: (value: string) => void; placeholder: string }) {
-  const isFilled = Boolean(value.trim());
   return (
-    <label className={`lesson-textarea ${isFilled ? "is-filled" : ""}`}>
-      <span className="writing-field-head"><strong>{label}</strong><em>{isFilled ? "작성됨" : "작성"}</em></span>
+    <label className="lesson-textarea">
+      <span>{label}</span>
       <textarea value={value} onChange={(event) => onValue(event.target.value)} placeholder={placeholder} />
     </label>
   );

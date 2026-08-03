@@ -235,7 +235,7 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
 
   return (
     <div className="gallery-work">
-      <section className="gallery-showcase" aria-live="polite">
+      <section className="gallery-showcase">
         <header className="gallery-intro">
           <div>
             <b>갤러리워크</b>
@@ -305,14 +305,14 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
                     className="secondary small-button gallery-comment-button"
                     onClick={() => setCommentItemId(item.id)}
                   >
-                    댓글 보기 {item.comments.length}
+                    의견 남기기 · {item.comments.length}
                   </button>
                 )}
               </div>
             </article>
           ))}
         </div>
-        {loading && <p className="gallery-note">동료 결과물을 불러오는 중입니다.</p>}
+        {loading && <p className="gallery-note" role="status" aria-live="polite">동료 결과물을 불러오는 중입니다.</p>}
         {loadError && (
           <div className="gallery-load-error" role="alert">
             <p className="gallery-note error">{loadError}</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Brand } from "./Brand";
 
 type Step = 1 | 2 | 3 | 4;
@@ -121,6 +121,9 @@ interface TeacherDashboardProps {
 export function TeacherDashboard({ data, classCode, adminCode, onBack }: TeacherDashboardProps) {
   const [rosterData, setRosterData] = useState<TeacherData>(data);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "not-started" | "in-progress" | "completed">("all");
+  const returnFocusRef = useRef<HTMLButtonElement | null>(null);
   
   // Real-time synchronization states
   const [autoRefresh, setAutoRefresh] = useState(false);
@@ -131,6 +134,22 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
   const selected = selectedId !== null 
     ? rosterData.participants.find((p) => p.id === selectedId) || null 
     : null;
+  const visibleParticipants = rosterData.participants.filter((participant) => {
+    const keyword = searchQuery.trim().toLowerCase();
+    const matchesKeyword = !keyword || `${participant.school} ${participant.name}`.toLowerCase().includes(keyword);
+    const submissionCount = ([1, 2, 3, 4] as Step[]).filter((step) => participant.submissions[step]?.status === "submitted").length;
+    const started = ([1, 2, 3, 4] as Step[]).some((step) => Boolean(participant.submissions[step]));
+    const matchesStatus = statusFilter === "all"
+      || (statusFilter === "not-started" && !started)
+      || (statusFilter === "in-progress" && started && submissionCount < 4)
+      || (statusFilter === "completed" && submissionCount === 4);
+    return matchesKeyword && matchesStatus;
+  });
+
+  const closeParticipant = useCallback(() => {
+    setSelectedId(null);
+    window.requestAnimationFrame(() => returnFocusRef.current?.focus());
+  }, []);
 
   const fetchUpdates = useCallback(async () => {
     setIsSyncing(true);
@@ -165,6 +184,15 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
 
     return () => clearInterval(timer);
   }, [autoRefresh, fetchUpdates]);
+
+  useEffect(() => {
+    if (selectedId === null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeParticipant();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [selectedId, closeParticipant]);
 
   // CSV Spreadsheet Export ( 한글 깨짐 방지 UTF-8 BOM 탑재 )
   const exportToCsv = () => {
@@ -238,12 +266,13 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
               ) : autoRefresh ? (
                 <span className="sync-countdown">⏱️ {countdown}초 후 자동 갱신</span>
               ) : (
-                "실시간 동기화 오프라인"
+                "자동 갱신 꺼짐"
               )}
             </span>
             <label className="switch">
               <input
                 type="checkbox"
+                aria-label="자동 갱신"
                 checked={autoRefresh}
                 onChange={(e) => {
                   setAutoRefresh(e.target.checked);
@@ -254,6 +283,10 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
             </label>
             <span className="toggle-label">자동 갱신</span>
           </div>
+
+          <button type="button" className="secondary compact" onClick={() => void fetchUpdates()} disabled={isSyncing}>
+            {isSyncing ? "갱신 중…" : "지금 새로고침"}
+          </button>
 
           <button type="button" className="secondary compact" onClick={exportToCsv}>
             📊 엑셀 내보내기 (CSV)
@@ -274,7 +307,14 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
             <div key={step} className="summary-card">
               <span>{step}차시 · {stepMeta[step].short}</span>
               <strong>{submittedCount} / {totalCount} 명</strong>
-              <div className="card-progress">
+              <div
+                className="card-progress"
+                role="progressbar"
+                aria-label={`${step}차시 제출률`}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percent}
+              >
                 <div className="progress-bar" style={{ width: `${percent}%` }}></div>
                 <small>{percent}% 제출</small>
               </div>
@@ -286,8 +326,25 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
       {/* Roster listing grid */}
       <section className="roster">
         <div className="roster-head">
-          <h1>제출 현황판</h1>
-          <p>이름을 누르면 차시별 작성 내용을 확인할 수 있습니다.</p>
+          <div>
+            <h1>제출 현황판</h1>
+            <p>검색하거나 상태를 골라 참여자의 핵심 작성 내용을 확인하세요.</p>
+          </div>
+          <div className="roster-filters">
+            <label>
+              <span>참여자 검색</span>
+              <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="학교명 또는 이름" />
+            </label>
+            <label>
+              <span>진행 상태</span>
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)}>
+                <option value="all">전체</option>
+                <option value="not-started">미시작</option>
+                <option value="in-progress">진행 중</option>
+                <option value="completed">4차시 완료</option>
+              </select>
+            </label>
+          </div>
         </div>
         
         {rosterData.participants.length > 0 ? (
@@ -305,8 +362,8 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                 </tr>
               </thead>
               <tbody>
-                {rosterData.participants.map((person) => (
-                  <tr key={person.id} className="roster-row" onClick={() => setSelectedId(person.id)}>
+                {visibleParticipants.map((person) => (
+                  <tr key={person.id} className="roster-row">
                     <td>{person.school}</td>
                     <td><strong>{person.name}</strong></td>
                     <td>{getStatusBadge(1, person)}</td>
@@ -314,12 +371,22 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     <td>{getStatusBadge(3, person)}</td>
                     <td>{getStatusBadge(4, person)}</td>
                     <td style={{ textAlign: "right" }}>
-                      <span className="view-detail-link">보기 ↗</span>
+                      <button
+                        type="button"
+                        className="view-detail-link"
+                        onClick={(event) => {
+                          returnFocusRef.current = event.currentTarget;
+                          setSelectedId(person.id);
+                        }}
+                      >
+                        보기 ↗
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {visibleParticipants.length === 0 && <div className="empty">조건에 맞는 참여자가 없습니다.</div>}
           </div>
         ) : (
           <div className="empty">아직 입장한 참여자가 없습니다.</div>
@@ -328,20 +395,35 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
 
       {/* Participant Workbook Detail Modal */}
       {selected && (
-        <div className="modal-backdrop" onClick={() => setSelectedId(null)}>
+        <div className="modal-backdrop" onClick={closeParticipant}>
           <article
             className="modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="workbook-dialog-title"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key !== "Tab") return;
+              const focusable = Array.from(event.currentTarget.querySelectorAll<HTMLElement>("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"))
+                .filter((element) => !element.hasAttribute("disabled"));
+              if (!focusable.length) return;
+              const first = focusable[0];
+              const last = focusable[focusable.length - 1];
+              if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+              } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+              }
+            }}
             style={{ width: "min(860px, 100%)" }}
           >
             <button
               type="button"
               className="modal-close"
               autoFocus
-              onClick={() => setSelectedId(null)}
+              onClick={closeParticipant}
             >
               닫기
             </button>

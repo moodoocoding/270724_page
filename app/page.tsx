@@ -79,6 +79,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [teacherData, setTeacherData] = useState<TeacherData | null>(null);
+  const [loadingWorkbook, setLoadingWorkbook] = useState(Boolean(session));
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   // 자동 저장 상태 관리 ("idle" | "saving" | "saved" | "error")
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -97,6 +99,7 @@ export default function Home() {
 
   useEffect(() => {
     async function loadSubmissions(activeSession: Session) {
+      setLoadingWorkbook(true);
       const sessionResponse = await fetch("/api/session", { cache: "no-store" });
       if (sessionResponse.ok) {
         const sessionBody = await sessionResponse.json() as { session: Session };
@@ -118,6 +121,7 @@ export default function Home() {
         if (!renewed.ok) {
           window.localStorage.removeItem("oneday-session");
           setSession(null);
+          setLoadingWorkbook(false);
           return;
         }
         const renewedBody = await renewed.json();
@@ -125,7 +129,10 @@ export default function Home() {
         setSession(renewedBody.session);
         res = await fetch("/api/submissions", { cache: "no-store" });
       }
-      if (!res.ok) return;
+      if (!res.ok) {
+        setLoadingWorkbook(false);
+        return;
+      }
       const body = await res.json();
       setSubmissions((prev) => {
         const next = { ...prev };
@@ -134,8 +141,14 @@ export default function Home() {
         }
         return next;
       });
+      setLoadingWorkbook(false);
     }
-    if (session) void loadSubmissions(session);
+    if (session) {
+      void loadSubmissions(session).catch(() => {
+        setLoadingWorkbook(false);
+        setSaveState("error");
+      });
+    }
   }, [session]);
 
   async function enterClass(event: React.FormEvent) {
@@ -151,6 +164,7 @@ export default function Home() {
     const body = await res.json();
     setBusy(false);
     if (!res.ok) return setMessage(body.error || "입장할 수 없습니다.");
+    setLoadingWorkbook(true);
     setSession(body.session);
     window.localStorage.setItem("oneday-session", JSON.stringify(body.session));
   }
@@ -171,6 +185,7 @@ export default function Home() {
         [currentStep]: { ...prev[currentStep], status: "draft", updatedAt: body.updatedAt },
       }));
       setSaveState("saved");
+      setLastSavedAt(body.updatedAt || new Date().toISOString());
       setTimeout(() => setSaveState("idle"), 3000);
     } catch {
       setSaveState("error");
@@ -213,6 +228,7 @@ export default function Home() {
     }
     setSubmissions((prev) => ({ ...prev, [step]: { ...prev[step], status, updatedAt: body.updatedAt } }));
     setSaveState("saved");
+    setLastSavedAt(body.updatedAt || new Date().toISOString());
     setMessage(status === "submitted" ? "제출했습니다. 언제든 수정해 다시 제출할 수 있어요." : "임시 저장했습니다.");
     setTimeout(() => setSaveState("idle"), 3000);
   }
@@ -222,6 +238,7 @@ export default function Home() {
     void fetch("/api/session", { method: "DELETE" });
     window.localStorage.removeItem("oneday-session");
     setSession(null);
+    setLoadingWorkbook(false);
   }
 
   async function openTeacher(event: React.FormEvent) {
@@ -261,7 +278,7 @@ export default function Home() {
               </optgroup>)}
             </select></label>
             <label>강사 코드<input type="password" value={adminCode} onChange={(e) => setAdminCode(e.target.value)} placeholder="강사 코드 입력" /></label>
-            {message && <p className="form-message">{message}</p>}
+            {message && <p className="form-message" role="alert">{message}</p>}
             <button className="primary" disabled={busy}>{busy ? "확인 중…" : "강사 화면 열기"}</button>
           </form>
           <button className="text-button" onClick={() => { setMode("learner"); setMessage(""); }}>참여자 화면으로</button>
@@ -291,7 +308,7 @@ export default function Home() {
             </select></label>
             <label>학교명<input value={school} onChange={(e) => setSchool(e.target.value)} placeholder="예: 한빛초등학교" /></label>
             <label>이름<input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 김태호" /></label>
-            {message && <p className="form-message">{message}</p>}
+            {message && <p className="form-message" role="alert">{message}</p>}
             <button className="primary" disabled={busy}>{busy ? "입장 중…" : "워크북 시작하기"}</button>
           </form>
           <button className="text-button" onClick={() => { setMode("teacher"); setMessage(""); }}>강사이신가요?</button>
@@ -305,9 +322,20 @@ export default function Home() {
     <main className="app-shell">
       <header className="topbar">
         <Brand />
-        <div className="user-chip">
-          <span>{findWorkshopSession(session.classCode)?.className ?? session.className} · {session.school}</span>
-          <strong>{session.participantName}</strong>
+        <div className="topbar-actions">
+          <div className={`save-chip ${saveState}`} role="status" aria-live="polite">
+            {saveState === "saving" && "저장 중…"}
+            {saveState === "error" && "저장 실패 · 다시 입력해 주세요"}
+            {saveState === "saved" && "저장됨"}
+            {saveState === "idle" && (lastSavedAt
+              ? `${new Date(lastSavedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨`
+              : "자동 저장")}
+          </div>
+          <div className="user-chip">
+            <span>{findWorkshopSession(session.classCode)?.className ?? session.className} · {session.school}</span>
+            <strong>{session.participantName}</strong>
+          </div>
+          <button type="button" className="topbar-logout" onClick={leaveClass}>나가기</button>
         </div>
       </header>
       <div className="workspace">
@@ -332,27 +360,29 @@ export default function Home() {
             <span>{stepMeta[step].hint}</span>
           </div>
 
-          {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} />}
-          {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
-          {step === 3 && <GameLab data={current.data} onChange={updateField} />}
+          {loadingWorkbook ? (
+            <section className="workbook-loading" role="status" aria-live="polite">
+              <i />
+              <strong>저장된 워크북을 불러오고 있습니다.</strong>
+              <span>이전 작성 내용을 확인한 뒤 안전하게 시작할게요.</span>
+            </section>
+          ) : (
+            <>
+              {step === 1 && <LessonOneActivity data={current.data} onChange={updateField} />}
+              {step === 2 && <GemsLab data={current.data} fromStep1={submissions[1].data} onChange={updateField} />}
+              {step === 3 && <GameLab data={current.data} onChange={updateField} />}
 
-          {step === 4 && <GalleryWalk data={current.data} onChange={updateField} onReturnToUpload={() => {
-            setStep(3);
-            setMessage("3차시에서 결과물 파일을 다시 탑재해 주세요. 탑재가 끝나면 갤러리에 자동으로 연결됩니다.");
-          }} />}
+              {step === 4 && <GalleryWalk data={current.data} onChange={updateField} onReturnToUpload={() => {
+                setStep(3);
+                setMessage("3차시에서 결과물 파일을 다시 탑재해 주세요. 탑재가 끝나면 갤러리에 자동으로 연결됩니다.");
+              }} />}
 
-          <footer className="actionbar">
-            <p role="status" aria-live="polite">
-              {saveState === "saving" && "✍️ 작성 중 (자동 저장 중...)"}
-              {saveState === "saved" && "✓ 변경 사항이 실시간으로 자동 저장되었습니다."}
-              {saveState === "error" && "❌ 자동 저장 실패. 인터넷 연결을 확인해 주세요."}
-              {saveState === "idle" && (message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "아직 제출하지 않은 초안입니다."))}
-            </p>
-            <div>
-              <button className="secondary" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
-              <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
-            </div>
-          </footer>
+              <footer className="actionbar">
+                <p>{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "작성 내용은 자동으로 저장됩니다.")}</p>
+                <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
+              </footer>
+            </>
+          )}
         </section>
       </div>
     </main>
