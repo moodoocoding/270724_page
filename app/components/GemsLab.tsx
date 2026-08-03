@@ -7,15 +7,12 @@ interface GemsLabProps {
   onChange: (key: string, value: string) => void;
 }
 
-type DesignStage = 1 | 2 | 3 | 4 | 5 | 6;
+type DesignStage = 1 | 2 | 3;
 
 const stages: { id: DesignStage; label: string }[] = [
-  { id: 1, label: "1차시 가져오기" },
-  { id: 2, label: "첫 AI 요청" },
-  { id: 3, label: "AI 응답 검토" },
-  { id: 4, label: "실제 조건 반영" },
-  { id: 5, label: "교사 선택·수정" },
-  { id: 6, label: "최종 설계안" },
+  { id: 1, label: "AI 요청 만들기" },
+  { id: 2, label: "응답 검토·조건 반영" },
+  { id: 3, label: "선택·최종 설계" },
 ];
 
 const defaultResponseFormat = "각 방법의 적용할 수업 단계, 학생 활동, 확인할 학생 반응, 예상 시간·부담, 교사가 검토할 점을 정리해 주세요.";
@@ -123,9 +120,26 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     onChange("gemPracticeRequest", buildRequest(nextConditions, nextFormat));
   };
 
+  const fillFinalDesign = () => {
+    const selectedIndex = data.selectedMethodIndex || "";
+    const selectedName = data.selectedMethod
+      || data[`method${selectedIndex}Name`]
+      || data[`method${selectedIndex}`]
+      || "";
+    const selectedActivity = data[`revisedMethod${selectedIndex}`]
+      || data[`method${selectedIndex}Activity`]
+      || "";
+    const selectedEvidence = data[`method${selectedIndex}Evidence`] || studentEvidence;
+    if (!data.finalMethodReason && (selectedName || data.selectionReason)) {
+      onChange("finalMethodReason", [selectedName, data.selectionReason && `선택 이유: ${data.selectionReason}`].filter(Boolean).join("\n"));
+    }
+    if (!data.finalStudentActivity && selectedActivity) onChange("finalStudentActivity", selectedActivity);
+    if (!data.finalStudentEvidence && selectedEvidence) onChange("finalStudentEvidence", selectedEvidence);
+  };
+
   const changeStage = (next: DesignStage) => {
     if (next >= 2) onChange("gemPracticeRequest", requestText);
-    if (next >= 4) onChange("conditionPrompt", conditionPrompt);
+    if (next >= 3) onChange("conditionPrompt", conditionPrompt);
     setStage(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -169,20 +183,26 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
       </nav>
 
       {stage === 1 && (
-        <DesignPanel number="01" title="1차시에서 가져오기" description="앞 차시에서 작성한 내용입니다. 다시 입력하지 않아도 자동으로 연결됩니다.">
-          <div className="carry-over-grid">
-            <CarryField label="수업 맥락" value={context} />
-            <CarryField label="해결할 수업 문제" value={fromStep1.problemStatement} wide />
-            <CarryField label="확인할 학생 반응" value={studentEvidence} wide />
-            <CarryField label="AI가 도울 부분" value={aiSupport} />
-            <CarryField label="실제 수업 조건" value={linkedConditions} />
-            <CarryField label="유지할 핵심 배움" value={fromStep1.learningGoal} wide />
+        <details className="linked-source-detail">
+          <summary>
+            <b>1차시 내용 자동 연결됨</b>
+            <span>{fromStep1.problemStatement || "1차시 수업 문제를 작성하면 여기에 자동으로 연결됩니다."}</span>
+          </summary>
+          <div className="linked-source-body">
+            <div className="carry-over-grid">
+              <CarryField label="수업 맥락" value={context} />
+              <CarryField label="해결할 수업 문제" value={fromStep1.problemStatement} wide />
+              <CarryField label="확인할 학생 반응" value={studentEvidence} wide />
+              <CarryField label="AI가 도울 부분" value={aiSupport} />
+              <CarryField label="실제 수업 조건" value={linkedConditions} />
+              <CarryField label="유지할 핵심 배움" value={fromStep1.learningGoal} wide />
+            </div>
+            <p className="linked-data-note">내용을 바꾸려면 1차시에서 수정하세요. 수정한 값은 이 화면에도 바로 반영됩니다.</p>
           </div>
-          <p className="linked-data-note">내용을 바꾸려면 1차시에서 수정하세요. 수정한 값은 이 화면에도 바로 반영됩니다.</p>
-        </DesignPanel>
+        </details>
       )}
 
-      {stage === 2 && (
+      {stage === 1 && (
         <DesignPanel number="02" title="첫 AI 요청" description="자동으로 연결된 1차시 내용에 실제 수업 조건만 더해 첫 요청을 완성하세요.">
           <div className="request-layout lesson-design-request">
             <div className="request-form-card">
@@ -192,12 +212,15 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
                 onChange={(value) => updateRequestSetting("actualConditions", value)}
                 placeholder="예: 한 차시 40분 · 교사가 준비한 자료 사용 · 학생은 AI를 사용하지 않음"
               />
-              <FormTextArea
-                label="AI 응답 형식"
-                value={responseFormat}
-                onChange={(value) => updateRequestSetting("responseFormat", value)}
-                placeholder={defaultResponseFormat}
-              />
+              <details className="inline-option">
+                <summary>선택 · AI 응답 형식 바꾸기</summary>
+                <FormTextArea
+                  label="AI 응답 형식"
+                  value={responseFormat}
+                  onChange={(value) => updateRequestSetting("responseFormat", value)}
+                  placeholder={defaultResponseFormat}
+                />
+              </details>
             </div>
             <aside className="request-preview-card">
               <span>AI에 입력할 프롬프트</span>
@@ -211,7 +234,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </DesignPanel>
       )}
 
-      {stage === 3 && (
+      {stage === 2 && (
         <DesignPanel number="03" title="실제 AI 응답 검토" description="답변 전체를 옮기지 말고, 세 방법의 차이와 교사가 확인할 점만 정리하세요.">
           <div className="ai-method-review-list">
             {[1, 2, 3].map((index) => (
@@ -229,7 +252,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </DesignPanel>
       )}
 
-      {stage === 4 && (
+      {stage === 2 && (
         <DesignPanel number="04" title="실제 조건 반영" description="수업 시간과 자료 조건을 다시 확인한 뒤 AI에게 세 방법의 수정을 요청하세요.">
           <div className="request-layout lesson-design-request">
             <div className="request-form-card">
@@ -251,7 +274,7 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </DesignPanel>
       )}
 
-      {stage === 5 && (
+      {stage === 3 && (
         <DesignPanel number="05" title="교사 선택과 수정" description="AI의 추천이 아니라, 확인한 자료와 수업 조건을 근거로 한 가지 방법을 결정하세요.">
           <div className="teacher-choice-grid">
             <FormTextArea label="자료 확인 결과" value={data.evidenceCheck || ""} onChange={(value) => onChange("evidenceCheck", value)} placeholder="자료 출처, 계산 근거, 실행 조건 등 교사가 확인한 내용을 적으세요." />
@@ -268,8 +291,12 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
         </DesignPanel>
       )}
 
-      {stage === 6 && (
+      {stage === 3 && (
         <DesignPanel number="06" title="최종 수업 방법 설계안" description="3차시 콘텐츠 제작으로 바로 이어질 수 있도록 최종 방법을 한 장으로 정리하세요.">
+          <div className="final-design-autofill">
+            <p>앞에서 선택한 방법·이유·학생 반응을 다시 쓰지 않아도 됩니다.</p>
+            <button type="button" className="secondary small-button" onClick={fillFinalDesign}>선택 내용 자동 채우기</button>
+          </div>
           <div className="final-design-grid">
             <FormTextArea label="1. 사용할 수업 방법과 선택 이유" value={data.finalMethodReason || ""} onChange={(value) => onChange("finalMethodReason", value)} placeholder="사용할 방법과 선택 이유를 함께 적으세요." />
             <FormTextArea label="2. 적용할 수업 단계" value={data.finalLessonStage || ""} onChange={(value) => onChange("finalLessonStage", value)} placeholder="예: 자료를 읽은 뒤 방안을 결정하는 단계" />
