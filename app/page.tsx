@@ -467,6 +467,23 @@ export default function Home() {
             <span className="canvas-header-badge">진행 현황 {progress}/4</span>
           </header>
 
+          {/* Top Quick Sub-Chapter Segmented Track Bar */}
+          {step <= 3 && activeChapters.length > 0 && (
+            <div className="canvas-subchapter-bar" aria-label={`${step}차시 세부 단계`}>
+              {activeChapters.map((chapter) => (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  className={`canvas-subchapter-pill ${activeChapterId === chapter.id ? "active" : ""}`}
+                  onClick={() => selectChapter(chapter.id)}
+                >
+                  <b>{chapter.mark}</b>
+                  <span>{chapter.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {loadingWorkbook ? (
             <section className="workbook-loading" role="status" aria-live="polite">
               <i />
