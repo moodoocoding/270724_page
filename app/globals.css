@@ -302,6 +302,47 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-two-panel { min-width: 0; padding: 22px 24px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .lesson-two-panel .guide-head h2 { margin: 3px 0 4px; font-size: 23px; }
 .lesson-two-panel .guide-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.bonus-mission { overflow: hidden; border: 1px solid #b9c8be; border-radius: 8px; background: #f7faf8; }
+.bonus-mission > summary { min-height: 58px; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; list-style: none; }
+.bonus-mission > summary::-webkit-details-marker { display: none; }
+.bonus-mission > summary::after { content: "+"; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #9fb0a5; border-radius: 50%; color: var(--green); font-size: 20px; line-height: 1; }
+.bonus-mission[open] > summary::after { content: "−"; }
+.bonus-mission > summary > span { padding: 4px 7px; border-radius: 4px; color: #fff; background: var(--green); font-size: 11px; font-weight: 800; }
+.bonus-mission > summary > strong { font-size: 15px; }
+.bonus-mission > summary > small { color: var(--muted); font-size: 12px; }
+.bonus-mission-body { padding: 20px; border-top: 1px solid var(--line); background: #fff; }
+.bonus-mission-body .guide-head { margin-bottom: 14px; }
+.lesson-design-panel { min-height: 510px; }
+.lesson-design-panel > .panel-title { padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.carry-over-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.carry-field { min-width: 0; padding: 14px 15px; border: 1px solid #cfd8d1; border-radius: 7px; background: #f5f8f5; }
+.carry-field.wide { grid-column: 1 / -1; }
+.carry-field span { color: var(--green); font-size: 12px; font-weight: 800; }
+.carry-field p { margin: 5px 0 0; color: #263029; font-size: 14px; line-height: 1.65; white-space: pre-wrap; }
+.linked-data-note { margin: 12px 2px 0; color: var(--muted); font-size: 12px; }
+.design-field { min-width: 0; display: block; color: #263029; font-size: 14px; font-weight: 750; }
+.design-field > span { display: block; margin-bottom: 5px; }
+.design-field textarea { min-height: 88px; margin-top: 0; border-color: #aebbb2; background: #fff; font-size: 14px; }
+.design-field select { margin-top: 0; border-color: #aebbb2; background: #fff; }
+.lesson-design-request .request-form-card { display: grid; align-content: start; gap: 15px; }
+.lesson-design-request .request-preview-card pre { min-height: 280px; max-height: 440px; }
+.ai-method-review-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.ai-method-review { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #f8faf8; }
+.ai-method-review > header { display: grid; grid-template-columns: 34px minmax(0, 1fr); align-items: center; gap: 8px; padding: 10px; border-bottom: 1px solid var(--line); background: #eef3ef; }
+.ai-method-review > header b { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 5px; color: #fff; background: var(--green); font-size: 12px; }
+.ai-method-review > header input { height: 40px; margin: 0; background: #fff; font-weight: 750; }
+.ai-method-review > div { display: grid; gap: 11px; padding: 13px; }
+.ai-method-review .design-field textarea { min-height: 76px; }
+.revised-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.revised-methods textarea { min-height: 112px; }
+.teacher-choice-grid, .final-design-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.teacher-choice-grid .design-field textarea, .final-design-grid .design-field textarea { min-height: 112px; }
+.final-design-grid .design-field:first-child, .final-design-grid .design-field:last-child { grid-column: 1 / -1; }
+.final-design-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 18px 0 0; padding: 15px; border: 1px solid #a8c8b7; border-radius: 8px; background: #f2f8f4; }
+.final-design-checks legend { padding: 0 7px; color: var(--green); font-size: 13px; font-weight: 800; }
+.final-design-checks label { min-height: 44px; display: flex; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: 13px; cursor: pointer; }
+.final-design-checks label.checked { border-color: #74a68b; background: #e8f5ec; }
+.final-design-checks input { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--green); }
 .section-kicker { color: var(--green); font-size: 12px; font-weight: 800; }
 .gem-create-workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(380px, .95fr); align-items: stretch; gap: 18px; }
 .gem-progress { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; }
@@ -386,8 +427,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .stage-tabs button.primary, .stage-tabs button.secondary { color: var(--green); border-color: transparent; background: transparent; box-shadow: none; }
 .stage-tabs button.primary { border-color: #9fc4ad; background: #e8f3ed; box-shadow: inset 0 -3px 0 var(--green); }
 .subtab-bar button.secondary { border-color: #a8c8b7; color: var(--green); background: #e8f3ed; }
-.subtab-bar.lesson-two-stage-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.lesson-two-stage-nav button { font-size: 14px; }
+.subtab-bar.lesson-two-stage-nav { grid-template-columns: repeat(6, minmax(132px, 1fr)); gap: 0; overflow-x: auto; padding: 0; background: #fff; }
+.lesson-two-stage-nav button { min-height: 60px; display: flex; align-items: center; justify-content: flex-start; gap: 8px; border-radius: 0; font-size: 13px; text-align: left; white-space: nowrap; }
+.lesson-two-stage-nav button + button { border-left: 1px solid var(--line); }
+.lesson-two-stage-nav button b { color: var(--green); font-size: 11px; }
 .game-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
 .game-cards button { min-width: 0; min-height: 88px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; text-align: left; transition: all 0.2s ease-in-out; }
 .game-cards button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: var(--muted); }
@@ -633,6 +676,9 @@ input:checked + .slider:before { transform: translateX(20px); }
   .final-checks > div { border-bottom: 1px solid var(--line); }
   .final-checks > div:last-child { border-bottom: 0; }
   .request-layout, .method-choice-layout { grid-template-columns: 1fr; }
+  .ai-method-review-list { grid-template-columns: 1fr; }
+  .ai-method-review > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .revised-methods { grid-template-columns: 1fr; }
   .guide-steps { grid-template-columns: repeat(3, 1fr); }
   .guide-steps li { grid-template-columns: 1fr; align-content: start; border-bottom: 0; }
   .guide-image, .guide-steps img { width: 100%; height: 120px; }
@@ -676,6 +722,13 @@ input:checked + .slider:before { transform: translateX(20px); }
   .step-heading p { margin: 0 0 5px; }
   .step-heading h1 { font-size: 29px; }
   .lesson-two-panel { padding: 17px; }
+  .lesson-design-panel { min-height: 0; }
+  .bonus-mission > summary { grid-template-columns: auto 1fr auto; }
+  .bonus-mission > summary > small { display: none; }
+  .bonus-mission-body { padding: 16px; }
+  .carry-over-grid, .teacher-choice-grid, .final-design-grid, .final-design-checks { grid-template-columns: 1fr; }
+  .carry-field.wide, .final-design-grid .design-field:first-child, .final-design-grid .design-field:last-child { grid-column: auto; }
+  .ai-method-review > div { grid-template-columns: 1fr; }
   .request-fields { grid-template-columns: 1fr; }
   .request-fields label.wide { grid-column: auto; }
   .request-preview-card > div { grid-template-columns: 1fr; }

@@ -7,8 +7,21 @@ interface GemsLabProps {
   onChange: (key: string, value: string) => void;
 }
 
+type DesignStage = 1 | 2 | 3 | 4 | 5 | 6;
+
+const stages: { id: DesignStage; label: string }[] = [
+  { id: 1, label: "1차시 가져오기" },
+  { id: 2, label: "첫 AI 요청" },
+  { id: 3, label: "AI 응답 검토" },
+  { id: 4, label: "실제 조건 반영" },
+  { id: 5, label: "교사 선택·수정" },
+  { id: 6, label: "최종 설계안" },
+];
+
+const defaultResponseFormat = "각 방법의 적용할 수업 단계, 학생 활동, 확인할 학생 반응, 예상 시간·부담, 교사가 검토할 점을 정리해 주세요.";
+
 export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
-  const [subStep, setSubStep] = useState<1 | 2 | 3>(1);
+  const [stage, setStage] = useState<DesignStage>(1);
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [showMetaModal, setShowMetaModal] = useState(false);
   const [metaText, setMetaText] = useState("");
@@ -31,420 +44,318 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [showMetaModal]);
 
-  const copyMetaPrompt = async () => {
+  const context = [fromStep1.gradeLevel, fromStep1.subjectUnit, fromStep1.lessonScene]
+    .filter(Boolean)
+    .join(" · ");
+  const studentEvidence = [fromStep1.learningEvidence1, fromStep1.learningEvidence2]
+    .filter(Boolean)
+    .map((value, index) => `${index + 1}. ${value}`)
+    .join("\n");
+  const linkedConditions = fromStep1.actualConditions
+    || [fromStep1.teacherJudgment1, fromStep1.teacherJudgment2].filter(Boolean).join(" · ");
+  const aiSupport = fromStep1.aiSupport || fromStep1.aiDirection || "";
+  const actualConditions = data.actualConditions || linkedConditions;
+  const responseFormat = data.responseFormat || defaultResponseFormat;
+
+  const buildRequest = (conditions = actualConditions, format = responseFormat) => [
+    `나는 ${context || "[1차시 수업 맥락]"}을 가르칩니다.`,
+    fromStep1.problemStatement || "[1차시에서 정리한 수업 문제]",
+    "",
+    "다음 수업에서 확인할 학생 반응:",
+    studentEvidence || "[1차시에서 정한 배움 확인 기준]",
+    "",
+    `AI가 도울 일: ${aiSupport || "서로 다른 수업 방법을 제안하고 비교할 수 있도록 정리합니다."}`,
+    `실제 수업 조건: ${conditions || "[수업 시간, 사용할 자료, 학생의 AI 사용 여부 등을 입력하세요.]"}`,
+    "",
+    "학생의 사고 과정이 서로 다른 수업 방법 세 가지를 제안해 주세요. 활동 이름이나 모둠 형태만 바꾸지 말아 주세요.",
+    format,
+    "학생이 왜 그렇게 행동했는지는 단정하지 말아 주세요.",
+  ].join("\n");
+  const requestText = buildRequest();
+
+  const buildConditionPrompt = (conditions = data.newConditions || "") => [
+    "앞서 제안한 세 가지 방법을 아래에서 새로 확인한 조건에 맞게 수정해 주세요.",
+    `새로 확인한 조건: ${conditions || "[새로 확인한 시간·자료·운영 조건]"}`,
+    `반드시 유지할 핵심 배움: ${fromStep1.learningGoal || "[1차시에서 정한 남길 배움]"}`,
+    "각 방법에서 수정된 학생 활동, 유지한 사고 과정, 줄이거나 바꾼 단계, 시간 배분과 교사 준비를 정리해 주세요.",
+    "추천 순위는 정하지 말아 주세요.",
+  ].join("\n");
+  const conditionPrompt = buildConditionPrompt();
+
+  const showToast = (message: string) => {
+    setCopyToast(message);
+    window.setTimeout(() => setCopyToast(null), 3200);
+  };
+
+  const copyText = async (text: string, successMessage: string) => {
     try {
-      const textToCopy = metaText || (await (await fetch("/meta-prompt.md")).text());
-      await navigator.clipboard.writeText(textToCopy);
-      setMetaCopied(true);
-      setCopyToast("메타 프롬프트 전체를 복사했습니다.");
-      setTimeout(() => setCopyToast(null), 3500);
+      await navigator.clipboard.writeText(text);
+      showToast(successMessage);
     } catch {
-      setCopyToast("복사에 실패했습니다.");
+      showToast("복사에 실패했습니다.");
     }
+  };
+
+  const copyMetaPrompt = async () => {
+    const text = metaText || (await (await fetch("/meta-prompt.md")).text());
+    await copyText(text, "메타 프롬프트 전체를 복사했습니다.");
+    setMetaCopied(true);
   };
 
   const openMetaModal = async () => {
     if (!metaText) {
       try {
-        const text = await (await fetch("/meta-prompt.md")).text();
-        setMetaText(text);
+        setMetaText(await (await fetch("/meta-prompt.md")).text());
       } catch {}
     }
     setShowMetaModal(true);
   };
 
-  const startSentence = fromStep1.problemStatement
-    ? fromStep1.problemStatement
-    : `따라서 수업에서 ${fromStep1.aiSupport || fromStep1.change || "________________"}을 해 볼 필요가 있다.`;
-  const buildRequest = (values: Record<string, string>) => [
-    `나의 출발 문장: ${startSentence}`,
-    `나는 ${values.grade || "___"}학년 ${values.subject || "___"} 교과를 가르칩니다.`,
-    `학생들은 ${values.difficultyCause || "________________"} 때문에 ${values.difficultTask || "________________"}을 어려워합니다.`,
-    `수업에서 학생이 ${values.desiredAction || "________________"}하도록 돕고 싶습니다.`,
-    "서로 다른 수업 방법 5가지를 제안해 주세요.",
-  ].join("\n");
-  const requestText = buildRequest(data);
-  const methodFields = [1, 2, 3, 4, 5] as const;
+  const saveRequestAndCopy = () => {
+    onChange("gemPracticeRequest", requestText);
+    void copyText(requestText, "첫 AI 요청을 복사했습니다.");
+  };
 
-  const updateRequestField = (key: string, value: string) => {
-    const next = { ...data, [key]: value };
+  const updateRequestSetting = (key: "actualConditions" | "responseFormat", value: string) => {
     onChange(key, value);
-    onChange("gemPracticeRequest", buildRequest(next));
+    const nextConditions = key === "actualConditions" ? value : actualConditions;
+    const nextFormat = key === "responseFormat" ? value : responseFormat;
+    onChange("gemPracticeRequest", buildRequest(nextConditions, nextFormat));
   };
 
-  const copyRequest = async () => {
-    try {
-      onChange("gemPracticeRequest", requestText);
-      await navigator.clipboard.writeText(requestText);
-      setCopyToast("AI에게 요청할 내용을 복사했습니다.");
-      setTimeout(() => setCopyToast(null), 3000);
-    } catch {
-      setCopyToast("복사에 실패했습니다.");
-    }
-  };
-
-  const updateMethod = (index: number, value: string) => {
-    onChange(`method${index}`, value);
-    if (data.selectedMethodIndex === String(index)) onChange("selectedMethod", value);
-  };
-
-  const selectMethod = (index: number) => {
-    const value = data[`method${index}`] || "";
-    if (!value.trim()) return;
-    onChange("selectedMethodIndex", String(index));
-    onChange("selectedMethod", value);
+  const changeStage = (next: DesignStage) => {
+    if (next >= 2) onChange("gemPracticeRequest", requestText);
+    if (next >= 4) onChange("conditionPrompt", conditionPrompt);
+    setStage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <div className="lesson-two-flow">
-      {copyToast && (
-        <div className="copy-toast" role="status" aria-live="polite">
-          {copyToast}
-        </div>
-      )}
+      {copyToast && <div className="copy-toast" role="status" aria-live="polite">{copyToast}</div>}
 
-      <nav className="stage-tabs subtab-bar lesson-two-stage-nav" aria-label="2차시 단계 선택">
-        {[
-          [1, "01 Gem 만들기"],
-          [2, "02 AI에게 요청하기"],
-          [3, "03 방법 비교·선택"],
-        ].map(([value, label]) => (
+      <details className="bonus-mission">
+        <summary>
+          <span>추가 미션</span>
+          <strong>나만의 수업 설계 Gem 만들기</strong>
+          <small>필요한 분만 열어서 진행하세요.</small>
+        </summary>
+        <BonusGemMission
+          data={data}
+          metaText={metaText}
+          metaCopied={metaCopied}
+          gemOpened={gemOpened}
+          onCopy={copyMetaPrompt}
+          onOpenMeta={openMetaModal}
+          onOpenGem={() => setGemOpened(true)}
+          onComplete={(completed) => onChange("gemCreatedAt", completed ? new Date().toISOString() : "")}
+        />
+      </details>
+
+      <nav className="stage-tabs subtab-bar lesson-two-stage-nav" aria-label="2차시 수업 설계 단계">
+        {stages.map((item) => (
           <button
-            key={value}
+            key={item.id}
             type="button"
-            className={subStep === value ? "primary" : "secondary"}
-            aria-current={subStep === value ? "step" : undefined}
-            aria-pressed={subStep === value}
-            onClick={() => {
-              if (value === 3) {
-                onChange("gemPracticeRequest", requestText);
-              }
-              setSubStep(value as 1 | 2 | 3);
-            }}
+            className={stage === item.id ? "primary" : "secondary"}
+            aria-current={stage === item.id ? "step" : undefined}
+            aria-pressed={stage === item.id}
+            onClick={() => changeStage(item.id)}
           >
-            {label}
+            <b>{String(item.id).padStart(2, "0")}</b>
+            <span>{item.label}</span>
           </button>
         ))}
       </nav>
 
-      {subStep === 1 && (
-        <section className="lesson-two-panel gem-create-panel">
-          <div className="guide-head">
-            <div>
-              <span className="section-kicker">1단계</span>
-              <h2>Gem 만들기</h2>
-              <p>메타 프롬프트를 복사해 나의 수업 설계 Gem을 만드세요.</p>
-            </div>
-            <div className="guide-actions">
-              <a
-                className="primary small-button"
-                href="https://gemini.google.com/gems/create"
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setGemOpened(true)}
-              >
-                새 Gem 만들기 ↗
-              </a>
-            </div>
+      {stage === 1 && (
+        <DesignPanel number="01" title="1차시에서 가져오기" description="앞 차시에서 작성한 내용입니다. 다시 입력하지 않아도 자동으로 연결됩니다.">
+          <div className="carry-over-grid">
+            <CarryField label="수업 맥락" value={context} />
+            <CarryField label="해결할 수업 문제" value={fromStep1.problemStatement} wide />
+            <CarryField label="확인할 학생 반응" value={studentEvidence} wide />
+            <CarryField label="AI가 도울 부분" value={aiSupport} />
+            <CarryField label="실제 수업 조건" value={linkedConditions} />
+            <CarryField label="유지할 핵심 배움" value={fromStep1.learningGoal} wide />
           </div>
-
-          <div className="gem-progress" aria-label="Gem 만들기 진행 상태">
-            <span className={metaCopied ? "done" : ""}><i>01</i>메타 프롬프트 복사</span>
-            <span className={gemOpened ? "done" : ""}><i>02</i>Gemini에서 Gem 열기</span>
-            <label className={data.gemCreatedAt ? "done" : ""}>
-              <input
-                type="checkbox"
-                checked={Boolean(data.gemCreatedAt)}
-                onChange={(event) => onChange("gemCreatedAt", event.target.checked ? new Date().toISOString() : "")}
-              />
-              <i>03</i>Gem 생성 완료
-            </label>
-          </div>
-
-          <div className="gem-create-workspace">
-            <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
-              <div>
-                <strong>Gem 요청 사항에 아래 메타 프롬프트 전체를 붙여 넣으세요.</strong>
-                <div className="meta-prompt-actions">
-                  <button className="secondary small-button" onClick={copyMetaPrompt}>
-                    메타 프롬프트 복사
-                  </button>
-                  <button className="text-button" onClick={openMetaModal}>
-                    크게 보기
-                  </button>
-                </div>
-              </div>
-              <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
-            </section>
-
-            <aside className="gem-build-guide" aria-labelledby="gem-build-guide-title">
-              <header>
-                <span>제작 안내</span>
-                <h3 id="gem-build-guide-title">메타 프롬프트를 만드는 방법</h3>
-                <p>새 Gem을 열고 프롬프트를 입력한 뒤 저장하세요.</p>
-              </header>
-              <ol className="guide-steps">
-                <li>
-                  <a
-                    className="guide-image"
-                    href="/gems/step-1.png"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Gem 관리자에서 새 Gem 열기 안내 이미지"
-                  >
-                    <Image src="/gems/step-1.png" width={640} height={390} alt="Gem 관리자에서 새 Gem 버튼 위치" />
-                  </a>
-                  <div>
-                    <b>01</b>
-                    <strong>새 Gem을 여세요</strong>
-                    <p>Gem 관리자에서 ‘새 Gem’을 누릅니다.</p>
-                  </div>
-                </li>
-                <li>
-                  <a
-                    className="guide-image"
-                    href="/gems/step-2.png"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="메타 프롬프트 입력 안내 이미지"
-                  >
-                    <Image
-                      src="/gems/step-2.png"
-                      width={640}
-                      height={390}
-                      alt="Gem 요청 사항에 메타 프롬프트를 붙여 넣는 위치"
-                    />
-                  </a>
-                  <div>
-                    <b>02</b>
-                    <strong>메타 프롬프트를 넣으세요</strong>
-                    <p>요청 사항에 붙여 넣고 저장합니다.</p>
-                  </div>
-                </li>
-                <li>
-                  <a
-                    className="guide-image"
-                    href="/gems/step-3.png"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Gem 채팅 시작 안내 이미지"
-                  >
-                    <Image
-                      src="/gems/step-3.png"
-                      width={640}
-                      height={390}
-                      alt="저장된 Gem에서 채팅 시작 버튼 위치"
-                    />
-                  </a>
-                  <div>
-                    <b>03</b>
-                    <strong>채팅을 시작하세요</strong>
-                    <p>완성한 Gem에서 새 대화를 시작합니다.</p>
-                  </div>
-                </li>
-              </ol>
-            </aside>
-          </div>
-        </section>
+          <p className="linked-data-note">내용을 바꾸려면 1차시에서 수정하세요. 수정한 값은 이 화면에도 바로 반영됩니다.</p>
+        </DesignPanel>
       )}
 
-      {subStep === 2 && (
-        <section className="lesson-two-panel">
-          <header className="panel-title">
-            <b>2</b>
-            <div>
-              <h2>AI에게 요청할 내용 작성하기</h2>
-              <p>활동지의 빈칸을 채우면 요청문이 자동으로 완성됩니다.</p>
-            </div>
-          </header>
-          <div className="request-layout">
+      {stage === 2 && (
+        <DesignPanel number="02" title="첫 AI 요청" description="자동으로 연결된 1차시 내용에 실제 수업 조건만 더해 첫 요청을 완성하세요.">
+          <div className="request-layout lesson-design-request">
             <div className="request-form-card">
-              <div className="starter-box compact-starter">
-                <span>1차시 나의 출발 문장</span>
-                <p>{startSentence}</p>
-              </div>
-              <div className="request-fields">
-                <label>
-                  <span>학년</span>
-                  <input
-                    value={data.grade || ""}
-                    onChange={(event) => updateRequestField("grade", event.target.value)}
-                    placeholder="예: 5"
-                  />
-                </label>
-                <label>
-                  <span>교과</span>
-                  <input
-                    value={data.subject || ""}
-                    onChange={(event) => updateRequestField("subject", event.target.value)}
-                    placeholder="예: 사회"
-                  />
-                </label>
-                <label>
-                  <span>학생들이 어려운 이유</span>
-                  <input
-                    value={data.difficultyCause || ""}
-                    onChange={(event) => updateRequestField("difficultyCause", event.target.value)}
-                    placeholder="예: 핵심 어휘가 낯설기"
-                  />
-                </label>
-                <label>
-                  <span>어려워하는 학습 행동</span>
-                  <input
-                    value={data.difficultTask || ""}
-                    onChange={(event) => updateRequestField("difficultTask", event.target.value)}
-                    placeholder="예: 자료의 의미 설명하기"
-                  />
-                </label>
-                <label className="wide">
-                  <span>수업에서 원하는 학생 행동</span>
-                  <input
-                    value={data.desiredAction || ""}
-                    onChange={(event) => updateRequestField("desiredAction", event.target.value)}
-                    placeholder="예: 근거를 찾아 자기 말로 설명하기"
-                  />
-                </label>
-              </div>
+              <FormTextArea
+                label="실제 수업 조건"
+                value={actualConditions}
+                onChange={(value) => updateRequestSetting("actualConditions", value)}
+                placeholder="예: 한 차시 40분 · 교사가 준비한 자료 사용 · 학생은 AI를 사용하지 않음"
+              />
+              <FormTextArea
+                label="AI 응답 형식"
+                value={responseFormat}
+                onChange={(value) => updateRequestSetting("responseFormat", value)}
+                placeholder={defaultResponseFormat}
+              />
             </div>
             <aside className="request-preview-card">
-              <span>완성된 요청문</span>
+              <span>AI에 입력할 프롬프트</span>
               <pre>{requestText}</pre>
               <div>
-                <button className="secondary" onClick={copyRequest}>
-                  요청문 복사
-                </button>
-                <a
-                  className="primary"
-                  href="https://gemini.google.com/app"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => onChange("gemPracticeRequest", requestText)}
-                >
-                  Gemini에서 실행 ↗
-                </a>
+                <button type="button" className="secondary" onClick={saveRequestAndCopy}>요청문 복사</button>
+                <a className="primary" href="https://gemini.google.com/app" target="_blank" rel="noreferrer" onClick={() => onChange("gemPracticeRequest", requestText)}>Gemini에서 실행 ↗</a>
               </div>
             </aside>
           </div>
-        </section>
+        </DesignPanel>
       )}
 
-      {subStep === 3 && (
-        <section className="lesson-two-panel">
-          <header className="panel-title">
-            <b>3</b>
-            <div>
-              <h2>AI가 제안한 방법 비교·선택하기</h2>
-              <p>방법 5개를 짧게 적고, 수업에 적용할 한 가지를 선택하세요.</p>
-            </div>
-          </header>
-          <div className="method-choice-layout">
-            <div className="method-list">
-              <div className="method-list-head">
-                <span>번호</span>
-                <span>AI가 제안한 방법</span>
-                <span>선택</span>
-              </div>
-              {methodFields.map((index) => (
-                <div
-                  className={
-                    data.selectedMethodIndex === String(index) ? "method-row selected" : "method-row"
-                  }
-                  key={index}
-                >
-                  <span>{index}</span>
-                  <input
-                    value={data[`method${index}`] || ""}
-                    onChange={(event) => updateMethod(index, event.target.value)}
-                    placeholder={`${index}번째 방법을 짧게 적으세요.`}
-                  />
-                  <button
-                    type="button"
-                    className={data.selectedMethodIndex === String(index) ? "picked" : ""}
-                    aria-pressed={data.selectedMethodIndex === String(index)}
-                    disabled={!data[`method${index}`]?.trim()}
-                    onClick={() => selectMethod(index)}
-                  >
-                    {data.selectedMethodIndex === String(index) ? "선택됨" : "선택"}
-                  </button>
+      {stage === 3 && (
+        <DesignPanel number="03" title="실제 AI 응답 검토" description="답변 전체를 옮기지 말고, 세 방법의 차이와 교사가 확인할 점만 정리하세요.">
+          <div className="ai-method-review-list">
+            {[1, 2, 3].map((index) => (
+              <article className="ai-method-review" key={index}>
+                <header><b>{index}</b><input value={data[`method${index}Name`] || data[`method${index}`] || ""} onChange={(event) => { onChange(`method${index}Name`, event.target.value); onChange(`method${index}`, event.target.value); }} placeholder={`방법 ${index}의 이름`} /></header>
+                <div>
+                  <FormTextArea label="학생 활동" value={data[`method${index}Activity`] || ""} onChange={(value) => onChange(`method${index}Activity`, value)} placeholder="학생이 실제로 하게 될 활동을 적으세요." />
+                  <FormTextArea label="확인할 학생 반응" value={data[`method${index}Evidence`] || ""} onChange={(value) => onChange(`method${index}Evidence`, value)} placeholder="교사가 확인할 말·행동·결과물을 적으세요." />
+                  <FormTextArea label="예상 시간·부담" value={data[`method${index}Burden`] || ""} onChange={(value) => onChange(`method${index}Burden`, value)} placeholder="예상 시간과 준비 부담을 적으세요." />
+                  <FormTextArea label="교사 검토" value={data[`method${index}Review`] || ""} onChange={(value) => onChange(`method${index}Review`, value)} placeholder="자료의 정확성, 실행 가능성, AI가 놓친 점을 적으세요." />
                 </div>
-              ))}
+              </article>
+            ))}
+          </div>
+        </DesignPanel>
+      )}
+
+      {stage === 4 && (
+        <DesignPanel number="04" title="실제 조건 반영" description="수업 시간과 자료 조건을 다시 확인한 뒤 AI에게 세 방법의 수정을 요청하세요.">
+          <div className="request-layout lesson-design-request">
+            <div className="request-form-card">
+              <FormTextArea label="새로 확인한 수업 운영 조건" value={data.newConditions || ""} onChange={(value) => { onChange("newConditions", value); onChange("conditionPrompt", buildConditionPrompt(value)); }} placeholder="예: 수업 방법 활동에 사용할 수 있는 시간은 12분이다." />
+              <FormTextArea label="조건 변경 메모" value={data.conditionChangeMemo || ""} onChange={(value) => onChange("conditionChangeMemo", value)} placeholder="무엇을 줄이거나 바꾸었고, 어떤 사고 과정은 유지했는지 적으세요." />
             </div>
-            <aside className="selection-card">
-              <span>한 가지 방법 선택하기</span>
-              <div className="selected-method">
-                <small>내가 선택한 방법</small>
-                <strong>{data.selectedMethod || "왼쪽에서 방법 하나를 선택하세요."}</strong>
+            <aside className="request-preview-card">
+              <span>AI에 추가로 입력할 프롬프트</span>
+              <pre>{conditionPrompt}</pre>
+              <div>
+                <button type="button" className="secondary" onClick={() => { onChange("conditionPrompt", conditionPrompt); void copyText(conditionPrompt, "추가 요청을 복사했습니다."); }}>추가 요청 복사</button>
+                <a className="primary" href="https://gemini.google.com/app" target="_blank" rel="noreferrer" onClick={() => onChange("conditionPrompt", conditionPrompt)}>Gemini에서 실행 ↗</a>
               </div>
-              <fieldset>
-                <legend>선택 기준 확인</legend>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={data.criteriaLearning === "yes"}
-                    onChange={(event) =>
-                      onChange("criteriaLearning", event.target.checked ? "yes" : "")
-                    }
-                  />
-                  배움 문제에 도움이 되는가?
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={data.criteriaFeasible === "yes"}
-                    onChange={(event) =>
-                      onChange("criteriaFeasible", event.target.checked ? "yes" : "")
-                    }
-                  />
-                  학생이 실제로 할 수 있는가?
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={data.criteriaFits === "yes"}
-                    onChange={(event) =>
-                      onChange("criteriaFits", event.target.checked ? "yes" : "")
-                    }
-                  />
-                  기존 수업에 넣을 수 있는가?
-                </label>
-              </fieldset>
-              <label className="selection-reason">
-                <span>선택한 이유</span>
-                <textarea
-                  value={data.selectionReason || ""}
-                  onChange={(event) => onChange("selectionReason", event.target.value)}
-                  placeholder="이 방법을 선택한 이유를 한두 문장으로 적어 주세요."
-                />
-              </label>
             </aside>
           </div>
-        </section>
+          <div className="revised-methods">
+            {[1, 2, 3].map((index) => <FormTextArea key={index} label={`수정된 방법 ${index}`} value={data[`revisedMethod${index}`] || ""} onChange={(value) => onChange(`revisedMethod${index}`, value)} placeholder="수정된 학생 활동과 유지한 사고 과정을 짧게 정리하세요." />)}
+          </div>
+        </DesignPanel>
+      )}
+
+      {stage === 5 && (
+        <DesignPanel number="05" title="교사 선택과 수정" description="AI의 추천이 아니라, 확인한 자료와 수업 조건을 근거로 한 가지 방법을 결정하세요.">
+          <div className="teacher-choice-grid">
+            <FormTextArea label="자료 확인 결과" value={data.evidenceCheck || ""} onChange={(value) => onChange("evidenceCheck", value)} placeholder="자료 출처, 계산 근거, 실행 조건 등 교사가 확인한 내용을 적으세요." />
+            <label className="design-field">
+              <span>선택한 방법</span>
+              <select value={data.selectedMethodIndex || ""} onChange={(event) => { const index = event.target.value; onChange("selectedMethodIndex", index); onChange("selectedMethod", index ? (data[`method${index}Name`] || data[`method${index}`] || data[`revisedMethod${index}`] || "") : ""); }}>
+                <option value="">방법을 선택하세요</option>
+                {[1, 2, 3].map((index) => <option key={index} value={String(index)}>방법 {index} · {data[`method${index}Name`] || data[`method${index}`] || "이름 미입력"}</option>)}
+              </select>
+            </label>
+            <FormTextArea label="선택 이유" value={data.selectionReason || ""} onChange={(value) => onChange("selectionReason", value)} placeholder="수업 문제를 어떻게 다루며 실제 조건에서 왜 실행 가능한지 적으세요." />
+            <FormTextArea label="교사가 수정한 내용" value={data.teacherRevision || ""} onChange={(value) => onChange("teacherRevision", value)} placeholder="자료, 판단 기준, 활동량, 기록 방법 등을 어떻게 수정했는지 적으세요." />
+          </div>
+        </DesignPanel>
+      )}
+
+      {stage === 6 && (
+        <DesignPanel number="06" title="최종 수업 방법 설계안" description="3차시 콘텐츠 제작으로 바로 이어질 수 있도록 최종 방법을 한 장으로 정리하세요.">
+          <div className="final-design-grid">
+            <FormTextArea label="1. 사용할 수업 방법과 선택 이유" value={data.finalMethodReason || ""} onChange={(value) => onChange("finalMethodReason", value)} placeholder="사용할 방법과 선택 이유를 함께 적으세요." />
+            <FormTextArea label="2. 적용할 수업 단계" value={data.finalLessonStage || ""} onChange={(value) => onChange("finalLessonStage", value)} placeholder="예: 자료를 읽은 뒤 방안을 결정하는 단계" />
+            <FormTextArea label="3. 학생이 하게 될 활동" value={data.finalStudentActivity || ""} onChange={(value) => onChange("finalStudentActivity", value)} placeholder="학생이 무엇을 보고, 비교하고, 만들거나 설명하는지 적으세요." />
+            <FormTextArea label="4. 교사가 확인할 학생 반응" value={data.finalStudentEvidence || ""} onChange={(value) => onChange("finalStudentEvidence", value)} placeholder="배움을 확인할 학생의 말·행동·결과물을 적으세요." />
+            <FormTextArea label="5. 3차시에서 만들 콘텐츠" value={data.contentToBuild || ""} onChange={(value) => onChange("contentToBuild", value)} placeholder="예: 비교 자료 카드와 선택 이유를 기록하는 웹 활동" />
+          </div>
+          <fieldset className="final-design-checks">
+            <legend>최종 확인</legend>
+            <CheckField label="1차시에서 찾은 수업 문제를 직접 다룬다." checked={data.finalCheckProblem === "yes"} onChange={(checked) => onChange("finalCheckProblem", checked ? "yes" : "")} />
+            <CheckField label="학생이 하게 될 활동이 구체적으로 보인다." checked={data.finalCheckConcrete === "yes"} onChange={(checked) => onChange("finalCheckConcrete", checked ? "yes" : "")} />
+            <CheckField label="학생이 배웠다는 것을 확인할 말과 행동이 정해져 있다." checked={data.finalCheckEvidence === "yes"} onChange={(checked) => onChange("finalCheckEvidence", checked ? "yes" : "")} />
+            <CheckField label="AI 제안에 교사의 자료 확인·선택·수정이 들어갔다." checked={data.finalCheckTeacherRevision === "yes"} onChange={(checked) => onChange("finalCheckTeacherRevision", checked ? "yes" : "")} />
+          </fieldset>
+        </DesignPanel>
       )}
 
       {showMetaModal && (
         <div className="meta-backdrop" onClick={() => setShowMetaModal(false)}>
-          <div
-            className="meta-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="meta-prompt-title"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="meta-modal" role="dialog" aria-modal="true" aria-labelledby="meta-prompt-title" onClick={(event) => event.stopPropagation()}>
             <div className="meta-modal-head">
               <h2 id="meta-prompt-title">메타 프롬프트</h2>
               <div className="guide-actions">
-                <button className="primary small-button" onClick={copyMetaPrompt}>
-                  전체 복사
-                </button>
-                <button className="secondary small-button" onClick={() => setShowMetaModal(false)}>
-                  닫기
-                </button>
+                <button className="primary small-button" onClick={copyMetaPrompt}>전체 복사</button>
+                <button className="secondary small-button" onClick={() => setShowMetaModal(false)}>닫기</button>
               </div>
             </div>
             <pre>{metaText}</pre>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function DesignPanel({ number, title, description, children }: { number: string; title: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="lesson-two-panel lesson-design-panel">
+      <header className="panel-title"><b>{number}</b><div><h2>{title}</h2><p>{description}</p></div></header>
+      {children}
+    </section>
+  );
+}
+
+function CarryField({ label, value, wide = false }: { label: string; value?: string; wide?: boolean }) {
+  return <section className={`carry-field ${wide ? "wide" : ""}`}><span>{label}</span><p>{value || "1차시에 작성된 내용이 없습니다."}</p></section>;
+}
+
+function FormTextArea({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
+  return <label className="design-field"><span>{label}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} /></label>;
+}
+
+function CheckField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return <label className={checked ? "checked" : ""}><input type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} /><span>{label}</span></label>;
+}
+
+function BonusGemMission({ data, metaText, metaCopied, gemOpened, onCopy, onOpenMeta, onOpenGem, onComplete }: { data: Record<string, string>; metaText: string; metaCopied: boolean; gemOpened: boolean; onCopy: () => void; onOpenMeta: () => void; onOpenGem: () => void; onComplete: (completed: boolean) => void }) {
+  return (
+    <div className="bonus-mission-body">
+      <div className="guide-head">
+        <div><span className="section-kicker">선택 활동</span><h2>Gem 만들기</h2><p>반복해서 사용할 수업 설계 도우미가 필요할 때 진행하세요.</p></div>
+        <a className="primary small-button" href="https://gemini.google.com/gems/create" target="_blank" rel="noreferrer" onClick={onOpenGem}>새 Gem 만들기 ↗</a>
+      </div>
+      <div className="gem-progress" aria-label="Gem 만들기 진행 상태">
+        <span className={metaCopied ? "done" : ""}><i>01</i>메타 프롬프트 복사</span>
+        <span className={gemOpened ? "done" : ""}><i>02</i>Gemini에서 Gem 열기</span>
+        <label className={data.gemCreatedAt ? "done" : ""}><input type="checkbox" checked={Boolean(data.gemCreatedAt)} onChange={(event) => onComplete(event.target.checked)} /><i>03</i>Gem 생성 완료</label>
+      </div>
+      <div className="gem-create-workspace">
+        <section className="meta-prompt-preview" aria-label="Gem에 넣을 메타 프롬프트">
+          <div><strong>요청 사항에 메타 프롬프트 전체를 붙여 넣으세요.</strong><div className="meta-prompt-actions"><button className="secondary small-button" onClick={onCopy}>메타 프롬프트 복사</button><button className="text-button" onClick={onOpenMeta}>크게 보기</button></div></div>
+          <pre>{metaText || "메타 프롬프트를 불러오는 중입니다."}</pre>
+        </section>
+        <aside className="gem-build-guide" aria-labelledby="gem-build-guide-title">
+          <header><span>제작 안내</span><h3 id="gem-build-guide-title">3단계로 끝내기</h3><p>새 Gem을 열고, 프롬프트를 넣고, 채팅을 시작하세요.</p></header>
+          <ol className="guide-steps">
+            {[
+              ["/gems/step-1.png", "새 Gem을 여세요", "Gem 관리자에서 ‘새 Gem’을 누릅니다."],
+              ["/gems/step-2.png", "메타 프롬프트를 넣으세요", "요청 사항에 붙여 넣고 저장합니다."],
+              ["/gems/step-3.png", "채팅을 시작하세요", "완성한 Gem에서 새 대화를 시작합니다."],
+            ].map(([src, title, body], index) => (
+              <li key={src}><a className="guide-image" href={src} target="_blank" rel="noreferrer"><Image src={src} width={640} height={390} alt={`${title} 안내 화면`} /></a><div><b>{String(index + 1).padStart(2, "0")}</b><strong>{title}</strong><p>{body}</p></div></li>
+            ))}
+          </ol>
+        </aside>
+      </div>
     </div>
   );
 }
