@@ -544,52 +544,56 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .prompt-practice-head > div > span { color: var(--green); font-size: 12px; font-weight: 800; }
 .prompt-practice-head h2 { margin: 4px 0 3px; font-size: 22px; line-height: 1.25; }
 .prompt-practice-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
-.prompt-practice-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 18px 0 16px; border: 1px solid rgba(22, 78, 61, 0.15); border-radius: 9px; background: var(--sage-subtle); }
-.prompt-practice-flow span { min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--ink); font-size: 13px; font-weight: 750; }
-.prompt-practice-flow span + span { border-left: 1px solid rgba(22, 78, 61, 0.15); }
-.prompt-practice-flow b { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--green); font-size: 11px; font-weight: 800; }
+.prompt-practice-flow { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 20px; padding: 12px 20px; border: 1px solid #e5e7eb; border-radius: 8px; background: #ffffff; }
+.prompt-practice-flow .step-item { display: flex; align-items: center; gap: 8px; color: #4b5563; font-size: 13px; font-weight: 600; }
+.prompt-practice-flow .step-item.active { color: #059669; font-weight: 700; }
+.prompt-practice-flow .step-item b { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: #059669; font-size: 11px; font-weight: 800; }
+.prompt-practice-flow .step-arrow { color: #d1d5db; font-size: 14px; }
 .game-experience .prompt-practice-head { margin-bottom: 20px; }
 .experience-browser { min-height: 350px; display: grid; grid-template-columns: minmax(280px, 320px) minmax(0, 1fr); gap: 20px; }
 .experience-side-list { max-height: 380px; display: grid; align-content: start; gap: 6px; overflow-y: auto; padding-right: 6px; scrollbar-width: thin; scrollbar-color: #aac6b5 transparent; }
-.experience-side-list button { min-width: 0; min-height: 64px; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; transition: all 0.18s ease; }
-.experience-side-list button:hover { border-color: rgba(22, 78, 61, 0.3); background: var(--sage-subtle); }
-.experience-side-list button.selected { border-color: var(--green); background: var(--sage-light); font-weight: 800; }
-.experience-side-list button > b { width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid var(--line-strong); border-radius: 50%; color: var(--muted); font-size: 11px; font-weight: 800; }
-.experience-side-list button.selected > b { border-color: var(--green); color: #fff; background: var(--green); }
+.experience-side-list button { min-width: 0; min-height: 64px; display: grid; grid-template-columns: 32px minmax(0, 1fr); align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-light); border-radius: 9px; background: #fff; text-align: left; transition: all 0.18s ease; }
+.experience-side-list button:hover { border-color: #d1d5db; background: var(--bg-app); }
+.experience-side-list button.selected { border-color: #059669; background: #ecfdf5; font-weight: 700; }
+.experience-side-list button > b { width: 30px; height: 30px; display: grid; place-items: center; border: 1.5px solid #d1d5db; border-radius: 50%; color: #4b5563; font-size: 11px; font-weight: 800; }
+.experience-side-list button.selected > b { border-color: #059669; color: #fff; background: #059669; }
 .experience-side-list button > span { min-width: 0; }
 .experience-side-list small, .experience-side-list strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.experience-side-list small { color: var(--green); font-size: 11px; font-weight: 750; }
-.experience-side-list strong { margin-top: 2px; color: var(--ink); font-size: 13.5px; }
-.experience-preview { position: relative; min-width: 0; min-height: 350px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 32px; overflow: hidden; border: 1px solid rgba(22, 78, 61, 0.15); border-radius: 12px; background: var(--sage-subtle); }
-.experience-preview::after { content: ""; position: absolute; width: 220px; height: 220px; right: -50px; bottom: -60px; border-radius: 50%; background: rgba(22, 78, 61, 0.05); pointer-events: none; }
+.experience-side-list small { color: #059669; font-size: 11px; font-weight: 750; }
+.experience-side-list strong { margin-top: 2px; color: #111827; font-size: 13.5px; }
+.experience-preview { position: relative; min-width: 0; min-height: 350px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 32px; overflow: hidden; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; }
+.experience-preview::after { content: ""; position: absolute; width: 220px; height: 220px; right: -50px; bottom: -60px; border-radius: 50%; background: rgba(5, 150, 105, 0.04); pointer-events: none; }
 .experience-preview-copy, .experience-preview-actions { position: relative; z-index: 1; }
-.experience-preview-copy > span { color: var(--green); font-size: 12.5px; font-weight: 800; }
-.experience-preview-copy h3 { margin: 8px 0 8px; font-size: clamp(26px, 3vw, 36px); line-height: 1.15; font-weight: 800; color: var(--ink); }
-.experience-preview-copy p { max-width: 540px; margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+.experience-preview-copy > span { color: #059669; font-size: 12.5px; font-weight: 800; }
+.experience-preview-copy h3 { margin: 8px 0 8px; font-size: clamp(26px, 3vw, 36px); line-height: 1.15; font-weight: 800; color: #111827; }
+.experience-preview-copy p { max-width: 540px; margin: 0; color: #4b5563; font-size: 14.5px; line-height: 1.6; }
 .experience-preview-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
 .experience-preview-actions .small-button { min-height: 44px; }
-.experience-position { position: absolute; right: 20px; top: 18px; padding: 4px 10px; border-radius: 20px; color: var(--green); background: #fff; border: 1px solid rgba(22, 78, 61, 0.15); font-size: 11.5px; font-weight: 800; }
-.prompt-practice-layout { display: grid; grid-template-columns: minmax(280px, 320px) minmax(0, 1fr); gap: 20px; }
-.prompt-practice-list { max-height: 440px; display: grid; align-content: start; gap: 8px; overflow-y: auto; padding-right: 6px; }
-.prompt-practice-list button { min-width: 0; min-height: 74px; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; transition: all 0.18s ease; }
-.prompt-practice-list button:hover { border-color: rgba(22, 78, 61, 0.3); background: var(--sage-subtle); }
-.prompt-practice-list button.selected { border-color: var(--green); background: var(--sage-light); font-weight: 800; }
+.experience-position { position: absolute; right: 20px; top: 18px; padding: 4px 10px; border-radius: 20px; color: #059669; background: #fff; border: 1px solid #e5e7eb; font-size: 11.5px; font-weight: 800; }
+.prompt-practice-layout { display: grid; grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.prompt-practice-list { max-height: 480px; display: grid; align-content: start; gap: 8px; overflow-y: auto; padding-right: 6px; }
+.prompt-practice-list button { min-width: 0; min-height: 74px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff; text-align: left; transition: all 0.18s ease; }
+.prompt-practice-list button:hover { border-color: #d1d5db; background: #f9fafb; }
+.prompt-practice-list button.selected { border-color: #059669; background: #ecfdf5; font-weight: 700; box-shadow: 0 2px 8px rgba(5, 150, 105, 0.08); }
 .prompt-practice-list small, .prompt-practice-list strong, .prompt-practice-list span { display: block; }
-.prompt-practice-list small { color: var(--green); font-size: 11px; font-weight: 800; }
-.prompt-practice-list strong { margin: 4px 0 2px; color: var(--ink); font-size: 13.5px; }
-.prompt-practice-list span { overflow: hidden; color: var(--muted); font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
-.prompt-practice-preview { min-width: 0; padding: 24px; border: 1px solid rgba(22, 78, 61, 0.15); border-radius: 12px; background: var(--sage-subtle); }
-.experience-preview, .prompt-practice-preview { animation: lesson-three-detail-in 150ms ease-out both; }
-@keyframes lesson-three-detail-in { from { opacity: .55; } to { opacity: 1; } }
-.prompt-practice-preview > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.prompt-practice-preview header small { color: var(--green); font-size: 11.5px; font-weight: 800; }
-.prompt-practice-preview header h3 { margin: 4px 0 0; font-size: 19px; font-weight: 800; color: var(--ink); }
-.prompt-practice-preview > header > span { color: var(--muted); font-size: 12px; white-space: nowrap; }
-.prompt-practice-preview textarea { width: 100%; min-height: 285px; max-height: 350px; resize: vertical; padding: 16px; border: 1px solid rgba(22, 78, 61, 0.15); border-radius: 9px; color: var(--ink); background: #fff; font: 12.5px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; }
-.prompt-practice-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-.prompt-practice-actions > * { min-height: 44px; display: flex; align-items: center; justify-content: center; }
-.prompt-copy-help { margin: 10px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
-.prompt-copy-status { min-height: 18px; margin: 4px 0 0; color: var(--green); font-size: 12.5px; font-weight: 750; text-align: center; }
+.prompt-practice-list small { color: #059669; font-size: 11px; font-weight: 800; }
+.prompt-practice-list strong { margin: 4px 0 2px; color: #111827; font-size: 13.5px; }
+.prompt-practice-list span { overflow: hidden; color: #6b7280; font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Prompt AI Studio Preview Box */
+.prompt-practice-preview { min-width: 0; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.prompt-code-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
+.prompt-code-info { display: flex; flex-direction: column; gap: 4px; }
+.prompt-group-tag { color: #059669; font-size: 11.5px; font-weight: 700; }
+.prompt-code-info h3 { margin: 0; font-size: 18px; font-weight: 700; color: #111827; }
+.prompt-length-badge { color: #6b7280; font-size: 11.5px; }
+.prompt-top-actions { display: flex; items-center: center; gap: 10px; flex-wrap: wrap; }
+.copy-success-banner { margin-bottom: 14px; padding: 10px 14px; border: 1px solid #a7f3d0; border-radius: 6px; color: #047857; background: #ecfdf5; font-size: 13px; font-weight: 700; animation: banner-in 0.2s ease-out; }
+@keyframes banner-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.prompt-code-container { border: 1px solid #334155; border-radius: 8px; overflow: hidden; background: #0f172a; }
+.prompt-code-textarea { width: 100%; min-height: 280px; max-height: 380px; resize: vertical; padding: 18px; border: 0; color: #f8fafc; background: #0f172a; font: 13px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; outline: none; }
+.prompt-code-footer { margin-top: 14px; padding-top: 12px; border-top: 1px solid #f3f4f6; }
+.prompt-code-footer code { padding: 2px 6px; border: 1px solid #e5e7eb; border-radius: 4px; color: #111827; background: #f3f4f6; font-size: 12px; font-weight: 700; }
 .game-frame { width: 100%; height: 440px; max-height: 60vh; display: block; border: 1px solid rgba(22, 78, 61, 0.2); border-radius: 12px; background: #102019; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
 .game-layout > .game-browser, .game-layout > .reflection-panel { padding: 28px; }
 .game-layout .panel-title { margin-bottom: 12px; }

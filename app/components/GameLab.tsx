@@ -486,15 +486,17 @@ export function GameLab({ data, onChange, stage: subTab }: GameLabProps) {
           <header className="prompt-practice-head">
             <div>
               <span>따라 해 보기</span>
-              <h2 id="prompt-practice-title">프롬프트를 복사해 결과를 만들어 보세요.</h2>
-              <p>왼쪽에서 하나를 고른 뒤 복사하고, Gemini의 새 대화에 붙여 넣습니다.</p>
+              <h2 id="prompt-practice-title">프롬프트를 복사해 나만의 수업 웹앱을 만들어 보세요.</h2>
+              <p>왼쪽 예시 중 필요한 단계를 선택하고, [프롬프트 복사] 후 [Gemini에서 실행]을 눌러 바로 제작해보세요.</p>
             </div>
           </header>
 
           <div className="prompt-practice-flow" aria-label="프롬프트 연습 순서">
-            <span><b>1</b> 예시 선택</span>
-            <span><b>2</b> 프롬프트 복사</span>
-            <span><b>3</b> Gemini에 붙여넣기</span>
+            <span className="step-item active"><b>1</b> 예시 선택</span>
+            <span className="step-arrow">➔</span>
+            <span className="step-item"><b>2</b> 프롬프트 1클릭 복사</span>
+            <span className="step-arrow">➔</span>
+            <span className="step-item"><b>3</b> Gemini에 붙여넣기</span>
           </div>
 
           <div className="prompt-practice-layout">
@@ -524,39 +526,51 @@ export function GameLab({ data, onChange, stage: subTab }: GameLabProps) {
             </div>
 
             <article key={activePrompt.id} id="prompt-practice-preview" className="prompt-practice-preview" aria-live="polite">
-              <header>
-                <div>
-                  <small>{activePrompt.group}</small>
+              <header className="prompt-code-header">
+                <div className="prompt-code-info">
+                  <span className="prompt-group-tag">{activePrompt.group}</span>
                   <h3>{activePrompt.title}</h3>
+                  <span className="prompt-length-badge">{activePrompt.prompt.length.toLocaleString("ko-KR")}자</span>
                 </div>
-                <span>{activePrompt.prompt.length.toLocaleString("ko-KR")}자</span>
+                <div className="prompt-top-actions">
+                  <button type="button" className="primary small-button" onClick={() => void copyPracticePrompt()}>
+                    📋 프롬프트 복사하기
+                  </button>
+                  <a
+                    className="secondary small-button"
+                    href="https://gemini.google.com/app"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => {
+                      onChange("promptPracticeId", activePrompt.id);
+                      onChange("promptPracticeTitle", activePrompt.title);
+                      onChange("promptPracticedAt", new Date().toISOString());
+                    }}
+                  >
+                    🚀 Gemini 열기 ↗
+                  </a>
+                </div>
               </header>
-              <textarea
-                readOnly
-                value={activePrompt.prompt}
-                aria-label={`${activePrompt.title} 프롬프트 원문`}
-                onFocus={(event) => event.currentTarget.select()}
-              />
-              <div className="prompt-practice-actions">
-                <button type="button" className="secondary" onClick={() => void copyPracticePrompt()}>
-                  프롬프트 복사
-                </button>
-                <a
-                  className="primary"
-                  href="https://gemini.google.com/app"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => {
-                    onChange("promptPracticeId", activePrompt.id);
-                    onChange("promptPracticeTitle", activePrompt.title);
-                    onChange("promptPracticedAt", new Date().toISOString());
-                  }}
-                >
-                  Gemini에서 실행 ↗
-                </a>
+
+              {copyMessage && (
+                <div className="copy-success-banner" role="status" aria-live="polite">
+                  ✨ {copyMessage} Gemini 입력창(Ctrl+V)에 붙여넣으세요!
+                </div>
+              )}
+
+              <div className="prompt-code-container">
+                <textarea
+                  readOnly
+                  className="prompt-code-textarea"
+                  value={activePrompt.prompt}
+                  aria-label={`${activePrompt.title} 프롬프트 원문`}
+                  onFocus={(event) => event.currentTarget.select()}
+                />
               </div>
-              <p className="prompt-copy-help">복사한 뒤 Gemini의 입력창에 붙여 넣으세요.</p>
-              <p className="prompt-copy-status" role="status" aria-live="polite">{copyMessage}</p>
+
+              <footer className="prompt-code-footer">
+                <p>💡 복사 버튼을 누른 뒤, 생성된 Gemini 대화창에 <code>Ctrl + V</code> (붙여넣기)를 하시면 바로 웹앱 코드가 생성됩니다.</p>
+              </footer>
             </article>
           </div>
         </section>
