@@ -25,7 +25,7 @@ type TeacherData = {
 };
 
 const stepMeta = {
-  1: { short: "문제 정의", title: "사실에서 수업 문제까지", hint: "분류하고, 확인하고, 한 문장으로 정리합니다." },
+  1: { short: "문제 정의", title: "배움에서 수업 문제까지", hint: "남길 배움과 현재 장면을 연결하고, AI가 필요한 이유를 결정합니다." },
   2: { short: "수업 설계", title: "수업을 어떻게 설계할 것인가?", hint: "Gem을 만든 뒤 직접 실습하고 결과를 남깁니다." },
   3: { short: "콘텐츠 제작", title: "수업 웹게임 / 콘텐츠 개발 및 탑재", hint: "추천 웹게임을 연구하고, 직접 만든 수업 콘텐츠를 탑재해 테스트합니다." },
   4: { short: "갤러리워크", title: "갤러리워크와 최종 제출", hint: "동료 작품을 둘러보고, 의견을 반영한 최종 결과물을 제출합니다." },
@@ -33,10 +33,25 @@ const stepMeta = {
 
 const fields: Record<Step, { key: string; label: string }[]> = {
   1: [
-    { key: "firstJudgment", label: "처음 한 판단" },
-    { key: "additionalInfo", label: "새롭게 확인한 정보" },
-    { key: "blockPoint", label: "배움을 막았을 가능성이 있는 요인" },
-    { key: "change", label: "바꿔 볼 수업 조건" },
+    { key: "gradeLevel", label: "학교급·학년" },
+    { key: "subjectUnit", label: "교과·단원" },
+    { key: "lessonScene", label: "돌아볼 수업 장면" },
+    { key: "learningGoal", label: "남길 배움" },
+    { key: "observedSpeech", label: "학생이 한 말" },
+    { key: "observedAction", label: "학생이 한 행동" },
+    { key: "observedMissing", label: "학생이 멈추거나 하지 못한 행동" },
+    { key: "observedResult", label: "학생이 만든 결과물" },
+    { key: "possibleInterpretation1", label: "가능한 해석 1" },
+    { key: "possibleInterpretation2", label: "가능한 해석 2" },
+    { key: "unknownInfo", label: "아직 모르는 것" },
+    { key: "nextCheck", label: "다음에 확인할 방법" },
+    { key: "learningEvidence1", label: "배움 확인 기준 1" },
+    { key: "learningEvidence2", label: "배움 확인 기준 2" },
+    { key: "problemStatement", label: "내 수업의 문제" },
+    { key: "aiDirection", label: "AI 활용 방향" },
+    { key: "aiSupport", label: "AI가 도울 부분" },
+    { key: "teacherJudgment1", label: "교사가 판단할 부분 1" },
+    { key: "teacherJudgment2", label: "교사가 판단할 부분 2" },
   ],
   2: [
     { key: "grade", label: "학년" },
@@ -69,6 +84,14 @@ const fields: Record<Step, { key: string; label: string }[]> = {
 };
 
 const lessonOneExtraLabels: Record<string, string> = {
+  aiHelpExplore: "AI 도움: 관점·대안 탐색",
+  aiHelpDraft: "AI 도움: 초안 제작",
+  aiHelpCompare: "AI 도움: 비교·검토",
+  aiHelpObserve: "AI 도움: 추가 관찰",
+  aiHelpHold: "AI 활용 이유가 불분명함",
+  reviewGoalClear: "마지막 점검: 배움 목표",
+  reviewAiUseful: "마지막 점검: AI 활용",
+  reviewEvidenceClear: "마지막 점검: 확인 기준",
   factChoice1: "문장 1 분류",
   factChoice2: "문장 2 분류",
   factChoice3: "문장 3 분류",
@@ -218,7 +241,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
     // Header definition
     const headers = [
       "학교명", "이름",
-      "1차시 처음 판단", "1차시 새롭게 확인한 정보", "1차시 배움을 막은 요인", "1차시 수업 조건",
+      "1차시 학교급·학년", "1차시 교과·단원", "1차시 돌아볼 수업 장면", "1차시 남길 배움", "1차시 현재 장면", "1차시 가능한 해석", "1차시 배움 확인 기준", "1차시 수업 문제", "1차시 AI 활용 방향", "1차시 AI가 도울 부분",
       "2차시 학년", "2차시 교과", "2차시 학생 어려움 이유", "2차시 학생 어려워하는 것", "2차시 원하는 학생 행동", "2차시 선택한 방법", "2차시 선택한 이유",
       "3차시 체험한 게임", "3차시 내가 해 본 결과", "3차시 즉시 받은 피드백", "3차시 내 수업 적용 변경 계획", "3차시 내가 만든 콘텐츠 제목", "3차시 탑재 결과물 URL", "3차시 수업 활용 계획",
       "4차시 반영한 의견/수정 내용", "4차시 최종 결과물 URL"
@@ -234,7 +257,11 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
       const row = [
         p.school,
         p.name,
-        p1.firstJudgment ?? "", p1.additionalInfo ?? "", p1.blockPoint ?? "", p1.change ?? "",
+        p1.gradeLevel ?? "", p1.subjectUnit ?? "", p1.lessonScene ?? "", p1.learningGoal ?? "",
+        p1.observedMissing ?? p1.observedResult ?? p1.observedAction ?? p1.additionalInfo ?? "",
+        p1.possibleInterpretation1 ?? p1.firstJudgment ?? "",
+        p1.learningEvidence1 ?? p1.learningEvidence2 ?? "",
+        p1.problemStatement ?? "", p1.aiDirection ?? "", p1.aiSupport ?? p1.change ?? "",
         p2.grade ?? "", p2.subject ?? "", p2.difficultyCause ?? "", p2.difficultTask ?? "", p2.desiredAction ?? "", p2.selectedMethod ?? "", p2.selectionReason ?? "",
         p3.gameTitle ?? "", p3.studentAction ?? "", p3.feedbackMechanism ?? "", p3.changePlan ?? "", p3.contentTitle ?? "", p3.resultUrl ?? "", p3.contentPlan ?? "",
         p4.revision ?? "", p4.finalUrl ?? ""
@@ -444,11 +471,11 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                       ))}
 
                       {/* 1차시 완성문장 특별 미리보기 제공 */}
-                      {step === 1 && parsed.firstJudgment && (
+                      {step === 1 && (parsed.problemStatement || parsed.firstJudgment) && (
                         <div className="sentence-special-preview" style={{ marginTop: "10px", padding: "10px 14px", background: "#f2f8f4", border: "1px solid #b8d8c5", borderRadius: "5px", fontSize: "13.5px" }}>
-                          <strong>완성형 문장 정의서:</strong>
+                          <strong>수업 문제 문장:</strong>
                           <p style={{ margin: "5px 0 0", color: "var(--green)" }}>
-                            처음에는 <b>{parsed.firstJudgment}</b>라고 판단했다. 그러나 <b>{parsed.additionalInfo}</b>을 확인한 뒤, <b>{parsed.blockPoint}</b>이 배움을 막았을 가능성이 있다고 보았다. 따라서 수업에서 <b>{parsed.change}</b>을 해 볼 필요가 있다.
+                            {parsed.problemStatement || <>처음에는 <b>{parsed.firstJudgment}</b>라고 판단했다. 그러나 <b>{parsed.additionalInfo}</b>을 확인한 뒤, <b>{parsed.blockPoint}</b>이 배움을 막았을 가능성이 있다고 보았다. 따라서 수업에서 <b>{parsed.change}</b>을 해 볼 필요가 있다.</>}
                           </p>
                         </div>
                       )}

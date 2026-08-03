@@ -50,7 +50,9 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     setShowMetaModal(true);
   };
 
-  const startSentence = `따라서 수업에서 ${fromStep1.change || "________________"}을 해 볼 필요가 있다.`;
+  const startSentence = fromStep1.problemStatement
+    ? fromStep1.problemStatement
+    : `따라서 수업에서 ${fromStep1.aiSupport || fromStep1.change || "________________"}을 해 볼 필요가 있다.`;
   const buildRequest = (values: Record<string, string>) => [
     `나의 출발 문장: ${startSentence}`,
     `나는 ${values.grade || "___"}학년 ${values.subject || "___"} 교과를 가르칩니다.`,

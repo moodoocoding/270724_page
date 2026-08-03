@@ -2,7 +2,17 @@ import { getSupabase } from "../../../lib/supabase-server";
 import { getParticipantId } from "../../../lib/participant-session";
 
 const allowedKeys: Record<number, Set<string>> = {
-  1: new Set(["factChoice1", "factChoice2", "factChoice3", "factChoice4", "firstJudgment", "additionalInfo", "blockPoint", "change", "teacherFeedback"]),
+  1: new Set([
+    "gradeLevel", "subjectUnit", "lessonScene", "learningGoal",
+    "observedSpeech", "observedAction", "observedMissing", "observedResult",
+    "possibleInterpretation1", "possibleInterpretation2", "unknownInfo", "nextCheck",
+    "learningEvidence1", "learningEvidence2", "problemStatement",
+    "aiHelpExplore", "aiHelpDraft", "aiHelpCompare", "aiHelpObserve", "aiHelpHold",
+    "aiDirection", "aiSupport", "teacherJudgment1", "teacherJudgment2",
+    "reviewGoalClear", "reviewAiUseful", "reviewEvidenceClear",
+    "factChoice1", "factChoice2", "factChoice3", "factChoice4",
+    "firstJudgment", "additionalInfo", "blockPoint", "change", "teacherFeedback",
+  ]),
   2: new Set(["gemCreatedAt", "grade", "subject", "difficultyCause", "difficultTask", "desiredAction", "gemPracticeRequest", "method1", "method2", "method3", "method4", "method5", "selectedMethodIndex", "selectedMethod", "criteriaLearning", "criteriaFeasible", "criteriaFits", "selectionReason", "teacherFeedback"]),
   3: new Set(["gameId", "gameTitle", "playedAt", "studentAction", "feedbackMechanism", "changePlan", "contentTitle", "resultUrl", "contentPlan", "uploadedFileName", "uploadedFileSize", "uploadedFilePath", "uploadCanceledAt", "teacherFeedback"]),
   4: new Set(["revision", "finalUrl", "finalFileName", "finalFileSize", "finalFilePath", "teacherFeedback"]),
