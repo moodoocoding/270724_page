@@ -398,59 +398,73 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Modern Horizontal Stepper Navigation */}
-      <div className="horizontal-stepper-wrapper">
-        <nav className="horizontal-stepper" aria-label="차시 네비게이션">
-          {([1, 2, 3, 4] as Step[]).map((item) => {
-            const isCompleted = submissions[item].status === "submitted";
-            const isActive = step === item;
-            return (
-              <button
-                key={item}
-                type="button"
-                className={`stepper-btn ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
-                aria-current={isActive ? "step" : undefined}
-                onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}
-              >
-                <span className="step-badge">{isCompleted ? "✓" : item}</span>
-                <div className="stepper-btn-content">
-                  <strong>{item}차시 · {stepMeta[item].short}</strong>
-                  <small>{isCompleted ? "제출 완료" : isActive ? "작성 중" : "미작성"}</small>
+      {/* Workspace Split Layout: Modern Left Sidebar + Full-Width Canvas */}
+      <div className="workspace-layout">
+        <aside className="sidebar-modern">
+          <div className="sidebar-progress-box">
+            <div className="sidebar-progress-title">
+              <span>오늘의 학습 여정</span>
+              <strong>{progress} / 4 완료</strong>
+            </div>
+            <div className="sidebar-progress-bar">
+              <i style={{ width: `${progress * 25}%` }} />
+            </div>
+          </div>
+
+          <nav className="sidebar-nav" aria-label="차시 네비게이션">
+            {([1, 2, 3, 4] as Step[]).map((item) => {
+              const isCompleted = submissions[item].status === "submitted";
+              const isActive = step === item;
+              return (
+                <div key={item}>
+                  <button
+                    type="button"
+                    className={`sidebar-nav-item ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                    onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}
+                  >
+                    <div className="sidebar-nav-left">
+                      <span className="sidebar-nav-badge">{isCompleted ? "✓" : item}</span>
+                      <div className="sidebar-nav-info">
+                        <strong>{item}차시 · {stepMeta[item].short}</strong>
+                        <small>{isCompleted ? "제출 완료" : "작성 중"}</small>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Sub-Chapter Bookmarks */}
+                  {isActive && step <= 3 && activeChapters.length > 0 && (
+                    <div className="subchapter-bookmarks">
+                      {activeChapters.map((chapter) => (
+                        <button
+                          key={chapter.id}
+                          type="button"
+                          className={`subchapter-bm-btn ${activeChapterId === chapter.id ? "active" : ""}`}
+                          onClick={() => selectChapter(chapter.id)}
+                        >
+                          <b>{chapter.mark}</b>
+                          <span>{chapter.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Sub-Chapter Pill Switcher Bar */}
-      {step <= 3 && activeChapters.length > 0 && (
-        <div className="subchapter-bar-wrapper">
-          <nav className="subchapter-bar" aria-label={`${step}차시 세부 단계`}>
-            {activeChapters.map((chapter) => (
-              <button
-                type="button"
-                key={chapter.id}
-                className={`subchapter-pill ${activeChapterId === chapter.id ? "active" : ""}`}
-                onClick={() => selectChapter(chapter.id)}
-              >
-                <b>{chapter.mark}</b>
-                <span>{chapter.label}</span>
-              </button>
-            ))}
+              );
+            })}
           </nav>
-        </div>
-      )}
 
-      {/* Centered Spacious Work Area Canvas */}
-      <div className="workspace-centered">
-        <section className="work-area-wide">
-          <header className="step-heading-wide">
-            <div className="step-heading-info">
+          <button type="button" className="secondary small-button" style={{ marginTop: "auto", width: "100%" }} onClick={leaveClass}>
+            클래스 나가기
+          </button>
+        </aside>
+
+        {/* Full-Width Workspace Canvas */}
+        <section className="main-canvas">
+          <header className="canvas-header">
+            <div className="canvas-header-title">
               <h1>{step}차시 · {stepMeta[step].title}</h1>
               <p>{stepMeta[step].hint}</p>
             </div>
-            <span className="step-heading-badge">전체 진행률 {progress} / 4</span>
+            <span className="canvas-header-badge">진행 현황 {progress}/4</span>
           </header>
 
           {loadingWorkbook ? (
