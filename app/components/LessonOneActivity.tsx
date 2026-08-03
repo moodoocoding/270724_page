@@ -8,12 +8,13 @@ const factQuestions = [
 ] as const;
 const factAnswers = ["사실", "해석", "사실", "해석"] as const;
 
-type LessonStage = 1 | 2 | 3;
+type LessonStage = "A" | "B" | "C" | "D";
 
 const stages: { id: LessonStage; label: string; short: string }[] = [
-  { id: 1, label: "배움 정하기", short: "01" },
-  { id: 2, label: "장면·확인 기준", short: "02" },
-  { id: 3, label: "문제·AI 결정", short: "03" },
+  { id: "A", label: "남길 배움", short: "A" },
+  { id: "B", label: "현재 장면", short: "B" },
+  { id: "C", label: "확인 기준", short: "C" },
+  { id: "D", label: "AI 활용 결정", short: "D" },
 ];
 
 interface LessonOneActivityProps {
@@ -59,7 +60,7 @@ function asEvidenceQuestion(value: string) {
 }
 
 export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
-  const [stage, setStage] = useState<LessonStage>(1);
+  const [stage, setStage] = useState<LessonStage>("A");
 
   const goToStage = (nextStage: LessonStage) => {
     setStage(nextStage);
@@ -77,6 +78,7 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
       "problemStatement",
       `현재 수업에서는 ${observed}. 그러나 ${learning} 아직 확인하지 못했다. 다음 수업에서는 ${evidence} 확인할 필요가 있다.`,
     );
+    onChange("problemStatementSource", "auto");
   };
 
   return (
@@ -96,7 +98,7 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
         ))}
       </nav>
 
-      {stage === 1 && (
+      {stage === "A" && (
         <section className="lesson-one-stage">
           <StageHeader number="A" title="남길 배움" description="활동명 대신, 학생이 이해하고 할 수 있어야 할 일을 한 문장으로 적습니다." />
           <div className="lesson-context-grid">
@@ -117,9 +119,9 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
         </section>
       )}
 
-      {stage === 2 && (
+      {stage === "B" && (
         <section className="lesson-one-stage">
-          <StageHeader number="02" title="현재 장면과 확인 기준" description="핵심 장면 한 가지와 다음 수업에서 확인할 반응만 정합니다." />
+          <StageHeader number="B" title="현재 장면" description="평가하거나 추측하지 않고, 실제로 보거나 들은 장면 한 가지만 적습니다." />
           <details className="fact-check-practice">
             <summary>사실과 해석, 1분 확인하기</summary>
             <div className="concept-pair">
@@ -149,13 +151,7 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
           <div className="lesson-one-section essential-scene">
             <h3>현재 확인한 핵심 장면</h3>
             <p>평가하지 말고, 카메라에 담길 수 있는 장면 한 가지만 적습니다.</p>
-            <TextArea label="학생이 멈추거나 하지 못한 행동" value={data.observedMissing || ""} onValue={(value) => onChange("observedMissing", value)} placeholder="예: 두 방안을 비교하는 모습은 확인하지 못했다." />
-          </div>
-
-          <div className="carry-card"><span>A에서 정한 남길 배움</span><p>{data.learningGoal || "아직 남길 배움을 작성하지 않았습니다."}</p></div>
-          <div className="lesson-one-evidence-grid">
-            <TextArea label="확인 기준 1" value={data.learningEvidence1 || ""} onValue={(value) => onChange("learningEvidence1", value)} placeholder="학생이 자료의 수치를 근거로 두 가지 이상의 방안을 비교한다." />
-            <TextArea label="확인 기준 2" value={data.learningEvidence2 || ""} onValue={(value) => onChange("learningEvidence2", value)} placeholder="학생이 선택한 방안이 적절한 이유를 자신의 말로 설명한다." />
+            <TextArea label="직접 보거나 들은 학생의 말·행동" value={data.observedMissing || ""} onValue={(value) => onChange("observedMissing", value)} placeholder="예: 학생은 두 방안을 비교하지 않고 한 가지 방안을 바로 선택했다." />
           </div>
           <details className="optional-detail">
             <summary>선택 기록 · 장면을 더 자세히 분석하기</summary>
@@ -179,9 +175,29 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
         </section>
       )}
 
-      {stage === 3 && (
+      {stage === "C" && (
         <section className="lesson-one-stage">
-          <StageHeader number="03" title="수업 문제와 AI 역할" description="A·B·C를 한 문장으로 연결하고, AI가 도울 일만 짧게 정합니다." />
+          <StageHeader number="C" title="확인 기준" description="다음 수업에서 배움이 나타났는지 확인할 말이나 행동을 적습니다." />
+          <div className="carry-over-grid lesson-one-carry-grid">
+            <div className="carry-card"><span>A · 남길 배움</span><p>{data.learningGoal || "아직 남길 배움을 작성하지 않았습니다."}</p></div>
+            <div className="carry-card"><span>B · 현재 장면</span><p>{data.observedMissing || data.observedResult || data.observedAction || "아직 현재 장면을 작성하지 않았습니다."}</p></div>
+          </div>
+          <div className="lesson-one-section essential-evidence">
+            <h3>다음 수업에서 확인할 말·행동</h3>
+            <p>가장 중요한 기준 하나를 먼저 적습니다.</p>
+            <TextArea label="확인 기준 1 · 핵심 작성" value={data.learningEvidence1 || ""} onValue={(value) => onChange("learningEvidence1", value)} placeholder="예: 학생이 자료의 수치를 근거로 두 가지 이상의 방안을 비교한다." />
+          </div>
+          <details className="optional-detail">
+            <summary>선택 기록 · 확인 기준 하나 더 쓰기</summary>
+            <div className="optional-detail-body">
+              <TextArea label="확인 기준 2" value={data.learningEvidence2 || ""} onValue={(value) => onChange("learningEvidence2", value)} placeholder="예: 학생이 선택한 방안이 적절한 이유를 자신의 말로 설명한다." />
+            </div>
+          </details>
+
+          <div className="problem-synthesis-head">
+            <div><b>A·B·C 종합 결과</b><p>앞에서 쓴 내용을 자연스럽게 연결한 수업 문제 문장입니다.</p></div>
+            <span>{!data.problemStatement?.trim() ? "초안 만들기 전" : data.problemStatementSource === "auto" ? "자동 작성됨 · 수정 가능" : "교사가 수정함"}</span>
+          </div>
           <div className="problem-source-grid">
             <div><span>A · 남길 배움</span><p>{data.learningGoal || "—"}</p></div>
             <div><span>B · 현재 장면</span><p>{data.observedMissing || data.observedResult || data.observedAction || "—"}</p></div>
@@ -190,11 +206,19 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
           <div className={`problem-editor ${data.problemStatement?.trim() ? "is-filled" : ""}`}>
             <div>
               <span className="writing-field-head"><strong>내 수업의 문제</strong><em>{data.problemStatement?.trim() ? "작성됨" : "핵심 작성"}</em></span>
-              <button type="button" className="secondary small-button" onClick={buildProblemStatement}>A·B·C 자연스럽게 연결</button>
+              <button type="button" className="secondary small-button" onClick={buildProblemStatement}>{data.problemStatement?.trim() ? "초안 다시 만들기" : "A·B·C로 초안 만들기"}</button>
             </div>
-            <textarea value={data.problemStatement || ""} onChange={(event) => onChange("problemStatement", event.target.value)} placeholder="학생은 현재 [B]를 보였지만, [A]를 할 수 있는지는 아직 확인하지 못했다. 다음 수업에서 [C]를 통해 확인할 필요가 있다." />
-            <p>해결책을 미리 정하지 않아야 다음 단계에서 여러 수업 방법을 비교할 수 있습니다.</p>
+            {data.problemStatement?.trim() && <p className="problem-overwrite-note">초안을 다시 만들면 현재 수정한 문장이 바뀝니다.</p>}
+            <textarea value={data.problemStatement || ""} onChange={(event) => { onChange("problemStatement", event.target.value); onChange("problemStatementSource", "edited"); }} placeholder="학생은 현재 [B]를 보였지만, [A]를 할 수 있는지는 아직 확인하지 못했다. 다음 수업에서 [C]를 통해 확인할 필요가 있다." />
+            <p>이 문장은 직접 수정할 수 있습니다. 해결책은 넣지 않고, 확인할 문제까지만 적어 주세요.</p>
           </div>
+        </section>
+      )}
+
+      {stage === "D" && (
+        <section className="lesson-one-stage">
+          <StageHeader number="D" title="AI 활용 결정" description="수업 문제를 해결하기 위해 AI가 도울 일 한 가지만 정합니다." />
+          <div className="carry-card"><span>C에서 정리한 수업 문제</span><p>{data.problemStatement || "아직 수업 문제 문장을 작성하지 않았습니다."}</p></div>
           <div className="lesson-one-section essential-ai-role">
             <h3>AI가 도울 부분</h3>
             <TextArea label="AI에게 맡길 일 한 가지" value={data.aiSupport || data.change || ""} onValue={(value) => onChange("aiSupport", value)} placeholder="예: 서로 다른 수업 방법 세 가지를 제안하고 차이와 예상 부담을 비교한다." />

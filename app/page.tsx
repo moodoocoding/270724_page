@@ -215,22 +215,25 @@ export default function Home() {
     setBusy(true);
     setMessage("");
     setSaveState("saving");
-    const res = await fetch("/api/submissions", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ step, status, data: current.data }),
-    });
-    const body = await res.json();
-    setBusy(false);
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/submissions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ step, status, data: current.data }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "저장하지 못했습니다.");
+      setSubmissions((prev) => ({ ...prev, [step]: { ...prev[step], status, updatedAt: body.updatedAt } }));
+      setSaveState("saved");
+      setLastSavedAt(body.updatedAt || new Date().toISOString());
+      setMessage(status === "submitted" ? "제출했습니다. 언제든 수정해 다시 제출할 수 있어요." : "임시 저장했습니다.");
+      setTimeout(() => setSaveState("idle"), 3000);
+    } catch (error) {
       setSaveState("error");
-      return setMessage(body.error || "저장하지 못했습니다.");
+      setMessage(error instanceof Error ? error.message : "저장하지 못했습니다. 다시 저장해 주세요.");
+    } finally {
+      setBusy(false);
     }
-    setSubmissions((prev) => ({ ...prev, [step]: { ...prev[step], status, updatedAt: body.updatedAt } }));
-    setSaveState("saved");
-    setLastSavedAt(body.updatedAt || new Date().toISOString());
-    setMessage(status === "submitted" ? "제출했습니다. 언제든 수정해 다시 제출할 수 있어요." : "임시 저장했습니다.");
-    setTimeout(() => setSaveState("idle"), 3000);
   }
 
   function leaveClass() {
@@ -325,12 +328,13 @@ export default function Home() {
         <div className="topbar-actions">
           <div className={`save-chip ${saveState}`} role="status" aria-live="polite">
             {saveState === "saving" && "저장 중…"}
-            {saveState === "error" && "저장 실패 · 다시 입력해 주세요"}
+            {saveState === "error" && "저장 실패"}
             {saveState === "saved" && "저장됨"}
             {saveState === "idle" && (lastSavedAt
               ? `${new Date(lastSavedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨`
               : "자동 저장")}
           </div>
+          {saveState === "error" && <button type="button" className="save-retry" onClick={() => void save("draft")} disabled={busy}>다시 저장</button>}
           <div className="user-chip">
             <span>{findWorkshopSession(session.classCode)?.className ?? session.className} · {session.school}</span>
             <strong>{session.participantName}</strong>

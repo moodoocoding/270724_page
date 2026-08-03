@@ -179,7 +179,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-one-flow { width: 100%; }
 .stage-tabs { position: sticky; top: 58px; z-index: 12; }
 .lesson-one-tabs {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 16px;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 16px;
   overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #f8faf8;
 }
 .lesson-one-tabs button {
@@ -250,6 +250,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .carry-card { margin-bottom: 18px; padding: 15px 17px; border-left: 4px solid var(--green); background: var(--soft); }
 .carry-card span { color: var(--green); font-size: 12px; font-weight: 800; }
 .carry-card p { margin: 4px 0 0; font-size: 14px; }
+.lesson-one-carry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 18px; }
+.lesson-one-carry-grid .carry-card { min-width: 0; margin-bottom: 0; }
+.essential-evidence { margin-bottom: 0; }
+.problem-synthesis-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 24px 0 10px; }
+.problem-synthesis-head b { color: var(--green); font-size: 15px; }
+.problem-synthesis-head p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+.problem-synthesis-head > span { flex: 0 0 auto; padding: 4px 9px; border-radius: 999px; color: var(--green); background: #e8f3ed; font-size: 11px; font-weight: 800; }
 .lesson-one-evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .lesson-one-evidence-grid .lesson-textarea { margin: 0; padding: 18px; border: 1px solid var(--line); border-radius: 7px; }
 .lesson-one-evidence-grid textarea { min-height: 150px; font-size: 15px; }
@@ -264,6 +271,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .problem-editor textarea { min-height: 150px; border-color: #aebbb2; background: #fbfcfa; font-size: 16px; }
 .problem-editor:focus-within { box-shadow: inset 5px 0 0 var(--lime), 0 0 0 4px rgba(23, 99, 74, .11); }
 .problem-editor > p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.problem-editor .problem-overwrite-note { margin: 8px 0; color: #8e2f24; }
+.save-retry { min-height: 30px; padding: 0 10px; border: 1px solid #b85b50; border-radius: 999px; color: #8e2f24; background: #fff; font-size: 12px; font-weight: 800; }
 .choice-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .choice-list label { min-height: 48px; display: flex; align-items: center; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px; background: #fff; cursor: pointer; }
 .choice-list label::before { content: ""; width: 16px; height: 16px; flex: 0 0 auto; margin-right: 8px; border: 1px solid #aeb8b1; border-radius: 3px; }
@@ -694,6 +703,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   .lesson-one-grid, .gems-layout, .game-layout { grid-template-columns: 1fr; }
   .lesson-one-tabs button { justify-content: flex-start; }
   .lesson-one-columns, .ai-decision-grid { grid-template-columns: 1fr; }
+  .lesson-one-carry-grid { grid-template-columns: 1fr; }
   .lesson-one-stage { min-height: 0; }
   .final-checks { grid-template-columns: 90px 1fr; }
   .final-checks > div { border-bottom: 1px solid var(--line); }
@@ -779,6 +789,7 @@ input:checked + .slider:before { transform: translateX(20px); }
   .fact-check-practice .classification-row { grid-template-columns: 1fr; }
   .fact-check-practice .classification-row > div { padding-left: 29px; }
   .problem-editor > div { align-items: flex-start; flex-direction: column; }
+  .problem-synthesis-head { align-items: flex-start; flex-direction: column; }
   .final-checks { grid-template-columns: 1fr; }
   .final-checks > span { justify-content: start; }
   .final-checks > div { border-left: 0; }
