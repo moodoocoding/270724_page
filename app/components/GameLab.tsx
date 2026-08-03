@@ -464,12 +464,12 @@ export function GameLab({ data, onChange, stage: subTab }: GameLabProps) {
                 </a>
                 {activeExperience.kind === "웹게임" && (
                   <a
-                    className="secondary small-button"
+                    className="all-games-btn"
                     href="/games/kingsmath/kingsmath-library.html"
                     target="_blank"
                     rel="noreferrer"
                   >
-                    전체 웹게임 모음집 ↗
+                    🎮 전체 웹게임 모음집 ↗
                   </a>
                 )}
               </div>

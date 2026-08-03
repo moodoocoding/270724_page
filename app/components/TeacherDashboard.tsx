@@ -147,10 +147,124 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
   const [statusFilter, setStatusFilter] = useState<"all" | "not-started" | "in-progress" | "completed">("all");
   const returnFocusRef = useRef<HTMLButtonElement | null>(null);
   
+  // Admin inline editing state for a specific step
+  const [editingStep, setEditingStep] = useState<{
+    participantId: number;
+    step: Step;
+    data: Record<string, string>;
+  } | null>(null);
+
   // Real-time synchronization states
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [countdown, setCountdown] = useState(10);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // Admin Action Handlers
+  const handleDeleteParticipant = async (participantId: number, name: string, school: string) => {
+    if (!window.confirm(`정말로 [${school} ${name}] 선생님의 모든 제출 내역을 아예 삭제하시겠습니까?\n이 작업은 복구할 수 없습니다.`)) return;
+    try {
+      const res = await fetch("/api/teacher", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ classCode, adminCode, participantId }),
+      });
+      if (res.ok) {
+        setRosterData((prev) => ({
+          ...prev,
+          participants: prev.participants.filter((p) => p.id !== participantId),
+        }));
+        if (selectedId === participantId) setSelectedId(null);
+        alert(`[${school} ${name}] 선생님의 제출 내역이 아예 삭제되었습니다.`);
+      } else {
+        const body = await res.json();
+        alert(body.error || "삭제에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("삭제 처리 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleDeleteStepSubmission = async (participantId: number, step: Step, name: string) => {
+    if (!window.confirm(`정말로 [${name}] 선생님의 [${step}차시] 작성 내용을 삭제(초기화)하시겠습니까?`)) return;
+    try {
+      const res = await fetch("/api/teacher", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ classCode, adminCode, participantId, step }),
+      });
+      if (res.ok) {
+        setRosterData((prev) => ({
+          ...prev,
+          participants: prev.participants.map((p) => {
+            if (p.id !== participantId) return p;
+            const updatedSubs = { ...p.submissions };
+            delete updatedSubs[step];
+            return { ...p, submissions: updatedSubs };
+          }),
+        }));
+        if (editingStep?.participantId === participantId && editingStep?.step === step) {
+          setEditingStep(null);
+        }
+        alert(`[${name}] 선생님의 [${step}차시] 작성 내용이 삭제되었습니다.`);
+      } else {
+        const body = await res.json();
+        alert(body.error || "단계 삭제에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("단계 삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleSaveStepSubmission = async () => {
+    if (!editingStep) return;
+    const { participantId, step, data: updatedData } = editingStep;
+    try {
+      const res = await fetch("/api/teacher", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          classCode,
+          adminCode,
+          participantId,
+          step,
+          status: "submitted",
+          dataJson: JSON.stringify(updatedData),
+        }),
+      });
+      if (res.ok) {
+        const body = await res.json();
+        setRosterData((prev) => ({
+          ...prev,
+          participants: prev.participants.map((p) => {
+            if (p.id !== participantId) return p;
+            return {
+              ...p,
+              submissions: {
+                ...p.submissions,
+                [step]: {
+                  step,
+                  status: body.submission.status,
+                  data: updatedData,
+                  dataJson: body.submission.dataJson,
+                  updatedAt: body.submission.updatedAt,
+                },
+              },
+            };
+          }),
+        }));
+        setEditingStep(null);
+        alert(`[${step}차시] 작성 내용이 성공적으로 수정되었습니다.`);
+      } else {
+        const body = await res.json();
+        alert(body.error || "수정에 실패했습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("수정 처리 중 오류가 발생했습니다.");
+    }
+  };
 
   // Compute selected participant dynamically to avoid synchronization side-effects
   const selected = selectedId !== null 
@@ -170,6 +284,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
 
   const closeParticipant = useCallback(() => {
     setSelectedId(null);
+    setEditingStep(null);
     window.requestAnimationFrame(() => returnFocusRef.current?.focus());
   }, []);
 
@@ -382,7 +497,7 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                   <th>2차시</th>
                   <th>3차시</th>
                   <th>4차시</th>
-                  <th style={{ textAlign: "right" }}>상세</th>
+                  <th style={{ textAlign: "right" }}>관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -394,16 +509,24 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     <td>{getStatusBadge(2, person)}</td>
                     <td>{getStatusBadge(3, person)}</td>
                     <td>{getStatusBadge(4, person)}</td>
-                    <td style={{ textAlign: "right" }}>
+                    <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
                       <button
                         type="button"
                         className="view-detail-link"
+                        style={{ marginRight: "6px" }}
                         onClick={(event) => {
                           returnFocusRef.current = event.currentTarget;
                           setSelectedId(person.id);
                         }}
                       >
                         보기 ↗
+                      </button>
+                      <button
+                        type="button"
+                        style={{ padding: "4px 8px", border: "1px solid #fca5a5", borderRadius: "6px", color: "#dc2626", background: "#fff", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}
+                        onClick={() => handleDeleteParticipant(person.id, person.name, person.school)}
+                      >
+                        🗑️ 삭제
                       </button>
                     </td>
                   </tr>
@@ -443,20 +566,31 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
             }}
             style={{ width: "min(860px, 100%)" }}
           >
-            <button
-              type="button"
-              className="modal-close"
-              autoFocus
-              onClick={closeParticipant}
-            >
-              닫기
-            </button>
-            <h2 id="workbook-dialog-title" style={{ display: "flex", gap: "10px", alignItems: "baseline" }}>
-              {selected.name} 선생님의 워크북
-              <small style={{ fontSize: "14px", fontWeight: "normal", color: "#66706a" }}>
-                ({selected.school})
-              </small>
-            </h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h2 id="workbook-dialog-title" style={{ display: "flex", gap: "10px", alignItems: "baseline", margin: "0" }}>
+                {selected.name} 선생님의 워크북
+                <small style={{ fontSize: "14px", fontWeight: "normal", color: "#66706a" }}>
+                  ({selected.school})
+                </small>
+              </h2>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <button
+                  type="button"
+                  style={{ padding: "6px 12px", border: "1px solid #fca5a5", borderRadius: "6px", color: "#dc2626", background: "#fef2f2", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                  onClick={() => handleDeleteParticipant(selected.id, selected.name, selected.school)}
+                >
+                  🗑️ 제출자 전체 삭제
+                </button>
+                <button
+                  type="button"
+                  className="modal-close"
+                  autoFocus
+                  onClick={closeParticipant}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
 
             {([1, 2, 3, 4] as Step[]).map((step) => {
               const sub = selected.submissions[step];
@@ -482,17 +616,80 @@ export function TeacherDashboard({ data, classCode, adminCode, onBack }: Teacher
                     "finalCheckTeacherRevision",
                     "contentTool",
                     "galleryComments",
-                    "teacherFeedback", // Hide feedback saved by older versions
+                    "teacherFeedback",
                   ].includes(key)
               );
 
+              const isEditingThisStep = editingStep?.participantId === selected.id && editingStep?.step === step;
+
               return (
                 <section key={step} className="modal-step-section" style={{ borderTop: "2px solid #edf2ed", padding: "20px 0" }}>
-                  <h3 style={{ color: "var(--green)", fontSize: "16px", fontWeight: "700", marginBottom: "14px" }}>
-                    {step}차시 · {stepMeta[step].title}
-                  </h3>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                    <h3 style={{ color: "var(--green)", fontSize: "16px", fontWeight: "700", margin: "0" }}>
+                      {step}차시 · {stepMeta[step].title}
+                    </h3>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      {sub && !isEditingThisStep && (
+                        <button
+                          type="button"
+                          style={{ padding: "4px 10px", border: "1px solid #059669", borderRadius: "6px", color: "#059669", background: "#fff", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}
+                          onClick={() => setEditingStep({ participantId: selected.id, step, data: { ...parsed } })}
+                        >
+                          ✏️ 내용 수정
+                        </button>
+                      )}
+                      {sub && (
+                        <button
+                          type="button"
+                          style={{ padding: "4px 10px", border: "1px solid #fca5a5", borderRadius: "6px", color: "#dc2626", background: "#fff", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}
+                          onClick={() => handleDeleteStepSubmission(selected.id, step, selected.name)}
+                        >
+                          🗑️ 단계 삭제
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-                  {sub ? (
+                  {/* Admin Step Inline Editor */}
+                  {isEditingThisStep ? (
+                    <div className="admin-step-editor" style={{ padding: "16px", border: "1px solid #059669", borderRadius: "8px", background: "#ecfdf5", marginBottom: "16px" }}>
+                      <h4 style={{ margin: "0 0 12px", color: "#047857", fontSize: "14px", fontWeight: "700" }}>
+                        ✏️ {step}차시 작성 내용 관리자 수정
+                      </h4>
+                      <div style={{ display: "grid", gap: "12px" }}>
+                        {fields[step].map((field) => (
+                          <label key={field.key} style={{ display: "grid", gap: "4px", fontSize: "13px", fontWeight: "600", color: "#111827" }}>
+                            <span>{field.label}</span>
+                            <textarea
+                              rows={2}
+                              style={{ width: "100%", padding: "8px", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "13.5px" }}
+                              value={editingStep.data[field.key] ?? ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEditingStep((prev) => prev ? { ...prev, data: { ...prev.data, [field.key]: val } } : null);
+                              }}
+                            />
+                          </label>
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "14px" }}>
+                        <button
+                          type="button"
+                          style={{ padding: "6px 14px", border: "1px solid #d1d5db", borderRadius: "6px", background: "#fff", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}
+                          onClick={() => setEditingStep(null)}
+                        >
+                          취소
+                        </button>
+                        <button
+                          type="button"
+                          style={{ padding: "6px 14px", border: "1px solid #059669", borderRadius: "6px", color: "#fff", background: "#059669", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}
+                          onClick={handleSaveStepSubmission}
+                        >
+                          💾 수정 내용 저장
+                        </button>
+                      </div>
+                    </div>
+                  ) : sub ? (
                     <div className="submitted-answers" style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
                       {visibleEntries.map(([k, v]) => (
                         <p key={k} style={{ display: "grid", gridTemplateColumns: "180px 1fr", gap: "14px", margin: "0", fontSize: "14px" }}>

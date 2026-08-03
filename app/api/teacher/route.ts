@@ -73,14 +73,16 @@ export async function GET(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { classCode, adminCode, participantId } = await request.json() as {
+    const { classCode, adminCode, participantId, step } = await request.json() as {
       classCode?: string;
       adminCode?: string;
       participantId?: number;
+      step?: number;
     };
     const targetClassCode = classCode?.trim().toUpperCase();
     const targetAdminCode = adminCode?.trim();
     const targetParticipantId = Number(participantId);
+    const targetStep = step ? Number(step) : null;
 
     if (
       !targetClassCode ||
@@ -107,21 +109,34 @@ export async function DELETE(request: Request) {
       .eq("id", targetParticipantId)
       .single();
     if (participantError || !participant || participant.class_id !== workshop.id) {
-      return Response.json({ error: "삭제할 참여자를 찾을 수 없습니다." }, { status: 404 });
+      return Response.json({ error: "참여자를 찾을 수 없습니다." }, { status: 404 });
     }
 
-    const bucket = supabase.storage.from("workshop-final-results");
-    const { data: storedFiles, error: listError } = await bucket.list(String(targetParticipantId), {
-      limit: 100,
-    });
-    if (listError) throw listError;
+    // 특정 차시(step) 삭제인 경우
+    if (targetStep && [1, 2, 3, 4].includes(targetStep)) {
+      const { error: stepDeleteError } = await supabase
+        .from("submissions")
+        .delete()
+        .eq("participant_id", targetParticipantId)
+        .eq("step", targetStep);
+      if (stepDeleteError) throw stepDeleteError;
 
+      return Response.json({
+        ok: true,
+        type: "step",
+        participantId: targetParticipantId,
+        step: targetStep,
+      });
+    }
+
+    // 제출자 전체 삭제인 경우
+    const bucket = supabase.storage.from("workshop-final-results");
+    const { data: storedFiles } = await bucket.list(String(targetParticipantId), { limit: 100 });
     const storedPaths = (storedFiles ?? [])
       .filter((file) => file.id)
       .map((file) => `${targetParticipantId}/${file.name}`);
     if (storedPaths.length) {
-      const { error: removeError } = await bucket.remove(storedPaths);
-      if (removeError) throw removeError;
+      await bucket.remove(storedPaths);
     }
 
     const { error: deleteError } = await supabase
@@ -133,6 +148,7 @@ export async function DELETE(request: Request) {
 
     return Response.json({
       ok: true,
+      type: "participant",
       participant: {
         id: participant.id,
         school: participant.school,
@@ -141,6 +157,92 @@ export async function DELETE(request: Request) {
     });
   } catch (error) {
     console.error(error);
-    return Response.json({ error: "참여자 내역을 삭제하지 못했습니다." }, { status: 500 });
+    return Response.json({ error: "삭제 요청 처리에 실패했습니다." }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const { classCode, adminCode, participantId, step, status, dataJson } = await request.json() as {
+      classCode?: string;
+      adminCode?: string;
+      participantId?: number;
+      step?: number;
+      status?: "draft" | "submitted";
+      dataJson?: string;
+    };
+
+    const targetClassCode = classCode?.trim().toUpperCase();
+    const targetAdminCode = adminCode?.trim();
+    const targetParticipantId = Number(participantId);
+    const targetStep = Number(step);
+
+    if (
+      !targetClassCode ||
+      !targetAdminCode ||
+      !Number.isSafeInteger(targetParticipantId) ||
+      targetParticipantId < 1 ||
+      ![1, 2, 3, 4].includes(targetStep)
+    ) {
+      return Response.json({ error: "올바르지 않은 수정 요청입니다." }, { status: 400 });
+    }
+
+    const supabase = getSupabase();
+    const { data: workshop, error: classError } = await supabase
+      .from("classes")
+      .select("id,admin_code")
+      .eq("code", targetClassCode)
+      .single();
+    if (classError || !workshop || workshop.admin_code !== targetAdminCode) {
+      return Response.json({ error: "강사 권한을 인증할 수 없습니다." }, { status: 403 });
+    }
+
+    const { data: participant, error: participantError } = await supabase
+      .from("participants")
+      .select("id,class_id")
+      .eq("id", targetParticipantId)
+      .single();
+    if (participantError || !participant || participant.class_id !== workshop.id) {
+      return Response.json({ error: "참여자를 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    let parsedData = {};
+    try {
+      parsedData = JSON.parse(dataJson || "{}");
+    } catch {
+      return Response.json({ error: "유효하지 않은 데이터 형식입니다." }, { status: 400 });
+    }
+
+    const { data: updatedRow, error: upsertError } = await supabase
+      .from("submissions")
+      .upsert(
+        {
+          participant_id: targetParticipantId,
+          step: targetStep,
+          status: status || "submitted",
+          data_json: parsedData,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "participant_id,step" }
+      )
+      .select("id,participant_id,step,status,data_json,updated_at")
+      .single();
+
+    if (upsertError) throw upsertError;
+
+    return Response.json({
+      ok: true,
+      submission: {
+        id: updatedRow.id,
+        participantId: updatedRow.participant_id,
+        step: updatedRow.step,
+        status: updatedRow.status,
+        dataJson: JSON.stringify(updatedRow.data_json ?? {}),
+        updatedAt: updatedRow.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: "작성 내용 수정 처리에 실패했습니다." }, { status: 500 });
   }
 }
