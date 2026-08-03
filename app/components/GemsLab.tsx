@@ -8,6 +8,8 @@ interface GemsLabProps {
 }
 
 type DesignStage = 1 | 2 | 3;
+type ParsedMethod = { index: number; name: string; activity: string };
+type ClassificationState = { kind: "idle" | "success" | "partial" | "error"; message: string };
 
 const stages: { id: DesignStage; label: string }[] = [
   { id: 1, label: "AI에게 요청하기" },
@@ -17,6 +19,77 @@ const stages: { id: DesignStage; label: string }[] = [
 
 const defaultResponseFormat = "각 방법의 적용할 수업 단계, 학생 활동, 확인할 학생 반응, 예상 시간·부담, 교사가 검토할 점을 정리해 주세요.";
 
+function cleanMarkdownLine(value: string) {
+  return value
+    .replace(/^\s*#{1,6}\s*/u, "")
+    .replace(/^\s*[-*•]\s+/u, "")
+    .replace(/\*\*|__/gu, "")
+    .replace(/^`+|`+$/gu, "")
+    .trim();
+}
+
+function parseAiMethods(raw: string): ParsedMethod[] {
+  const lines = raw.replace(/\r\n?/gu, "\n").split("\n");
+  const labeledHeadings: { line: number; index: number; title: string }[] = [];
+  const numberedHeadings: { line: number; index: number; title: string }[] = [];
+  const ordinalIndex: Record<string, number> = { "첫 번째": 1, "첫번째": 1, "두 번째": 2, "두번째": 2, "세 번째": 3, "세번째": 3 };
+
+  lines.forEach((line, lineIndex) => {
+    const cleaned = cleanMarkdownLine(line);
+    const methodMatch = cleaned.match(/^(?:수업\s*)?방법\s*([1-3])(?:\s*(?:번|안))?(?:\s*[.)：:\-–—]\s*(.*)|\s*)$/iu);
+    if (methodMatch) {
+      labeledHeadings.push({ line: lineIndex, index: Number(methodMatch[1]), title: cleanMarkdownLine(methodMatch[2] || "") });
+      return;
+    }
+    const ordinalMatch = cleaned.match(/^(첫\s*번째|첫번째|두\s*번째|두번째|세\s*번째|세번째)\s*(?:수업\s*)?방법(?:\s*[.)：:\-–—]\s*(.*)|\s*)$/u);
+    if (ordinalMatch) {
+      labeledHeadings.push({ line: lineIndex, index: ordinalIndex[ordinalMatch[1]], title: cleanMarkdownLine(ordinalMatch[2] || "") });
+      return;
+    }
+    const numberMatch = cleaned.match(/^([1-3])\s*[.)：:\-]\s+(.+)$/u);
+    if (numberMatch) numberedHeadings.push({ line: lineIndex, index: Number(numberMatch[1]), title: cleanMarkdownLine(numberMatch[2]) });
+  });
+
+  const numberedIndexes = new Set(numberedHeadings.map((heading) => heading.index));
+  const headings = labeledHeadings.length > 0
+    ? labeledHeadings
+    : numberedIndexes.size === 3 ? numberedHeadings : [];
+  const uniqueHeadings = headings
+    .filter((heading, index, all) => all.findIndex((candidate) => candidate.index === heading.index) === index)
+    .sort((a, b) => a.line - b.line);
+
+  return uniqueHeadings.map((heading, position) => {
+    const nextLine = uniqueHeadings[position + 1]?.line ?? lines.length;
+    const blockLines = lines.slice(heading.line + 1, nextLine).map(cleanMarkdownLine).filter(Boolean);
+    const nameLine = blockLines.find((line) => /^(?:방법\s*이름|방법명|제목)\s*[：:\-]/u.test(line));
+    const name = (heading.title || nameLine?.replace(/^(?:방법\s*이름|방법명|제목)\s*[：:\-]\s*/u, "") || `방법 ${heading.index}`)
+      .replace(/^(?:방법\s*이름|방법명|제목)\s*[：:\-]\s*/u, "")
+      .trim();
+
+    const activityStart = blockLines.findIndex((line) => /^(?:핵심\s*)?학생\s*활동(?:\s*[：:\-]|$)/u.test(line));
+    let activity = "";
+    if (activityStart >= 0) {
+      const firstLine = blockLines[activityStart].replace(/^(?:핵심\s*)?학생\s*활동\s*[：:\-]?\s*/u, "");
+      const following: string[] = firstLine ? [firstLine] : [];
+      for (const line of blockLines.slice(activityStart + 1)) {
+        if (/^(?:적용할 수업 단계|확인할 학생 반응|예상 시간|시간·부담|교사 검토|준비물|장점|주의점|평가|피드백|방법\s*이름|방법명|제목)\s*[：:\-]/u.test(line)) break;
+        following.push(line.replace(/^\d+\s*[.)]\s*/u, ""));
+        if (following.length >= 3) break;
+      }
+      activity = following.join(" ").trim();
+    }
+
+    if (!activity) {
+      const fallback = blockLines.filter((line) =>
+        !/^(?:방법\s*이름|방법명|제목|적용할 수업 단계|확인할 학생 반응|예상 시간|시간·부담|교사 검토|준비물|장점|주의점|평가|피드백)\s*[：:\-]/u.test(line),
+      );
+      activity = fallback.slice(0, 2).join(" ").trim();
+    }
+
+    return { index: heading.index, name, activity };
+  }).sort((a, b) => a.index - b.index);
+}
+
 export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   const [stage, setStage] = useState<DesignStage>(1);
   const [copyToast, setCopyToast] = useState<string | null>(null);
@@ -24,6 +97,10 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
   const [metaText, setMetaText] = useState("");
   const [metaCopied, setMetaCopied] = useState(false);
   const [gemOpened, setGemOpened] = useState(false);
+  const [classificationState, setClassificationState] = useState<ClassificationState>({
+    kind: "idle",
+    message: "답변을 붙여 넣으면 방법 1·2·3 카드에 자동으로 나눠 넣습니다.",
+  });
 
   useEffect(() => {
     fetch("/meta-prompt.md")
@@ -136,6 +213,31 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
     onChange("finalMethodReason", [selectedName, value && `선택 이유: ${value}`].filter(Boolean).join("\n"));
   };
 
+  const classifyAiResponse = (text: string) => {
+    const parsed = parseAiMethods(text);
+    if (parsed.length === 0) {
+      setClassificationState({ kind: "error", message: "방법 구분을 찾지 못했습니다. 원문은 보존했으니 아래 카드를 직접 작성해 주세요." });
+      return;
+    }
+
+    [1, 2, 3].forEach((index) => {
+      onChange(`method${index}Name`, "");
+      onChange(`method${index}`, "");
+      onChange(`method${index}Activity`, "");
+    });
+    parsed.forEach((method) => {
+      onChange(`method${method.index}Name`, method.name);
+      onChange(`method${method.index}`, method.name);
+      onChange(`method${method.index}Activity`, method.activity);
+    });
+
+    if (parsed.length === 3) {
+      setClassificationState({ kind: "success", message: "세 방법을 자동으로 분류했습니다. 아래 카드에서 내용만 확인해 주세요." });
+    } else {
+      setClassificationState({ kind: "partial", message: `${parsed.length}개 방법을 찾았습니다. 비어 있는 카드는 원문을 보며 보완해 주세요.` });
+    }
+  };
+
   const changeStage = (next: DesignStage) => {
     if (next >= 2) onChange("gemPracticeRequest", requestText);
     if (next >= 3) onChange("conditionPrompt", conditionPrompt);
@@ -236,7 +338,17 @@ export function GemsLab({ data, fromStep1, onChange }: GemsLabProps) {
       {stage === 2 && (
         <DesignPanel number="02" title="세 방법 비교하기" description="AI 답변은 한 번만 붙여 넣고, 방법별 이름과 핵심 학생 활동만 추려 적으세요." workload="원본 1회 · 방법 3개 · 검토 1회">
           <div className="method-review-source">
-            <FormTextArea label="AI 답변 전체 붙여넣기" value={data.aiResponseRaw || ""} onChange={(value) => onChange("aiResponseRaw", value)} placeholder="Gemini가 제안한 답변 전체를 여기에 한 번만 붙여 넣으세요." />
+            <FormTextArea
+              label="AI 답변 전체 붙여넣기 · 자동 분류"
+              value={data.aiResponseRaw || ""}
+              onChange={(value) => onChange("aiResponseRaw", value)}
+              onPaste={classifyAiResponse}
+              placeholder="Gemini가 제안한 답변 전체를 붙여 넣으면 세 방법으로 자동 분류됩니다."
+            />
+            <div className="method-classification-actions">
+              <p className={`method-classification-status ${classificationState.kind}`} role="status" aria-live="polite">{classificationState.message}</p>
+              <button type="button" className="secondary small-button" disabled={!data.aiResponseRaw?.trim()} onClick={() => classifyAiResponse(data.aiResponseRaw || "")}>다시 자동 분류</button>
+            </div>
           </div>
           <div className="ai-method-review-list">
             {[1, 2, 3].map((index) => (
@@ -342,8 +454,8 @@ function CarryField({ label, value, wide = false }: { label: string; value?: str
   return <section className={`carry-field ${wide ? "wide" : ""}`}><span>{label}</span><p>{value || "1차시에 작성된 내용이 없습니다."}</p></section>;
 }
 
-function FormTextArea({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder: string }) {
-  return <label className="design-field"><span>{label}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} /></label>;
+function FormTextArea({ label, value, onChange, onPaste, placeholder }: { label: string; value: string; onChange: (value: string) => void; onPaste?: (text: string) => void; placeholder: string }) {
+  return <label className="design-field"><span>{label}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} onPaste={(event) => { const text = event.clipboardData.getData("text"); if (text && onPaste) onPaste(text); }} placeholder={placeholder} /></label>;
 }
 
 function CheckField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {

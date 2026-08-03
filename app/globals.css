@@ -356,6 +356,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .ai-method-review .design-field textarea { min-height: 76px; }
 .method-review-source { margin-bottom: 16px; padding: 16px; border: 1px solid #b8c9bd; border-radius: 8px; background: #f3f8f4; }
 .method-review-source .design-field textarea { min-height: 132px; }
+.method-classification-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 10px; }
+.method-classification-status { margin: 0; color: var(--muted); font-size: 12px; font-weight: 700; }
+.method-classification-status.success { color: var(--green); }
+.method-classification-status.partial { color: #7a5a09; }
+.method-classification-status.error { color: #8e2f24; }
+.method-classification-actions button { flex: 0 0 auto; }
 .common-review-card { margin-top: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .common-review-card .design-field textarea { min-height: 90px; }
 .condition-option { margin-top: 18px; border: 1px solid #b8c9bd; border-radius: 8px; background: #f7faf8; }
@@ -767,6 +773,8 @@ input:checked + .slider:before { transform: translateX(20px); }
   .lesson-two-panel { padding: 17px; }
   .lesson-two-panel .panel-title { flex-wrap: wrap; }
   .lesson-two-panel .panel-workload { width: max-content; margin-left: 43px; }
+  .method-classification-actions { align-items: stretch; flex-direction: column; }
+  .method-classification-actions button { width: 100%; }
   .lesson-design-panel { min-height: 0; }
   .bonus-mission > summary { grid-template-columns: auto 1fr auto; }
   .bonus-mission > summary > small { display: none; }
