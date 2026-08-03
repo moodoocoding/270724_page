@@ -469,7 +469,7 @@ export function GameLab({ data, onChange, stage: subTab }: GameLabProps) {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    킹수학 게임 더 보기
+                    전체 웹게임 모음집 ↗
                   </a>
                 )}
               </div>
