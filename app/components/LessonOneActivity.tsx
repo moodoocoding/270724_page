@@ -202,13 +202,6 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
         </section>
       )}
 
-      <div className="lesson-one-nav">
-        <button type="button" className="secondary" disabled={stage === 1} onClick={() => goToStage((stage - 1) as LessonStage)}>이전</button>
-        <span>{stage} / {stages.length}</span>
-        {stage < 5
-          ? <button type="button" className="primary" onClick={() => goToStage((stage + 1) as LessonStage)}>다음 단계</button>
-          : <span className="submit-hint">아래에서 저장하거나 제출하세요.</span>}
-      </div>
     </div>
   );
 }
