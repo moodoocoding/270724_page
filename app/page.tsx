@@ -392,67 +392,66 @@ export default function Home() {
           {saveState === "error" && <button type="button" className="save-retry" onClick={() => void save("draft")} disabled={busy}>다시 저장</button>}
           <div className="user-chip">
             <span>{findWorkshopSession(session.classCode)?.className ?? session.className} · {session.school}</span>
-            <strong>{session.participantName}</strong>
+            <strong>{session.participantName} 선생님</strong>
           </div>
-          <button type="button" className="topbar-logout" onClick={leaveClass}>나가기</button>
+          <button type="button" className="secondary small-button" onClick={leaveClass}>나가기</button>
         </div>
       </header>
-      <div className="workspace">
-        <aside className="sidebar">
-          <div className="progress-copy"><span>오늘의 여정</span><strong>{progress}/4 제출</strong></div>
-          <div className="progress-track"><i style={{ width: `${progress * 25}%` }} /></div>
-          <nav aria-label="차시 선택">
-            {([1, 2, 3, 4] as Step[]).map((item) => (
-              <div className={`lesson-nav-group ${step === item ? "active" : ""}`} key={item}>
-                <button aria-current={step === item ? "step" : undefined} className={`lesson-nav-button ${step === item ? "active" : ""}`} onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}>
-                  <span>{String(item).padStart(2, "0")}</span>
-                  <div><strong>{stepMeta[item].short}</strong><small>{submissions[item].status === "submitted" ? "제출 완료" : "작성 중"}</small></div>
-                </button>
-                {step === item && item <= 3 && (
-                  <div className="chapter-bookmarks" role="group" aria-label={`${item}차시 챕터`}>
-                    {activeChapters.map((chapter) => (
-                      <button
-                        type="button"
-                        key={chapter.id}
-                        className={`${activeChapterId === chapter.id ? "active" : ""} ${"optional" in chapter && chapter.optional ? "optional" : ""}`}
-                        aria-current={activeChapterId === chapter.id ? "step" : undefined}
-                        onClick={() => selectChapter(chapter.id)}
-                      >
-                        <span>{chapter.mark}</span>
-                        <strong>{chapter.label}</strong>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+
+      {/* Modern Horizontal Stepper Navigation */}
+      <div className="horizontal-stepper-wrapper">
+        <nav className="horizontal-stepper" aria-label="차시 네비게이션">
+          {([1, 2, 3, 4] as Step[]).map((item) => {
+            const isCompleted = submissions[item].status === "submitted";
+            const isActive = step === item;
+            return (
+              <button
+                key={item}
+                type="button"
+                className={`stepper-btn ${isActive ? "active" : ""} ${isCompleted ? "completed" : ""}`}
+                aria-current={isActive ? "step" : undefined}
+                onClick={() => { setStep(item); setMessage(""); setSaveState("idle"); }}
+              >
+                <span className="step-badge">{isCompleted ? "✓" : item}</span>
+                <div className="stepper-btn-content">
+                  <strong>{item}차시 · {stepMeta[item].short}</strong>
+                  <small>{isCompleted ? "제출 완료" : isActive ? "작성 중" : "미작성"}</small>
+                </div>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Sub-Chapter Pill Switcher Bar */}
+      {step <= 3 && activeChapters.length > 0 && (
+        <div className="subchapter-bar-wrapper">
+          <nav className="subchapter-bar" aria-label={`${step}차시 세부 단계`}>
+            {activeChapters.map((chapter) => (
+              <button
+                type="button"
+                key={chapter.id}
+                className={`subchapter-pill ${activeChapterId === chapter.id ? "active" : ""}`}
+                onClick={() => selectChapter(chapter.id)}
+              >
+                <b>{chapter.mark}</b>
+                <span>{chapter.label}</span>
+              </button>
             ))}
           </nav>
-          <button className="logout" onClick={leaveClass}>나가기</button>
-        </aside>
+        </div>
+      )}
 
-        <section className="work-area">
-          <div className="step-heading">
-            <p>{step}차시</p>
-            <h1>{stepMeta[step].title}</h1>
-            <span>{stepMeta[step].hint}</span>
-          </div>
-
-          {step <= 3 && (
-            <nav className="mobile-chapter-nav" aria-label={`${step}차시 챕터`}>
-              {activeChapters.map((chapter) => (
-                <button
-                  type="button"
-                  key={chapter.id}
-                  className={`${activeChapterId === chapter.id ? "active" : ""} ${"optional" in chapter && chapter.optional ? "optional" : ""}`}
-                  aria-current={activeChapterId === chapter.id ? "step" : undefined}
-                  onClick={() => selectChapter(chapter.id)}
-                >
-                  <span>{chapter.mark}</span>
-                  <strong>{chapter.label}</strong>
-                </button>
-              ))}
-            </nav>
-          )}
+      {/* Centered Spacious Work Area Canvas */}
+      <div className="workspace-centered">
+        <section className="work-area-wide">
+          <header className="step-heading-wide">
+            <div className="step-heading-info">
+              <h1>{step}차시 · {stepMeta[step].title}</h1>
+              <p>{stepMeta[step].hint}</p>
+            </div>
+            <span className="step-heading-badge">전체 진행률 {progress} / 4</span>
+          </header>
 
           {loadingWorkbook ? (
             <section className="workbook-loading" role="status" aria-live="polite">
@@ -472,8 +471,11 @@ export default function Home() {
               }} />}
 
               <footer className="actionbar">
-                <p>{message || (current.status === "submitted" ? "제출 완료 · 수정 후 다시 제출할 수 있어요." : "작성 내용은 자동으로 저장됩니다.")}</p>
-                <button className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
+                <p>{message || (current.status === "submitted" ? "제출 완료 · 언제든 수정 후 다시 제출할 수 있어요." : "작성 내용은 자동으로 저장됩니다.")}</p>
+                <div>
+                  <button type="button" className="secondary compact" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
+                  <button type="button" className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
+                </div>
               </footer>
             </>
           )}
