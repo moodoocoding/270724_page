@@ -187,7 +187,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-one-tabs button strong { min-width: 0; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .lesson-one-tabs button.active { color: var(--ink); background: var(--lime); }
 .lesson-one-tabs button.active span { border-color: var(--ink); background: #fff; }
-.lesson-one-stage { min-height: 510px; padding: 24px 26px; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.lesson-one-stage { min-height: 510px; padding: 24px 26px; border: 1px solid var(--line); border-radius: 8px; background: #f8faf7; }
 .lesson-one-stage-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
 .lesson-one-stage-head > b {
   width: 32px; height: 32px; display: grid; flex: 0 0 auto; place-items: center;
@@ -196,9 +196,29 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-one-stage-head h2 { margin: -2px 0 2px; font-size: 23px; line-height: 1.25; letter-spacing: -.5px; }
 .lesson-one-stage-head p { margin: 0; color: var(--muted); font-size: 14px; }
 .lesson-one-stage label > span, .lesson-textarea > span { display: block; color: #2e3832; font-size: 14px; font-weight: 750; }
+.writing-field-head {
+  min-height: 24px; display: flex !important; align-items: center; justify-content: space-between; gap: 10px;
+}
+.writing-field-head strong { color: #202923; font-size: 14px; font-weight: 780; }
+.writing-field-head em {
+  flex: 0 0 auto; padding: 3px 8px; border-radius: 999px; color: #26310d; background: var(--lime);
+  font-size: 11px; font-style: normal; font-weight: 800; letter-spacing: -.1px;
+}
+.is-filled .writing-field-head em { color: #fff; background: var(--green); }
 .lesson-context-grid { display: grid; grid-template-columns: .8fr 1.15fr 1.4fr; gap: 12px; margin-bottom: 18px; }
-.lesson-one-focus { padding: 20px; border: 1px solid #bdd4c6; border-radius: 7px; background: #f2f8f4; }
-.lesson-one-focus textarea { min-height: 150px; font-size: 16px; }
+.lesson-context-field {
+  min-width: 0; padding: 12px 13px 13px; border: 1px solid #cbd5ce; border-top: 3px solid var(--green);
+  border-radius: 7px; background: #fff; transition: border-color .2s ease, box-shadow .2s ease;
+}
+.lesson-context-field:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(23, 99, 74, .1); }
+.lesson-context-field input { margin-top: 8px; border-color: #b7c1ba; background: #fbfcfa; }
+.lesson-context-field.is-filled { border-top-color: var(--lime); }
+.lesson-one-focus {
+  padding: 20px; border: 2px solid var(--green); border-radius: 8px; background: #fff;
+  box-shadow: inset 5px 0 0 var(--lime), 0 5px 16px rgba(23, 99, 74, .07);
+}
+.lesson-one-focus:focus-within { box-shadow: inset 5px 0 0 var(--lime), 0 0 0 4px rgba(23, 99, 74, .11); }
+.lesson-one-focus textarea { min-height: 150px; border-color: #aebbb2; background: #fbfcfa; font-size: 16px; }
 .lesson-one-focus p { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
 .lesson-one-focus p b { margin-right: 8px; color: var(--green); }
 .fact-check-practice { margin-bottom: 18px; padding-bottom: 8px; border: 1px solid var(--line); border-radius: 7px; background: #fbfcfa; }
@@ -213,7 +233,8 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .lesson-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .lesson-textarea { display: block; margin-top: 12px; }
 .lesson-textarea:first-of-type { margin-top: 0; }
-.lesson-textarea textarea { min-height: 74px; margin-top: 5px; font-size: 13px; }
+.lesson-textarea textarea { min-height: 74px; margin-top: 7px; border-color: #aebbb2; background: #fbfcfa; font-size: 13px; }
+.lesson-textarea:focus-within textarea { border-color: var(--green); background: #fff; }
 .lesson-field-grid .lesson-textarea { margin-top: 0; }
 .lesson-field-grid .lesson-textarea textarea { min-height: 82px; }
 .carry-card { margin-bottom: 18px; padding: 15px 17px; border-left: 4px solid var(--green); background: var(--soft); }
@@ -227,9 +248,11 @@ input:focus, textarea:focus, select:focus { border-color: var(--green); box-shad
 .problem-source-grid > div { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 6px; background: #fafbf9; }
 .problem-source-grid span { color: var(--green); font-size: 11px; font-weight: 800; }
 .problem-source-grid p { max-height: 70px; margin: 5px 0 0; overflow: auto; color: #3c463f; font-size: 12px; }
-.problem-editor { padding: 18px; border: 1px solid #a9cbb8; border-radius: 7px; background: #f2f8f4; }
+.problem-editor { padding: 18px; border: 2px solid var(--green); border-radius: 8px; background: #fff; box-shadow: inset 5px 0 0 var(--lime); }
 .problem-editor > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.problem-editor textarea { min-height: 150px; font-size: 16px; }
+.problem-editor > div > .writing-field-head { flex: 1; justify-content: flex-start; }
+.problem-editor textarea { min-height: 150px; border-color: #aebbb2; background: #fbfcfa; font-size: 16px; }
+.problem-editor:focus-within { box-shadow: inset 5px 0 0 var(--lime), 0 0 0 4px rgba(23, 99, 74, .11); }
 .problem-editor > p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
 .choice-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .choice-list label { min-height: 48px; display: flex; align-items: center; padding: 9px 11px; border: 1px solid var(--line); border-radius: 6px; background: #fff; cursor: pointer; }

@@ -62,13 +62,16 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
         <section className="lesson-one-stage">
           <StageHeader number="A" title="남길 배움" description="활동명 대신, 학생이 이해하고 할 수 있어야 할 일을 한 문장으로 적습니다." />
           <div className="lesson-context-grid">
-            <label><span>학교급·학년</span><input value={data.gradeLevel || ""} onChange={(event) => onChange("gradeLevel", event.target.value)} placeholder="예: 초등학교 6학년" /></label>
-            <label><span>교과·단원</span><input value={data.subjectUnit || ""} onChange={(event) => onChange("subjectUnit", event.target.value)} placeholder="예: 사회 · 지속 가능한 생활" /></label>
-            <label><span>돌아볼 수업 장면</span><input value={data.lessonScene || ""} onChange={(event) => onChange("lessonScene", event.target.value)} placeholder="예: 에너지 절약 방안 제안 수업" /></label>
+            <SingleLineField label="학교급·학년" value={data.gradeLevel || ""} onValue={(value) => onChange("gradeLevel", value)} placeholder="예: 초등학교 6학년" />
+            <SingleLineField label="교과·단원" value={data.subjectUnit || ""} onValue={(value) => onChange("subjectUnit", value)} placeholder="예: 사회 · 지속 가능한 생활" />
+            <SingleLineField label="돌아볼 수업 장면" value={data.lessonScene || ""} onValue={(value) => onChange("lessonScene", value)} placeholder="예: 에너지 절약 방안 제안 수업" />
           </div>
-          <div className="lesson-one-focus">
+          <div className={`lesson-one-focus ${data.learningGoal?.trim() ? "is-filled" : ""}`}>
             <label>
-              <span>이 수업에서 학생이 무엇을 이해하고 할 수 있어야 했나요?</span>
+              <span className="writing-field-head">
+                <strong>이 수업에서 학생이 무엇을 이해하고 할 수 있어야 했나요?</strong>
+                <em>{data.learningGoal?.trim() ? "작성됨" : "핵심 작성"}</em>
+              </span>
               <textarea value={data.learningGoal || ""} onChange={(event) => onChange("learningGoal", event.target.value)} placeholder="학생이 자료를 근거로 두 가지 이상의 방안을 비교하고, 적절한 방안을 선택해 그 이유를 설명한다." />
             </label>
             <p><b>작성 힌트</b> 설명한다 · 비교한다 · 선택한다 · 수정한다 · 적용한다</p>
@@ -149,8 +152,11 @@ export function LessonOneActivity({ data, onChange }: LessonOneActivityProps) {
             <div><span>B · 현재 장면</span><p>{data.observedMissing || data.observedResult || data.observedAction || "—"}</p></div>
             <div><span>C · 확인 기준</span><p>{data.learningEvidence1 || data.learningEvidence2 || "—"}</p></div>
           </div>
-          <div className="problem-editor">
-            <div><strong>내 수업의 문제</strong><button type="button" className="secondary small-button" onClick={buildProblemStatement}>A·B·C로 초안 만들기</button></div>
+          <div className={`problem-editor ${data.problemStatement?.trim() ? "is-filled" : ""}`}>
+            <div>
+              <span className="writing-field-head"><strong>내 수업의 문제</strong><em>{data.problemStatement?.trim() ? "작성됨" : "핵심 작성"}</em></span>
+              <button type="button" className="secondary small-button" onClick={buildProblemStatement}>A·B·C로 초안 만들기</button>
+            </div>
             <textarea value={data.problemStatement || ""} onChange={(event) => onChange("problemStatement", event.target.value)} placeholder="학생은 현재 [B]를 보였지만, [A]를 할 수 있는지는 아직 확인하지 못했다. 다음 수업에서 [C]를 통해 확인할 필요가 있다." />
             <p>해결책을 미리 정하지 않아야 다음 단계에서 여러 수업 방법을 비교할 수 있습니다.</p>
           </div>
@@ -208,8 +214,24 @@ function StageHeader({ number, title, description }: { number: string; title: st
   return <header className="lesson-one-stage-head"><b>{number}</b><div><h2>{title}</h2><p>{description}</p></div></header>;
 }
 
+function SingleLineField({ label, value, onValue, placeholder }: { label: string; value: string; onValue: (value: string) => void; placeholder: string }) {
+  const isFilled = Boolean(value.trim());
+  return (
+    <label className={`lesson-context-field ${isFilled ? "is-filled" : ""}`}>
+      <span className="writing-field-head"><strong>{label}</strong><em>{isFilled ? "작성됨" : "작성"}</em></span>
+      <input value={value} onChange={(event) => onValue(event.target.value)} placeholder={placeholder} />
+    </label>
+  );
+}
+
 function TextArea({ label, value, onValue, placeholder }: { label: string; value: string; onValue: (value: string) => void; placeholder: string }) {
-  return <label className="lesson-textarea"><span>{label}</span><textarea value={value} onChange={(event) => onValue(event.target.value)} placeholder={placeholder} /></label>;
+  const isFilled = Boolean(value.trim());
+  return (
+    <label className={`lesson-textarea ${isFilled ? "is-filled" : ""}`}>
+      <span className="writing-field-head"><strong>{label}</strong><em>{isFilled ? "작성됨" : "작성"}</em></span>
+      <textarea value={value} onChange={(event) => onValue(event.target.value)} placeholder={placeholder} />
+    </label>
+  );
 }
 
 function Checkbox({ label, checked, onToggle }: { label: string; checked: boolean; onToggle: (checked: boolean) => void }) {
