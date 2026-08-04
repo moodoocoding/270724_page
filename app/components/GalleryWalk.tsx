@@ -59,6 +59,7 @@ interface GalleryWalkProps {
 
 export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkProps) {
   const [items, setItems] = useState<GalleryItem[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -73,6 +74,16 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
   const commentReturnFocusRef = useRef<HTMLButtonElement | null>(null);
   const commentCount = items.reduce((total, item) => total + item.comments.length, 0);
   const commentItem = items.find((item) => item.id === commentItemId) ?? null;
+
+  const filteredItems = items.filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return true;
+    const nameMatch = item.name.toLowerCase().includes(query);
+    const titleMatch = (item.contentTitle || "").toLowerCase().includes(query);
+    const schoolMatch = (item.school || "").toLowerCase().includes(query);
+    const methodMatch = (item.method || "").toLowerCase().includes(query);
+    return nameMatch || titleMatch || schoolMatch || methodMatch;
+  });
 
   const loadGallery = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -261,8 +272,37 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
             </div>
           </dl>
         </header>
-        <div className="gallery-grid" aria-label={`예시 작품 1개와 동료 작품 ${items.length}개`}>
-          {[galleryExample, ...items].map((item) => (
+
+        <div className="gallery-filter-bar">
+          <div className="gallery-search-box">
+            <span className="gallery-search-icon">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="이름 또는 작품 제목으로 검색…"
+              aria-label="동료 작품 이름 및 제목 검색"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="gallery-search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="검색어 지우기"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {searchQuery.trim() && (
+            <span className="gallery-search-count">
+              검색 결과 {filteredItems.length}개
+            </span>
+          )}
+        </div>
+
+        <div className="gallery-grid" aria-label={`예시 작품 1개와 동료 작품 ${filteredItems.length}개`}>
+          {[galleryExample, ...filteredItems].map((item) => (
             <article
               key={item.id}
               className={item.isExample ? "gallery-card example" : "gallery-card"}
@@ -329,7 +369,12 @@ export function GalleryWalk({ data, onChange, onReturnToUpload }: GalleryWalkPro
             </button>
           </div>
         )}
-        {!loading && !loadError && !items.length && (
+        {!loading && !loadError && searchQuery.trim() && !filteredItems.length && (
+          <p className="gallery-note">
+            ‘{searchQuery}’ 검색어와 일치하는 동료 작품이 없습니다.
+          </p>
+        )}
+        {!loading && !loadError && !searchQuery.trim() && !items.length && (
           <p className="gallery-note">
             아직 제출된 동료 작품이 없습니다. 제출되면 예시 작품 옆에 나타납니다.
           </p>
