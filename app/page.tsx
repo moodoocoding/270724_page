@@ -42,7 +42,7 @@ type Session = {
 
 const stepMeta = {
   1: { short: "문제 정의", title: "배움에서 수업 문제까지", hint: "남길 배움과 현재 장면을 연결하고, AI가 필요한 이유를 결정합니다." },
-  2: { short: "수업 설계", title: "수업을 어떻게 설계할 것인가?", hint: "1차시 문제를 바탕으로 AI 제안을 검토하고 교사의 최종 설계안을 완성합니다." },
+  2: { short: "수업 설계", title: "이 문제를 어떤 수업 방법으로 해결할까?", hint: "여러 방법을 학생 사고와 실제 수업 조건으로 비교한 뒤 교사가 선택하고 수정합니다." },
   3: { short: "콘텐츠 제작", title: "수업 웹게임 / 콘텐츠 개발 및 탑재", hint: "추천 웹게임을 연구하고, 직접 만든 수업 콘텐츠를 탑재해 테스트합니다." },
   4: { short: "갤러리워크", title: "갤러리워크와 최종 제출", hint: "동료 작품을 둘러보고, 의견을 반영한 최종 결과물을 제출합니다." },
 } as const;
@@ -114,7 +114,11 @@ export default function Home() {
     : step === 3
     ? lessonThreeStage
     : "";
-  const activeChapters = step <= 3 ? chapterMeta[step as 1 | 2 | 3] : [];
+  const activeChapters = step <= 3
+    ? chapterMeta[step as 1 | 2 | 3].filter((chapter) => !(step === 2 && "optional" in chapter && chapter.optional && current.status !== "submitted"))
+    : [];
+  const lessonTwoReady = ["selectedMethodIndex", "selectionReason", "teacherRevision", "contentToBuild"]
+    .every((key) => Boolean(submissions[2].data[key]?.trim()));
 
   function selectChapter(id: string) {
     if (step === 1) setLessonOneStage(id as LessonOneStage);
@@ -502,11 +506,35 @@ export default function Home() {
               }} />}
 
               <footer className="actionbar">
-                <p>{message || (current.status === "submitted" ? "제출 완료 · 언제든 수정 후 다시 제출할 수 있어요." : "작성 내용은 자동으로 저장됩니다.")}</p>
-                <div>
-                  <button type="button" className="secondary compact" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
-                  <button type="button" className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
-                </div>
+                {step === 2 ? (
+                  <>
+                    <p>{message || (lessonTwoStage === 3
+                      ? current.status === "submitted"
+                        ? "2차시 기록 제출 완료 · 수정하면 다시 제출할 수 있습니다."
+                        : "네 항목을 입력하고 저장 상태를 확인한 뒤 2차시 기록을 제출하세요."
+                      : "작성 내용은 자동으로 저장됩니다. 03 선택·설계하기에서 최종 제출합니다.")}</p>
+                    <div>
+                      {lessonTwoStage === 3 && (
+                        <button
+                          type="button"
+                          className="primary compact"
+                          onClick={() => save("submitted")}
+                          disabled={busy || !lessonTwoReady}
+                        >
+                          {current.status === "submitted" ? "2차시 기록 다시 제출" : "2차시 기록 제출"}
+                        </button>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>{message || (current.status === "submitted" ? "제출 완료 · 언제든 수정 후 다시 제출할 수 있어요." : "작성 내용은 자동으로 저장됩니다.")}</p>
+                    <div>
+                      <button type="button" className="secondary compact" onClick={() => save("draft")} disabled={busy}>임시 저장</button>
+                      <button type="button" className="primary compact" onClick={() => save("submitted")} disabled={busy}>{current.status === "submitted" ? "다시 제출" : "제출하기"}</button>
+                    </div>
+                  </>
+                )}
               </footer>
             </>
           )}

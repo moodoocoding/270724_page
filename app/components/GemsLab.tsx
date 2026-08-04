@@ -9,16 +9,32 @@ interface GemsLabProps {
 }
 
 export type DesignStage = 0 | 1 | 2 | 3;
-type ParsedMethod = { index: number; name: string; lessonStage: string; activity: string; evidence: string; burden: string };
+type ParsedMethod = { index: number; name: string; activity: string; evidence: string; materials: string; burden: string };
 type ClassificationState = { kind: "idle" | "success" | "partial" | "error"; message: string };
 
 const defaultResponseFormat = [
   "각 방법은 반드시 아래 네 제목을 그대로 사용해 정리해 주세요.",
-  "- 적용할 수업 단계:",
-  "- 학생이 하게 될 활동:",
-  "- 교사가 확인할 학생 반응:",
-  "- 예상 시간·부담:",
+  "- 학생이 하는 사고와 행동:",
+  "- 교사가 확인할 증거:",
+  "- 필요한 자료:",
+  "- 예상 시간과 준비 부담:",
 ].join("\n");
+
+const firstConditionsFallback = "전체 수업 40분 · 교사가 준비한 학교 자료 사용 · 학생용 AI와 개인 기기 미사용";
+const fixedExampleProblem = "여섯 모둠 중 다섯 모둠이 같은 절약 방안을 선택했으며, 학교 자료로 여러 방안을 비교한 기록과 선택 이유는 거의 확인되지 않았다.";
+
+function normalizeLinkedProblem(value = "") {
+  if (/AI(?:의)?\s*첫\s*제안|AI의\s*제안을\s*그대로/u.test(value)) return fixedExampleProblem;
+  return value;
+}
+
+function withoutDiscoveredTime(value = "") {
+  return value
+    .split(/[.。\n]/u)
+    .map((part) => part.trim())
+    .filter((part) => part && !/(?:새\s*활동|핵심\s*활동|학생\s*활동).{0,18}12분|12분.{0,18}(?:새\s*활동|핵심\s*활동|학생\s*활동)/u.test(part))
+    .join(" · ");
+}
 
 function cleanMarkdownLine(value: string) {
   return value
@@ -30,10 +46,10 @@ function cleanMarkdownLine(value: string) {
 }
 
 const methodDetailPatterns = {
-  lessonStage: /^적용할\s*수업\s*단계\s*(?:[：:\-]\s*)?/u,
-  activity: /^(?:(?:핵심\s*)?학생\s*활동|학생이\s*하게\s*될\s*활동)\s*(?:[：:\-]\s*)?/u,
-  evidence: /^(?:교사가\s*)?(?:확인할\s*)?학생(?:의)?\s*반응\s*(?:[：:\-]\s*)?/u,
-  burden: /^(?:예상\s*)?(?:시간\s*(?:·|및|과)\s*부담|시간|준비\s*부담)\s*(?:[：:\-]\s*)?/u,
+  activity: /^(?:학생이\s*하는\s*사고와\s*행동|학생의\s*사고와\s*행동|(?:(?:핵심\s*)?학생\s*활동|학생이\s*하게\s*될\s*활동))\s*(?:[：:\-]\s*)?/u,
+  evidence: /^(?:교사가\s*)?(?:확인할\s*)?(?:증거|학생(?:의)?\s*반응)\s*(?:[：:\-]\s*)?/u,
+  materials: /^(?:필요한\s*자료|준비\s*자료|준비물)\s*(?:[：:\-]\s*)?/u,
+  burden: /^(?:예상\s*)?(?:시간\s*(?:·|및|과)\s*(?:준비\s*)?부담|시간|준비\s*부담)\s*(?:[：:\-]\s*)?/u,
 } as const;
 
 function extractMethodDetail(lines: string[], key: keyof typeof methodDetailPatterns) {
@@ -92,19 +108,19 @@ function parseAiMethods(raw: string): ParsedMethod[] {
       .replace(/^(?:방법\s*이름|방법명|제목)\s*[：:\-]\s*/u, "")
       .trim();
 
-    const lessonStage = extractMethodDetail(blockLines, "lessonStage");
     let activity = extractMethodDetail(blockLines, "activity");
     const evidence = extractMethodDetail(blockLines, "evidence");
+    const materials = extractMethodDetail(blockLines, "materials");
     const burden = extractMethodDetail(blockLines, "burden");
 
     if (!activity) {
       const fallback = blockLines.filter((line) =>
-        !/^(?:방법\s*이름|방법명|제목|적용할 수업 단계|학생이 하게 될 활동|교사가 확인할 학생 반응|확인할 학생 반응|예상 시간|시간·부담|교사 검토|준비물|장점|주의점|평가|피드백)\s*[：:\-]/u.test(line),
+        !/^(?:방법\s*이름|방법명|제목|적용할 수업 단계|학생이 하는 사고와 행동|학생이 하게 될 활동|교사가 확인할 증거|교사가 확인할 학생 반응|확인할 학생 반응|필요한 자료|예상 시간|시간·부담|교사 검토|준비물|장점|주의점|평가|피드백)\s*[：:\-]/u.test(line),
       );
       activity = fallback.slice(0, 2).join(" ").trim();
     }
 
-    return { index: heading.index, name, lessonStage, activity, evidence, burden };
+    return { index: heading.index, name, activity, evidence, materials, burden };
   }).sort((a, b) => a.index - b.index);
 }
 
@@ -117,7 +133,7 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
   const metaReturnFocusRef = useRef<HTMLElement | null>(null);
   const [classificationState, setClassificationState] = useState<ClassificationState>({
     kind: "idle",
-    message: "답변을 붙여 넣으면 세 방법의 적용 단계·학생 활동·학생 반응·시간과 부담을 자동으로 나눕니다.",
+    message: "답변을 붙여 넣으면 세 방법의 학생 사고와 행동·확인할 증거·필요한 자료·시간과 준비 부담을 자동으로 나눕니다.",
   });
 
   useEffect(() => {
@@ -149,10 +165,11 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
   const linkedConditions = fromStep1.actualConditions
     || [fromStep1.teacherJudgment1, fromStep1.teacherJudgment2].filter(Boolean).join(" · ");
   const aiSupport = fromStep1.aiSupport || fromStep1.aiDirection || "";
-  const actualConditions = data.actualConditions || linkedConditions;
+  const linkedProblem = normalizeLinkedProblem(fromStep1.problemStatement || "");
+  const actualConditions = withoutDiscoveredTime(data.actualConditions || linkedConditions) || firstConditionsFallback;
   const buildRequest = (conditions = actualConditions) => [
     `나는 ${context || "[1차시 수업 맥락]"}을 가르칩니다.`,
-    fromStep1.problemStatement || "[1차시에서 정리한 수업 문제]",
+    linkedProblem || "[1차시에서 정리한 수업 문제]",
     "",
     "다음 수업에서 확인할 학생 반응:",
     studentEvidence || "[1차시에서 정한 배움 확인 기준]",
@@ -160,7 +177,11 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
     `AI가 도울 일: ${aiSupport || "서로 다른 수업 방법을 제안하고 비교할 수 있도록 정리합니다."}`,
     `실제 수업 조건: ${conditions || "[수업 시간, 사용할 자료, 학생의 AI 사용 여부 등을 입력하세요.]"}`,
     "",
-    "학생의 사고 과정이 서로 다른 수업 방법 세 가지를 제안해 주세요. 활동 이름이나 모둠 형태만 바꾸지 말아 주세요.",
+    "아래 세 방법을 순서대로 구체화해 주세요.",
+    "1. 학교 자료로 근거 비교",
+    "2. 대안 순위와 선택 이유 설명",
+    "3. 새 조건에서 다시 판단",
+    "활동 이름이나 모둠 형태만 바꾸지 말고 학생의 사고 과정이 실제로 달라지게 해 주세요.",
     defaultResponseFormat,
     "학생이 왜 그렇게 행동했는지는 단정하지 말아 주세요.",
   ].join("\n");
@@ -170,7 +191,10 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
     "앞서 제안한 세 가지 방법을 아래에서 새로 확인한 조건에 맞게 수정해 주세요.",
     `새로 확인한 조건: ${conditions || "[새로 확인한 시간·자료·운영 조건]"}`,
     `반드시 유지할 핵심 배움: ${fromStep1.learningGoal || "[1차시에서 정한 남길 배움]"}`,
-    "각 방법에서 수정된 학생 활동, 유지한 사고 과정, 줄이거나 바꾼 단계, 시간 배분과 교사 준비를 정리해 주세요.",
+    "학교 자료로 비교하고 선택 이유를 설명하는 사고 과정은 유지해 주세요.",
+    "각 방법은 처음과 같은 순서와 이름을 유지하고, 아래 네 항목으로 다시 정리해 주세요.",
+    defaultResponseFormat,
+    "줄이거나 바꾼 단계가 있다면 학생이 하는 사고와 행동 안에 간단히 밝혀 주세요.",
     "추천 순위는 정하지 말아 주세요.",
   ].join("\n");
   const conditionPrompt = buildConditionPrompt();
@@ -249,21 +273,21 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
     [1, 2, 3].forEach((index) => {
       onChange(`method${index}Name`, "");
       onChange(`method${index}`, "");
-      onChange(`method${index}LessonStage`, "");
       onChange(`method${index}Activity`, "");
       onChange(`method${index}Evidence`, "");
+      onChange(`method${index}Materials`, "");
       onChange(`method${index}Burden`, "");
     });
     parsed.forEach((method) => {
       onChange(`method${method.index}Name`, method.name);
       onChange(`method${method.index}`, method.name);
-      onChange(`method${method.index}LessonStage`, method.lessonStage);
       onChange(`method${method.index}Activity`, method.activity);
       onChange(`method${method.index}Evidence`, method.evidence);
+      onChange(`method${method.index}Materials`, method.materials);
       onChange(`method${method.index}Burden`, method.burden);
     });
 
-    const missingDetails = parsed.reduce((total, method) => total + [method.lessonStage, method.activity, method.evidence, method.burden].filter((value) => !value).length, 0);
+    const missingDetails = parsed.reduce((total, method) => total + [method.activity, method.evidence, method.materials, method.burden].filter((value) => !value).length, 0);
     if (parsed.length === 3 && missingDetails === 0) {
       setClassificationState({ kind: "success", message: "세 방법과 네 가지 세부 항목을 모두 자동 분류했습니다. 아래 카드에서 확인만 해 주세요." });
     } else {
@@ -294,12 +318,12 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
         <details className="linked-source-detail">
           <summary>
             <b>1차시 내용 자동 연결됨</b>
-            <span>{fromStep1.problemStatement || "1차시 수업 문제를 작성하면 여기에 자동으로 연결됩니다."}</span>
+            <span>{linkedProblem || "1차시 수업 문제를 작성하면 여기에 자동으로 연결됩니다."}</span>
           </summary>
           <div className="linked-source-body">
             <div className="carry-over-grid">
               <CarryField label="수업 맥락" value={context} />
-              <CarryField label="해결할 수업 문제" value={fromStep1.problemStatement} wide />
+              <CarryField label="해결할 수업 문제" value={linkedProblem} wide />
               <CarryField label="확인할 학생 반응" value={studentEvidence} wide />
               <CarryField label="AI가 도울 부분" value={aiSupport} />
               <CarryField label="실제 수업 조건" value={linkedConditions} />
@@ -311,14 +335,14 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
       )}
 
       {stage === 1 && (
-        <DesignPanel number="01" title="AI에게 요청하기" description="1차시 내용은 이미 연결했습니다. 실제 수업 조건 한 가지만 더해 요청을 완성하세요." workload="핵심 입력 1개">
+        <DesignPanel number="01" title="AI에게 요청하기" description="1차시 내용에 처음부터 알고 있던 수업 조건을 더해 요청을 완성하세요." workload="요청문 만들기">
           <div className="request-layout lesson-design-request">
             <div className="request-form-card">
               <FormTextArea
                 label="실제 수업 조건"
                 value={actualConditions}
                 onChange={updateActualConditions}
-                placeholder="예: 한 차시 40분 · 교사가 준비한 자료 사용 · 학생은 AI를 사용하지 않음"
+                placeholder={firstConditionsFallback}
               />
             </div>
             <aside className="request-preview-card">
@@ -334,7 +358,7 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
       )}
 
       {stage === 2 && (
-        <DesignPanel number="02" title="세 방법 비교하기" description="AI 답변을 붙여 넣으면 방법별 네 항목을 자동으로 나눕니다. 교사는 결과만 확인하세요." workload="자동 분류 · 카드 3개 확인">
+        <DesignPanel number="02" title="세 방법 비교하기" description="AI 답변을 붙여 넣고 학생 사고와 배움의 증거, 자료, 시간과 부담을 같은 기준으로 비교하세요." workload="세 방법 확인">
           <div className="method-review-source">
             <FormTextArea
               label="AI 답변 전체 붙여넣기 · 자동 분류"
@@ -345,7 +369,7 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
             />
             <div className="method-classification-actions">
               <p className={`method-classification-status ${classificationState.kind}`} role="status" aria-live="polite">{classificationState.message}</p>
-              <button type="button" className="secondary small-button" disabled={!data.aiResponseRaw?.trim()} onClick={() => classifyAiResponse(data.aiResponseRaw || "")}>다시 자동 분류</button>
+              <button type="button" className="secondary small-button" disabled={!data.aiResponseRaw?.trim()} onClick={() => classifyAiResponse(data.aiResponseRaw || "")}>세 방법으로 나누기</button>
             </div>
           </div>
           <div className="ai-method-review-list">
@@ -353,32 +377,39 @@ export function GemsLab({ data, fromStep1, onChange, stage }: GemsLabProps) {
               <article className="ai-method-review" key={index}>
                 <header><b>{index}</b><input value={data[`method${index}Name`] || data[`method${index}`] || ""} onChange={(event) => { onChange(`method${index}Name`, event.target.value); onChange(`method${index}`, event.target.value); }} placeholder={`방법 ${index}의 이름`} /></header>
                 <div>
-                  <FormTextArea label="적용할 수업 단계" value={data[`method${index}LessonStage`] || ""} onChange={(value) => onChange(`method${index}LessonStage`, value)} placeholder="자동 분류된 수업 적용 단계를 확인하세요." />
-                  <FormTextArea label="학생이 하게 될 활동" value={data[`method${index}Activity`] || ""} onChange={(value) => onChange(`method${index}Activity`, value)} placeholder="자동 분류된 학생 활동을 확인하세요." />
-                  <FormTextArea label="교사가 확인할 학생 반응" value={data[`method${index}Evidence`] || ""} onChange={(value) => onChange(`method${index}Evidence`, value)} placeholder="자동 분류된 학생의 말·행동·결과물을 확인하세요." />
-                  <FormTextArea label="예상 시간·부담" value={data[`method${index}Burden`] || ""} onChange={(value) => onChange(`method${index}Burden`, value)} placeholder="자동 분류된 시간과 준비 부담을 확인하세요." />
+                  <FormTextArea label="학생이 하는 사고와 행동" value={data[`method${index}Activity`] || ""} onChange={(value) => onChange(`method${index}Activity`, value)} placeholder="학생이 실제로 비교하고 판단하며 설명하는 과정을 확인하세요." />
+                  <FormTextArea label="교사가 확인할 증거" value={data[`method${index}Evidence`] || ""} onChange={(value) => onChange(`method${index}Evidence`, value)} placeholder="학생의 말·행동·기록에서 확인할 증거를 확인하세요." />
+                  <FormTextArea label="필요한 자료" value={data[`method${index}Materials`] || ""} onChange={(value) => onChange(`method${index}Materials`, value)} placeholder="교사가 준비할 자료와 학생이 사용할 자료를 확인하세요." />
+                  <FormTextArea label="예상 시간과 준비 부담" value={data[`method${index}Burden`] || ""} onChange={(value) => onChange(`method${index}Burden`, value)} placeholder="예상 시간과 교사의 준비 부담을 확인하세요." />
                 </div>
               </article>
             ))}
           </div>
 
           <details className="inline-option condition-option">
-            <summary>선택 · 새로 확인한 수업 조건 반영하기</summary>
+            <summary>실제 수업 조건 반영하기</summary>
             <div className="condition-option-body">
               <div className="request-layout lesson-design-request">
                 <div className="request-form-card">
-                  <FormTextArea label="새로 확인한 수업 운영 조건" value={data.newConditions || ""} onChange={(value) => { onChange("newConditions", value); onChange("conditionPrompt", buildConditionPrompt(value)); }} placeholder="예: 활동에 사용할 수 있는 시간은 12분이다." />
+                  <FormTextArea label="새롭게 확인한 실제 수업 조건" value={data.newConditions || ""} onChange={(value) => { onChange("newConditions", value); onChange("conditionPrompt", buildConditionPrompt(value)); }} placeholder="예: 핵심 학생 활동에 사용할 수 있는 시간은 12분이다." />
                 </div>
                 <aside className="request-preview-card">
                   <span>AI에 추가로 입력할 프롬프트</span>
                   <pre>{conditionPrompt}</pre>
                   <div>
-                    <button type="button" className="secondary" onClick={() => { onChange("conditionPrompt", conditionPrompt); void copyText(conditionPrompt, "추가 요청을 복사했습니다."); }}>추가 요청 복사</button>
+                    <button type="button" className="secondary" onClick={() => { onChange("conditionPrompt", conditionPrompt); void copyText(conditionPrompt, "조건 반영 요청을 복사했습니다."); }}>조건 반영 요청 복사</button>
                     <a className="primary" href="https://gemini.google.com/app" target="_blank" rel="noreferrer" onClick={() => onChange("conditionPrompt", conditionPrompt)}>Gemini에서 실행 ↗</a>
                   </div>
                 </aside>
               </div>
-              <FormTextArea label="조건을 반영한 AI 답변" value={data.revisedAiResponse || ""} onChange={(value) => onChange("revisedAiResponse", value)} placeholder="수정된 답변 전체를 한 번만 붙여 넣으세요." />
+              <FormTextArea
+                label="수정된 AI 답변 전체 붙여넣기 · 세 방법 갱신"
+                value={data.revisedAiResponse || ""}
+                onChange={(value) => onChange("revisedAiResponse", value)}
+                onPaste={(text) => classifyAiResponse(text)}
+                placeholder="수정된 답변 전체를 붙여 넣으면 위의 세 방법 카드가 12분형 결과로 갱신됩니다."
+              />
+              <button type="button" className="secondary small-button" disabled={!data.revisedAiResponse?.trim()} onClick={() => classifyAiResponse(data.revisedAiResponse || "")}>수정 결과로 카드 갱신</button>
             </div>
           </details>
         </DesignPanel>
